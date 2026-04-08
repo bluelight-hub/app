@@ -16,8 +16,14 @@ import { useLagekarte } from '../api/use-lagekarte';
 import { DRAW_FEATURE_LIMIT } from '../utils/map-config';
 import { CUSTOM_DRAW_STYLES } from '../drawing/draw-styles';
 import { FreehandMode } from '../drawing/custom-modes/freehand.mode';
+import { CircleMode } from '../drawing/custom-modes/circle.mode';
+import { RectangleMode } from '../drawing/custom-modes/rectangle.mode';
+import { SectorMode } from '../drawing/custom-modes/sector.mode';
+import { GamsMode } from '../drawing/custom-modes/gams.mode';
+import { CustomDirectSelect } from '../drawing/custom-modes/direct-select.mode';
 import type { DrawMode, DrawingStyle } from '../drawing/types';
 import { ensureHatchImage } from '../drawing/hatch-patterns';
+import { toggleSnapEnabled } from '../stores/draw.store';
 
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 
@@ -39,6 +45,10 @@ const DRAW_MODE_MAP: Record<DrawMode, string> = {
   draw_freehand: 'draw_freehand',
   draw_text: 'draw_point',
   osm_mark: 'simple_select',
+  draw_circle: 'draw_circle',
+  draw_rectangle: 'draw_rectangle',
+  draw_sector: 'draw_sector',
+  draw_gams: 'draw_gams',
 };
 
 interface UseDrawControlOptions {
@@ -149,7 +159,12 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       userProperties: true,
       modes: {
         ...MapboxDraw.modes,
+        direct_select: CustomDirectSelect,
         draw_freehand: FreehandMode,
+        draw_circle: CircleMode,
+        draw_rectangle: RectangleMode,
+        draw_sector: SectorMode,
+        draw_gams: GamsMode,
       },
       styles: CUSTOM_DRAW_STYLES,
     });
@@ -189,7 +204,9 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       }
 
       // Aktuellen Stil auf das neue Feature anwenden
-      if (e.features?.length > 0) {
+      // GAMS-Zonen bringen eigene Farben mit → Style-Override überspringen
+      const isGamsMode = drawModeRef.current === 'draw_gams';
+      if (e.features?.length > 0 && !isGamsMode) {
         const featureId = String(e.features[0].id);
         const currentStyle = activeStyleRef.current;
         draw.setFeatureProperty(featureId, 'color', currentStyle.color);
@@ -221,7 +238,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       // Zeichenmodus nach Feature-Erstellung erneut aktivieren (kontinuierliches Zeichnen).
       // Text-Modus ausgenommen: Feature bleibt selektiert für Label-Bearbeitung.
       const currentMode = drawModeRef.current;
-      const continuousModes: DrawMode[] = ['draw_point', 'draw_line_string', 'draw_polygon', 'draw_freehand'];
+      const continuousModes: DrawMode[] = ['draw_point', 'draw_line_string', 'draw_polygon', 'draw_freehand', 'draw_circle', 'draw_rectangle', 'draw_sector'];
       if (continuousModes.includes(currentMode)) {
         const targetMapboxMode = DRAW_MODE_MAP[currentMode];
         setTimeout(() => {
@@ -428,6 +445,12 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       }
 
       const isMeta = e.metaKey || e.ctrlKey;
+
+      // S → Snap-Toggle (nur ohne Modifier)
+      if (e.key === 's' && !isMeta && !e.shiftKey && !e.altKey) {
+        toggleSnapEnabled();
+        return;
+      }
 
       // Escape → Idle-Modus
       if (e.key === 'Escape') {

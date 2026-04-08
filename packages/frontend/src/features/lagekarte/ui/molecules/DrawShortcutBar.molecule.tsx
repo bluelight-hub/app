@@ -8,7 +8,7 @@
 
 import { cn } from '@/shared/ui/cn';
 import { useMemo } from 'react';
-import { PiArrowClockwise, PiArrowCounterClockwise, PiRuler, PiTrash } from 'react-icons/pi';
+import { PiArrowClockwise, PiArrowCounterClockwise, PiMagnet, PiRuler, PiTrash } from 'react-icons/pi';
 import type { DrawMode } from '../../drawing/types';
 import type { FeatureMeasurement } from '../../utils/geo-calculations';
 
@@ -30,6 +30,10 @@ const MODE_HINTS: Partial<Record<DrawMode, string>> = {
   draw_freehand: 'Ziehen zum Zeichnen',
   draw_text: 'Klick zum Platzieren',
   osm_mark: 'Klick auf Objekt zum Markieren',
+  draw_circle: 'Klicken und ziehen für Radius',
+  draw_rectangle: 'Klicken und ziehen für Rechteck',
+  draw_sector: 'Klicken und ziehen für Richtung + Radius',
+  draw_gams: 'Klick + Ziehen für Zone · Nur Klick für Eingabe',
 };
 
 /** Gemeinsame Styles für Aktions-Buttons */
@@ -54,9 +58,13 @@ export interface DrawShortcutBarProps {
   onDeleteSelected: () => void;
   /** Live-Messung während des Zeichnens */
   liveMeasurement?: FeatureMeasurement | null;
+  /** Ob Snapping aktiv ist */
+  snapEnabled: boolean;
+  /** Snapping umschalten */
+  onToggleSnap: () => void;
 }
 
-export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, isDirectSelect, onUndo, onRedo, onDeleteSelected, liveMeasurement }: DrawShortcutBarProps) {
+export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, isDirectSelect, onUndo, onRedo, onDeleteSelected, liveMeasurement, snapEnabled, onToggleSnap }: DrawShortcutBarProps) {
   const hints = useMemo<Hint[]>(() => {
     const isActive = activeMode !== 'idle';
     // Hinweise zeigen wenn ein Werkzeug aktiv ist ODER ein Feature selektiert ist
@@ -98,8 +106,9 @@ export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, is
 
   const hasActions = canUndo || canRedo || hasSelection;
   const showLiveMeasurement = liveMeasurement != null;
+  const showSnapToggle = activeMode !== 'idle' || hasSelection;
 
-  if (hints.length === 0 && !hasActions && !showLiveMeasurement) return null;
+  if (hints.length === 0 && !hasActions && !showLiveMeasurement && !showSnapToggle) return null;
 
   return (
     <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
@@ -134,8 +143,24 @@ export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, is
           </span>
         ))}
 
+        {/* Snap-Toggle */}
+        {showSnapToggle && (
+          <>
+            {(hints.length > 0 || showLiveMeasurement) && <span className="h-3 w-px bg-border-subtle" aria-hidden="true" />}
+            <button
+              type="button"
+              onClick={onToggleSnap}
+              aria-label={snapEnabled ? 'Einrasten deaktivieren (S)' : 'Einrasten aktivieren (S)'}
+              title={snapEnabled ? 'Einrasten aktiv (S)' : 'Einrasten inaktiv (S)'}
+              className={cn(actionButtonBase, snapEnabled ? 'text-action-primary' : 'text-text-muted hover:bg-action-secondary hover:text-text-primary')}
+            >
+              <PiMagnet className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          </>
+        )}
+
         {/* Aktions-Buttons */}
-        {hasActions && hints.length > 0 && <span className="h-3 w-px bg-border-subtle" aria-hidden="true" />}
+        {hasActions && (hints.length > 0 || showSnapToggle) && <span className="h-3 w-px bg-border-subtle" aria-hidden="true" />}
         {hasActions && (
           <span className="flex items-center gap-1">
             {canUndo && (

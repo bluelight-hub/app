@@ -20,6 +20,8 @@ export interface DrawStoreState {
   isDrawToolbarVisible: boolean;
   /** Ist MapboxDraw im Vertex-Bearbeitungsmodus (direct_select) */
   isDirectSelect: boolean;
+  /** Snap an Vertices/Kanten aktiviert */
+  snapEnabled: boolean;
 }
 
 const initialState: DrawStoreState = {
@@ -27,6 +29,7 @@ const initialState: DrawStoreState = {
   selectedFeatureIds: [],
   isDrawToolbarVisible: false,
   isDirectSelect: false,
+  snapEnabled: true,
 };
 
 /**
@@ -81,6 +84,16 @@ export const toggleDrawToolbar = () => {
     isDrawToolbarVisible: !state.isDrawToolbarVisible,
     // Beim Einklappen auf Select-Modus wechseln
     drawMode: !state.isDrawToolbarVisible ? state.drawMode : 'select',
+  }));
+};
+
+/**
+ * Schaltet Snap an Vertices/Kanten um
+ */
+export const toggleSnapEnabled = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    snapEnabled: !state.snapEnabled,
   }));
 };
 

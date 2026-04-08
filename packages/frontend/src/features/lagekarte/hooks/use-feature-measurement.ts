@@ -31,7 +31,7 @@ interface UseFeatureMeasurementReturn {
 }
 
 /** Zeichenmodi in denen Live-Messung sinnvoll ist */
-const LIVE_DRAW_MODES: DrawMode[] = ['draw_polygon', 'draw_line_string', 'draw_freehand'];
+const LIVE_DRAW_MODES: DrawMode[] = ['draw_polygon', 'draw_line_string', 'draw_freehand', 'draw_circle', 'draw_rectangle', 'draw_sector'];
 
 /**
  * Berechnet Messungen für selektierte und aktuell gezeichnete Features.

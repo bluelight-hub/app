@@ -5,7 +5,19 @@
  */
 
 /** Verfügbare Zeichenmodi */
-export type DrawMode = 'idle' | 'select' | 'draw_point' | 'draw_line_string' | 'draw_polygon' | 'draw_freehand' | 'draw_text' | 'osm_mark';
+export type DrawMode =
+  | 'idle'
+  | 'select'
+  | 'draw_point'
+  | 'draw_line_string'
+  | 'draw_polygon'
+  | 'draw_freehand'
+  | 'draw_text'
+  | 'osm_mark'
+  | 'draw_circle'
+  | 'draw_rectangle'
+  | 'draw_sector'
+  | 'draw_gams';
 
 /** Status einer OSM-Markierung */
 export type OsmMarkierungStatus = 'betroffen' | 'gesperrt' | 'evakuiert';
@@ -71,14 +83,33 @@ export interface DrawFeatureProperties {
   /** Beschriftung (für Text-Features) */
   label?: string;
   /** Typ des Features */
-  featureType: 'drawing' | 'osm_marking';
+  featureType: 'drawing' | 'osm_marking' | 'gams_zone';
   /** OSM-Feature-ID (nur für OSM-Markierungen) */
   osmFeatureId?: string;
   /** OSM-Layer-ID (nur für OSM-Markierungen) */
   osmLayerId?: string;
   /** Markierungsstatus (nur für OSM-Markierungen) */
   osmStatus?: OsmMarkierungStatus;
+  /** Shape-Typ für parametrische Formen (Kreis, Rechteck, Sektor) */
+  shapeType?: 'circle' | 'rectangle' | 'sector';
+  /** Mittelpunkt als JSON-String "[lng, lat]" (MapboxDraw erlaubt nur Primitive) */
+  shapeCenter?: string;
+  /** Radius in Metern (für Kreis/Sektor) */
+  shapeRadius?: number;
+  /** Kompasswinkel in Grad (für Sektor) */
+  shapeBearing?: number;
+  /** Öffnungswinkel in Grad (für Sektor) */
+  shapeOpeningAngle?: number;
 }
+
+/** Standard-Radien für GAMS-Zonen in Metern [Rot, Orange, Gelb, Grün] */
+export const GAMS_DEFAULT_RADIEN: [number, number, number, number] = [50, 100, 300, 500];
+
+/** Farbzuordnung für GAMS-Zonen */
+export const GAMS_ZONEN_FARBEN = ['#ef4444', '#f97316', '#eab308', '#22c55e'] as const;
+
+/** Namen der GAMS-Zonen */
+export const GAMS_ZONEN_NAMEN = ['Gefahrenzone (Rot)', 'Absperrbereich (Orange)', 'Warnbereich (Gelb)', 'Äußerer Bereich (Grün)'] as const;
 
 /** Farbzuordnung für OSM-Markierungsstatus */
 export const OSM_MARKING_COLORS: Record<OsmMarkierungStatus, string> = {

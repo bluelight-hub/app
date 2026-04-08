@@ -9,7 +9,7 @@
 
 import { cn } from '@/shared/ui/cn';
 import { useStore } from '@tanstack/react-store';
-import { PiBuildings, PiCursor, PiLineSegment, PiMapPin, PiPencilSimple, PiPolygon, PiScribbleLoop, PiTextT } from 'react-icons/pi';
+import { PiArrowArcRight, PiBuildings, PiCircle, PiCursor, PiLineSegment, PiMapPin, PiPencilSimple, PiPolygon, PiRectangle, PiScribbleLoop, PiTarget, PiTextT } from 'react-icons/pi';
 import type { DrawMode } from '../../drawing/types';
 import { drawStore, toggleDrawToolbar } from '../../stores/draw.store';
 
@@ -27,7 +27,11 @@ const DRAW_MODE_BUTTONS: { mode: DrawMode; icon: React.ComponentType<{ className
   { mode: 'draw_point', icon: PiMapPin, label: 'Punkt zeichnen' },
   { mode: 'draw_line_string', icon: PiLineSegment, label: 'Linie zeichnen' },
   { mode: 'draw_polygon', icon: PiPolygon, label: 'Polygon zeichnen' },
+  { mode: 'draw_circle', icon: PiCircle, label: 'Kreis zeichnen' },
+  { mode: 'draw_rectangle', icon: PiRectangle, label: 'Rechteck zeichnen' },
   { mode: 'draw_freehand', icon: PiScribbleLoop, label: 'Freihand zeichnen' },
+  { mode: 'draw_sector', icon: PiArrowArcRight, label: 'Ausbreitungskegel zeichnen' },
+  { mode: 'draw_gams', icon: PiTarget, label: 'GAMS-Zonen platzieren' },
   { mode: 'draw_text', icon: PiTextT, label: 'Text platzieren' },
   { mode: 'osm_mark', icon: PiBuildings, label: 'OSM-Gebäude markieren' },
 ];

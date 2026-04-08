@@ -6,7 +6,9 @@ import { useDrawControl } from '@/features/lagekarte/hooks/use-draw-control';
 import { useFeatureMeasurement } from '@/features/lagekarte/hooks/use-feature-measurement';
 import { useLagekartePermissions } from '@/features/lagekarte/hooks/use-lagekarte-permissions';
 import { useOsmMarkierung } from '@/features/lagekarte/hooks/use-osm-markierung';
-import { drawStore } from '@/features/lagekarte/stores/draw.store';
+import { useGamsZonen } from '@/features/lagekarte/hooks/use-gams-zonen';
+import { useSnapControl } from '@/features/lagekarte/hooks/use-snap-control';
+import { drawStore, toggleSnapEnabled } from '@/features/lagekarte/stores/draw.store';
 import { DEFAULT_DRAWING_STYLE } from '@/features/lagekarte/drawing/types';
 import type { DrawingStyle, HatchConfig } from '@/features/lagekarte/drawing/types';
 import { DEFAULT_HATCH } from '@/features/lagekarte/drawing/types';
@@ -26,6 +28,7 @@ import { DrawToolbar } from '../../molecules/DrawToolbar.molecule';
 import { DrawShortcutBar } from '../../molecules/DrawShortcutBar.molecule';
 import { DrawStylePanel } from '../../molecules/DrawStylePanel.molecule';
 import { OsmMarkierungPopup } from '../../molecules/OsmMarkierungPopup.molecule';
+import { GamsZonenPanel } from '../../molecules/GamsZonenPanel.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
 import '@/features/lagekarte/detail-providers';
@@ -59,6 +62,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const drawMode = useStore(drawStore, (s) => s.drawMode);
   const selectedFeatureIds = useStore(drawStore, (s) => s.selectedFeatureIds);
   const isDirectSelect = useStore(drawStore, (s) => s.isDirectSelect);
+  const snapEnabled = useStore(drawStore, (s) => s.snapEnabled);
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
@@ -76,6 +80,12 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // OSM-Markierung (nur bei Vektor-Basislayer)
   const isVectorBaseLayer = selectedBaseLayer === 'osm';
   const { handleOsmClick, pendingOsmMark, confirmOsmMark, cancelOsmMark } = useOsmMarkierung({ mapRef, drawRef, isVectorBaseLayer });
+
+  // GAMS-Zonen (konzentrische Gefahrenzonen)
+  const { pendingGamsCenter, confirmiereGamsZonen, abbrechenGamsZonen } = useGamsZonen({ mapRef, drawRef, isMapLoaded, scheduleAutoSave });
+
+  // Node-Snapping
+  useSnapControl({ mapRef, drawRef, isMapLoaded });
 
   // Feature-Messungen (Fläche, Länge, Koordinaten)
   const { selectedMeasurement, liveMeasurement } = useFeatureMeasurement({ mapRef, drawRef, isMapLoaded });
@@ -279,6 +289,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
             <OsmMarkierungPopup pendingMark={pendingOsmMark} onConfirm={confirmOsmMark} onCancel={cancelOsmMark} />
           </Popup>
         )}
+
+        {/* GAMS-Zonen-Konfiguration */}
+        {pendingGamsCenter && (
+          <Popup longitude={pendingGamsCenter[0]} latitude={pendingGamsCenter[1]} onClose={abbrechenGamsZonen} closeOnClick={false} anchor="bottom">
+            <GamsZonenPanel onConfirm={confirmiereGamsZonen} onCancel={abbrechenGamsZonen} />
+          </Popup>
+        )}
       </Map>
 
       {/* Draw-Toolbar */}
@@ -295,6 +312,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
             onRedo={redo}
             onDeleteSelected={deleteSelected}
             liveMeasurement={liveMeasurement}
+            snapEnabled={snapEnabled}
+            onToggleSnap={toggleSnapEnabled}
           />
         </>
       )}
