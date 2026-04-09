@@ -22,3 +22,7 @@ export * from './remove-poi.handler';
 // UpdatePoiPosition Command (AC 4)
 export * from './update-poi-position.command';
 export * from './update-poi-position.handler';
+
+// SaveLagekarteState Command (Issue #638)
+export * from './save-lagekarte-state.command';
+export * from './save-lagekarte-state.handler';

@@ -24,6 +24,7 @@ import { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.event';
 import { PoiAddedEvent } from '@domain/events/poi-added.event';
 import { PoiRemovedEvent } from '@domain/events/poi-removed.event';
 import { PoiPositionUpdatedEvent } from '@domain/events/poi-position-updated.event';
+import { LagekarteStateGeaendertEvent } from '@domain/events/lagekarte-state-geaendert.event';
 
 // User Events
 import { UserCreatedEvent } from '@domain/events/user-created.event';
@@ -233,6 +234,7 @@ export class EventDeserializer {
       ['lagekarte.poi_added', this.deserializePoiAdded.bind(this)],
       ['lagekarte.poi_removed', this.deserializePoiRemoved.bind(this)],
       ['lagekarte.poi_position_updated', this.deserializePoiPositionUpdated.bind(this)],
+      ['lagekarte.state_geaendert', this.deserializeLagekarteStateGeaendert.bind(this)],
 
       // ===== USER EVENTS =====
       ['user.created', this.deserializeUserCreated.bind(this)],
@@ -714,6 +716,27 @@ export class EventDeserializer {
     }
 
     const event = new PoiPositionUpdatedEvent(lagekarteIdResult.value!, poiIdResult.value!, oldCoordinateResult.value!, newCoordinateResult.value!, updatedByResult.value!);
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeLagekarteStateGeaendert(payload: Record<string, unknown>): Result<DomainEvent> {
+    const lagekarteIdResult = LagekarteId.create(payload.lagekarteId as string);
+    if (lagekarteIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid lagekarteId: ${lagekarteIdResult.error}`);
+    }
+
+    const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+    if (einsatzIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid einsatzId: ${einsatzIdResult.error}`);
+    }
+
+    const changedByResult = UserId.create(payload.changedBy as string);
+    if (changedByResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid changedBy: ${changedByResult.error}`);
+    }
+
+    const event = new LagekarteStateGeaendertEvent(lagekarteIdResult.value!, einsatzIdResult.value!, changedByResult.value!);
 
     return Result.ok<DomainEvent>(event);
   }

@@ -2,6 +2,7 @@
 import { GetLagekarteQueryHandler } from '../../get-lagekarte.handler';
 import { GetLagekarteQuery } from '../../get-lagekarte.query';
 import { InMemoryLagekarteRepository } from './in-memory-lagekarte.repository';
+import type { ILagekarteStateRepository } from '@domain/repositories/i-lagekarte-state.repository';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { Poi } from '@domain/entities/poi.entity';
@@ -52,10 +53,16 @@ jest.mock('@paralleldrive/cuid2', () => ({
 (databaseAvailable ? describe : describe.skip)('GetLagekarteQueryHandler - Integration Tests', () => {
   let handler: GetLagekarteQueryHandler;
   let repository: InMemoryLagekarteRepository;
+  let mockStateRepo: ILagekarteStateRepository;
 
   beforeEach(() => {
     repository = new InMemoryLagekarteRepository();
-    handler = new GetLagekarteQueryHandler(repository);
+    mockStateRepo = {
+      findByEinsatzId: jest.fn().mockResolvedValue(null),
+      getState: jest.fn().mockResolvedValue({ type: 'FeatureCollection', features: [] }),
+      updateState: jest.fn(),
+    };
+    handler = new GetLagekarteQueryHandler(repository, mockStateRepo);
   });
 
   afterEach(() => {

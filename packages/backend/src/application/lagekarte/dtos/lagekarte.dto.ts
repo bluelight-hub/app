@@ -46,10 +46,26 @@ export class LagekarteDto {
   pois!: PoiDto[];
 
   @ApiProperty({
+    description: 'GeoJSON FeatureCollection mit Zeichnungsdaten der Lagekarte',
+    example: { type: 'FeatureCollection', features: [] },
+    required: false,
+    nullable: true,
+  })
+  state?: object | null;
+
+  @ApiProperty({
     description: 'Erstellungszeitpunkt der Lagekarte',
     example: '2024-01-15T12:00:00.000Z',
     type: 'string',
     format: 'date-time',
   })
   createdAt!: Date;
+
+  @ApiProperty({
+    description: 'Letzter Aktualisierungszeitpunkt der Lagekarte',
+    example: '2024-01-15T14:30:00.000Z',
+    type: 'string',
+    format: 'date-time',
+  })
+  updatedAt!: Date;
 }

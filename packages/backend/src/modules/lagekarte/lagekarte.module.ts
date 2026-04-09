@@ -5,6 +5,7 @@ import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
+import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { milliseconds } from 'date-fns';
 import { GeocodingController } from './controllers/geocoding.controller';
@@ -15,6 +16,9 @@ import { WarnungenController } from './controllers/warnungen.controller';
 
 import { LagekarteRepository } from './repositories/lagekarte.repository';
 import { PoiRepository } from './repositories/poi.repository';
+import { LagekarteGateway } from './gateways/lagekarte.gateway';
+import { WsJwtAuthGuard } from '@/modules/erinnerung/guards/ws-jwt-auth.guard';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { DwdWarnungenService } from './services/dwd-warnungen.service';
 import { NinaWarnungenService } from './services/nina-warnungen.service';
 import { NinaMapDataService } from './services/nina-map-data.service';
@@ -43,6 +47,12 @@ import { MgrsConverterService } from './services/mgrs-converter.service';
   imports: [
     CqrsModule, // Provides CommandBus/QueryBus for Controllers
     LagekarteApplicationModule, // CQRS Handlers (Command, Query, Event Handlers)
+    JwtModule.registerAsync({
+      inject: [AppConfigService],
+      useFactory: (appConfig: AppConfigService) => ({
+        secret: appConfig.get<string>('JWT_SECRET'),
+      }),
+    }),
     PrismaModule,
     HttpModule.register({
       timeout: 5000,
@@ -68,6 +78,9 @@ import { MgrsConverterService } from './services/mgrs-converter.service';
     NinaMapDataService,
     GeocodingService,
     MgrsConverterService,
+    // WebSocket Gateway für Echtzeit-Kollaboration (Issue #638)
+    LagekarteGateway,
+    WsJwtAuthGuard,
     // DEPRECATED: Alte Repositories nur noch für PoiController (wird in Story 5-2 entfernt)
     LagekarteRepository,
     PoiRepository,
@@ -76,6 +89,8 @@ import { MgrsConverterService } from './services/mgrs-converter.service';
     // Public API: Geocoding/MGRS Services können von anderen Modulen genutzt werden
     GeocodingService,
     MgrsConverterService,
+    // WebSocket Gateway (benötigt von EventAdaptersModule für Echtzeit-Events)
+    LagekarteGateway,
     // DEPRECATED: Alte Repositories werden nicht mehr exportiert (keine neuen Dependencies erlaubt)
     // LagekarteRepository, PoiRepository werden in Story 5-2 entfernt
   ],

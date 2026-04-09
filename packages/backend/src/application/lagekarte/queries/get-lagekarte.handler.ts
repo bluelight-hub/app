@@ -1,12 +1,13 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import type { ILagekarteRepository } from '@domain/repositories';
+import type { ILagekarteStateRepository } from '@domain/repositories/i-lagekarte-state.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { Result } from '@domain/common/result';
 import type { LagekarteDto } from '@application/lagekarte/dtos/lagekarte.dto';
 import { LagekarteMapper } from '@application/lagekarte/mappers/lagekarte.mapper';
 import { GetLagekarteQuery } from './get-lagekarte.query';
-import { LAGEKARTE_REPOSITORY } from '@infrastructure/di-tokens';
+import { LAGEKARTE_REPOSITORY, LAGEKARTE_STATE_REPOSITORY } from '@infrastructure/di-tokens';
 
 /**
  * Handler für GetLagekarteQuery.
@@ -49,6 +50,8 @@ export class GetLagekarteQueryHandler implements IQueryHandler<GetLagekarteQuery
   constructor(
     @Inject(LAGEKARTE_REPOSITORY)
     private readonly lagekarteRepository: ILagekarteRepository,
+    @Inject(LAGEKARTE_STATE_REPOSITORY)
+    private readonly lagekarteStateRepository: ILagekarteStateRepository,
   ) {}
 
   /**
@@ -98,8 +101,11 @@ export class GetLagekarteQueryHandler implements IQueryHandler<GetLagekarteQuery
         return Result.ok(null);
       }
 
-      // Step 4: Map Aggregate to DTO
-      const dto = LagekarteMapper.toDto(aggregate);
+      // Step 4: Load GeoJSON state (separat vom Domain Aggregate)
+      const state = await this.lagekarteStateRepository.getState(query.einsatzId);
+
+      // Step 5: Map Aggregate + State to DTO
+      const dto = LagekarteMapper.toDto(aggregate, state);
 
       return Result.ok(dto);
     } catch (_error) {

@@ -141,7 +141,7 @@ describe('LagekarteMapper', () => {
       // Assert: DTO should NOT have domain events
       expect('getDomainEvents' in dto).toBe(false);
       expect(Object.keys(dto)).not.toContain('domainEvents');
-      expect(Object.keys(dto)).toEqual(['id', 'einsatzId', 'pois', 'createdAt']);
+      expect(Object.keys(dto)).toEqual(['id', 'einsatzId', 'pois', 'state', 'createdAt', 'updatedAt']);
     });
 
     it('should produce consistent output for same aggregate', () => {

@@ -2,7 +2,10 @@ import { MAP_DEFAULTS, getDwdWmsTileUrl } from '@/features/lagekarte/utils/map-c
 import { useMapLayer } from '@/features/lagekarte/hooks/use-map-layer';
 import { useMapDetail } from '@/features/lagekarte/hooks/use-map-detail';
 import { useNinaMapData } from '@/features/lagekarte/api/use-nina-map-data';
+import { useLagekarte } from '@/features/lagekarte/api/use-lagekarte';
+import { useLagekarteWebSocketStatus } from '@/features/lagekarte/api/use-lagekarte-websocket';
 import { useDrawControl } from '@/features/lagekarte/hooks/use-draw-control';
+import { useLagekarteSync, type UseLagekarteSyncReturn } from '@/features/lagekarte/hooks/use-lagekarte-sync';
 import { useFeatureMeasurement } from '@/features/lagekarte/hooks/use-feature-measurement';
 import { useLagekartePermissions } from '@/features/lagekarte/hooks/use-lagekarte-permissions';
 import { useOsmMarkierung } from '@/features/lagekarte/hooks/use-osm-markierung';
@@ -13,8 +16,10 @@ import { DEFAULT_DRAWING_STYLE } from '@/features/lagekarte/drawing/types';
 import type { DrawingStyle, HatchConfig } from '@/features/lagekarte/drawing/types';
 import { DEFAULT_HATCH } from '@/features/lagekarte/drawing/types';
 import { ensureHatchImage, migrateLegacyFillPattern, reregisterHatchImages } from '@/features/lagekarte/drawing/hatch-patterns';
+import { ConnectionStatusBadge } from '../../atoms/ConnectionStatusBadge.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
+import { bbox } from '@turf/turf';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -56,7 +61,15 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const { results, coordinate, panelIndex, isPanelOpen, isLoading: isDetailLoading, handleMapClick, openPanel, navigatePanel, closePanel, clearSelection } = useMapDetail(mapRef);
 
   // Berechtigungen
-  const { canDraw } = useLagekartePermissions();
+  const { canDraw: canDrawPermission } = useLagekartePermissions();
+  // Im Präsentationsmodus darf nicht gezeichnet werden
+  const canDraw = mode !== 'presentation' && canDrawPermission;
+
+  // WebSocket-Verbindungsstatus (global, ohne eigene Verbindung)
+  const wsIsConnected = useLagekarteWebSocketStatus();
+
+  // Polling-Fallback: 5s Polling wenn WebSocket nicht verbunden ist
+  const { data: lagekarteData } = useLagekarte(einsatzId, { refetchInterval: wsIsConnected ? false : 5000 });
 
   // Draw-Store State
   const drawMode = useStore(drawStore, (s) => s.drawMode);
@@ -74,8 +87,31 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     activeStyleRef.current = activeStyle;
   }, [activeStyle]);
 
-  // Draw-Control (Kern-Hook)
-  const { undo, redo, canUndo, canRedo, deleteSelected, setMode, drawRef, scheduleAutoSave } = useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef });
+  // Remote-Apply-Flag für WebSocket-Sync (verhindert Loop in Draw-Event-Handlern)
+  const isRemoteApplyRef = useRef(false);
+
+  // Stabiler sendDelta-Ref: Wird von useDrawControl via Ref gelesen, von useLagekarteSync befüllt.
+  // Löst die zirkuläre Abhängigkeit (drawRef → sync → sendDelta → drawControl).
+  const sendDeltaRef = useRef<UseLagekarteSyncReturn['sendDelta'] | undefined>(undefined);
+
+  // Draw-Control (Kern-Hook) - liest sendDelta nur via Ref in Event-Handlern
+  const { undo, redo, canUndo, canRedo, deleteSelected, setMode, drawRef, scheduleAutoSave } = useDrawControl({
+    mapRef,
+    einsatzId,
+    canDraw,
+    isMapLoaded,
+    activeStyleRef,
+    isRemoteApplyRef,
+    sendDelta: (...args) => sendDeltaRef.current?.(...args),
+  });
+
+  // WebSocket-Sync (koordiniert WS mit Draw-Control, braucht drawRef von oben)
+  const { wsStatus, sendDelta } = useLagekarteSync({ einsatzId, drawRef, isRemoteApplyRef, enabled: mode !== 'presentation' });
+
+  // sendDelta-Ref aktualisieren sobald verfügbar
+  useEffect(() => {
+    sendDeltaRef.current = sendDelta;
+  }, [sendDelta]);
 
   // OSM-Markierung (nur bei Vektor-Basislayer)
   const isVectorBaseLayer = selectedBaseLayer === 'osm';
@@ -135,6 +171,26 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       map.off('style.load', reregister);
     };
   }, [isLoading]);
+
+  // Präsentationsmodus: fitBounds auf alle Features nach Map-Load
+  useEffect(() => {
+    if (mode !== 'presentation' || isLoading || !mapRef.current) return;
+    const features = lagekarteData?.state;
+    if (!features?.features?.length) return;
+
+    try {
+      const [minLng, minLat, maxLng, maxLat] = bbox(features);
+      mapRef.current.fitBounds(
+        [
+          [minLng, minLat],
+          [maxLng, maxLat],
+        ],
+        { padding: 60, duration: 1000 },
+      );
+    } catch {
+      // Ungültige Features — fitBounds überspringen
+    }
+  }, [mode, isLoading, lagekarteData?.state]);
 
   // Label des selektierten Features (lokaler State für sofortige Input-Reaktion)
   const [selectedFeatureLabel, setSelectedFeatureLabel] = useState<string | undefined>(undefined);
@@ -245,6 +301,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         </div>
       )}
 
+      {/* WebSocket-Verbindungsstatus (im Präsentationsmodus nicht anzeigen) */}
+      {mode !== 'presentation' && <ConnectionStatusBadge status={wsStatus} className="absolute right-3 bottom-10 z-20" />}
+
       {/* Loading-Indikator für Feature-Abfrage */}
       {isDetailLoading && (
         <div className="absolute top-4 left-1/2 z-20 -translate-x-1/2">
@@ -252,6 +311,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
             <Spinner type="ring" size="sm" />
             Informationen werden abgefragt…
           </div>
+        </div>
+      )}
+
+      {/* Präsentationsmodus-Label */}
+      {mode === 'presentation' && (
+        <div className="absolute bottom-4 left-4 z-20 rounded-lg border border-border-subtle bg-surface-panel/90 px-3 py-1.5 text-xs text-text-muted shadow-sm backdrop-blur-sm">
+          Präsentationsmodus
         </div>
       )}
 
@@ -329,7 +395,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         measurement={selectedMeasurement}
       />
 
-      <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />
+      {mode !== 'presentation' && <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />}
 
       {/* Detail-Panel (Slide-In von rechts) */}
       <MapDetailPanel results={results} panelIndex={panelIndex} isOpen={isPanelOpen} onClose={closePanel} onNavigate={navigatePanel} />

@@ -80,6 +80,8 @@ export const EVENT_NAMES = {
     POI_REMOVED: 'lagekarte.poi_removed',
     /** Event: POI-Position wurde aktualisiert */
     POI_POSITION_UPDATED: 'lagekarte.poi_position_updated',
+    /** Event: Lagekarte-Zeichnungs-State wurde aktualisiert (Issue #638) */
+    STATE_GEAENDERT: 'lagekarte.state_geaendert',
   },
 
   /**

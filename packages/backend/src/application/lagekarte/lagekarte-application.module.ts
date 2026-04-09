@@ -5,6 +5,7 @@ import { CreateLagekarteCommandHandler } from '@application/lagekarte/commands';
 import { AddPoiCommandHandler } from './commands/add-poi.handler';
 import { RemovePoiCommandHandler } from './commands/remove-poi.handler';
 import { UpdatePoiPositionCommandHandler } from '@application/lagekarte/commands';
+import { SaveLagekarteStateCommandHandler } from './commands/save-lagekarte-state.handler';
 import { GetLagekarteQueryHandler } from '@application/lagekarte/queries';
 import { GetPoisQueryHandler } from './queries/get-pois.handler';
 import { GetLagekarteExistsQueryHandler } from '@application/lagekarte/queries';
@@ -57,6 +58,7 @@ import { LagekarteAutoCreationHandler } from './event-handlers';
     AddPoiCommandHandler,
     RemovePoiCommandHandler,
     UpdatePoiPositionCommandHandler,
+    SaveLagekarteStateCommandHandler, // Issue #638: Lagekarte-State speichern mit Event-Publishing
 
     // Query Handlers (State Reading)
     GetLagekarteQueryHandler,
@@ -83,6 +85,7 @@ import { LagekarteAutoCreationHandler } from './event-handlers';
     AddPoiCommandHandler,
     RemovePoiCommandHandler,
     UpdatePoiPositionCommandHandler,
+    SaveLagekarteStateCommandHandler, // Issue #638
 
     // Query Handlers
     GetLagekarteQueryHandler,

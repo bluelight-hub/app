@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/maplibre';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import type { FeatureCollection } from 'geojson';
+import type { Feature, FeatureCollection } from 'geojson';
 import { useStore } from '@tanstack/react-store';
 import { drawStore, setDirectSelect, setDrawMode, setSelectedFeatures } from '../stores/draw.store';
 import { useSaveLagekarteState } from '../api/use-save-lagekarte-state';
@@ -62,6 +62,10 @@ interface UseDrawControlOptions {
   isMapLoaded: boolean;
   /** Ref auf den aktuellen Zeichenstil (wird auf neue Features angewendet) */
   activeStyleRef: React.RefObject<DrawingStyle>;
+  /** Flag das anzeigt ob gerade ein Remote-Update angewendet wird (WS-Sync) */
+  isRemoteApplyRef?: React.RefObject<boolean>;
+  /** Callback zum Senden von Feature-Deltas über WebSocket */
+  sendDelta?: (type: 'create' | 'update' | 'delete', payload: { features?: GeoJSON.Feature[]; featureIds?: string[] }) => void;
 }
 
 interface UseDrawControlReturn {
@@ -94,7 +98,7 @@ const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
  * @param options - Konfiguration für den Draw-Control
  * @returns API zum Steuern des Zeichenmodus
  */
-export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef }: UseDrawControlOptions): UseDrawControlReturn {
+export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef, isRemoteApplyRef, sendDelta }: UseDrawControlOptions): UseDrawControlReturn {
   const drawRef = useRef<MapboxDraw | null>(null);
   const undoStack = useRef<FeatureCollection[]>([]);
   const redoStack = useRef<FeatureCollection[]>([]);
@@ -102,6 +106,8 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Letzter bekannter State VOR der aktuellen Änderung (für korrektes Undo) */
   const lastKnownStateRef = useRef<FeatureCollection>(EMPTY_FC);
+  /** Flag: Initiale Backend-Daten wurden in MapboxDraw geladen */
+  const initialDataLoadedRef = useRef(false);
 
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
@@ -124,6 +130,12 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
   useEffect(() => {
     drawModeRef.current = drawMode;
   }, [drawMode]);
+
+  // Ref für sendDelta (vermeidet Stale-Closure in Event-Handlern)
+  const sendDeltaRef = useRef(sendDelta);
+  useEffect(() => {
+    sendDeltaRef.current = sendDelta;
+  }, [sendDelta]);
 
   /**
    * Undo/Redo-Stack-Status aktualisieren
@@ -173,11 +185,42 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     map.addControl(draw as any);
     drawRef.current = draw;
 
-    // Initialen State aus Backend laden
+    // Initialen State aus Backend laden (falls API-Daten bereits verfügbar)
     const initialData = initialStateRef.current;
     if (initialData?.features?.length) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       draw.add(initialData as any);
+      initialDataLoadedRef.current = true;
+
+      // Repaint erzwingen: draw.add() rendert Features nicht sofort wenn die
+      // Draw-Sources noch nicht vollständig registriert sind.
+      // draw.set() ersetzt die gesamte FeatureCollection und erzwingt Source-Update.
+      setTimeout(() => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          draw.set(draw.getAll() as any);
+        } catch {
+          // Draw könnte bereits entfernt sein
+        }
+      }, 50);
+
+      // Hatch-Images für geladene Features registrieren (werden beim Erstellen
+      // via ensureHatchImage registriert, fehlen aber nach einem Page-Load)
+      for (const feature of initialData.features) {
+        const props = feature.properties;
+        if (!props?.hatch) continue;
+        try {
+          const hatchConfig = typeof props.hatch === 'string' ? JSON.parse(props.hatch) : props.hatch;
+          if (hatchConfig.type && hatchConfig.type !== 'none') {
+            const fallbackColor = props.color ?? '#000000';
+            ensureHatchImage(map, hatchConfig, fallbackColor);
+          }
+        } catch {
+          // Ungültiges JSON — überspringen
+        }
+      }
+    } else {
+      initialDataLoadedRef.current = false;
     }
 
     // Initialen Snapshot für Undo
@@ -191,6 +234,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleCreate = (e: any) => {
       if (isUndoInProgress.current) return;
+      if (isRemoteApplyRef?.current) return;
 
       // Feature-Limit prüfen
       const allFeatures = draw.getAll();
@@ -235,6 +279,14 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       updateStackState();
       scheduleAutoSave();
 
+      // Delta an andere Clients senden (nach Undo-Snapshot)
+      if (e.features?.[0]) {
+        const createdFeature = draw.get(String(e.features[0].id));
+        if (createdFeature) {
+          sendDeltaRef.current?.('create', { features: [createdFeature as Feature] });
+        }
+      }
+
       // Zeichenmodus nach Feature-Erstellung erneut aktivieren (kontinuierliches Zeichnen).
       // Text-Modus ausgenommen: Feature bleibt selektiert für Label-Bearbeitung.
       const currentMode = drawModeRef.current;
@@ -251,24 +303,38 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       }
     };
 
-    const handleUpdate = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleUpdate = (e: any) => {
       if (isUndoInProgress.current) return;
+      if (isRemoteApplyRef?.current) return;
       undoStack.current.push(lastKnownStateRef.current);
       if (undoStack.current.length > MAX_UNDO_DEPTH) undoStack.current.shift();
       redoStack.current = [];
       lastKnownStateRef.current = draw.getAll() as FeatureCollection;
       updateStackState();
       scheduleAutoSave();
+
+      // Delta an andere Clients senden (nach Undo-Snapshot)
+      if (e.features?.length) {
+        sendDeltaRef.current?.('update', { features: e.features as Feature[] });
+      }
     };
 
-    const handleDelete = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleDelete = (e: any) => {
       if (isUndoInProgress.current) return;
+      if (isRemoteApplyRef?.current) return;
       undoStack.current.push(lastKnownStateRef.current);
       if (undoStack.current.length > MAX_UNDO_DEPTH) undoStack.current.shift();
       redoStack.current = [];
       lastKnownStateRef.current = draw.getAll() as FeatureCollection;
       updateStackState();
       scheduleAutoSave();
+
+      // Delta an andere Clients senden (nach Undo-Snapshot)
+      if (e.features?.length) {
+        sendDeltaRef.current?.('delete', { featureIds: e.features.map((f: { id?: string }) => String(f.id ?? '')) });
+      }
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -318,6 +384,45 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       setCanRedo(false);
     };
   }, [isMapLoaded, canDraw, mapRef, updateStackState, scheduleAutoSave, saveState]);
+
+  // ============================================
+  // Nachträgliches Laden: API-Daten kamen NACH MapboxDraw-Init
+  // (Race Condition: Map lädt schneller als API-Call)
+  // ============================================
+  useEffect(() => {
+    const draw = drawRef.current;
+    if (!draw || initialDataLoadedRef.current) return;
+    if (!lagekarte?.state?.features?.length) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    draw.add(lagekarte.state as any);
+    initialDataLoadedRef.current = true;
+    lastKnownStateRef.current = draw.getAll() as FeatureCollection;
+
+    // Repaint erzwingen: draw.add() allein triggert kein Rendering der Layer
+    try {
+      draw.changeMode('simple_select');
+    } catch {
+      // Draw könnte noch nicht bereit sein
+    }
+
+    // Hatch-Images für nachträglich geladene Features registrieren
+    const map = mapRef.current?.getMap();
+    if (map) {
+      for (const feature of lagekarte.state.features) {
+        const props = feature.properties;
+        if (!props?.hatch) continue;
+        try {
+          const hatchConfig = typeof props.hatch === 'string' ? JSON.parse(props.hatch) : props.hatch;
+          if (hatchConfig.type && hatchConfig.type !== 'none') {
+            const fallbackColor = props.color ?? '#000000';
+            ensureHatchImage(map, hatchConfig, fallbackColor);
+          }
+        } catch {
+          // Ungültiges JSON — überspringen
+        }
+      }
+    }
+  }, [lagekarte?.state, mapRef]);
 
   // ============================================
   // Modus-Synchronisierung: Store → MapboxDraw

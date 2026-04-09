@@ -69,6 +69,7 @@ import { GetLagekarteQueryHandler } from '@/application/lagekarte/queries/get-la
 import { GetPoisQueryHandler } from '@/application/lagekarte/queries/get-pois.handler';
 import { GetLagekarteQuery } from '@/application/lagekarte/queries/get-lagekarte.query';
 import { GetPoisQuery } from '@/application/lagekarte/queries/get-pois.query';
+import { PrismaLagekarteStateAdapter } from '@/infrastructure/lagekarte/lagekarte-state.adapter';
 
 // Generate CUID2-compliant test IDs (20-30 chars, lowercase a-z0-9, starts with letter)
 const generateTestId = () => {
@@ -205,7 +206,8 @@ class SpyEventPublisher implements IEventPublisher {
     addPoiHandler = new AddPoiCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
     removePoiHandler = new RemovePoiCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
     updatePoiPositionHandler = new UpdatePoiPositionCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
-    getLagekarteHandler = new GetLagekarteQueryHandler(lagekarteRepository);
+    const lagekarteStateAdapter = new PrismaLagekarteStateAdapter(prisma as unknown as PrismaService);
+    getLagekarteHandler = new GetLagekarteQueryHandler(lagekarteRepository, lagekarteStateAdapter);
     getPoisHandler = new GetPoisQueryHandler(lagekarteRepository);
   });
 

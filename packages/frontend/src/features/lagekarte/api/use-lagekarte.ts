@@ -17,6 +17,7 @@ const createEmptyFeatureCollection = (): GeoJSON.FeatureCollection => ({
  * Hook zum Laden der Lagekarte für einen Einsatz
  *
  * @param einsatzId - Einsatz-ID
+ * @param options - Optionale Konfiguration (z.B. refetchInterval für Polling-Fallback)
  * @returns TanStack Query Result mit Lagekarte-Daten inkl. GeoJSON-`state`
  *
  * @example
@@ -29,7 +30,7 @@ const createEmptyFeatureCollection = (): GeoJSON.FeatureCollection => ({
  * return <DrawingLayer initialState={data?.state} />;
  * ```
  */
-export const useLagekarte = (einsatzId: string) => {
+export const useLagekarte = (einsatzId: string, options?: { refetchInterval?: number | false }) => {
   return useQuery<LagekarteWithState | null>({
     queryKey: LAGEKARTE_QUERY_KEYS.byEinsatz(einsatzId),
     queryFn: async () => {
@@ -37,13 +38,13 @@ export const useLagekarte = (einsatzId: string) => {
         einsatzId,
       });
 
-      if (!response) {
+      if (!response?.data) {
         return null;
       }
 
       return {
-        ...response,
-        state: (response as LagekarteWithState).state ?? createEmptyFeatureCollection(),
+        ...response.data,
+        state: (response.data.state as GeoJSON.FeatureCollection) ?? createEmptyFeatureCollection(),
       };
     },
     enabled: !!einsatzId,
@@ -56,5 +57,7 @@ export const useLagekarte = (einsatzId: string) => {
     retryDelay: calculateRetryDelay,
     // Refetch on Window Focus (wichtig für kollaboratives Arbeiten)
     refetchOnWindowFocus: true,
+    // Polling-Fallback: nur aktiv wenn WebSocket nicht verbunden ist
+    refetchInterval: options?.refetchInterval ?? false,
   });
 };
