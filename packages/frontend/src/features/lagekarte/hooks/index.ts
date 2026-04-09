@@ -2,6 +2,7 @@ export * from './use-map-layer';
 export * from './use-map-detail';
 export * from './use-lagekarte-permissions';
 export * from './use-draw-control';
+export * from './use-lagekarte-sync';
 export * from './use-osm-markierung';
 export * from './use-feature-measurement';
 export * from './use-gams-zonen';

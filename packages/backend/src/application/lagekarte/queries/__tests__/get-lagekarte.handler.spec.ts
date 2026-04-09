@@ -2,6 +2,7 @@
 import { GetLagekarteQueryHandler } from '../get-lagekarte.handler';
 import { GetLagekarteQuery } from '../get-lagekarte.query';
 import type { ILagekarteRepository } from '@domain/repositories';
+import type { ILagekarteStateRepository } from '@domain/repositories/i-lagekarte-state.repository';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
@@ -36,6 +37,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
 describe('GetLagekarteQueryHandler', () => {
   let handler: GetLagekarteQueryHandler;
   let mockRepo: jest.Mocked<ILagekarteRepository>;
+  let mockStateRepo: jest.Mocked<ILagekarteStateRepository>;
 
   beforeEach(() => {
     // Create mock repository with all required methods
@@ -47,8 +49,14 @@ describe('GetLagekarteQueryHandler', () => {
       // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
-    // Instantiate handler with mock (Direct Instantiation Pattern)
-    handler = new GetLagekarteQueryHandler(mockRepo);
+    mockStateRepo = {
+      findByEinsatzId: jest.fn(),
+      getState: jest.fn().mockResolvedValue({ type: 'FeatureCollection', features: [] }),
+      updateState: jest.fn(),
+    };
+
+    // Instantiate handler with mocks (Direct Instantiation Pattern)
+    handler = new GetLagekarteQueryHandler(mockRepo, mockStateRepo);
   });
 
   afterEach(() => {

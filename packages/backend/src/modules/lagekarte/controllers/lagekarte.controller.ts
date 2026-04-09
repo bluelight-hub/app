@@ -44,7 +44,7 @@ import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
 import { Lagekarte } from '@/generated/prisma/client';
 import { CreateLagekarteDto, AddPoiDto, UpdatePoiPositionDto } from '@/application/lagekarte/dto';
-import { CreateLagekarteCommand, AddPoiCommand, RemovePoiCommand, UpdatePoiPositionCommand } from '@/application/lagekarte/commands';
+import { CreateLagekarteCommand, AddPoiCommand, RemovePoiCommand, UpdatePoiPositionCommand, SaveLagekarteStateCommand } from '@/application/lagekarte/commands';
 import { GetLagekarteQuery, GetPoisQuery } from '@/application/lagekarte/queries';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { LagekarteDto, PoiDto } from '@/application/lagekarte/dtos';
@@ -95,6 +95,7 @@ export class LagekarteController {
   private readonly uploadDir: string;
 
   constructor(
+    private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly configService: ConfigService,
     @Inject(LAGEKARTE_REPOSITORY) readonly _lagekarteRepository: ILagekarteRepository,
@@ -189,17 +190,26 @@ export class LagekarteController {
   ): Promise<Lagekarte> {
     this.logger.log(`Saving Lagekarte state for Einsatz ${einsatzId} by user ${user.userId}`);
 
-    // Get existing Lagekarte using legacy repository (State ist nicht Teil des Domain Models)
+    // CQRS: Delegiert an SaveLagekarteStateCommandHandler (Issue #638)
+    // Handler kümmert sich um Persistierung + Event-Publishing
+    try {
+      await this.commandBus.execute(new SaveLagekarteStateCommand(einsatzId, dto.state, user.userId));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('not found')) {
+        throw new NotFoundException(`Lagekarte for Einsatz ${einsatzId} not found`);
+      }
+      throw error;
+    }
+
+    // Rückgabe: Lagekarte via Legacy Repository laden (für Abwärtskompatibilität)
     const lagekarte = await this.legacyLagekarteRepository.findByEinsatzId(einsatzId);
     if (!lagekarte) {
-      this.logger.error(`Lagekarte not found for Einsatz ${einsatzId}`);
       throw new NotFoundException(`Lagekarte for Einsatz ${einsatzId} not found`);
     }
 
-    // Update state using legacy repository (direkte Prisma-Persistierung)
-    const updated = await this.legacyLagekarteRepository.update(lagekarte.id, dto.state);
     this.logger.log(`Lagekarte ${lagekarte.id} state updated for Einsatz ${einsatzId}`);
-    return updated;
+    return lagekarte;
   }
 
   /**

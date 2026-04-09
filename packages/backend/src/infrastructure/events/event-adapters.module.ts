@@ -40,6 +40,7 @@ import {
   PersonZuEinheitZugewiesenEtbEventAdapter,
   PersonVonEinheitEntferntEtbEventAdapter,
   FahrzeugEinheitZugewiesenEtbEventAdapter,
+  LagekarteStateGeaendertWebsocketEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -53,6 +54,7 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { ErinnerungModule } from '@/modules/erinnerung/erinnerung.module';
 import { BefehlModule } from '@/modules/befehl/befehl.module';
+import { LagekarteModule } from '@/modules/lagekarte/lagekarte.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
 
@@ -112,6 +114,8 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     ErinnerungModule,
     // Befehl Module für WebSocket Gateway (Story 1.3 AC5)
     BefehlModule,
+    // Lagekarte Module für WebSocket Gateway (Issue #638)
+    LagekarteModule,
     // OutboxModule für EventDeserializer (Event Consumer Validation)
     OutboxModule,
     // ResilienceModule für Circuit Breaker (Story 4.3: ETB Event Adapters)
@@ -164,6 +168,7 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     PersonZuEinheitZugewiesenEtbEventAdapter, // Issue #411: PersonZuEinheitZugewiesen ETB-Eintrag
     PersonVonEinheitEntferntEtbEventAdapter, // Issue #411: PersonVonEinheitEntfernt ETB-Eintrag
     FahrzeugEinheitZugewiesenEtbEventAdapter, // Issue #411: FahrzeugEinheitZugewiesen ETB-Eintrag
+    LagekarteStateGeaendertWebsocketEventAdapter, // Issue #638: LagekarteStateGeaendert WebSocket-Broadcast
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

@@ -5,7 +5,8 @@ import { NominatimGeocodingAdapter } from './geocoding/nominatim-geocoding.adapt
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
-import { EINSATZ_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, LAGEKARTE_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, LAGEKARTE_REPOSITORY, LAGEKARTE_STATE_REPOSITORY } from '@infrastructure/di-tokens';
+import { PrismaLagekarteStateAdapter } from './lagekarte/lagekarte-state.adapter';
 import { NestLoggerAdapter } from './common/adapters/nest-logger.adapter';
 
 /**
@@ -79,6 +80,12 @@ import { NestLoggerAdapter } from './common/adapters/nest-logger.adapter';
       provide: LAGEKARTE_REPOSITORY, // Symbol Token
       useClass: PrismaLagekarteRepository, // Konkrete Implementation
     },
+    // Legacy State-Persistierung (Issue #638)
+    PrismaLagekarteStateAdapter,
+    {
+      provide: LAGEKARTE_STATE_REPOSITORY,
+      useExisting: PrismaLagekarteStateAdapter,
+    },
     {
       provide: EINSATZ_REPOSITORY, // Symbol Token (Interface-Name)
       useClass: PrismaEinsatzRepository, // Vollständige Implementation mit Outbox Pattern
@@ -88,6 +95,6 @@ import { NestLoggerAdapter } from './common/adapters/nest-logger.adapter';
       useClass: NominatimGeocodingAdapter, // Konkrete Implementation
     },
   ],
-  exports: [LAGEKARTE_REPOSITORY, EINSATZ_REPOSITORY, 'IGeocodingPort', OUTBOX_REPOSITORY], // Export für andere Module
+  exports: [LAGEKARTE_REPOSITORY, LAGEKARTE_STATE_REPOSITORY, EINSATZ_REPOSITORY, 'IGeocodingPort', OUTBOX_REPOSITORY], // Export für andere Module
 })
 export class LagekarteInfrastructureModule {}

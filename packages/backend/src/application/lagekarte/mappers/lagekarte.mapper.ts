@@ -62,12 +62,14 @@ export class LagekarteMapper {
    * // }
    * ```
    */
-  static toDto(aggregate: LagekarteAggregate): LagekarteDto {
+  static toDto(aggregate: LagekarteAggregate, state?: object | null): LagekarteDto {
     return {
       id: aggregate.id.value,
       einsatzId: aggregate.einsatzId.value,
       pois: aggregate.pois.map(PoiMapper.toDto),
+      state: state ?? null,
       createdAt: aggregate.createdAt,
+      updatedAt: aggregate.updatedAt,
     };
   }
 }

@@ -15,6 +15,7 @@ import type { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.eve
 import type { PoiAddedEvent } from '@domain/events/poi-added.event';
 import type { PoiRemovedEvent } from '@domain/events/poi-removed.event';
 import type { PoiPositionUpdatedEvent } from '@domain/events/poi-position-updated.event';
+import type { LagekarteStateGeaendertEvent } from '@domain/events/lagekarte-state-geaendert.event';
 import type { UserCreatedEvent } from '@domain/events/user-created.event';
 import type { UserDeletedEvent } from '@domain/events/user-deleted.event';
 import type { UserRoleChangedEvent } from '@domain/events/user-role-changed.event';
@@ -224,6 +225,8 @@ export class EventSerializer {
         return this.serializePoiRemoved(event as unknown as PoiRemovedEvent);
       case 'lagekarte.poi_position_updated':
         return this.serializePoiPositionUpdated(event as unknown as PoiPositionUpdatedEvent);
+      case 'lagekarte.state_geaendert':
+        return this.serializeLagekarteStateGeaendert(event as unknown as LagekarteStateGeaendertEvent);
 
       // ===== USER EVENTS =====
       case 'user.created':
@@ -613,6 +616,14 @@ export class EventSerializer {
       oldCoordinate: event.oldCoordinate.value,
       newCoordinate: event.newCoordinate.value,
       updatedBy: event.updatedBy.value,
+    };
+  }
+
+  private serializeLagekarteStateGeaendert(event: LagekarteStateGeaendertEvent): Record<string, unknown> {
+    return {
+      lagekarteId: event.lagekarteId.value,
+      einsatzId: event.einsatzId.value,
+      changedBy: event.changedBy.value,
     };
   }
 
