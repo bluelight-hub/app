@@ -52,7 +52,7 @@ export interface LagekarteStateGeaendertPayload {
  * - `lagekarte:feature.created`: Broadcast neues Feature
  * - `lagekarte:feature.updated`: Broadcast aktualisiertes Feature
  * - `lagekarte:feature.deleted`: Broadcast gelöschtes Feature
- * - `lagekarte:stateGeaendert`: State wurde gespeichert (via Event-Adapter)
+ * - `lagekarte:state.geaendert`: State wurde gespeichert (via Event-Adapter)
  */
 @Injectable()
 @UseGuards(WsJwtAuthGuard)
@@ -140,6 +140,7 @@ export class LagekarteGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     const roomName = this.getRoomName(dto.einsatzId);
     this.server.to(roomName).except(client.id).emit('lagekarte:feature.created', {
+      einsatzId: dto.einsatzId,
       feature: dto.feature,
       timestamp: dto.timestamp,
       senderId: client.data.userId,
@@ -166,6 +167,7 @@ export class LagekarteGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     const roomName = this.getRoomName(dto.einsatzId);
     this.server.to(roomName).except(client.id).emit('lagekarte:feature.updated', {
+      einsatzId: dto.einsatzId,
       features: dto.features,
       timestamp: dto.timestamp,
       senderId: client.data.userId,
@@ -184,6 +186,7 @@ export class LagekarteGateway implements OnGatewayConnection, OnGatewayDisconnec
   handleFeatureDeleted(@MessageBody() dto: SendFeatureDeletedDto, @ConnectedSocket() client: Socket): void {
     const roomName = this.getRoomName(dto.einsatzId);
     this.server.to(roomName).except(client.id).emit('lagekarte:feature.deleted', {
+      einsatzId: dto.einsatzId,
       featureIds: dto.featureIds,
       timestamp: dto.timestamp,
       senderId: client.data.userId,
@@ -192,7 +195,7 @@ export class LagekarteGateway implements OnGatewayConnection, OnGatewayDisconnec
   }
 
   /**
-   * Emittiert `lagekarte:stateGeaendert` Event an alle Clients im Einsatz-Room.
+   * Emittiert `lagekarte:state.geaendert` Event an alle Clients im Einsatz-Room.
    *
    * Wird vom LagekarteStateGeaendertWebsocketEventAdapter aufgerufen,
    * wenn ein LagekarteStateGeaendertEvent empfangen wird.
@@ -201,8 +204,8 @@ export class LagekarteGateway implements OnGatewayConnection, OnGatewayDisconnec
    */
   emitStateGeaendert(payload: LagekarteStateGeaendertPayload): void {
     const roomName = this.getRoomName(payload.einsatzId);
-    this.server.to(roomName).emit('lagekarte:stateGeaendert', payload);
-    this.logger.log(`Emitted lagekarte:stateGeaendert to room ${roomName}: lagekarteId=${payload.lagekarteId}`, 'LagekarteGateway');
+    this.server.to(roomName).emit('lagekarte:state.geaendert', payload);
+    this.logger.log(`Emitted lagekarte:state.geaendert to room ${roomName}: lagekarteId=${payload.lagekarteId}`, 'LagekarteGateway');
   }
 
   /**

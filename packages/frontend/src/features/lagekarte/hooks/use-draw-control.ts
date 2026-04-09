@@ -380,6 +380,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       drawRef.current = null;
       undoStack.current = [];
       redoStack.current = [];
+      initialDataLoadedRef.current = false;
       setCanUndo(false);
       setCanRedo(false);
     };
