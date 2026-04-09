@@ -20,6 +20,7 @@ import { ConnectionStatusBadge } from '../../atoms/ConnectionStatusBadge.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import { bbox } from '@turf/turf';
+import type * as GeoJSON from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -219,6 +220,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       if (!draw) return;
       const map = mapRef.current?.getMap();
 
+      const updatedFeatures: GeoJSON.Feature[] = [];
+
       for (const id of selectedFeatureIds) {
         for (const [key, value] of Object.entries(partial)) {
           if (key === 'hatch') continue;
@@ -239,11 +242,21 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
         const updated = draw.get(id);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (updated) draw.add(updated as any);
+        if (updated) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          draw.add(updated as any);
+          updatedFeatures.push(updated as GeoJSON.Feature);
+        }
       }
+
+      // Style-Änderungen an andere Clients senden
+      if (updatedFeatures.length > 0) {
+        sendDelta('update', { features: updatedFeatures });
+      }
+
       scheduleAutoSave();
     },
-    [activeStyle, selectedFeatureIds, drawRef, mapRef, scheduleAutoSave],
+    [activeStyle, selectedFeatureIds, drawRef, mapRef, scheduleAutoSave, sendDelta],
   );
 
   /** Label ändern und auf selektierte Features anwenden */
@@ -252,12 +265,18 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       setSelectedFeatureLabel(label);
       const draw = drawRef.current;
       if (!draw) return;
+      const updatedFeatures: GeoJSON.Feature[] = [];
       for (const id of selectedFeatureIds) {
         draw.setFeatureProperty(id, 'label', label);
+        const updated = draw.get(id);
+        if (updated) updatedFeatures.push(updated as GeoJSON.Feature);
+      }
+      if (updatedFeatures.length > 0) {
+        sendDelta('update', { features: updatedFeatures });
       }
       scheduleAutoSave();
     },
-    [selectedFeatureIds, drawRef, scheduleAutoSave],
+    [selectedFeatureIds, drawRef, scheduleAutoSave, sendDelta],
   );
 
   /**
