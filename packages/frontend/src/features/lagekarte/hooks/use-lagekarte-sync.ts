@@ -72,6 +72,18 @@ export function useLagekarteSync({ einsatzId, drawRef, isRemoteApplyRef, enabled
       } finally {
         isRemoteApplyRef.current = false;
       }
+      // Repaint erzwingen: draw.add() allein triggert kein stabiles Rendering.
+      // Das Feature landet nur in der HOT-Source und verschwindet beim nächsten
+      // Render-Cycle. draw.set(draw.getAll()) erzwingt ein vollständiges
+      // Source-Update (gleiche Strategie wie beim initialen Laden der Backend-Daten).
+      setTimeout(() => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          draw.set(draw.getAll() as any);
+        } catch {
+          // Draw könnte bereits entfernt sein
+        }
+      }, 50);
     },
     [drawRef, isRemoteApplyRef],
   );
@@ -92,6 +104,18 @@ export function useLagekarteSync({ einsatzId, drawRef, isRemoteApplyRef, enabled
       } finally {
         isRemoteApplyRef.current = false;
       }
+      // Repaint erzwingen: draw.delete() allein triggert kein stabiles Rendering.
+      // Ohne draw.set() bleiben gelöschte Features in den MapLibre-Tiles sichtbar,
+      // bis ein Mode-Change (z.B. Tool-Wechsel) das Rendering anstößt.
+      // (Gleiche Strategie wie in applyRemoteFeature für create/update.)
+      setTimeout(() => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          draw.set(draw.getAll() as any);
+        } catch {
+          // Draw könnte bereits entfernt sein
+        }
+      }, 50);
     },
     [drawRef, isRemoteApplyRef],
   );

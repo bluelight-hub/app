@@ -328,17 +328,12 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
 
   // Timer starten/stoppen basierend auf enabled und erinnerungen
   useEffect(() => {
-    console.info(`[useAlarmTrigger] Effect: enabled=${enabled}, erinnerungen.length=${erinnerungen.length}, einsatzId=${einsatzId}`);
-
     if (!enabled || !erinnerungen.length) {
-      console.warn(`[useAlarmTrigger] Timer NOT started: enabled=${enabled}, count=${erinnerungen.length}`);
       timerService.stop();
       // Story 2.3: Alle Intensification Timer stoppen
       intensificationService.stopAllTimers();
       return;
     }
-
-    console.info(`[useAlarmTrigger] Starting timer with ${erinnerungen.length} erinnerungen`);
 
     // C5 Fix: Timer starten mit Trigger-Callback und einsatzId
     timerService.start(erinnerungen, einsatzId, (erinnerung) => {

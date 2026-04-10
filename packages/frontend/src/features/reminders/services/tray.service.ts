@@ -30,9 +30,7 @@ export class TrayService {
   private static instance: TrayService | null = null;
   private lastBadgeCount = 0;
 
-  private constructor() {
-    logger.info('[TrayService] Initialisiert');
-  }
+  private constructor() {}
 
   /**
    * Gibt die Singleton-Instanz zurück.

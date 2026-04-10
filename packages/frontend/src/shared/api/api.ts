@@ -85,7 +85,7 @@ export const getBaseUrl = (): string => {
       // Server gefunden - Warning-Flag zurücksetzen für nächsten Server-Wechsel
       hasLoggedNoServerWarning = false;
       if (lastLoggedActiveServerKey !== activeServerKey) {
-        logger.debug('Using active server URL', { url: normalizedUrl, serverName: activeServer.name });
+        logger.trace('Using active server URL', { url: normalizedUrl, serverName: activeServer.name });
         lastLoggedActiveServerKey = activeServerKey;
       }
       return normalizedUrl;
@@ -641,7 +641,7 @@ export function getApi(): BackendApi {
   }
 
   // Cache-Miss: Neue Instanz erstellen und cachen
-  logger.debug('Creating new BackendApi instance', {
+  logger.trace('Creating new BackendApi instance', {
     url: currentUrl,
     previousUrl: lastUsedUrl,
     cacheSize: apiCache.size,

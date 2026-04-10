@@ -528,7 +528,7 @@ class NotificationService {
           this.permissionStatus = 'unknown';
       }
 
-      logger.info('Web Notification Permission angefordert:', this.permissionStatus);
+      logger.debug('Web Notification Permission angefordert:', this.permissionStatus);
       return this.permissionStatus;
     } catch (error) {
       logger.error('Fehler beim Anfordern der Web Notification Permission:', error);

@@ -151,7 +151,6 @@ export async function initEtbOfflineStore(): Promise<void> {
     const store = getTauriStore();
 
     if (!store) {
-      console.info('[EtbOfflineStore] Running in Browser Mode (No Persistence)');
       return;
     }
 

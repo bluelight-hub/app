@@ -127,7 +127,7 @@ class NotificationSetupService {
     }
 
     if (!isTauri()) {
-      logger.info('[NotificationSetup] Not in Tauri environment, skipping...');
+      logger.debug('[NotificationSetup] Not in Tauri environment, skipping...');
       this.isInitialized = true;
       return;
     }

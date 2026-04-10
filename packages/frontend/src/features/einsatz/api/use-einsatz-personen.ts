@@ -46,7 +46,7 @@ export const useEinsatzPersonen = (einsatzId: string | null, options?: { enabled
       if (!einsatzId) {
         return [];
       }
-      logger.debug('Fetching EinsatzPersonen', { einsatzId });
+      logger.trace('Fetching EinsatzPersonen', { einsatzId });
       // WrappedResponse: { data: [...], meta: {...} }
       const response = await api.einsatzPersonen().einsatzPersonenControllerFindAllVAlpha({ einsatzId });
       return response.data;

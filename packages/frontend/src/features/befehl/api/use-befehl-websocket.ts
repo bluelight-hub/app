@@ -468,7 +468,7 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
 
     setStatus('connecting');
     const wsUrl = getWsUrl();
-    logger.info('WebSocket: Connecting to', { url: wsUrl, namespace: WS_NAMESPACE, einsatzId });
+    logger.debug('WebSocket: Connecting to', { url: wsUrl, namespace: WS_NAMESPACE, einsatzId });
 
     const socket = io(`${wsUrl}${WS_NAMESPACE}`, {
       transports: ['websocket', 'polling'],
@@ -481,7 +481,7 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
 
     socket.on('connect', () => {
       const currentEinsatzId = currentEinsatzIdRef.current;
-      logger.info('WebSocket: Connected, joining room', { room: `einsatz:${currentEinsatzId}:befehle` });
+      logger.debug('WebSocket: Connected, joining room', { room: `einsatz:${currentEinsatzId}:befehle` });
       setStatus('connected');
       processedEventIdsRef.current.clear();
       socket.emit('join:einsatz', { einsatzId: currentEinsatzId });

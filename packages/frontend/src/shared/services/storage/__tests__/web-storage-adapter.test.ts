@@ -168,16 +168,16 @@ describe('WebStorageAdapter', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle JSON parse errors gracefully', async () => {
-      // Given: Ungültige JSON-Daten im localStorage
-      const key = 'invalid-json-key';
-      mockLocalStorage.data.set(key, 'invalid-json');
+    it('should return raw value for legacy non-JSON entries', async () => {
+      // Given: Legacy-Wert ohne StorageWrapper-Format im localStorage
+      const key = 'legacy-key';
+      mockLocalStorage.data.set(key, 'q2ozrr3g36');
 
       // When: Wert abrufen
       const result = await adapter.getItem(key);
 
-      // Then: Null wird zurückgegeben (statt Exception)
-      expect(result).toBeNull();
+      // Then: Roher Legacy-Wert wird zurückgegeben (Rückwärtskompatibilität)
+      expect(result).toBe('q2ozrr3g36');
     });
 
     it('should handle storage quota exceeded error', async () => {

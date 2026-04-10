@@ -29,6 +29,9 @@ export interface BaseLayerConfig {
  */
 const TOPO_STYLE: StyleSpecification = {
   version: 8,
+  // Glyphs-URL für Symbol-Layer (Text-Labels auf der Lagekarte).
+  // Ohne diese URL crasht MapLibre beim Rendern von text-field Expressions.
+  glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
   sources: {
     topo: {
       type: 'raster',

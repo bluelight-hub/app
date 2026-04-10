@@ -14,7 +14,7 @@ import { drawStore, setDirectSelect, setDrawMode, setSelectedFeatures } from '..
 import { useSaveLagekarteState } from '../api/use-save-lagekarte-state';
 import { useLagekarte } from '../api/use-lagekarte';
 import { DRAW_FEATURE_LIMIT } from '../utils/map-config';
-import { CUSTOM_DRAW_STYLES } from '../drawing/draw-styles';
+import { CUSTOM_DRAW_STYLES, EMPTY_PATTERN_IMAGE } from '../drawing/draw-styles';
 import { FreehandMode } from '../drawing/custom-modes/freehand.mode';
 import { CircleMode } from '../drawing/custom-modes/circle.mode';
 import { RectangleMode } from '../drawing/custom-modes/rectangle.mode';
@@ -117,6 +117,13 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
   const { data: lagekarte } = useLagekarte(einsatzId);
   const { mutate: saveState } = useSaveLagekarteState(einsatzId);
 
+  // Ref für saveState (vermeidet Stale-Closure UND verhindert dass der
+  // Haupt-Effect bei Identitäts-Wechsel von useMutation.mutate neu läuft)
+  const saveStateRef = useRef(saveState);
+  useEffect(() => {
+    saveStateRef.current = saveState;
+  }, [saveState]);
+
   // Referenz auf lagekarte.state für Initialisierung (vermeidet Stale-Closure)
   const initialStateRef = useRef<FeatureCollection | null>(null);
   useEffect(() => {
@@ -153,9 +160,9 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     saveTimerRef.current = setTimeout(() => {
       const draw = drawRef.current;
       if (!draw) return;
-      saveState(draw.getAll() as FeatureCollection);
+      saveStateRef.current(draw.getAll() as FeatureCollection);
     }, AUTO_SAVE_DELAY);
-  }, [saveState]);
+  }, []);
 
   // ============================================
   // MapboxDraw Initialisierung & Cleanup
@@ -165,6 +172,20 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
 
     const map = mapRef.current.getMap();
     if (!map) return;
+
+    // Fallback-Image und styleimagemissing Handler VOR addControl registrieren:
+    // MapboxDraw ruft beim addControl synchron addLayers → Store.render → setData
+    // auf, was MapLibre's Worker triggert. Fehlende Sprite-Images (z.B. "circle-11"
+    // aus dem Base-Style) werden mit styleimagemissing abgefangen.
+    if (!map.hasImage(EMPTY_PATTERN_IMAGE)) {
+      map.addImage(EMPTY_PATTERN_IMAGE, { width: 1, height: 1, data: new Uint8Array(4) });
+    }
+    const handleMissingImage = (e: { id: string }) => {
+      if (!map.hasImage(e.id)) {
+        map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
+      }
+    };
+    map.on('styleimagemissing', handleMissingImage);
 
     const draw = new MapboxDraw({
       displayControlsDefault: false,
@@ -188,6 +209,23 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     // Initialen State aus Backend laden (falls API-Daten bereits verfügbar)
     const initialData = initialStateRef.current;
     if (initialData?.features?.length) {
+      // Hatch-Images VOR draw.add() registrieren — sonst versucht MapLibre
+      // fill-pattern Expressions auf nicht-existierende Sprite-Images aufzulösen,
+      // was den Render-Pfad crasht ("undefined is not an object (evaluating 't[n][0]')").
+      for (const feature of initialData.features) {
+        const props = feature.properties;
+        if (!props?.hatch) continue;
+        try {
+          const hatchConfig = typeof props.hatch === 'string' ? JSON.parse(props.hatch) : props.hatch;
+          if (hatchConfig.type && hatchConfig.type !== 'none') {
+            const fallbackColor = props.color ?? '#000000';
+            ensureHatchImage(map, hatchConfig, fallbackColor);
+          }
+        } catch {
+          // Ungültiges JSON — überspringen
+        }
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       draw.add(initialData as any);
       initialDataLoadedRef.current = true;
@@ -203,22 +241,6 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
           // Draw könnte bereits entfernt sein
         }
       }, 50);
-
-      // Hatch-Images für geladene Features registrieren (werden beim Erstellen
-      // via ensureHatchImage registriert, fehlen aber nach einem Page-Load)
-      for (const feature of initialData.features) {
-        const props = feature.properties;
-        if (!props?.hatch) continue;
-        try {
-          const hatchConfig = typeof props.hatch === 'string' ? JSON.parse(props.hatch) : props.hatch;
-          if (hatchConfig.type && hatchConfig.type !== 'none') {
-            const fallbackColor = props.color ?? '#000000';
-            ensureHatchImage(map, hatchConfig, fallbackColor);
-          }
-        } catch {
-          // Ungültiges JSON — überspringen
-        }
-      }
     } else {
       initialDataLoadedRef.current = false;
     }
@@ -354,12 +376,23 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     map.on('draw.selectionchange', handleSelectionChange);
     map.on('draw.modechange', handleModeChange);
 
+    // MapboxDraw's interne Key-Behandlung für Delete/Backspace blockieren.
+    // Deletion wird ausschließlich über unseren deleteSelected Handler gesteuert
+    // (draw.delete() + Mode-Reset statt draw.trash()).
+    const mapContainer = map.getContainer();
+    const blockDrawKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.stopImmediatePropagation();
+      }
+    };
+    mapContainer.addEventListener('keyup', blockDrawKeyUp, true);
+
     return () => {
       // Ausstehenden Auto-Save sofort ausführen
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current);
         const currentState = draw.getAll() as FeatureCollection;
-        saveState(currentState);
+        saveStateRef.current(currentState);
       }
 
       // Event-Handler entfernen
@@ -368,6 +401,8 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       map.off('draw.delete', handleDelete);
       map.off('draw.selectionchange', handleSelectionChange);
       map.off('draw.modechange', handleModeChange);
+      map.off('styleimagemissing', handleMissingImage);
+      mapContainer.removeEventListener('keyup', blockDrawKeyUp, true);
 
       // Control entfernen
       try {
@@ -384,7 +419,9 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       setCanUndo(false);
       setCanRedo(false);
     };
-  }, [isMapLoaded, canDraw, mapRef, updateStackState, scheduleAutoSave, saveState]);
+    // saveState wird via saveStateRef gelesen (Ref statt Dependency),
+    // damit der Effect nicht bei Identitäts-Wechsel von useMutation.mutate neu läuft.
+  }, [isMapLoaded, canDraw, mapRef, updateStackState, scheduleAutoSave]);
 
   // ============================================
   // Nachträgliches Laden: API-Daten kamen NACH MapboxDraw-Init
@@ -394,19 +431,8 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     const draw = drawRef.current;
     if (!draw || initialDataLoadedRef.current) return;
     if (!lagekarte?.state?.features?.length) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    draw.add(lagekarte.state as any);
-    initialDataLoadedRef.current = true;
-    lastKnownStateRef.current = draw.getAll() as FeatureCollection;
 
-    // Repaint erzwingen: draw.add() allein triggert kein Rendering der Layer
-    try {
-      draw.changeMode('simple_select');
-    } catch {
-      // Draw könnte noch nicht bereit sein
-    }
-
-    // Hatch-Images für nachträglich geladene Features registrieren
+    // Hatch-Images VOR draw.add() registrieren (siehe Kommentar oben)
     const map = mapRef.current?.getMap();
     if (map) {
       for (const feature of lagekarte.state.features) {
@@ -422,6 +448,18 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
           // Ungültiges JSON — überspringen
         }
       }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    draw.add(lagekarte.state as any);
+    initialDataLoadedRef.current = true;
+    lastKnownStateRef.current = draw.getAll() as FeatureCollection;
+
+    // Repaint erzwingen: draw.add() allein triggert kein Rendering der Layer
+    try {
+      draw.changeMode('simple_select');
+    } catch {
+      // Draw könnte noch nicht bereit sein
     }
   }, [lagekarte?.state, mapRef]);
 
@@ -502,6 +540,11 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
 
   /**
    * Ausgewählte Features löschen
+   *
+   * Nuklearer Ansatz: Statt draw.trash() oder draw.delete() (die beide
+   * Timing-Probleme mit MapboxDraw's RAF-basiertem Render haben), wird der
+   * gesamte Draw-State durch draw.set() ersetzt. Das erzwingt einen
+   * vollständigen Source-Update ohne Ghost-Features.
    */
   const deleteSelected = useCallback(() => {
     const draw = drawRef.current;
@@ -515,11 +558,57 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     if (undoStack.current.length > MAX_UNDO_DEPTH) undoStack.current.shift();
     redoStack.current = [];
 
-    draw.trash();
+    // Remaining Features ohne die selektierten berechnen
+    const selectedSet = new Set(selected.map(String));
+    const allFeatures = draw.getAll() as FeatureCollection;
+    const remaining: FeatureCollection = {
+      type: 'FeatureCollection',
+      features: allFeatures.features.filter((f) => !selectedSet.has(String(f.id))),
+    };
+
+    // Nuklear: draw.set() ersetzt den gesamten State und erzwingt Full-Render.
+    // isUndoInProgress verhindert, dass handleCreate/handleDelete den Undo-Stack
+    // doppelt befüllen (draw.set löst intern add/delete Events aus).
+    isUndoInProgress.current = true;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      draw.set(remaining as any);
+    } catch {
+      // Fallback: direkt löschen falls set() fehlschlägt
+      draw.delete(selected);
+    }
+    isUndoInProgress.current = false;
+
+    // MapboxDraw updated Sources per requestAnimationFrame (asynchron).
+    // Bis der RAF feuert, sind die gelöschten Features noch in den MapLibre-Tiles
+    // sichtbar und per queryRenderedFeatures klickbar ("Ghost-Features").
+    // → Sources sofort synchron clearen, damit Klicks auf Ghost-Features unmöglich werden.
+    // Der nächste RAF von draw.set() re-populiert die Sources korrekt.
+    const map = mapRef.current?.getMap();
+    if (map) {
+      try {
+        const emptyFC = { type: 'FeatureCollection' as const, features: [] as Feature[] };
+        const hotSource = map.getSource('mapbox-gl-draw-hot');
+        const coldSource = map.getSource('mapbox-gl-draw-cold');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (hotSource && 'setData' in hotSource) (hotSource as any).setData(emptyFC);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (coldSource && 'setData' in coldSource) (coldSource as any).setData(emptyFC);
+      } catch {
+        // Source könnte noch nicht registriert sein
+      }
+    }
 
     lastKnownStateRef.current = draw.getAll() as FeatureCollection;
+
+    // React-Selection sofort clearen
+    setSelectedFeatures([]);
+
     updateStackState();
     scheduleAutoSave();
+
+    // Delta an andere Clients senden
+    sendDeltaRef.current?.('delete', { featureIds: selected.map(String) });
   }, [updateStackState, scheduleAutoSave]);
 
   // ============================================
@@ -565,7 +654,10 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       }
 
       // Delete / Backspace → Ausgewählte Features löschen
+      // stopPropagation verhindert dass MapboxDraw's interner onKeyUp-Handler
+      // zusätzlich trash() auf bereits gelöschte Features aufruft.
       if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
         deleteSelectedRef.current();
         return;
       }

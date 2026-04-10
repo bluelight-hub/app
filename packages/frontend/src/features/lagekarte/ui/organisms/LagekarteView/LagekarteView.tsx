@@ -16,6 +16,7 @@ import { DEFAULT_DRAWING_STYLE } from '@/features/lagekarte/drawing/types';
 import type { DrawingStyle, HatchConfig } from '@/features/lagekarte/drawing/types';
 import { DEFAULT_HATCH } from '@/features/lagekarte/drawing/types';
 import { ensureHatchImage, migrateLegacyFillPattern, reregisterHatchImages } from '@/features/lagekarte/drawing/hatch-patterns';
+import { EMPTY_PATTERN_IMAGE } from '@/features/lagekarte/drawing/draw-styles';
 import { ConnectionStatusBadge } from '../../atoms/ConnectionStatusBadge.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
@@ -161,15 +162,39 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     }));
   }, [selectedFeatureIds, drawRef]);
 
-  // Schraffurmuster bei Style-Wechsel erneut registrieren (style.load entfernt alle Images)
+  // Permanentes Fallback-Image + Schraffurmuster bei Style-Wechsel registrieren.
+  // fill-pattern Expressions nutzen `coalesce` mit EMPTY_PATTERN_IMAGE als Fallback,
+  // damit die Expression nie `null` zurückgibt (was MapLibre's Fill-Renderer crasht).
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || isLoading) return;
 
-    const reregister = () => reregisterHatchImages(map);
-    map.on('style.load', reregister);
+    /** Registriert das permanente 1×1 transparente Fallback-Image */
+    const ensureEmptyPattern = () => {
+      if (!map.hasImage(EMPTY_PATTERN_IMAGE)) {
+        map.addImage(EMPTY_PATTERN_IMAGE, { width: 1, height: 1, data: new Uint8Array(4) });
+      }
+    };
+
+    // Sofort registrieren + bei jedem Style-Wechsel erneut (style.load entfernt alle Images)
+    ensureEmptyPattern();
+
+    const handleStyleLoad = () => {
+      ensureEmptyPattern();
+      reregisterHatchImages(map);
+    };
+    map.on('style.load', handleStyleLoad);
+
+    const handleMissingImage = (e: { id: string }) => {
+      if (!map.hasImage(e.id)) {
+        map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
+      }
+    };
+    map.on('styleimagemissing', handleMissingImage);
+
     return () => {
-      map.off('style.load', reregister);
+      map.off('style.load', handleStyleLoad);
+      map.off('styleimagemissing', handleMissingImage);
     };
   }, [isLoading]);
 
@@ -352,6 +377,16 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         onClick={handleCombinedClick}
         cursor={getCursor()}
         onLoad={() => setIsLoading(false)}
+        onError={(e) => {
+          // MapLibre feuert Error-Events für fehlende Sprite-Images im Base-Style
+          // (z.B. "circle-11" in OpenFreeMap liberty). Das ist ein MapLibre/Style-Bug,
+          // keine Applikationsfehler. Nur unbekannte Fehler im Debug-Modus loggen.
+          if (import.meta.env.DEV) {
+            const msg = (e as unknown as { error?: Error }).error?.message ?? '';
+            if (msg.includes("reading '0'") || msg.includes("reading '1'")) return;
+            console.debug('[MAP-ERROR]', msg);
+          }
+        }}
         aria-label="Lagekarte"
       >
         <NavigationControl position="top-right" />

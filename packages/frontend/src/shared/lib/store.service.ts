@@ -30,7 +30,7 @@ class BrowserStore implements IStore {
 
   // Specific to BrowserStore, called manually during init
   async load(): Promise<void> {
-    console.log(`[Store] Loading from localStorage: ${this.path}`);
+    // Store-Lade-Log entfernt (Startup-Noise)
     const stored = localStorage.getItem(this.path);
     if (stored) {
       try {
@@ -43,7 +43,7 @@ class BrowserStore implements IStore {
   }
 
   async save(): Promise<void> {
-    console.log(`[Store] Saving to localStorage: ${this.path}`);
+    // Store-Speicher-Log entfernt (hochfrequent)
     const obj = Object.fromEntries(this.data);
     localStorage.setItem(this.path, JSON.stringify(obj));
   }
@@ -94,16 +94,14 @@ export async function initializeStore(storePath = 'app-store.json'): Promise<Sto
   try {
     if (isTauri()) {
       // Tauri v2 Store: load is a static method that returns a Promise<Store>
-      console.log('[Store] Initializing Tauri Store...');
       storeInstance = await Store.load(storePath);
     } else {
-      console.warn('[Store] Running in browser - using localStorage fallback');
       const browserStore = new BrowserStore(storePath);
       await browserStore.load();
       storeInstance = browserStore;
     }
 
-    console.log('[Store] Initialized successfully');
+    // Store-Init-Log entfernt
     return storeInstance as Store;
   } catch (error) {
     console.error('[Store] Initialization failed:', error);

@@ -51,9 +51,10 @@ export class WebStorageAdapter implements IStoragePort {
 
       const parsed = JSON.parse(raw) as StorageWrapper;
       return parsed.data ?? null;
-    } catch (error) {
-      console.error('[WebStorageAdapter] getItem failed:', error);
-      return null;
+    } catch {
+      // Legacy-Wert ohne StorageWrapper-Format (z.B. vor Migration gespeichert)
+      const raw = window.localStorage.getItem(key);
+      return raw ?? null;
     }
   }
 
