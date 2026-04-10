@@ -105,6 +105,7 @@ vi.mock('../../drawing/custom-modes/circle.mode', () => ({ CircleMode: {} }));
 vi.mock('../../drawing/custom-modes/rectangle.mode', () => ({ RectangleMode: {} }));
 vi.mock('../../drawing/custom-modes/sector.mode', () => ({ SectorMode: {} }));
 vi.mock('../../drawing/custom-modes/gams.mode', () => ({ GamsMode: {} }));
+vi.mock('../../drawing/custom-modes/continuous-point.mode', () => ({ ContinuousPointMode: {} }));
 vi.mock('../../drawing/custom-modes/direct-select.mode', () => ({ CustomDirectSelect: {} }));
 vi.mock('../../drawing/hatch-patterns', () => ({
   ensureHatchImage: vi.fn().mockReturnValue('__empty__'),
@@ -271,6 +272,17 @@ describe('useDrawControl', () => {
       });
 
       expect(setDrawMode).toHaveBeenCalledWith('draw_point');
+    });
+
+    it('sollte draw_point auf den internen Continuous-Point-Modus abbilden', async () => {
+      const { useStore } = await import('@tanstack/react-store');
+      vi.mocked(useStore).mockReturnValue('draw_point');
+
+      renderHook(() => useDrawControl(createDefaultOptions()));
+
+      expect(mockDraw.changeMode).toHaveBeenLastCalledWith('draw_continuous_point');
+
+      vi.mocked(useStore).mockReturnValue('idle');
     });
   });
 
@@ -699,6 +711,31 @@ describe('useDrawControl', () => {
   });
 
   describe('Kontinuierliches Zeichnen', () => {
+    it('sollte nach Punkt-Erstellung keinen zusätzlichen Mode-Reentry auslösen', async () => {
+      const { useStore } = await import('@tanstack/react-store');
+      vi.mocked(useStore).mockReturnValue('draw_point');
+
+      const options = createDefaultOptions();
+      mockDraw.get.mockReturnValue({ type: 'Feature', id: 'feat-1', properties: {} });
+
+      renderHook(() => useDrawControl(options));
+      mockDraw.changeMode.mockClear();
+
+      const handleCreate = getMapHandler('draw.create');
+
+      act(() => {
+        handleCreate!({ features: [{ id: 'feat-1' }] });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(0);
+      });
+
+      expect(mockDraw.changeMode).not.toHaveBeenCalled();
+
+      vi.mocked(useStore).mockReturnValue('idle');
+    });
+
     it('sollte nach Feature-Erstellung den Zeichenmodus erneut aktivieren', async () => {
       // drawMode = 'draw_polygon' via useStore Mock
       const { useStore } = await import('@tanstack/react-store');

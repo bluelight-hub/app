@@ -143,7 +143,12 @@ export function useSnapControl({ mapRef, drawRef, isMapLoaded }: UseSnapControlO
       const cursorPixel = { x: e.clientX - rect.left, y: e.clientY - rect.top };
 
       const features = draw.getAll()?.features ?? [];
-      const snap = findSnapPoint(cursorPixel, features, map, 12, excludeIds);
+      let snap: ReturnType<typeof findSnapPoint> = null;
+      try {
+        snap = findSnapPoint(cursorPixel, features, map, 12, excludeIds);
+      } catch {
+        // Ungültige Koordinaten (z.B. leerer Point aus draw_point.onSetup) — ignorieren
+      }
 
       if (snap) {
         updateIndicator(snap.lngLat);

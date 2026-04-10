@@ -7,7 +7,7 @@
  */
 
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { berechneAbstand, erstelleKreis, erstelleSektor } from '../../utils/geo-calculations';
+import { berechneAbstand, berechneBearing, erstelleEllipse, erstelleKreis, erstelleSektor } from '../../utils/geo-calculations';
 
 const defaultDirectSelect = MapboxDraw.modes.direct_select;
 
@@ -31,6 +31,12 @@ CustomDirectSelect.onSetup = function (opts: any) {
     state.shapeRadius = props.shapeRadius ?? 0;
     state.shapeBearing = props.shapeBearing ?? 0;
     state.shapeOpeningAngle = props.shapeOpeningAngle ?? 60;
+  } else if (props.shapeType === 'ellipse' && props.shapeCenter) {
+    state.isParametric = true;
+    state.shapeType = 'ellipse';
+    state.shapeCenter = JSON.parse(props.shapeCenter) as [number, number];
+    state.shapeRadiusX = props.shapeRadiusX ?? 0;
+    state.shapeRadiusY = props.shapeRadiusY ?? 0;
   }
 
   // GAMS-Zonen: Min/Max-Radius aus Nachbar-Zonen berechnen
@@ -74,6 +80,21 @@ CustomDirectSelect.onSetup = function (opts: any) {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 CustomDirectSelect.toDisplayFeatures = function (state: any, geojson: any, push: any) {
+  // Pfeilspitze für Arrow-Features (auch bei Nicht-Parametric)
+  if (geojson.geometry?.type === 'LineString' && geojson.properties?.user_shapeType === 'arrow') {
+    const coords = geojson.geometry.coordinates;
+    if (coords && coords.length >= 2) {
+      const from: [number, number] = coords[coords.length - 2] as [number, number];
+      const to: [number, number] = coords[coords.length - 1] as [number, number];
+      const bearing = berechneBearing(from, to);
+      push({
+        type: 'Feature',
+        properties: { meta: 'arrowhead', parent: geojson.properties.id, arrowBearing: bearing, active: geojson.properties.active },
+        geometry: { type: 'Point', coordinates: to },
+      });
+    }
+  }
+
   if (!state.isParametric || state.featureId !== geojson.properties.id) {
     return defaultDirectSelect.toDisplayFeatures.call(this, state, geojson, push);
   }
@@ -132,6 +153,14 @@ CustomDirectSelect.dragVertex = function (state: any, e: any, delta: any) {
   } else if (state.shapeType === 'sector') {
     const coords = erstelleSektor(center, newRadius, state.shapeBearing, state.shapeOpeningAngle);
     state.feature.incomingCoords(coords);
+  } else if (state.shapeType === 'ellipse') {
+    // Proportionales Scaling: beide Radien skalieren mit demselben Faktor
+    const oldRadius = berechneAbstand(center, state.feature.getCoordinates()[0][0]);
+    const scale = oldRadius > 0 ? newRadius / oldRadius : 1;
+    state.shapeRadiusX = (state.shapeRadiusX ?? 1) * scale;
+    state.shapeRadiusY = (state.shapeRadiusY ?? 1) * scale;
+    const coords = erstelleEllipse(center, state.shapeRadiusX, state.shapeRadiusY);
+    state.feature.incomingCoords(coords);
   }
 };
 
@@ -150,7 +179,12 @@ CustomDirectSelect.onMidpoint = function (state: any, e: any) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 CustomDirectSelect.onTouchEnd = CustomDirectSelect.onMouseUp = function (state: any) {
   if (state.isParametric && state.dragMoving) {
-    state.feature.properties.shapeRadius = state.shapeRadius;
+    if (state.shapeType === 'ellipse') {
+      state.feature.properties.shapeRadiusX = state.shapeRadiusX;
+      state.feature.properties.shapeRadiusY = state.shapeRadiusY;
+    } else {
+      state.feature.properties.shapeRadius = state.shapeRadius;
+    }
   }
   if (state.dragMoving) {
     this.fireUpdate();

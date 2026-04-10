@@ -169,6 +169,18 @@ export function berechneZielpunkt(from: [number, number], distanceMeters: number
 }
 
 /**
+ * Erzeugt eine Ellipse als Polygon.
+ * @param center - [lng, lat]
+ * @param radiusXMeters - Radius in Metern (Horizontalachse)
+ * @param radiusYMeters - Radius in Metern (Vertikalachse)
+ * @param steps - Anzahl der Polygon-Punkte (Standard: 64)
+ */
+export function erstelleEllipse(center: [number, number], radiusXMeters: number, radiusYMeters: number, steps = 64): GeoJSON.Position[][] {
+  const ellipse = turf.ellipse(turf.point(center), radiusXMeters, radiusYMeters, { units: 'meters', steps });
+  return ellipse.geometry.coordinates;
+}
+
+/**
  * Berechnet den Kompasswinkel (Bearing) von einem Punkt zum anderen.
  * @returns Bearing in Grad (0–360)
  */

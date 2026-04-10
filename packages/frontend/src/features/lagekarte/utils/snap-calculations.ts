@@ -91,7 +91,7 @@ export function findSnapPoint(
 
     const coords = extractCoordinates(feature.geometry);
     for (const coord of coords) {
-      if (!coord) continue;
+      if (!coord || coord.length < 2 || !Number.isFinite(coord[0]) || !Number.isFinite(coord[1])) continue;
       const projected = map.project([coord[0], coord[1]]);
       const dist = pixelDistance(cursorPixel, projected);
       if (dist < bestVertexDist) {

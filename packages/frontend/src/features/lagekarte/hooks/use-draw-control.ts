@@ -19,10 +19,15 @@ import { FreehandMode } from '../drawing/custom-modes/freehand.mode';
 import { CircleMode } from '../drawing/custom-modes/circle.mode';
 import { RectangleMode } from '../drawing/custom-modes/rectangle.mode';
 import { SectorMode } from '../drawing/custom-modes/sector.mode';
+import { ArrowMode } from '../drawing/custom-modes/arrow.mode';
+import { EllipseMode } from '../drawing/custom-modes/ellipse.mode';
 import { GamsMode } from '../drawing/custom-modes/gams.mode';
+import { ContinuousPointMode } from '../drawing/custom-modes/continuous-point.mode';
 import { CustomDirectSelect } from '../drawing/custom-modes/direct-select.mode';
+import { CustomSimpleSelect } from '../drawing/custom-modes/simple-select.mode';
 import type { DrawMode, DrawingStyle } from '../drawing/types';
 import { ensureHatchImage } from '../drawing/hatch-patterns';
+import { registerArrowHeadImage } from '../drawing/arrow-head-image';
 import { toggleSnapEnabled } from '../stores/draw.store';
 
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
@@ -39,7 +44,7 @@ const AUTO_SAVE_DELAY = 2000;
 const DRAW_MODE_MAP: Record<DrawMode, string> = {
   idle: 'simple_select',
   select: 'simple_select',
-  draw_point: 'draw_point',
+  draw_point: 'draw_continuous_point',
   draw_line_string: 'draw_line_string',
   draw_polygon: 'draw_polygon',
   draw_freehand: 'draw_freehand',
@@ -48,6 +53,9 @@ const DRAW_MODE_MAP: Record<DrawMode, string> = {
   draw_circle: 'draw_circle',
   draw_rectangle: 'draw_rectangle',
   draw_sector: 'draw_sector',
+  draw_arrow: 'draw_arrow',
+  draw_ellipse: 'draw_ellipse',
+  draw_symbol: 'draw_point',
   draw_gams: 'draw_gams',
 };
 
@@ -66,6 +74,8 @@ interface UseDrawControlOptions {
   isRemoteApplyRef?: React.RefObject<boolean>;
   /** Callback zum Senden von Feature-Deltas über WebSocket */
   sendDelta?: (type: 'create' | 'update' | 'delete', payload: { features?: GeoJSON.Feature[]; featureIds?: string[] }) => void;
+  /** Ref auf das aktuell ausgewählte Symbol für Platzierung */
+  pendingSymbolRef?: React.RefObject<{ id: string; category: string } | null>;
 }
 
 interface UseDrawControlReturn {
@@ -98,7 +108,7 @@ const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
  * @param options - Konfiguration für den Draw-Control
  * @returns API zum Steuern des Zeichenmodus
  */
-export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef, isRemoteApplyRef, sendDelta }: UseDrawControlOptions): UseDrawControlReturn {
+export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef, isRemoteApplyRef, sendDelta, pendingSymbolRef }: UseDrawControlOptions): UseDrawControlReturn {
   const drawRef = useRef<MapboxDraw | null>(null);
   const undoStack = useRef<FeatureCollection[]>([]);
   const redoStack = useRef<FeatureCollection[]>([]);
@@ -180,6 +190,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     if (!map.hasImage(EMPTY_PATTERN_IMAGE)) {
       map.addImage(EMPTY_PATTERN_IMAGE, { width: 1, height: 1, data: new Uint8Array(4) });
     }
+    registerArrowHeadImage(map);
     const handleMissingImage = (e: { id: string }) => {
       if (!map.hasImage(e.id)) {
         map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
@@ -192,11 +203,15 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       userProperties: true,
       modes: {
         ...MapboxDraw.modes,
+        simple_select: CustomSimpleSelect,
         direct_select: CustomDirectSelect,
+        draw_continuous_point: ContinuousPointMode,
         draw_freehand: FreehandMode,
         draw_circle: CircleMode,
         draw_rectangle: RectangleMode,
         draw_sector: SectorMode,
+        draw_arrow: ArrowMode,
+        draw_ellipse: EllipseMode,
         draw_gams: GamsMode,
       },
       styles: CUSTOM_DRAW_STYLES,
@@ -205,6 +220,33 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     map.addControl(draw as any);
     drawRef.current = draw;
+
+    // Workaround: MapboxDraw v1.5.x deferred addLayers() wenn map.loaded() === false.
+    // react-map-gl feuert onLoad (→ isMapLoaded) bei MapLibre's "load"-Event,
+    // aber map.loaded() kann danach noch false sein (Tiles noch nicht fertig geladen).
+    // MapboxDraw's interner Polling-Interval (16ms) erstellt die Sources erst wenn
+    // map.loaded() === true (~2s). Bis dahin verwirft render() alle dirty-States
+    // (render.js Zeile 6-7: "if (!mapExists) return cleanup()"), sodass draw.add()
+    // Features zwar im JS-Store landen, aber nie in die MapLibre-Sources geschrieben werden.
+    // Fix: Sobald die Sources erscheinen, erzwingen wir einen vollständigen Re-Render.
+    const drawSourcesExist = !!map.getSource('mapbox-gl-draw-cold');
+    let waitForSourcesInterval: ReturnType<typeof setInterval> | null = null;
+    if (!drawSourcesExist) {
+      waitForSourcesInterval = setInterval(() => {
+        if (map.getSource('mapbox-gl-draw-cold') && draw.getAll().features.length > 0) {
+          clearInterval(waitForSourcesInterval!);
+          waitForSourcesInterval = null;
+          // Vollständigen Re-Render erzwingen: draw.set() ersetzt die gesamte
+          // FeatureCollection und schreibt direkt in die MapLibre-Sources.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          draw.set(draw.getAll() as any);
+        }
+      }, 100);
+      // Sicherheit: nach 10s aufhören zu pollen
+      setTimeout(() => {
+        if (waitForSourcesInterval) clearInterval(waitForSourcesInterval);
+      }, 10_000);
+    }
 
     // Initialen State aus Backend laden (falls API-Daten bereits verfügbar)
     const initialData = initialStateRef.current;
@@ -270,26 +312,37 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       }
 
       // Aktuellen Stil auf das neue Feature anwenden
-      // GAMS-Zonen bringen eigene Farben mit → Style-Override überspringen
+      // GAMS-Zonen und Symbole bringen eigene Properties mit → Style-Override überspringen
       const isGamsMode = drawModeRef.current === 'draw_gams';
+      const isSymbolMode = drawModeRef.current === 'draw_symbol';
       if (e.features?.length > 0 && !isGamsMode) {
         const featureId = String(e.features[0].id);
-        const currentStyle = activeStyleRef.current;
-        draw.setFeatureProperty(featureId, 'color', currentStyle.color);
-        draw.setFeatureProperty(featureId, 'fillColor', currentStyle.fillColor);
-        draw.setFeatureProperty(featureId, 'strokeWidth', currentStyle.strokeWidth);
-        draw.setFeatureProperty(featureId, 'fillEnabled', currentStyle.fillEnabled);
-        draw.setFeatureProperty(featureId, 'fillOpacity', currentStyle.fillOpacity);
-        draw.setFeatureProperty(featureId, 'hatch', JSON.stringify(currentStyle.hatch));
-        const map = mapRef.current?.getMap();
-        const imageName = ensureHatchImage(map, currentStyle.hatch, currentStyle.color);
-        draw.setFeatureProperty(featureId, 'fillPattern', imageName);
-        draw.setFeatureProperty(featureId, 'featureType', 'drawing');
 
-        // Text-Modus: Standard-Label setzen
-        if (drawModeRef.current === 'draw_text') {
-          draw.setFeatureProperty(featureId, 'label', 'Text');
-          setSelectedFeatures([featureId]);
+        // Symbol-Modus: Nur Symbol-Properties setzen, keine Zeichnungsstile
+        if (isSymbolMode && pendingSymbolRef?.current) {
+          draw.setFeatureProperty(featureId, 'featureType', 'symbol');
+          draw.setFeatureProperty(featureId, 'symbolId', pendingSymbolRef.current.id);
+          draw.setFeatureProperty(featureId, 'symbolCategory', pendingSymbolRef.current.category);
+          pendingSymbolRef.current = null;
+        } else {
+          // Standard-Zeichnungsstile anwenden
+          const currentStyle = activeStyleRef.current;
+          draw.setFeatureProperty(featureId, 'color', currentStyle.color);
+          draw.setFeatureProperty(featureId, 'fillColor', currentStyle.fillColor);
+          draw.setFeatureProperty(featureId, 'strokeWidth', currentStyle.strokeWidth);
+          draw.setFeatureProperty(featureId, 'fillEnabled', currentStyle.fillEnabled);
+          draw.setFeatureProperty(featureId, 'fillOpacity', currentStyle.fillOpacity);
+          draw.setFeatureProperty(featureId, 'hatch', JSON.stringify(currentStyle.hatch));
+          const map = mapRef.current?.getMap();
+          const imageName = ensureHatchImage(map, currentStyle.hatch, currentStyle.color);
+          draw.setFeatureProperty(featureId, 'fillPattern', imageName);
+          draw.setFeatureProperty(featureId, 'featureType', 'drawing');
+
+          // Text-Modus: Standard-Label setzen
+          if (drawModeRef.current === 'draw_text') {
+            draw.setFeatureProperty(featureId, 'label', 'Text');
+            setSelectedFeatures([featureId]);
+          }
         }
       }
 
@@ -312,7 +365,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       // Zeichenmodus nach Feature-Erstellung erneut aktivieren (kontinuierliches Zeichnen).
       // Text-Modus ausgenommen: Feature bleibt selektiert für Label-Bearbeitung.
       const currentMode = drawModeRef.current;
-      const continuousModes: DrawMode[] = ['draw_point', 'draw_line_string', 'draw_polygon', 'draw_freehand', 'draw_circle', 'draw_rectangle', 'draw_sector'];
+      const continuousModes: DrawMode[] = ['draw_line_string', 'draw_polygon', 'draw_freehand', 'draw_circle', 'draw_rectangle', 'draw_sector', 'draw_arrow', 'draw_ellipse'];
       if (continuousModes.includes(currentMode)) {
         const targetMapboxMode = DRAW_MODE_MAP[currentMode];
         setTimeout(() => {
@@ -388,6 +441,9 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     mapContainer.addEventListener('keyup', blockDrawKeyUp, true);
 
     return () => {
+      // Deferred-Source-Polling stoppen
+      if (waitForSourcesInterval) clearInterval(waitForSourcesInterval);
+
       // Ausstehenden Auto-Save sofort ausführen
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current);
@@ -431,7 +487,6 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     const draw = drawRef.current;
     if (!draw || initialDataLoadedRef.current) return;
     if (!lagekarte?.state?.features?.length) return;
-
     // Hatch-Images VOR draw.add() registrieren (siehe Kommentar oben)
     const map = mapRef.current?.getMap();
     if (map) {
@@ -455,11 +510,16 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     initialDataLoadedRef.current = true;
     lastKnownStateRef.current = draw.getAll() as FeatureCollection;
 
-    // Repaint erzwingen: draw.add() allein triggert kein Rendering der Layer
-    try {
-      draw.changeMode('simple_select');
-    } catch {
-      // Draw könnte noch nicht bereit sein
+    // Repaint erzwingen: Wenn Sources bereits existieren, reicht draw.set().
+    // Falls Sources noch nicht erstellt (map.loaded() war false bei addControl),
+    // wird der Workaround-Interval aus Phase 1 den Render übernehmen.
+    if (map && map.getSource('mapbox-gl-draw-cold')) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        draw.set(draw.getAll() as any);
+      } catch {
+        // Draw könnte noch nicht bereit sein
+      }
     }
   }, [lagekarte?.state, mapRef]);
 

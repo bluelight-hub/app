@@ -11,9 +11,12 @@ import { useLagekartePermissions } from '@/features/lagekarte/hooks/use-lagekart
 import { useOsmMarkierung } from '@/features/lagekarte/hooks/use-osm-markierung';
 import { useGamsZonen } from '@/features/lagekarte/hooks/use-gams-zonen';
 import { useSnapControl } from '@/features/lagekarte/hooks/use-snap-control';
-import { drawStore, toggleSnapEnabled } from '@/features/lagekarte/stores/draw.store';
+import { useSymbolMarker } from '@/features/lagekarte/hooks/use-symbol-marker';
+import { useMultiSelect } from '@/features/lagekarte/hooks/use-multi-select';
+import { drawStore, toggleSnapEnabled, toggleSymbolPanel, toggleTemplatePanel } from '@/features/lagekarte/stores/draw.store';
 import { DEFAULT_DRAWING_STYLE } from '@/features/lagekarte/drawing/types';
 import type { DrawingStyle, HatchConfig } from '@/features/lagekarte/drawing/types';
+import type { ShapeTemplate } from '@/features/lagekarte/drawing/templates/template-registry';
 import { DEFAULT_HATCH } from '@/features/lagekarte/drawing/types';
 import { ensureHatchImage, migrateLegacyFillPattern, reregisterHatchImages } from '@/features/lagekarte/drawing/hatch-patterns';
 import { EMPTY_PATTERN_IMAGE } from '@/features/lagekarte/drawing/draw-styles';
@@ -34,6 +37,9 @@ import { MapDetailPanel } from '../../molecules/MapDetailPanel.molecule';
 import { DrawToolbar } from '../../molecules/DrawToolbar.molecule';
 import { DrawShortcutBar } from '../../molecules/DrawShortcutBar.molecule';
 import { DrawStylePanel } from '../../molecules/DrawStylePanel.molecule';
+import { ShapeTemplatePanel } from '../../molecules/ShapeTemplatePanel.molecule';
+import { SymbolLibraryPanel } from '../../molecules/SymbolLibraryPanel.molecule';
+import { FeatureGroupPanel } from '../../molecules/FeatureGroupPanel.molecule';
 import { OsmMarkierungPopup } from '../../molecules/OsmMarkierungPopup.molecule';
 import { GamsZonenPanel } from '../../molecules/GamsZonenPanel.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
@@ -78,6 +84,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const selectedFeatureIds = useStore(drawStore, (s) => s.selectedFeatureIds);
   const isDirectSelect = useStore(drawStore, (s) => s.isDirectSelect);
   const snapEnabled = useStore(drawStore, (s) => s.snapEnabled);
+  const isSymbolPanelVisible = useStore(drawStore, (s) => s.isSymbolPanelVisible);
+  const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
@@ -92,6 +100,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // Remote-Apply-Flag für WebSocket-Sync (verhindert Loop in Draw-Event-Handlern)
   const isRemoteApplyRef = useRef(false);
 
+  // Pending-Symbol-Ref für den Symbol-Modus (damit handleCreate die Symbol-Properties setzen kann)
+  const pendingSymbolRef = useRef<{ id: string; category: string } | null>(null);
+
   // Stabiler sendDelta-Ref: Wird von useDrawControl via Ref gelesen, von useLagekarteSync befüllt.
   // Löst die zirkuläre Abhängigkeit (drawRef → sync → sendDelta → drawControl).
   const sendDeltaRef = useRef<UseLagekarteSyncReturn['sendDelta'] | undefined>(undefined);
@@ -105,6 +116,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     activeStyleRef,
     isRemoteApplyRef,
     sendDelta: (...args) => sendDeltaRef.current?.(...args),
+    pendingSymbolRef,
   });
 
   // WebSocket-Sync (koordiniert WS mit Draw-Control, braucht drawRef von oben)
@@ -127,6 +139,12 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
   // Feature-Messungen (Fläche, Länge, Koordinaten)
   const { selectedMeasurement, liveMeasurement } = useFeatureMeasurement({ mapRef, drawRef, isMapLoaded });
+
+  // Symbolbibliothek
+  const { pendingSymbol, selectSymbol, cancelSymbol } = useSymbolMarker({ mapRef, drawRef, isMapLoaded });
+
+  // Multi-Select & Gruppierung
+  const { groups, groupsForSelection, createGroup, dissolveGroup, selectByGroup, selectionCount } = useMultiSelect({ drawRef, scheduleAutoSave });
 
   // I4: Stil des selektierten Features in das StylePanel laden
   useEffect(() => {
@@ -304,6 +322,27 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     [selectedFeatureIds, drawRef, scheduleAutoSave, sendDelta],
   );
 
+  /** Template anwenden: Stil setzen + Modus wechseln */
+  const handleApplyTemplate = useCallback(
+    (template: ShapeTemplate) => {
+      setActiveStyle((prev) => ({ ...prev, ...template.style }));
+      setMode(template.drawMode);
+      toggleTemplatePanel();
+    },
+    [setMode],
+  );
+
+  /** Symbol aus Bibliothek für Platzierung auswählen */
+  const handleSelectSymbol = useCallback(
+    (symbol: import('@/features/lagekarte/drawing/symbols/symbol-registry').SymbolDefinition) => {
+      selectSymbol(symbol);
+      pendingSymbolRef.current = { id: symbol.id, category: symbol.category };
+      setMode('draw_symbol');
+      toggleSymbolPanel();
+    },
+    [selectSymbol, setMode],
+  );
+
   /**
    * Kombinierter Klick-Handler: Entscheidet je nach Zeichenmodus,
    * ob Draw, OSM-Markierung oder Detail-Provider den Klick verarbeitet.
@@ -383,7 +422,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           // keine Applikationsfehler. Nur unbekannte Fehler im Debug-Modus loggen.
           if (import.meta.env.DEV) {
             const msg = (e as unknown as { error?: Error }).error?.message ?? '';
-            if (msg.includes("reading '0'") || msg.includes("reading '1'")) return;
+            if (msg.includes("reading '0'") || msg.includes("reading '1'") || msg.includes('t[n][0]') || msg.includes('t[n][1]')) return;
             console.debug('[MAP-ERROR]', msg);
           }
         }}
@@ -448,6 +487,25 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         geometryType={selectedFeatureGeometryType}
         measurement={selectedMeasurement}
       />
+
+      {/* Shape-Template-Panel */}
+      {canDraw && <ShapeTemplatePanel isVisible={isTemplatePanelVisible} onApplyTemplate={handleApplyTemplate} activeMode={drawMode} />}
+
+      {/* Symbolbibliothek-Panel */}
+      {canDraw && <SymbolLibraryPanel isVisible={isSymbolPanelVisible} onSelectSymbol={handleSelectSymbol} onClose={toggleSymbolPanel} />}
+
+      {/* Feature-Gruppen-Panel */}
+      {canDraw && (
+        <FeatureGroupPanel
+          selectionCount={selectionCount}
+          groupsForSelection={groupsForSelection}
+          allGroups={groups}
+          onCreateGroup={createGroup}
+          onDissolveGroup={dissolveGroup}
+          onSelectGroup={selectByGroup}
+          isVisible={selectionCount >= 2 || groups.length > 0}
+        />
+      )}
 
       {mode !== 'presentation' && <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />}
 
