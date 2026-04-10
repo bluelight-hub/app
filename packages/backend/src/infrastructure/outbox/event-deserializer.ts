@@ -136,6 +136,13 @@ import { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von
 // Gefahrenmatrix Events (Issue #414)
 import { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
 
+// Taktische Zeichen Events (Issue #636)
+import { ZeichenErstelltEvent } from '@domain/taktische-zeichen/events/zeichen-erstellt.event';
+import { ZeichenPlatziertEvent } from '@domain/taktische-zeichen/events/zeichen-platziert.event';
+import { ZeichenVerschobenEvent } from '@domain/taktische-zeichen/events/zeichen-verschoben.event';
+import { ZeichenEntferntEvent } from '@domain/taktische-zeichen/events/zeichen-entfernt.event';
+import type { ZeichenDefinitionProps } from '@domain/taktische-zeichen/value-objects/zeichen-definition.vo';
+
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
 import { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
@@ -358,6 +365,13 @@ export class EventDeserializer {
 
       // ===== GEFAHRENMATRIX EVENTS (Issue #414) =====
       ['gefahrenmatrix.aktualisiert', deserializeGefahrenmatrixAktualisiert],
+
+      // ===== TAKTISCHE ZEICHEN EVENTS (Issue #636) =====
+      ['taktisches_zeichen.erstellt', deserializeZeichenErstellt],
+      ['taktisches_zeichen.platziert', deserializeZeichenPlatziert],
+      ['taktisches_zeichen.verschoben', deserializeZeichenVerschoben],
+      ['taktisches_zeichen.aktualisiert', deserializeZeichenErstellt],
+      ['taktisches_zeichen.entfernt', deserializeZeichenEntfernt],
     ]);
   }
 
@@ -2207,5 +2221,57 @@ function deserializeGefahrenmatrixAktualisiert(payload: Record<string, unknown>,
     payload.aktualisiertVon as string,
     aggregateId,
   );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== TAKTISCHE ZEICHEN DESERIALIZERS (Issue #636) =====
+
+/**
+ * Deserialisiert ZeichenErstelltEvent (Issue #636).
+ * Alle Felder sind primitive Typen — kein Value Object Mapping nötig.
+ */
+function deserializeZeichenErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new ZeichenErstelltEvent(
+    payload.zeichenId as string,
+    payload.einsatzId as string,
+    payload.zeichenDefinition as ZeichenDefinitionProps,
+    payload.label as string | undefined,
+    payload.referenzTyp as string | undefined,
+    payload.referenzId as string | undefined,
+    payload.createdBy as string,
+    aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert ZeichenPlatziertEvent (Issue #636).
+ */
+function deserializeZeichenPlatziert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new ZeichenPlatziertEvent(
+    payload.zeichenId as string,
+    payload.einsatzId as string,
+    payload.lagekarteId as string,
+    payload.lat as number,
+    payload.lng as number,
+    payload.mgrs as string | undefined,
+    aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert ZeichenVerschobenEvent (Issue #636).
+ */
+function deserializeZeichenVerschoben(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new ZeichenVerschobenEvent(payload.zeichenId as string, payload.einsatzId as string, payload.lat as number, payload.lng as number, payload.mgrs as string | undefined, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert ZeichenEntferntEvent (Issue #636).
+ */
+function deserializeZeichenEntfernt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new ZeichenEntferntEvent(payload.zeichenId as string, payload.einsatzId as string, aggregateId);
   return Result.ok<DomainEvent>(event);
 }
