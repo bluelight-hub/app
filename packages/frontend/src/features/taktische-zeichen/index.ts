@@ -18,5 +18,11 @@ export { BaukastenSchritt } from './ui/molecules/BaukastenSchritt';
 export { ZeichenKatalog } from './ui/organisms/ZeichenKatalog';
 export { ZeichenBaukasten } from './ui/organisms/ZeichenBaukasten';
 
-// API Query Keys
+// API Hooks
 export { TAKTISCHE_ZEICHEN_QUERY_KEYS, calculateRetryDelay } from './api/queries';
+export { useEinsatzZeichen } from './api/use-einsatz-zeichen';
+export { useZeichenKatalog } from './api/use-zeichen-katalog';
+export { useCreateZeichen } from './api/use-create-zeichen';
+export { useUpdateZeichen } from './api/use-update-zeichen';
+export { usePlaceZeichen } from './api/use-place-zeichen';
+export { useRemoveZeichen } from './api/use-remove-zeichen';
