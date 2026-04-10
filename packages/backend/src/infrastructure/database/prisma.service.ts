@@ -220,6 +220,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get einheitentypZeichenDefault() {
     return this._client.einheitentypZeichenDefault;
   }
+  get taktischesZeichen() {
+    return this._client.taktischesZeichen;
+  }
+  get zeichenKatalogEintrag() {
+    return this._client.zeichenKatalogEintrag;
+  }
 
   // Delegate Prisma Client methods
   $connect() {
