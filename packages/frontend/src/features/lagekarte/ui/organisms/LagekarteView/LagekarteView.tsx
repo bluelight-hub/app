@@ -43,6 +43,7 @@ import { GamsZonenPanel } from '../../molecules/GamsZonenPanel.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
 import { TaktischeZeichenLayer } from '../../molecules/TaktischeZeichenLayer.molecule';
+import { KartenZeichenSidebar } from '../../molecules/KartenZeichenSidebar.molecule';
 import { useEinsatzZeichen } from '@/features/taktische-zeichen';
 import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import '@/features/lagekarte/detail-providers';
@@ -93,6 +94,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const isSymbolPanelVisible = useStore(drawStore, (s) => s.isSymbolPanelVisible);
   const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
   const isLocked = useStore(drawStore, (s) => s.isLocked);
+  const isZeichenSidebarVisible = useStore(drawStore, (s) => s.isZeichenSidebarVisible);
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
@@ -518,6 +520,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
       {/* Detail-Panel (Slide-In von rechts) */}
       <MapDetailPanel results={results} panelIndex={panelIndex} isOpen={isPanelOpen} onClose={closePanel} onNavigate={navigatePanel} />
+
+      {/* Karten-Zeichen-Sidebar (nur im Nicht-Präsentationsmodus) */}
+      {mode !== 'presentation' && <KartenZeichenSidebar einsatzId={einsatzId} isVisible={isZeichenSidebarVisible} />}
     </div>
   );
 };

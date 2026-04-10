@@ -30,13 +30,13 @@ export const TAKTISCHE_ZEICHEN_QUERY_KEYS = {
   katalogFiltered: (filter: { kategorie?: string; suche?: string }) => [...TAKTISCHE_ZEICHEN_QUERY_KEYS.katalog(), filter] as const,
 
   /** Default-Zeichen (global) */
-  defaults: [...TAKTISCHE_ZEICHEN_QUERY_KEYS.all, 'defaults'] as const,
+  defaults: () => [...TAKTISCHE_ZEICHEN_QUERY_KEYS.all, 'defaults'] as const,
 
   /** Default-Zeichen für Fahrzeugtypen */
-  defaultsFahrzeugtypen: () => [...TAKTISCHE_ZEICHEN_QUERY_KEYS.defaults, 'fahrzeugtypen'] as const,
+  defaultsFahrzeugtypen: () => [...TAKTISCHE_ZEICHEN_QUERY_KEYS.defaults(), 'fahrzeugtypen'] as const,
 
   /** Default-Zeichen für Einheitentypen */
-  defaultsEinheitentypen: () => [...TAKTISCHE_ZEICHEN_QUERY_KEYS.defaults, 'einheitentypen'] as const,
+  defaultsEinheitentypen: () => [...TAKTISCHE_ZEICHEN_QUERY_KEYS.defaults(), 'einheitentypen'] as const,
 } as const;
 
 /**
