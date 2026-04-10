@@ -13,6 +13,8 @@ export { EinheitPicker } from './ui/atoms/EinheitPicker';
 export { KatalogEintrag } from './ui/molecules/KatalogEintrag';
 export type { KatalogEintragData } from './ui/molecules/KatalogEintrag';
 export { BaukastenSchritt } from './ui/molecules/BaukastenSchritt';
+export { ZeichenEditor } from './ui/molecules/ZeichenEditor';
+export type { ZeichenEditorProps } from './ui/molecules/ZeichenEditor';
 
 // UI Organisms
 export { ZeichenKatalog } from './ui/organisms/ZeichenKatalog';
@@ -26,3 +28,5 @@ export { useCreateZeichen } from './api/use-create-zeichen';
 export { useUpdateZeichen } from './api/use-update-zeichen';
 export { usePlaceZeichen } from './api/use-place-zeichen';
 export { useRemoveZeichen } from './api/use-remove-zeichen';
+export { useZeichenFromEntity, useZeichenFromEinheit, useZeichenFromFahrzeug } from './api/use-zeichen-from-entity';
+export type { UseZeichenFromEntityResult, ZeichenEntityTyp } from './api/use-zeichen-from-entity';
