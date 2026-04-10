@@ -1,5 +1,12 @@
 ## Lagekarte
 
+- **Echtzeit-Kollaboration:** Zeichnungen und Markierungen auf der Lagekarte werden jetzt in Echtzeit zwischen allen Teilnehmern synchronisiert. Änderungen sind sofort für alle sichtbar.
+- **Automatische Speicherung:** Der Zustand der Lagekarte wird automatisch gespeichert und beim erneuten Öffnen wiederhergestellt.
+- **Verbesserte Stabilität:** Behobene Rendering-Probleme beim Löschen von Elementen und bei der Darstellung von Schraffur-Mustern. Die Karte läuft nun stabiler, auch bei intensiver Nutzung.
+- **Kollaborations-Anzeige:** Neuer Indikator zeigt den Verbindungsstatus und aktive Kollaborateure an.
+
+## Lagekarte
+
 **Neue Zeichenwerkzeuge**
 
 - Kreis, Rechteck und Ausbreitungskegel können jetzt per Klick und Ziehen gezeichnet werden
