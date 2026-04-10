@@ -13,12 +13,12 @@ import type * as React from 'react';
 import { useState } from 'react';
 import type { EinheitId, FachaufgabeId, GrundzeichenId, OrganisationId } from 'taktische-zeichen-core';
 import { cn } from '@/shared/ui/cn';
-import { ZeichenPreview } from '../rendering/ZeichenPreview';
-import type { ZeichenDefinition } from '../rendering/renderer';
-import { GrundzeichenPicker } from './atoms/GrundzeichenPicker';
-import { OrganisationPicker } from './atoms/OrganisationPicker';
-import { FachaufgabePicker } from './atoms/FachaufgabePicker';
-import { EinheitPicker } from './atoms/EinheitPicker';
+import { ZeichenPreview } from '../../rendering/ZeichenPreview';
+import type { ZeichenDefinition } from '../../rendering/renderer';
+import { GrundzeichenPicker } from '../atoms/GrundzeichenPicker';
+import { OrganisationPicker } from '../atoms/OrganisationPicker';
+import { FachaufgabePicker } from '../atoms/FachaufgabePicker';
+import { EinheitPicker } from '../atoms/EinheitPicker';
 
 /** Props für den ZeichenEditor */
 export interface ZeichenEditorProps {
