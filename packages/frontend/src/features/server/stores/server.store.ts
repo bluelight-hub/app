@@ -536,26 +536,15 @@ export async function updateServer(serverId: string, updates: Partial<Omit<Serve
 export async function hydrateServerStore(): Promise<void> {
   // Race Condition Protection: Check if already hydrated
   if (serverStore.state.isHydrated) {
-    console.warn('[ServerStore] Already hydrated, skipping...');
     return;
   }
-
-  console.log('[ServerStore] Starting hydration...');
 
   // Load servers from storage (errors propagate to caller)
   const servers = await loadServers();
 
-  console.log(
-    '[ServerStore] Loaded servers:',
-    servers.length,
-    servers.map((s) => s.name),
-  );
-
   // Default-Server mit Last-Used Priorität ermitteln
   // Priorität: 1) Neuester lastUsedAt, 2) Ältester createdAt (bei gleich/fehlendem lastUsedAt)
   const defaultServer = getDefaultServer(servers);
-
-  console.log('[ServerStore] Default server:', defaultServer?.name ?? 'none');
 
   // Update store state
   serverStore.setState((state) => ({
@@ -564,12 +553,6 @@ export async function hydrateServerStore(): Promise<void> {
     activeServerId: defaultServer?.id ?? null,
     isHydrated: true,
   }));
-
-  console.log('[ServerStore] Hydration complete. Store state:', {
-    serverCount: serverStore.state.servers.length,
-    isHydrated: serverStore.state.isHydrated,
-    activeServerId: serverStore.state.activeServerId,
-  });
 }
 
 /**

@@ -334,7 +334,7 @@ export function useLagekarteWebSocket({ einsatzId, enabled = true, onFeatureCrea
 
     setStatus('connecting');
     const wsUrl = getWsUrl();
-    logger.info('WebSocket: Verbinde zu Lagekarte', { url: wsUrl, namespace: WS_NAMESPACE, einsatzId });
+    logger.debug('WebSocket: Verbinde zu Lagekarte', { url: wsUrl, namespace: WS_NAMESPACE, einsatzId });
 
     const socket = io(`${wsUrl}${WS_NAMESPACE}`, {
       transports: ['websocket', 'polling'],
@@ -347,7 +347,7 @@ export function useLagekarteWebSocket({ einsatzId, enabled = true, onFeatureCrea
 
     socket.on('connect', () => {
       const currentEinsatzId = currentEinsatzIdRef.current;
-      logger.info('WebSocket: Lagekarte verbunden, trete Room bei', { einsatzId: currentEinsatzId });
+      logger.debug('WebSocket: Lagekarte verbunden, trete Room bei', { einsatzId: currentEinsatzId });
       setStatus('connected');
       processedEventIdsRef.current.clear();
       socket.emit('join:einsatz', { einsatzId: currentEinsatzId });

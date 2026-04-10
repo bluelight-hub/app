@@ -13,27 +13,16 @@ import { initEtbOfflineStore } from '@/features/etb/stores';
 // Initialize notification system (channels, action types) and request permission
 // Runs async in background - errors are logged but don't block app startup
 initializeNotificationSetup()
-  .then(() => {
-    logger.info('[App-Startup] Notification Setup initialisiert');
-    // Request permission after setup is complete
-    return requestNotificationPermission();
-  })
-  .then((status) => {
-    logger.info('[App-Startup] Notification Permission Status:', status);
-  })
+  .then(() => requestNotificationPermission())
   .catch((error) => {
     logger.error('[App-Startup] Notification Setup fehlgeschlagen', { error });
   });
 
 // Initialize seen assignments store (Story 3.7) - Loads persisted data from Tauri Store
-initSeenAssignmentsStore()
-  .then(() => logger.info('[App-Startup] Seen Assignments Store initialisiert'))
-  .catch((error) => logger.error('[App-Startup] Seen Assignments Store Init fehlgeschlagen', { error }));
+initSeenAssignmentsStore().catch((error) => logger.error('[App-Startup] Seen Assignments Store Init fehlgeschlagen', { error }));
 
 // Initialize ETB offline store (Story 5.10) - Loads persisted ETB queue from Tauri Store
-initEtbOfflineStore()
-  .then(() => logger.info('[App-Startup] ETB Offline Store initialisiert'))
-  .catch((error) => logger.error('[App-Startup] ETB Offline Store Init fehlgeschlagen', { error }));
+initEtbOfflineStore().catch((error) => logger.error('[App-Startup] ETB Offline Store Init fehlgeschlagen', { error }));
 
 export const router = createRouter({
   routeTree,

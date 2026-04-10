@@ -150,7 +150,7 @@ export class IntensificationService {
 
     // Existierenden Timer stoppen falls vorhanden
     if (this.trackers.has(erinnerungId)) {
-      logger.debug(`[IntensificationService] Timer fuer ${erinnerungId} bereits aktiv, wird neu gestartet`);
+      // Timer wird neu gestartet
       this.trackers.delete(erinnerungId);
       this.callbacks.delete(erinnerungId);
       // CQ-2 Fix: Store auch zuruecksetzen bei Neustart
@@ -171,8 +171,6 @@ export class IntensificationService {
 
     // Scheduling starten falls noch nicht aktiv
     this.ensureSchedulingActive();
-
-    logger.info(`[IntensificationService] Timer gestartet fuer: ${erinnerungId}`);
   }
 
   /**
@@ -198,8 +196,6 @@ export class IntensificationService {
 
     // Scheduling anpassen wenn Timer geändert
     this.handleTimerChange();
-
-    logger.info(`[IntensificationService] Timer gestoppt fuer: ${erinnerungId}`);
   }
 
   /**
@@ -216,8 +212,6 @@ export class IntensificationService {
 
     // Store komplett aufräumen
     clearAllIntensifications();
-
-    logger.info('[IntensificationService] Alle Timer gestoppt');
   }
 
   /**
@@ -273,8 +267,6 @@ export class IntensificationService {
     // Sofortiger Check fuer bereits überschrittene Schwellwerte
     this.checkAllTimers();
     this.scheduleNextCheck();
-
-    logger.debug('[IntensificationService] Timer-Scheduling gestartet');
   }
 
   /**
@@ -318,8 +310,6 @@ export class IntensificationService {
       this.timeoutId = setTimeout(() => {
         this.checkAndReschedule();
       }, checkDelay);
-
-      logger.debug(`[IntensificationService] Naechster Check in ${checkDelay}ms geplant`);
     }
   }
 
@@ -378,8 +368,6 @@ export class IntensificationService {
       this.timeoutId = null;
     }
     this.running = false;
-
-    logger.debug('[IntensificationService] Timer-Scheduling gestoppt');
   }
 
   /**
@@ -472,8 +460,6 @@ export class IntensificationService {
     // Erst nach erfolgreichem Callback: Tracker und Store aktualisieren
     tracker.currentLevel = newLevel;
     setIntensityLevel(erinnerungId, newLevel);
-
-    logger.info(`[IntensificationService] Level eskaliert: ${erinnerungId} ${oldLevel} → ${newLevel}`);
   }
 
   /**

@@ -5,6 +5,13 @@
  * MapboxDraw speichert benutzerdefinierte Properties intern mit dem Präfix `user_`.
  */
 
+/**
+ * Name des permanent registrierten 1×1 transparenten Fallback-Images.
+ * Wird als Fallback in fill-pattern Expressions verwendet, damit die Expression
+ * nie `null` zurückgibt (was MapLibre's Fill-Renderer mit "t[n][0]" crasht).
+ */
+export const EMPTY_PATTERN_IMAGE = '__empty_pattern__';
+
 export const CUSTOM_DRAW_STYLES: object[] = [
   // Polygon-Füllung (inaktiv)
   {
@@ -35,7 +42,7 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     type: 'fill',
     filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static'], ['has', 'user_fillPattern'], ['!=', 'user_fillPattern', '']],
     paint: {
-      'fill-pattern': ['image', ['get', 'user_fillPattern']],
+      'fill-pattern': ['coalesce', ['image', ['get', 'user_fillPattern']], ['image', EMPTY_PATTERN_IMAGE]],
       'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.2],
     },
   },
@@ -45,7 +52,7 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     type: 'fill',
     filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon'], ['has', 'user_fillPattern'], ['!=', 'user_fillPattern', '']],
     paint: {
-      'fill-pattern': ['image', ['get', 'user_fillPattern']],
+      'fill-pattern': ['coalesce', ['image', ['get', 'user_fillPattern']], ['image', EMPTY_PATTERN_IMAGE]],
       'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.2],
     },
   },
@@ -58,9 +65,6 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     paint: {
       'line-color': ['coalesce', ['get', 'user_color'], '#3b82f6'],
       'line-width': ['coalesce', ['get', 'user_strokeWidth'], 2],
-      // Hinweis: line-dasharray unterstützt keine data-driven Expressions in MapboxDraw,
-      // daher wird hier ein fester Wert verwendet
-      'line-dasharray': [1],
     },
   },
   // Polygon-Kontur (aktiv)
@@ -149,6 +153,7 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     filter: ['all', ['==', '$type', 'Point'], ['has', 'user_label'], ['==', 'meta', 'feature']],
     layout: {
       'text-field': ['get', 'user_label'],
+      'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
       'text-size': 14,
       'text-anchor': 'center',
       'text-allow-overlap': true,

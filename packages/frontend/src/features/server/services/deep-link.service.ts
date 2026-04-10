@@ -58,13 +58,11 @@ export class DeepLinkService {
    */
   public async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.warn('[DeepLinkService] Already initialized, skipping...');
       return;
     }
 
     // Skip initialization in browser mode (Tauri APIs not available)
     if (!isTauri()) {
-      console.info('[DeepLinkService] Running in browser mode, skipping initialization');
       this.isInitialized = true;
       return;
     }

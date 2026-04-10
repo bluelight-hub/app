@@ -218,10 +218,7 @@ export class TimerService {
 
     const now = Date.now();
 
-    // Debug: Log einmal pro Sekunde (nicht bei jedem 500ms Check)
-    if (now % 2000 < 500 && this.currentErinnerungen.length > 0) {
-      console.debug(`[TimerService] Checking ${this.currentErinnerungen.length} erinnerungen, triggeredIds: ${this.triggeredIds.size}`);
-    }
+    // Polling-Log entfernt — bei Bedarf im Debugger prüfen
 
     for (const erinnerung of this.currentErinnerungen) {
       // GEPLANT und SNOOZED Status beruecksichtigen (Story 2.2)

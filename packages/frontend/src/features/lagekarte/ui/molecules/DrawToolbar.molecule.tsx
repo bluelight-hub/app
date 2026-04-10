@@ -60,7 +60,7 @@ export function DrawToolbar({ activeMode, onModeChange }: DrawToolbarProps) {
 
       {/* Expandierbarer Werkzeug-Bereich */}
       <div id="draw-toolbar-modes" className={cn('grid transition-[grid-template-rows] duration-200 ease-out', isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}>
-        <div className="overflow-hidden" {...(!isExpanded && { inert: '' })}>
+        <div className="overflow-hidden" {...(!isExpanded && { inert: true })}>
           <div className="mx-2 border-t border-border-subtle" />
 
           {DRAW_MODE_BUTTONS.map(({ mode, icon: Icon, label }) => (

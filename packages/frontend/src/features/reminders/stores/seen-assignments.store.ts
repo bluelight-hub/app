@@ -134,7 +134,6 @@ export async function initSeenAssignmentsStore(): Promise<void> {
 
     // Fallback fuer Browser / Nicht-Tauri: Einfach initialisiert melden
     if (!store) {
-      console.info('[SeenAssignmentsStore] Running in Browser Mode (No Persistence)');
       seenAssignmentsStore.setState((state) => ({
         ...state,
         isInitialized: true,

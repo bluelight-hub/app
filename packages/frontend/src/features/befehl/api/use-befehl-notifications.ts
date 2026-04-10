@@ -82,7 +82,7 @@ export function useBefehlNotifications({ einsatzId, enabled = true }: UseBefehlN
     if (!enabled || permissionRequestedRef.current) return;
     permissionRequestedRef.current = true;
     notificationService.requestPermission().then((status) => {
-      logger.info('Befehl-Notifications: Permission status', { status });
+      logger.debug('Befehl-Notifications: Permission status', { status });
     });
   }, [enabled]);
 
