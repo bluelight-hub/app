@@ -44,6 +44,7 @@ import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseB
 import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
 import { TaktischeZeichenLayer } from '../../molecules/TaktischeZeichenLayer.molecule';
 import { useEinsatzZeichen } from '@/features/taktische-zeichen';
+import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
 
@@ -84,7 +85,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     refetchInterval: wsIsConnected ? false : 10_000,
   });
 
-  // Draw-Store State
+  // Draw-Store State (vor useZeichenDrag, damit canDraw verfügbar)
   const drawMode = useStore(drawStore, (s) => s.drawMode);
   const selectedFeatureIds = useStore(drawStore, (s) => s.selectedFeatureIds);
   const isDirectSelect = useStore(drawStore, (s) => s.isDirectSelect);
@@ -95,6 +96,15 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
+
+  // Drag & Drop für taktische Zeichen (nur wenn Zeichnen erlaubt und nicht gesperrt)
+  useZeichenDrag({
+    mapRef,
+    isMapLoaded,
+    zeichen: einsatzZeichen,
+    einsatzId,
+    canDrag: canDraw && !isLocked,
+  });
 
   // Style-Panel State (vor useDrawControl, damit activeStyleRef verfügbar ist)
   const [activeStyle, setActiveStyle] = useState<DrawingStyle>(DEFAULT_DRAWING_STYLE);
