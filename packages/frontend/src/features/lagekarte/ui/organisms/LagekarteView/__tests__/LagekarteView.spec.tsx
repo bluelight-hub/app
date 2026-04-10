@@ -156,6 +156,8 @@ vi.mock('@/features/lagekarte/stores/draw.store', () => ({
       isSymbolPanelVisible: false,
       isTemplatePanelVisible: false,
       isLocked: false,
+      isZeichenSidebarVisible: false,
+      zeichenSidebarTab: 'katalog',
     },
     subscribe: vi.fn((cb) => {
       cb();
@@ -167,6 +169,9 @@ vi.mock('@/features/lagekarte/stores/draw.store', () => ({
   toggleLock: vi.fn(),
   toggleSymbolPanel: vi.fn(),
   toggleTemplatePanel: vi.fn(),
+  toggleZeichenSidebar: vi.fn(),
+  openZeichenSidebar: vi.fn(),
+  setZeichenSidebarTab: vi.fn(),
   addFeatureGroup: vi.fn(),
   removeFeatureGroup: vi.fn(),
   setFeatureGroups: vi.fn(),
@@ -192,9 +197,19 @@ vi.mock('@tanstack/react-store', () => ({
       isSymbolPanelVisible: false,
       isTemplatePanelVisible: false,
       isLocked: false,
+      isZeichenSidebarVisible: false,
+      zeichenSidebarTab: 'katalog',
     };
     return selector(state);
   }),
+}));
+
+vi.mock('@/features/taktische-zeichen/api/use-einsatz-zeichen', () => ({
+  useEinsatzZeichen: () => ({ data: [], isLoading: false, isError: false }),
+}));
+
+vi.mock('@/features/lagekarte/hooks/use-zeichen-drag', () => ({
+  useZeichenDrag: vi.fn(),
 }));
 
 vi.mock('@/features/lagekarte/drawing/types', () => ({
@@ -262,6 +277,14 @@ vi.mock('@/features/lagekarte/ui/molecules/GamsZonenPanel.molecule', () => ({
 
 vi.mock('@/features/lagekarte/ui/molecules/NinaGeoJsonLayer.molecule', () => ({
   NinaGeoJsonLayer: () => <div data-testid="nina-layer" />,
+}));
+
+vi.mock('@/features/lagekarte/ui/molecules/TaktischeZeichenLayer.molecule', () => ({
+  TaktischeZeichenLayer: () => <div data-testid="taktische-zeichen-layer" />,
+}));
+
+vi.mock('@/features/lagekarte/ui/molecules/KartenZeichenSidebar.molecule', () => ({
+  KartenZeichenSidebar: () => <div data-testid="karten-zeichen-sidebar" />,
 }));
 
 vi.mock('@/features/lagekarte/ui/organisms/FullscreenCloseButton/FullscreenCloseButton', () => ({
