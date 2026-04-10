@@ -32,7 +32,10 @@ const MODE_HINTS: Partial<Record<DrawMode, string>> = {
   osm_mark: 'Klick auf Objekt zum Markieren',
   draw_circle: 'Klicken und ziehen für Radius',
   draw_rectangle: 'Klicken und ziehen für Rechteck',
+  draw_arrow: 'Klicken und ziehen für Pfeil',
+  draw_ellipse: 'Klicken und ziehen für Ellipse',
   draw_sector: 'Klicken und ziehen für Richtung + Radius',
+  draw_symbol: 'Klick zum Platzieren',
   draw_gams: 'Klick + Ziehen für Zone · Nur Klick für Eingabe',
 };
 

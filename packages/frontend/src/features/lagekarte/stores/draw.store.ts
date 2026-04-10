@@ -8,6 +8,18 @@
 import { createStore } from '@tanstack/react-store';
 import type { DrawMode } from '../drawing/types';
 
+/** Feature-Gruppe für zusammengehörige Zeichnungsobjekte */
+export interface FeatureGroup {
+  /** Eindeutige Gruppen-ID */
+  id: string;
+  /** Anzeigename (z.B. "Einsatzabschnitt A") */
+  name: string;
+  /** IDs der enthaltenen Features */
+  featureIds: string[];
+  /** Optionale Gruppenfarbe */
+  color?: string;
+}
+
 /**
  * State für die Zeichenwerkzeuge der Lagekarte
  */
@@ -22,6 +34,12 @@ export interface DrawStoreState {
   isDirectSelect: boolean;
   /** Snap an Vertices/Kanten aktiviert */
   snapEnabled: boolean;
+  /** Feature-Gruppen */
+  featureGroups: FeatureGroup[];
+  /** Ob das Symbolbibliothek-Panel sichtbar ist */
+  isSymbolPanelVisible: boolean;
+  /** Ob das Template-Panel sichtbar ist */
+  isTemplatePanelVisible: boolean;
 }
 
 const initialState: DrawStoreState = {
@@ -30,6 +48,9 @@ const initialState: DrawStoreState = {
   isDrawToolbarVisible: false,
   isDirectSelect: false,
   snapEnabled: true,
+  featureGroups: [],
+  isSymbolPanelVisible: false,
+  isTemplatePanelVisible: false,
 };
 
 /**
@@ -94,6 +115,58 @@ export const toggleSnapEnabled = () => {
   drawStore.setState((state) => ({
     ...state,
     snapEnabled: !state.snapEnabled,
+  }));
+};
+
+/**
+ * Schaltet die Symbolbibliothek-Sichtbarkeit um
+ */
+export const toggleSymbolPanel = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    isSymbolPanelVisible: !state.isSymbolPanelVisible,
+    isTemplatePanelVisible: false,
+  }));
+};
+
+/**
+ * Schaltet die Template-Panel-Sichtbarkeit um
+ */
+export const toggleTemplatePanel = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    isTemplatePanelVisible: !state.isTemplatePanelVisible,
+    isSymbolPanelVisible: false,
+  }));
+};
+
+/**
+ * Fügt eine Feature-Gruppe hinzu
+ */
+export const addFeatureGroup = (group: FeatureGroup) => {
+  drawStore.setState((state) => ({
+    ...state,
+    featureGroups: [...state.featureGroups, group],
+  }));
+};
+
+/**
+ * Entfernt eine Feature-Gruppe (Features bleiben erhalten)
+ */
+export const removeFeatureGroup = (groupId: string) => {
+  drawStore.setState((state) => ({
+    ...state,
+    featureGroups: state.featureGroups.filter((g) => g.id !== groupId),
+  }));
+};
+
+/**
+ * Setzt Feature-Gruppen (z.B. beim Laden aus dem Backend)
+ */
+export const setFeatureGroups = (groups: FeatureGroup[]) => {
+  drawStore.setState((state) => ({
+    ...state,
+    featureGroups: groups,
   }));
 };
 

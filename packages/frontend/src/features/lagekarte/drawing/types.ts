@@ -17,6 +17,9 @@ export type DrawMode =
   | 'draw_circle'
   | 'draw_rectangle'
   | 'draw_sector'
+  | 'draw_arrow'
+  | 'draw_ellipse'
+  | 'draw_symbol'
   | 'draw_gams';
 
 /** Status einer OSM-Markierung */
@@ -90,16 +93,26 @@ export interface DrawFeatureProperties {
   osmLayerId?: string;
   /** Markierungsstatus (nur für OSM-Markierungen) */
   osmStatus?: OsmMarkierungStatus;
-  /** Shape-Typ für parametrische Formen (Kreis, Rechteck, Sektor) */
-  shapeType?: 'circle' | 'rectangle' | 'sector';
+  /** Shape-Typ für parametrische Formen */
+  shapeType?: 'circle' | 'rectangle' | 'sector' | 'arrow' | 'ellipse';
   /** Mittelpunkt als JSON-String "[lng, lat]" (MapboxDraw erlaubt nur Primitive) */
   shapeCenter?: string;
   /** Radius in Metern (für Kreis/Sektor) */
   shapeRadius?: number;
+  /** X-Radius in Metern (für Ellipse, Horizontalachse) */
+  shapeRadiusX?: number;
+  /** Y-Radius in Metern (für Ellipse, Vertikalachse) */
+  shapeRadiusY?: number;
   /** Kompasswinkel in Grad (für Sektor) */
   shapeBearing?: number;
   /** Öffnungswinkel in Grad (für Sektor) */
   shapeOpeningAngle?: number;
+  /** Symbol-ID aus der Symbolbibliothek */
+  symbolId?: string;
+  /** Symbol-Kategorie */
+  symbolCategory?: string;
+  /** Gruppen-ID für gruppierte Features */
+  groupId?: string;
 }
 
 /** Standard-Radien für GAMS-Zonen in Metern [Rot, Orange, Gelb, Grün] */

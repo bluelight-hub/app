@@ -16,17 +16,24 @@ import { DrawToolbar } from '../DrawToolbar.molecule';
 // Mock draw store
 vi.mock('../../../stores/draw.store', () => ({
   drawStore: {
-    state: { isDrawToolbarVisible: true },
+    state: { isDrawToolbarVisible: true, isSymbolPanelVisible: false, isTemplatePanelVisible: false },
     subscribe: vi.fn((cb) => {
       cb();
       return () => {};
     }),
   },
   toggleDrawToolbar: vi.fn(),
+  toggleSymbolPanel: vi.fn(),
+  toggleTemplatePanel: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-store', () => ({
-  useStore: vi.fn(() => true), // isDrawToolbarVisible = true
+  useStore: vi.fn((_store: unknown, selector: unknown) => {
+    if (typeof selector === 'function') {
+      return (selector as Function)({ isDrawToolbarVisible: true, isSymbolPanelVisible: false, isTemplatePanelVisible: false });
+    }
+    return true;
+  }),
 }));
 
 describe('DrawToolbar', () => {

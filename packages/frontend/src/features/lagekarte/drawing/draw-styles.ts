@@ -12,6 +12,9 @@
  */
 export const EMPTY_PATTERN_IMAGE = '__empty_pattern__';
 
+/** Image-Name für die Pfeilspitze (importiert aus arrow-head-image.ts bei Registrierung) */
+export const ARROW_HEAD_IMAGE_NAME = 'arrow-head';
+
 export const CUSTOM_DRAW_STYLES: object[] = [
   // Polygon-Füllung (inaktiv)
   {
@@ -104,7 +107,7 @@ export const CUSTOM_DRAW_STYLES: object[] = [
   {
     id: 'gl-draw-point-inactive',
     type: 'circle',
-    filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Point'], ['==', 'meta', 'feature'], ['!=', 'mode', 'static']],
+    filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Point'], ['==', 'meta', 'feature'], ['!=', 'mode', 'static'], ['!has', 'user_symbolId']],
     paint: {
       'circle-radius': 6,
       'circle-color': ['coalesce', ['get', 'user_color'], '#3b82f6'],
@@ -116,7 +119,7 @@ export const CUSTOM_DRAW_STYLES: object[] = [
   {
     id: 'gl-draw-point-active',
     type: 'circle',
-    filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Point'], ['==', 'meta', 'feature']],
+    filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Point'], ['==', 'meta', 'feature'], ['!has', 'user_symbolId']],
     paint: {
       'circle-radius': 8,
       'circle-color': ['coalesce', ['get', 'user_color'], '#fbbf24'],
@@ -144,6 +147,51 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     paint: {
       'circle-radius': 3,
       'circle-color': '#3b82f6',
+    },
+  },
+  // Pfeilspitze (inaktiv) — Point-Feature mit meta 'arrowhead' vom toDisplayFeatures-Callback
+  {
+    id: 'gl-draw-arrow-head-inactive',
+    type: 'symbol',
+    filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Point'], ['==', 'meta', 'arrowhead']],
+    layout: {
+      'icon-image': ARROW_HEAD_IMAGE_NAME,
+      'icon-size': 0.8,
+      'icon-rotate': ['get', 'arrowBearing'],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+    },
+    paint: {
+      'icon-color': '#3b82f6',
+    },
+  },
+  // Pfeilspitze (aktiv)
+  {
+    id: 'gl-draw-arrow-head-active',
+    type: 'symbol',
+    filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Point'], ['==', 'meta', 'arrowhead']],
+    layout: {
+      'icon-image': ARROW_HEAD_IMAGE_NAME,
+      'icon-size': 0.8,
+      'icon-rotate': ['get', 'arrowBearing'],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+    },
+    paint: {
+      'icon-color': '#fbbf24',
+    },
+  },
+  // Symbol-Marker (Symbolbibliothek) — versteckt Punkt-Kreis für Symbol-Features
+  // ['image', ...] gibt null zurück wenn das Image nicht registriert ist (statt Renderer-Crash)
+  {
+    id: 'gl-draw-symbol-icon',
+    type: 'symbol',
+    filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'feature'], ['has', 'user_symbolId']],
+    layout: {
+      'icon-image': ['coalesce', ['image', ['concat', 'symbol-', ['get', 'user_symbolId']]], ['image', EMPTY_PATTERN_IMAGE]],
+      'icon-size': 1,
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
     },
   },
   // Text-Label-Layer (für draw_text Modus Features)

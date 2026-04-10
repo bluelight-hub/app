@@ -135,9 +135,38 @@ vi.mock('@/features/lagekarte/hooks/use-snap-control', () => ({
   useSnapControl: vi.fn(),
 }));
 
+vi.mock('@/features/lagekarte/hooks/use-symbol-marker', () => ({
+  useSymbolMarker: vi.fn(() => ({
+    pendingSymbol: null,
+    selectSymbol: vi.fn(),
+    cancelSymbol: vi.fn(),
+    isReady: true,
+  })),
+}));
+
+vi.mock('@/features/lagekarte/hooks/use-multi-select', () => ({
+  useMultiSelect: vi.fn(() => ({
+    groups: [],
+    groupsForSelection: [],
+    createGroup: vi.fn(),
+    dissolveGroup: vi.fn(),
+    selectByGroup: vi.fn(),
+    selectionCount: 0,
+  })),
+}));
+
 vi.mock('@/features/lagekarte/stores/draw.store', () => ({
   drawStore: {
-    state: { drawMode: 'idle', selectedFeatureIds: [], isDirectSelect: false, snapEnabled: false, isDrawToolbarVisible: false },
+    state: {
+      drawMode: 'idle',
+      selectedFeatureIds: [],
+      isDirectSelect: false,
+      snapEnabled: false,
+      isDrawToolbarVisible: false,
+      featureGroups: [],
+      isSymbolPanelVisible: false,
+      isTemplatePanelVisible: false,
+    },
     subscribe: vi.fn((cb) => {
       cb();
       return () => {};
@@ -145,6 +174,11 @@ vi.mock('@/features/lagekarte/stores/draw.store', () => ({
   },
   toggleSnapEnabled: vi.fn(),
   toggleDrawToolbar: vi.fn(),
+  toggleSymbolPanel: vi.fn(),
+  toggleTemplatePanel: vi.fn(),
+  addFeatureGroup: vi.fn(),
+  removeFeatureGroup: vi.fn(),
+  setFeatureGroups: vi.fn(),
   setDrawMode: vi.fn(),
   setSelectedFeatures: vi.fn(),
   setDirectSelect: vi.fn(),
@@ -157,7 +191,16 @@ vi.mock('@tanstack/react-store', () => ({
     setState: vi.fn(),
   })),
   useStore: vi.fn((_store: any, selector: any) => {
-    const state = { drawMode: 'idle', selectedFeatureIds: [], isDirectSelect: false, snapEnabled: false, isDrawToolbarVisible: false };
+    const state = {
+      drawMode: 'idle',
+      selectedFeatureIds: [],
+      isDirectSelect: false,
+      snapEnabled: false,
+      isDrawToolbarVisible: false,
+      featureGroups: [],
+      isSymbolPanelVisible: false,
+      isTemplatePanelVisible: false,
+    };
     return selector(state);
   }),
 }));

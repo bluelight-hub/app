@@ -9,9 +9,26 @@
 
 import { cn } from '@/shared/ui/cn';
 import { useStore } from '@tanstack/react-store';
-import { PiArrowArcRight, PiBuildings, PiCircle, PiCursor, PiLineSegment, PiMapPin, PiPencilSimple, PiPolygon, PiRectangle, PiScribbleLoop, PiTarget, PiTextT } from 'react-icons/pi';
+import {
+  PiArrowArcRight,
+  PiArrowUpRight,
+  PiBookmarkSimple,
+  PiBuildings,
+  PiCircle,
+  PiCircleDashed,
+  PiCursor,
+  PiLineSegment,
+  PiMapPin,
+  PiPencilSimple,
+  PiPolygon,
+  PiRectangle,
+  PiScribbleLoop,
+  PiStamp,
+  PiTarget,
+  PiTextT,
+} from 'react-icons/pi';
 import type { DrawMode } from '../../drawing/types';
-import { drawStore, toggleDrawToolbar } from '../../stores/draw.store';
+import { drawStore, toggleDrawToolbar, toggleSymbolPanel, toggleTemplatePanel } from '../../stores/draw.store';
 
 /** Props für die DrawToolbar-Komponente */
 export interface DrawToolbarProps {
@@ -30,6 +47,8 @@ const DRAW_MODE_BUTTONS: { mode: DrawMode; icon: React.ComponentType<{ className
   { mode: 'draw_circle', icon: PiCircle, label: 'Kreis zeichnen' },
   { mode: 'draw_rectangle', icon: PiRectangle, label: 'Rechteck zeichnen' },
   { mode: 'draw_freehand', icon: PiScribbleLoop, label: 'Freihand zeichnen' },
+  { mode: 'draw_arrow', icon: PiArrowUpRight, label: 'Pfeil zeichnen' },
+  { mode: 'draw_ellipse', icon: PiCircleDashed, label: 'Ellipse zeichnen' },
   { mode: 'draw_sector', icon: PiArrowArcRight, label: 'Ausbreitungskegel zeichnen' },
   { mode: 'draw_gams', icon: PiTarget, label: 'GAMS-Zonen platzieren' },
   { mode: 'draw_text', icon: PiTextT, label: 'Text platzieren' },
@@ -41,6 +60,8 @@ const buttonBase = 'flex items-center justify-center p-2 transition-colors durat
 
 export function DrawToolbar({ activeMode, onModeChange }: DrawToolbarProps) {
   const isExpanded = useStore(drawStore, (s) => s.isDrawToolbarVisible);
+  const isSymbolPanelVisible = useStore(drawStore, (s) => s.isSymbolPanelVisible);
+  const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
   const isDrawing = activeMode !== 'idle' && activeMode !== 'select';
 
   return (
@@ -76,6 +97,31 @@ export function DrawToolbar({ activeMode, onModeChange }: DrawToolbarProps) {
               <Icon className="h-5 w-5" aria-hidden="true" />
             </button>
           ))}
+
+          {/* Separator + Zusatzfunktionen */}
+          <div className="mx-2 border-t border-border-subtle" />
+
+          <button
+            type="button"
+            aria-label="Vorlagen"
+            title="Vorlagen"
+            tabIndex={isExpanded ? 0 : -1}
+            onClick={toggleTemplatePanel}
+            className={cn(buttonBase, isTemplatePanelVisible ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
+          >
+            <PiBookmarkSimple className="h-5 w-5" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            aria-label="Symbolbibliothek"
+            title="Symbolbibliothek"
+            tabIndex={isExpanded ? 0 : -1}
+            onClick={toggleSymbolPanel}
+            className={cn(buttonBase, isSymbolPanelVisible ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
+          >
+            <PiStamp className="h-5 w-5" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </div>
