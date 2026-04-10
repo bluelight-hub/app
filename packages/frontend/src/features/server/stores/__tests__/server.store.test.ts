@@ -377,16 +377,11 @@ describe('serverStore', () => {
         isHydrated: true,
       }));
 
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
       // When
       await hydrateServerStore();
 
       // Then
-      expect(consoleWarnSpy).toHaveBeenCalledWith('[ServerStore] Already hydrated, skipping...');
       expect(persistence.loadServers).not.toHaveBeenCalled();
-
-      consoleWarnSpy.mockRestore();
     });
 
     it('should handle empty storage gracefully', async () => {

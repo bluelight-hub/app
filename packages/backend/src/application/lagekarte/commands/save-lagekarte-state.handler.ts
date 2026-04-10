@@ -1,3 +1,4 @@
+import { Result } from '@domain/common/result';
 import { ILagekarteStateRepository } from '@domain/repositories/i-lagekarte-state.repository';
 import { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
 import { ILogger } from '@domain/ports/i-logger.port';
@@ -23,7 +24,7 @@ import { LAGEKARTE_STATE_REPOSITORY, EVENT_PUBLISHER, LOGGER } from '@infrastruc
  */
 @Injectable()
 @CommandHandler(SaveLagekarteStateCommand)
-export class SaveLagekarteStateCommandHandler implements ICommandHandler<SaveLagekarteStateCommand, void> {
+export class SaveLagekarteStateCommandHandler implements ICommandHandler<SaveLagekarteStateCommand, Result<void>> {
   constructor(
     @Inject(LOGGER)
     private readonly logger: ILogger,
@@ -33,7 +34,7 @@ export class SaveLagekarteStateCommandHandler implements ICommandHandler<SaveLag
     private readonly eventPublisher: IEventPublisher,
   ) {}
 
-  async execute(command: SaveLagekarteStateCommand): Promise<void> {
+  async execute(command: SaveLagekarteStateCommand): Promise<Result<void>> {
     this.logger.log(`Saving Lagekarte state for Einsatz ${command.einsatzId} by user ${command.userId}`, 'SaveLagekarteStateCommandHandler');
 
     // Step 1: Lagekarte anhand der Einsatz-ID laden
@@ -43,7 +44,7 @@ export class SaveLagekarteStateCommandHandler implements ICommandHandler<SaveLag
         einsatzId: command.einsatzId,
         timestamp: new Date().toISOString(),
       });
-      throw new Error(`Lagekarte for Einsatz ${command.einsatzId} not found`);
+      return Result.fail<void>('Lagekarte not found');
     }
 
     // Step 2: State aktualisieren
@@ -61,7 +62,7 @@ export class SaveLagekarteStateCommandHandler implements ICommandHandler<SaveLag
           lagekarteId: lagekarte.id,
           einsatzId: command.einsatzId,
         });
-        return;
+        return Result.ok();
       }
 
       const event = new LagekarteStateGeaendertEvent(lagekarteIdResult.value!, einsatzIdResult.value!, userIdResult.value!);
@@ -73,5 +74,7 @@ export class SaveLagekarteStateCommandHandler implements ICommandHandler<SaveLag
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Failed to publish LagekarteStateGeaendertEvent: ${errorMessage}`, 'SaveLagekarteStateCommandHandler');
     }
+
+    return Result.ok();
   }
 }

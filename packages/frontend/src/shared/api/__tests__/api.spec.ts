@@ -6,6 +6,7 @@ import { logger } from '@/shared/lib/logger';
 
 vi.mock('@/shared/lib/logger', () => ({
   logger: {
+    trace: vi.fn(),
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
@@ -45,8 +46,8 @@ describe('getBaseUrl', () => {
     expect(getBaseUrl()).toBe('https://localhost:3091');
     expect(getBaseUrl()).toBe('https://localhost:3091');
 
-    expect(vi.mocked(logger.debug)).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(logger.debug)).toHaveBeenCalledWith('Using active server URL', {
+    expect(vi.mocked(logger.trace)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(logger.trace)).toHaveBeenCalledWith('Using active server URL', {
       url: 'https://localhost:3091',
       serverName: 'Lokal',
     });
@@ -86,12 +87,12 @@ describe('getBaseUrl', () => {
 
     expect(getBaseUrl()).toBe('https://localhost:3092');
 
-    expect(vi.mocked(logger.debug)).toHaveBeenCalledTimes(2);
-    expect(vi.mocked(logger.debug)).toHaveBeenNthCalledWith(1, 'Using active server URL', {
+    expect(vi.mocked(logger.trace)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(logger.trace)).toHaveBeenNthCalledWith(1, 'Using active server URL', {
       url: 'https://localhost:3091',
       serverName: 'Lokal',
     });
-    expect(vi.mocked(logger.debug)).toHaveBeenNthCalledWith(2, 'Using active server URL', {
+    expect(vi.mocked(logger.trace)).toHaveBeenNthCalledWith(2, 'Using active server URL', {
       url: 'https://localhost:3092',
       serverName: 'Staging',
     });

@@ -1711,12 +1711,28 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             },
             "type": "array",
           },
+          "state": {
+            "description": "GeoJSON FeatureCollection mit Zeichnungsdaten der Lagekarte",
+            "example": {
+              "features": [],
+              "type": "FeatureCollection",
+            },
+            "nullable": true,
+            "type": "object",
+          },
+          "updatedAt": {
+            "description": "Letzter Aktualisierungszeitpunkt der Lagekarte",
+            "example": "2024-01-15T14:30:00.000Z",
+            "format": "date-time",
+            "type": "string",
+          },
         },
         "required": [
           "id",
           "einsatzId",
           "pois",
           "createdAt",
+          "updatedAt",
         ],
         "type": "object",
       },

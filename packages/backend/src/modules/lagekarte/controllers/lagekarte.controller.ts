@@ -192,14 +192,11 @@ export class LagekarteController {
 
     // CQRS: Delegiert an SaveLagekarteStateCommandHandler (Issue #638)
     // Handler kümmert sich um Persistierung + Event-Publishing
-    try {
-      await this.commandBus.execute(new SaveLagekarteStateCommand(einsatzId, dto.state, user.userId));
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('not found')) {
-        throw new NotFoundException(`Lagekarte for Einsatz ${einsatzId} not found`);
-      }
-      throw error;
+    const result = await this.commandBus.execute(new SaveLagekarteStateCommand(einsatzId, dto.state, user.userId));
+
+    if (result.isFailure) {
+      this.logger.error(`Failed to save Lagekarte state for Einsatz ${einsatzId}: ${result.error}`);
+      throw new NotFoundException(result.error);
     }
 
     // Rückgabe: Lagekarte via Legacy Repository laden (für Abwärtskompatibilität)
