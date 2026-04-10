@@ -4,3 +4,4 @@ export * from './MapDetailPanel.molecule';
 export * from './DrawToolbar.molecule';
 export * from './DrawStylePanel.molecule';
 export * from './OsmMarkierungPopup.molecule';
+export * from './TaktischeZeichenLayer.molecule';
