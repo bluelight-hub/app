@@ -244,6 +244,12 @@ model User {
   // ========================================
   updatedAufbewahrungsKonfigurationen AufbewahrungsKonfiguration[] @relation("AufbewahrungsKonfigurationUpdater")
 
+  // ========================================
+  // Taktische Zeichen Relations (Issue #636)
+  // ========================================
+  taktischeZeichenCreated TaktischesZeichen[] @relation("TaktischesZeichenCreator")
+  taktischeZeichenUpdated TaktischesZeichen[] @relation("TaktischesZeichenUpdater")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -336,6 +342,9 @@ model Einsatz {
 
   // Taktische Einheiten Relation (1:N, Issue #411)
   einheiten EinsatzEinheit[]
+
+  // Taktische Zeichen Relation (1:N, Issue #636)
+  taktischeZeichen TaktischesZeichen[]
 
   // Indexes
   @@unique([nummer])
@@ -650,12 +659,87 @@ model Lagekarte {
   updatedAt DateTime @updatedAt
 
   // Relations
-  einsatz Einsatz        @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
-  pois    LagekartePoi[]
+  einsatz          Einsatz             @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  pois             LagekartePoi[]
+  taktischeZeichen TaktischesZeichen[]
 
   // Indexes
   @@index([einsatzId])
   @@map("lagekarte")
+}
+
+// ========================================
+// Taktische Zeichen Models (DV 102, Issue #636)
+// ========================================
+
+model TaktischesZeichen {
+  id                String  @id @default(cuid())
+  einsatzId         String  @map("einsatz_id")
+  zeichenDefinition Json    @map("zeichen_definition") @db.JsonB
+  referenzTyp       String? @map("referenz_typ") @db.VarChar(20)
+  referenzId        String? @map("referenz_id")
+  lat               Float?
+  lng               Float?
+  mgrs              String? @db.VarChar(20)
+  lagekarteId       String? @map("lagekarte_id")
+  label             String? @db.VarChar(200)
+  notiz             String? @db.Text
+  istAusKatalog     Boolean @default(false) @map("ist_aus_katalog")
+  katalogEintragId  String? @map("katalog_eintrag_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String   @map("created_by") @db.VarChar(100)
+  updatedBy String?  @map("updated_by") @db.VarChar(100)
+
+  einsatz   Einsatz    @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  lagekarte Lagekarte? @relation(fields: [lagekarteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  creator   User       @relation("TaktischesZeichenCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater   User?      @relation("TaktischesZeichenUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([einsatzId])
+  @@index([lagekarteId])
+  @@index([referenzTyp, referenzId])
+  @@index([einsatzId, lagekarteId])
+  @@index([createdBy])
+  @@map("taktische_zeichen")
+}
+
+model ZeichenKatalogEintrag {
+  id                String   @id @default(cuid())
+  name              String   @db.VarChar(200)
+  kategorie         String   @db.VarChar(50)
+  beschreibung      String?  @db.Text
+  zeichenDefinition Json     @map("zeichen_definition") @db.JsonB
+  tags              String[]
+  sortOrder         Int      @default(0) @map("sort_order")
+  istStandard       Boolean  @default(true) @map("ist_standard")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([kategorie])
+  @@index([kategorie, sortOrder])
+  @@map("zeichen_katalog_eintraege")
+}
+
+model FahrzeugtypZeichenDefault {
+  id                String @id @default(cuid())
+  fahrzeugtypId     String @unique @map("fahrzeugtyp_id")
+  zeichenDefinition Json   @map("zeichen_definition") @db.JsonB
+
+  fahrzeugtyp Fahrzeugtyp @relation(fields: [fahrzeugtypId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("fahrzeugtyp_zeichen_defaults")
+}
+
+model EinheitentypZeichenDefault {
+  id                String            @id @default(cuid())
+  einheitentyp      EinsatzEinheitTyp
+  zeichenDefinition Json              @map("zeichen_definition") @db.JsonB
+
+  @@unique([einheitentyp])
+  @@map("einheitentyp_zeichen_defaults")
 }
 
 // ========================================
@@ -823,6 +907,9 @@ model Fahrzeugtyp {
 
   // Inverse Relation für EinsatzFahrzeuge (Story 3.0)
   einsatzFahrzeuge EinsatzFahrzeug[]
+
+  // Zeichen-Default für Lagekarte (Issue #636)
+  zeichenDefault FahrzeugtypZeichenDefault?
 
   // Indexes
   @@index([kategorie, istAktiv])
