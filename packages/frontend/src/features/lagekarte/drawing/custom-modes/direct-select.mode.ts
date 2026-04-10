@@ -7,15 +7,23 @@
  */
 
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { berechneAbstand, berechneBearing, erstelleEllipse, erstelleKreis, erstelleSektor } from '../../utils/geo-calculations';
+import { berechneAbstand, erstelleEllipse, erstelleKreis, erstelleSektor } from '../../utils/geo-calculations';
+import { erzeugeArrowDisplay } from '../arrow-display';
 
 const defaultDirectSelect = MapboxDraw.modes.direct_select;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomDirectSelect: any = { ...defaultDirectSelect };
 
+// Lock: Bei gesperrter Karte sofort zurück zu simple_select wechseln
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 CustomDirectSelect.onSetup = function (opts: any) {
+  if ((this.map as any)?.__drawLocked) {
+    // Gesperrt → direkt zurück zu simple_select
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this as any).changeMode('simple_select');
+    return {};
+  }
   const state = defaultDirectSelect.onSetup.call(this, opts);
 
   const props = state.feature.properties;
@@ -80,18 +88,20 @@ CustomDirectSelect.onSetup = function (opts: any) {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 CustomDirectSelect.toDisplayFeatures = function (state: any, geojson: any, push: any) {
-  // Pfeilspitze für Arrow-Features (auch bei Nicht-Parametric)
+  // Arrow-Features: Push-Callback wrappen, damit Linie gekürzt wird
   if (geojson.geometry?.type === 'LineString' && geojson.properties?.user_shapeType === 'arrow') {
     const coords = geojson.geometry.coordinates;
     if (coords && coords.length >= 2) {
-      const from: [number, number] = coords[coords.length - 2] as [number, number];
-      const to: [number, number] = coords[coords.length - 1] as [number, number];
-      const bearing = berechneBearing(from, to);
-      push({
-        type: 'Feature',
-        properties: { meta: 'arrowhead', parent: geojson.properties.id, arrowBearing: bearing, active: geojson.properties.active },
-        geometry: { type: 'Point', coordinates: to },
-      });
+      const map = this.map;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const arrowPush = (feature: any) => {
+        if (feature.geometry?.type === 'LineString') {
+          erzeugeArrowDisplay(map, feature, push);
+        } else {
+          push(feature);
+        }
+      };
+      return defaultDirectSelect.toDisplayFeatures.call(this, state, geojson, arrowPush);
     }
   }
 

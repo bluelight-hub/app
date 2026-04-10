@@ -144,17 +144,6 @@ vi.mock('@/features/lagekarte/hooks/use-symbol-marker', () => ({
   })),
 }));
 
-vi.mock('@/features/lagekarte/hooks/use-multi-select', () => ({
-  useMultiSelect: vi.fn(() => ({
-    groups: [],
-    groupsForSelection: [],
-    createGroup: vi.fn(),
-    dissolveGroup: vi.fn(),
-    selectByGroup: vi.fn(),
-    selectionCount: 0,
-  })),
-}));
-
 vi.mock('@/features/lagekarte/stores/draw.store', () => ({
   drawStore: {
     state: {
@@ -166,6 +155,7 @@ vi.mock('@/features/lagekarte/stores/draw.store', () => ({
       featureGroups: [],
       isSymbolPanelVisible: false,
       isTemplatePanelVisible: false,
+      isLocked: false,
     },
     subscribe: vi.fn((cb) => {
       cb();
@@ -174,6 +164,7 @@ vi.mock('@/features/lagekarte/stores/draw.store', () => ({
   },
   toggleSnapEnabled: vi.fn(),
   toggleDrawToolbar: vi.fn(),
+  toggleLock: vi.fn(),
   toggleSymbolPanel: vi.fn(),
   toggleTemplatePanel: vi.fn(),
   addFeatureGroup: vi.fn(),
@@ -200,6 +191,7 @@ vi.mock('@tanstack/react-store', () => ({
       featureGroups: [],
       isSymbolPanelVisible: false,
       isTemplatePanelVisible: false,
+      isLocked: false,
     };
     return selector(state);
   }),

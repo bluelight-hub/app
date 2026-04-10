@@ -1,9 +1,9 @@
 /**
  * Unit Tests für DrawToolbar Molecule
  *
- * Verifiziert die Zeichenwerkzeugleiste:
+ * Verifiziert die 2-Spalten-Zeichenwerkzeugleiste:
  * - Toggle-Button (Expand/Collapse)
- * - Zeichenmodus-Buttons
+ * - Alle Zeichenmodus-Buttons
  * - Aktiver Modus Hervorhebung
  * - Accessibility
  */
@@ -11,18 +11,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DrawToolbar } from '../DrawToolbar.molecule';
+import { DrawToolbar, TOOLBAR_ITEMS } from '../DrawToolbar.molecule';
 
 // Mock draw store
 vi.mock('../../../stores/draw.store', () => ({
   drawStore: {
-    state: { isDrawToolbarVisible: true, isSymbolPanelVisible: false, isTemplatePanelVisible: false },
+    state: { isDrawToolbarVisible: true, isSymbolPanelVisible: false, isTemplatePanelVisible: false, isLocked: false },
     subscribe: vi.fn((cb) => {
       cb();
       return () => {};
     }),
   },
   toggleDrawToolbar: vi.fn(),
+  toggleLock: vi.fn(),
   toggleSymbolPanel: vi.fn(),
   toggleTemplatePanel: vi.fn(),
 }));
@@ -30,7 +31,7 @@ vi.mock('../../../stores/draw.store', () => ({
 vi.mock('@tanstack/react-store', () => ({
   useStore: vi.fn((_store: unknown, selector: unknown) => {
     if (typeof selector === 'function') {
-      return (selector as Function)({ isDrawToolbarVisible: true, isSymbolPanelVisible: false, isTemplatePanelVisible: false });
+      return (selector as Function)({ isDrawToolbarVisible: true, isSymbolPanelVisible: false, isTemplatePanelVisible: false, isLocked: false });
     }
     return true;
   }),
@@ -46,16 +47,37 @@ describe('DrawToolbar', () => {
   it('sollte alle Zeichenmodus-Buttons rendern', () => {
     render(<DrawToolbar activeMode="idle" onModeChange={vi.fn()} />);
 
-    // Prüfe einige der 11 Mode-Buttons
     expect(screen.getByLabelText('Auswählen')).toBeInTheDocument();
     expect(screen.getByLabelText('Punkt zeichnen')).toBeInTheDocument();
     expect(screen.getByLabelText('Linie zeichnen')).toBeInTheDocument();
     expect(screen.getByLabelText('Polygon zeichnen')).toBeInTheDocument();
     expect(screen.getByLabelText('Kreis zeichnen')).toBeInTheDocument();
+    expect(screen.getByLabelText('Rechteck zeichnen')).toBeInTheDocument();
     expect(screen.getByLabelText('Freihand zeichnen')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pfeil zeichnen')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ellipse zeichnen')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ausbreitungskegel zeichnen')).toBeInTheDocument();
     expect(screen.getByLabelText('GAMS-Zonen platzieren')).toBeInTheDocument();
     expect(screen.getByLabelText('Text platzieren')).toBeInTheDocument();
     expect(screen.getByLabelText('OSM-Gebäude markieren')).toBeInTheDocument();
+  });
+
+  it('sollte alle erwarteten Modi in TOOLBAR_ITEMS enthalten', () => {
+    const allModes = TOOLBAR_ITEMS.filter((item): item is Exclude<typeof item, 'separator'> => item !== 'separator').map((t) => t.mode);
+    expect(allModes).toHaveLength(13);
+    expect(allModes).toContain('select');
+    expect(allModes).toContain('draw_point');
+    expect(allModes).toContain('draw_line_string');
+    expect(allModes).toContain('draw_polygon');
+    expect(allModes).toContain('draw_circle');
+    expect(allModes).toContain('draw_rectangle');
+    expect(allModes).toContain('draw_freehand');
+    expect(allModes).toContain('draw_arrow');
+    expect(allModes).toContain('draw_ellipse');
+    expect(allModes).toContain('draw_sector');
+    expect(allModes).toContain('draw_gams');
+    expect(allModes).toContain('draw_text');
+    expect(allModes).toContain('osm_mark');
   });
 
   it('sollte onModeChange aufrufen bei Klick auf Mode-Button', async () => {
@@ -75,5 +97,20 @@ describe('DrawToolbar', () => {
     const toggleBtn = screen.getByLabelText('Werkzeugleiste einklappen');
     expect(toggleBtn).toHaveAttribute('aria-expanded', 'true');
     expect(toggleBtn).toHaveAttribute('aria-controls', 'draw-toolbar-modes');
+  });
+
+  it('sollte Vorlagen- und Symbolbibliothek-Buttons anzeigen', () => {
+    render(<DrawToolbar activeMode="idle" onModeChange={vi.fn()} />);
+
+    expect(screen.getByLabelText('Vorlagen')).toBeInTheDocument();
+    expect(screen.getByLabelText('Symbolbibliothek')).toBeInTheDocument();
+  });
+
+  it('sollte Lock-Button mit aria-pressed rendern', () => {
+    render(<DrawToolbar activeMode="idle" onModeChange={vi.fn()} />);
+
+    const lockBtn = screen.getByLabelText('Bearbeitung sperren');
+    expect(lockBtn).toBeInTheDocument();
+    expect(lockBtn).toHaveAttribute('aria-pressed', 'false');
   });
 });

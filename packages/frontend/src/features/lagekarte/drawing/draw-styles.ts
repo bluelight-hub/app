@@ -150,19 +150,22 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     },
   },
   // Pfeilspitze (inaktiv) — Point-Feature mit meta 'arrowhead' vom toDisplayFeatures-Callback
+  // SDF-Image zeigt nach oben (Nord), icon-rotate nutzt Bearing direkt (0°=Nord)
   {
     id: 'gl-draw-arrow-head-inactive',
     type: 'symbol',
     filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Point'], ['==', 'meta', 'arrowhead']],
     layout: {
       'icon-image': ARROW_HEAD_IMAGE_NAME,
-      'icon-size': 0.8,
+      'icon-size': ['interpolate', ['linear'], ['coalesce', ['get', 'user_strokeWidth'], 2], 1, 0.4, 2, 0.5, 4, 0.7, 8, 1.0],
       'icon-rotate': ['get', 'arrowBearing'],
+      'icon-rotation-alignment': 'map',
+      'icon-pitch-alignment': 'map',
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
     },
     paint: {
-      'icon-color': '#3b82f6',
+      'icon-color': ['coalesce', ['get', 'user_color'], '#3b82f6'],
     },
   },
   // Pfeilspitze (aktiv)
@@ -172,13 +175,15 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Point'], ['==', 'meta', 'arrowhead']],
     layout: {
       'icon-image': ARROW_HEAD_IMAGE_NAME,
-      'icon-size': 0.8,
+      'icon-size': ['interpolate', ['linear'], ['coalesce', ['get', 'user_strokeWidth'], 2], 1, 0.4, 2, 0.5, 4, 0.7, 8, 1.0],
       'icon-rotate': ['get', 'arrowBearing'],
+      'icon-rotation-alignment': 'map',
+      'icon-pitch-alignment': 'map',
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
     },
     paint: {
-      'icon-color': '#fbbf24',
+      'icon-color': ['coalesce', ['get', 'user_color'], '#fbbf24'],
     },
   },
   // Symbol-Marker (Symbolbibliothek) — versteckt Punkt-Kreis für Symbol-Features

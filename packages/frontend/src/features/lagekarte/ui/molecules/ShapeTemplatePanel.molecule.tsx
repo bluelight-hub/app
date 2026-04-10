@@ -28,7 +28,7 @@ export function ShapeTemplatePanel({ isVisible, onApplyTemplate, activeMode }: S
   if (!isVisible) return null;
 
   return (
-    <div className="absolute top-4 left-16 z-10 w-48 rounded-lg border border-border-subtle bg-surface-panel shadow-lg">
+    <div className="absolute top-4 left-24 z-10 w-48 rounded-lg border border-border-subtle bg-surface-panel shadow-lg">
       <div className="border-b border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary">Vorlagen</div>
       <div className="max-h-64 overflow-y-auto p-1">
         {SHAPE_TEMPLATES.map((template) => (
