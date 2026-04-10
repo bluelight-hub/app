@@ -43,6 +43,7 @@ export * from './NotizenApi';
 export * from './POIDEPRECATEDApi';
 export * from './PermissionsApi';
 export * from './RollenBesetzungApi';
+export * from './TaktischeZeichenApi';
 export * from './UserManagementApi';
 export * from './UsersApi';
 export * from './WarnungenApi';
