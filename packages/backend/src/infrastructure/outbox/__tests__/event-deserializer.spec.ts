@@ -2278,7 +2278,8 @@ describe('EventDeserializer', () => {
       // + InviteCodeCreated + InviteCodeUsed + InviteCodeRevoked (Issue #98)
       // + EinheitErstellt + EinheitStatusGeaendert + EinheitAufgeloest + PersonZuEinheitZugewiesen + PersonVonEinheitEntfernt + FahrzeugEinheitZugewiesen (Issue #411)
       // + GefahrenmatrixAktualisiert (Issue #414)
-      expect(supportedTypes).toHaveLength(89);
+      // + LagekarteStateUpdated (#638)
+      expect(supportedTypes).toHaveLength(90);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
