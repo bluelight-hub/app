@@ -7,3 +7,5 @@ export { useCreateZeichen } from './use-create-zeichen';
 export { useUpdateZeichen } from './use-update-zeichen';
 export { usePlaceZeichen } from './use-place-zeichen';
 export { useRemoveZeichen } from './use-remove-zeichen';
+export { useZeichenFromEntity, useZeichenFromEinheit, useZeichenFromFahrzeug } from './use-zeichen-from-entity';
+export type { UseZeichenFromEntityResult, ZeichenEntityTyp } from './use-zeichen-from-entity';
