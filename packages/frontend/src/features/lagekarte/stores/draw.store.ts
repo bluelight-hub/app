@@ -40,6 +40,8 @@ export interface DrawStoreState {
   isSymbolPanelVisible: boolean;
   /** Ob das Template-Panel sichtbar ist */
   isTemplatePanelVisible: boolean;
+  /** Features gegen Bearbeitung gesperrt */
+  isLocked: boolean;
 }
 
 const initialState: DrawStoreState = {
@@ -51,6 +53,7 @@ const initialState: DrawStoreState = {
   featureGroups: [],
   isSymbolPanelVisible: false,
   isTemplatePanelVisible: false,
+  isLocked: false,
 };
 
 /**
@@ -115,6 +118,24 @@ export const toggleSnapEnabled = () => {
   drawStore.setState((state) => ({
     ...state,
     snapEnabled: !state.snapEnabled,
+  }));
+};
+
+/**
+ * Schaltet die Feature-Sperre um (verhindert Selektieren/Editieren/Löschen)
+ */
+export const toggleLock = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    isLocked: !state.isLocked,
+    // Beim Sperren: Werkzeuge deaktivieren, aber Selektion beibehalten (Read-Only-Inspektion)
+    ...(!state.isLocked && {
+      drawMode: 'select' as DrawMode,
+      isDirectSelect: false,
+      isDrawToolbarVisible: false,
+      isSymbolPanelVisible: false,
+      isTemplatePanelVisible: false,
+    }),
   }));
 };
 

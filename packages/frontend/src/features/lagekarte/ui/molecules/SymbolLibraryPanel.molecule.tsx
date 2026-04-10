@@ -31,7 +31,7 @@ export function SymbolLibraryPanel({ isVisible, onSelectSymbol, onClose }: Symbo
   const symbols = getSymbolsByCategory(activeCategory);
 
   return (
-    <div className="absolute top-4 left-16 z-10 w-64 rounded-lg border border-border-subtle bg-surface-panel shadow-lg">
+    <div className="absolute top-4 left-24 z-10 w-64 rounded-lg border border-border-subtle bg-surface-panel shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border-subtle px-3 py-2">
         <span className="text-xs font-medium text-text-secondary">Symbolbibliothek</span>

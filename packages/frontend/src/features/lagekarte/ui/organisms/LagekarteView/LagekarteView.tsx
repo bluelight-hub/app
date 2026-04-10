@@ -12,7 +12,6 @@ import { useOsmMarkierung } from '@/features/lagekarte/hooks/use-osm-markierung'
 import { useGamsZonen } from '@/features/lagekarte/hooks/use-gams-zonen';
 import { useSnapControl } from '@/features/lagekarte/hooks/use-snap-control';
 import { useSymbolMarker } from '@/features/lagekarte/hooks/use-symbol-marker';
-import { useMultiSelect } from '@/features/lagekarte/hooks/use-multi-select';
 import { drawStore, toggleSnapEnabled, toggleSymbolPanel, toggleTemplatePanel } from '@/features/lagekarte/stores/draw.store';
 import { DEFAULT_DRAWING_STYLE } from '@/features/lagekarte/drawing/types';
 import type { DrawingStyle, HatchConfig } from '@/features/lagekarte/drawing/types';
@@ -39,7 +38,6 @@ import { DrawShortcutBar } from '../../molecules/DrawShortcutBar.molecule';
 import { DrawStylePanel } from '../../molecules/DrawStylePanel.molecule';
 import { ShapeTemplatePanel } from '../../molecules/ShapeTemplatePanel.molecule';
 import { SymbolLibraryPanel } from '../../molecules/SymbolLibraryPanel.molecule';
-import { FeatureGroupPanel } from '../../molecules/FeatureGroupPanel.molecule';
 import { OsmMarkierungPopup } from '../../molecules/OsmMarkierungPopup.molecule';
 import { GamsZonenPanel } from '../../molecules/GamsZonenPanel.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
@@ -86,6 +84,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const snapEnabled = useStore(drawStore, (s) => s.snapEnabled);
   const isSymbolPanelVisible = useStore(drawStore, (s) => s.isSymbolPanelVisible);
   const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
+  const isLocked = useStore(drawStore, (s) => s.isLocked);
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
@@ -117,6 +116,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     isRemoteApplyRef,
     sendDelta: (...args) => sendDeltaRef.current?.(...args),
     pendingSymbolRef,
+    isLocked,
   });
 
   // WebSocket-Sync (koordiniert WS mit Draw-Control, braucht drawRef von oben)
@@ -142,9 +142,6 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
   // Symbolbibliothek
   const { pendingSymbol, selectSymbol, cancelSymbol } = useSymbolMarker({ mapRef, drawRef, isMapLoaded });
-
-  // Multi-Select & Gruppierung
-  const { groups, groupsForSelection, createGroup, dissolveGroup, selectByGroup, selectionCount } = useMultiSelect({ drawRef, scheduleAutoSave });
 
   // I4: Stil des selektierten Features in das StylePanel laden
   useEffect(() => {
@@ -457,23 +454,25 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         )}
       </Map>
 
-      {/* Draw-Toolbar */}
+      {/* Draw-Toolbar (immer sichtbar für Lock-Button, ShortcutBar nur wenn nicht gesperrt) */}
       {canDraw && (
         <>
           <DrawToolbar activeMode={drawMode} onModeChange={setMode} />
-          <DrawShortcutBar
-            activeMode={drawMode}
-            hasSelection={selectedFeatureIds.length > 0}
-            canUndo={canUndo}
-            canRedo={canRedo}
-            isDirectSelect={isDirectSelect}
-            onUndo={undo}
-            onRedo={redo}
-            onDeleteSelected={deleteSelected}
-            liveMeasurement={liveMeasurement}
-            snapEnabled={snapEnabled}
-            onToggleSnap={toggleSnapEnabled}
-          />
+          {!isLocked && (
+            <DrawShortcutBar
+              activeMode={drawMode}
+              hasSelection={selectedFeatureIds.length > 0}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              isDirectSelect={isDirectSelect}
+              onUndo={undo}
+              onRedo={redo}
+              onDeleteSelected={deleteSelected}
+              liveMeasurement={liveMeasurement}
+              snapEnabled={snapEnabled}
+              onToggleSnap={toggleSnapEnabled}
+            />
+          )}
         </>
       )}
 
@@ -486,6 +485,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         onLabelChange={handleLabelChange}
         geometryType={selectedFeatureGeometryType}
         measurement={selectedMeasurement}
+        readOnly={isLocked}
       />
 
       {/* Shape-Template-Panel */}
@@ -493,19 +493,6 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
       {/* Symbolbibliothek-Panel */}
       {canDraw && <SymbolLibraryPanel isVisible={isSymbolPanelVisible} onSelectSymbol={handleSelectSymbol} onClose={toggleSymbolPanel} />}
-
-      {/* Feature-Gruppen-Panel */}
-      {canDraw && (
-        <FeatureGroupPanel
-          selectionCount={selectionCount}
-          groupsForSelection={groupsForSelection}
-          allGroups={groups}
-          onCreateGroup={createGroup}
-          onDissolveGroup={dissolveGroup}
-          onSelectGroup={selectByGroup}
-          isVisible={selectionCount >= 2 || groups.length > 0}
-        />
-      )}
 
       {mode !== 'presentation' && <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />}
 

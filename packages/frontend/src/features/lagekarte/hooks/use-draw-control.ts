@@ -76,6 +76,8 @@ interface UseDrawControlOptions {
   sendDelta?: (type: 'create' | 'update' | 'delete', payload: { features?: GeoJSON.Feature[]; featureIds?: string[] }) => void;
   /** Ref auf das aktuell ausgewählte Symbol für Platzierung */
   pendingSymbolRef?: React.RefObject<{ id: string; category: string } | null>;
+  /** Ob die Karte gegen Bearbeitung gesperrt ist */
+  isLocked?: boolean;
 }
 
 interface UseDrawControlReturn {
@@ -108,12 +110,13 @@ const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
  * @param options - Konfiguration für den Draw-Control
  * @returns API zum Steuern des Zeichenmodus
  */
-export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef, isRemoteApplyRef, sendDelta, pendingSymbolRef }: UseDrawControlOptions): UseDrawControlReturn {
+export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef, isRemoteApplyRef, sendDelta, pendingSymbolRef, isLocked }: UseDrawControlOptions): UseDrawControlReturn {
   const drawRef = useRef<MapboxDraw | null>(null);
   const undoStack = useRef<FeatureCollection[]>([]);
   const redoStack = useRef<FeatureCollection[]>([]);
   const isUndoInProgress = useRef(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLockedRef = useRef(false);
   /** Letzter bekannter State VOR der aktuellen Änderung (für korrektes Undo) */
   const lastKnownStateRef = useRef<FeatureCollection>(EMPTY_FC);
   /** Flag: Initiale Backend-Daten wurden in MapboxDraw geladen */
@@ -147,6 +150,24 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
   useEffect(() => {
     drawModeRef.current = drawMode;
   }, [drawMode]);
+
+  // Ref für Lock-Status (vermeidet Stale-Closure in Event-Handlern)
+  useEffect(() => {
+    isLockedRef.current = !!isLocked;
+    const map = mapRef.current?.getMap();
+    // Flag auf der Map setzen, damit Custom-Modes direkt Interaktionen blockieren
+    if (map) {
+      (map as any).__drawLocked = !!isLocked;
+    }
+    // Bei Lock: Auf simple_select wechseln (kein Zeichenmodus aktiv)
+    if (isLocked && drawRef.current) {
+      try {
+        drawRef.current.changeMode('simple_select');
+      } catch {
+        // Draw evtl. noch nicht bereit
+      }
+    }
+  }, [isLocked, mapRef]);
 
   // Ref für sendDelta (vermeidet Stale-Closure in Event-Handlern)
   const sendDeltaRef = useRef(sendDelta);
@@ -707,11 +728,23 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
         return;
       }
 
-      // Escape → Idle-Modus
+      // Escape → Selektion aufheben + Idle-Modus
       if (e.key === 'Escape') {
+        setSelectedFeatures([]);
         setDrawMode('idle');
+        const draw = drawRef.current;
+        if (draw) {
+          try {
+            draw.changeMode('simple_select');
+          } catch {
+            // Ignorieren
+          }
+        }
         return;
       }
+
+      // Bei Lock: Keine weiteren Aktionen (Delete, Undo, Redo)
+      if (isLockedRef.current) return;
 
       // Delete / Backspace → Ausgewählte Features löschen
       // stopPropagation verhindert dass MapboxDraw's interner onKeyUp-Handler

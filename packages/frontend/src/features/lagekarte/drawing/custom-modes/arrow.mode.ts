@@ -7,7 +7,7 @@
  * im toDisplayFeatures-Callback erzeugt und über einen Symbol-Layer gerendert.
  */
 
-import { berechneBearing } from '../../utils/geo-calculations';
+import { erzeugeArrowDisplay } from '../arrow-display';
 
 /** Interner State des Pfeil-Modus */
 interface ArrowState {
@@ -81,29 +81,8 @@ ArrowMode.toDisplayFeatures = function (_state: ArrowState, geojson: any, displa
   if (geojson.geometry.type === 'LineString') {
     const coords = geojson.geometry.coordinates;
     if (!coords || coords.length < 2) return;
-
-    // LineString anzeigen
-    display(geojson);
-
-    // Pfeilspitze als zusätzliches Display-Feature am Endpunkt
-    const from: [number, number] = coords[coords.length - 2] as [number, number];
-    const to: [number, number] = coords[coords.length - 1] as [number, number];
-    const [toLng, toLat] = to;
-    const bearing = berechneBearing(from, to);
-
-    display({
-      type: 'Feature',
-      properties: {
-        meta: 'arrowhead',
-        parent: geojson.properties.id,
-        arrowBearing: bearing,
-        active: geojson.properties.active,
-      },
-      geometry: {
-        type: 'Point',
-        coordinates: [toLng, toLat],
-      },
-    });
+    // Gekürzte Linie + Pfeilspitze (Strich endet an Pfeilkopf-Basis)
+    erzeugeArrowDisplay(this.map, geojson, display);
     return;
   }
   display(geojson);
