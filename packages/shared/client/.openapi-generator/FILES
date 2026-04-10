@@ -42,6 +42,7 @@ apis/NotizenApi.ts
 apis/POIDEPRECATEDApi.ts
 apis/PermissionsApi.ts
 apis/RollenBesetzungApi.ts
+apis/TaktischeZeichenApi.ts
 apis/UserManagementApi.ts
 apis/UsersApi.ts
 apis/WarnungenApi.ts
@@ -191,6 +192,7 @@ models/CreateQualifikationDto.ts
 models/CreateRollenDefinitionDto.ts
 models/CreateStammFahrzeugDto.ts
 models/CreateStammPersonDto.ts
+models/CreateTaktischesZeichenDto.ts
 models/CreateUserDto.ts
 models/DeleteManagedUserResponse.ts
 models/DeleteManagedUserResponseData.ts
@@ -370,6 +372,7 @@ models/OperativeRoleResponseDto.ts
 models/PersonRegisteredResponseDto.ts
 models/PersonStatistikDto.ts
 models/PersonStatistikItemDto.ts
+models/PlatziereZeichenDto.ts
 models/PlzLookupControllerLookupVAlpha200Response.ts
 models/PlzLookupResponseDto.ts
 models/PlzOrtDto.ts
@@ -424,6 +427,10 @@ models/StatusCountsResponseDto.ts
 models/StopRecurringSeriesDto.ts
 models/SystemHealthDto.ts
 models/TaktischeStaerkeDto.ts
+models/TaktischeZeichenControllerCreateVAlpha201Response.ts
+models/TaktischeZeichenControllerFindAllVAlpha200Response.ts
+models/TaktischeZeichenControllerGetKatalogVAlpha200Response.ts
+models/TaktischesZeichenResponseDto.ts
 models/TextbausteinDto.ts
 models/TimelineUserDto.ts
 models/TokenListItemDto.ts
@@ -450,6 +457,7 @@ models/UpdateQualifikationDto.ts
 models/UpdateRollenDefinitionDto.ts
 models/UpdateStammFahrzeugDto.ts
 models/UpdateStammPersonDto.ts
+models/UpdateTaktischesZeichenDto.ts
 models/UpdateUserDto.ts
 models/UpsertRuntimeConfigRequestDto.ts
 models/UserBasicDto.ts
@@ -466,6 +474,9 @@ models/WarnungenControllerGetNinaGeoJsonVAlpha200Response.ts
 models/WarnungenControllerGetNinaWarnungDetailVAlpha200Response.ts
 models/WarnungenControllerGetNinaWarnungenVAlpha200Response.ts
 models/WeisePersonZuFahrzeugZuDto.ts
+models/ZeichenDefinitionDto.ts
+models/ZeichenDefinitionRequestDto.ts
+models/ZeichenKatalogEintragResponseDto.ts
 models/ZeitverlaufBucketDto.ts
 models/ZeitverlaufStatistikDto.ts
 models/index.ts
