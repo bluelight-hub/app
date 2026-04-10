@@ -78,8 +78,9 @@ vi.mock('@/features/lagekarte/hooks/use-lagekarte-permissions', () => ({
   useLagekartePermissions: () => ({ canDraw: mockCanDraw() }),
 }));
 
+const mockWsConnected = vi.fn().mockReturnValue(true);
 vi.mock('@/features/lagekarte/api/use-lagekarte-websocket', () => ({
-  useLagekarteWebSocketStatus: () => true,
+  useLagekarteWebSocketStatus: () => mockWsConnected(),
 }));
 
 vi.mock('@/features/lagekarte/hooks/use-draw-control', () => ({
@@ -95,12 +96,14 @@ vi.mock('@/features/lagekarte/hooks/use-draw-control', () => ({
   }),
 }));
 
+const mockSendDelta = vi.fn();
+const mockLagekarteSync = vi.fn().mockReturnValue({
+  wsStatus: 'connected',
+  isConnected: true,
+  sendDelta: mockSendDelta,
+});
 vi.mock('@/features/lagekarte/hooks/use-lagekarte-sync', () => ({
-  useLagekarteSync: () => ({
-    wsStatus: 'connected',
-    isConnected: true,
-    sendDelta: vi.fn(),
-  }),
+  useLagekarteSync: (...args: any[]) => mockLagekarteSync(...args),
 }));
 
 vi.mock('@/features/lagekarte/hooks/use-feature-measurement', () => ({
@@ -119,12 +122,13 @@ vi.mock('@/features/lagekarte/hooks/use-osm-markierung', () => ({
   }),
 }));
 
+const mockGamsZonen = vi.fn().mockReturnValue({
+  pendingGamsCenter: null,
+  confirmiereGamsZonen: vi.fn(),
+  abbrechenGamsZonen: vi.fn(),
+});
 vi.mock('@/features/lagekarte/hooks/use-gams-zonen', () => ({
-  useGamsZonen: () => ({
-    pendingGamsCenter: null,
-    confirmiereGamsZonen: vi.fn(),
-    abbrechenGamsZonen: vi.fn(),
-  }),
+  useGamsZonen: (...args: any[]) => mockGamsZonen(...args),
 }));
 
 vi.mock('@/features/lagekarte/hooks/use-snap-control', () => ({
@@ -245,6 +249,17 @@ describe('LagekarteView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCanDraw.mockReturnValue(true);
+    mockWsConnected.mockReturnValue(true);
+    mockGamsZonen.mockReturnValue({
+      pendingGamsCenter: null,
+      confirmiereGamsZonen: vi.fn(),
+      abbrechenGamsZonen: vi.fn(),
+    });
+    mockLagekarteSync.mockReturnValue({
+      wsStatus: 'connected',
+      isConnected: true,
+      sendDelta: mockSendDelta,
+    });
   });
 
   describe('Standard-Modus', () => {
@@ -326,6 +341,70 @@ describe('LagekarteView', () => {
       render(<LagekarteView einsatzId="einsatz-1" mode="presentation" />);
 
       expect(screen.getByTestId('fullscreen-close')).toBeInTheDocument();
+    });
+  });
+
+  describe('GAMS-Zonen', () => {
+    it('sollte GAMS-Panel anzeigen wenn pendingGamsCenter gesetzt', () => {
+      mockGamsZonen.mockReturnValue({
+        pendingGamsCenter: [10.5, 50.3],
+        confirmiereGamsZonen: vi.fn(),
+        abbrechenGamsZonen: vi.fn(),
+      });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+
+      expect(screen.getByTestId('gams-panel')).toBeInTheDocument();
+    });
+
+    it('sollte GAMS-Panel NICHT anzeigen wenn kein pendingGamsCenter', () => {
+      render(<LagekarteView einsatzId="einsatz-1" />);
+
+      expect(screen.queryByTestId('gams-panel')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('WebSocket-Sync', () => {
+    it('sollte useLagekarteSync mit enabled=true im Standard-Modus aufrufen', () => {
+      render(<LagekarteView einsatzId="einsatz-1" />);
+
+      expect(mockLagekarteSync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          einsatzId: 'einsatz-1',
+          enabled: true,
+        }),
+      );
+    });
+
+    it('sollte useLagekarteSync mit enabled=false im Präsentationsmodus aufrufen', () => {
+      render(<LagekarteView einsatzId="einsatz-1" mode="presentation" />);
+
+      expect(mockLagekarteSync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: false,
+        }),
+      );
+    });
+
+    it('sollte ConnectionStatusBadge mit wsStatus rendern', () => {
+      mockLagekarteSync.mockReturnValue({
+        wsStatus: 'error',
+        isConnected: false,
+        sendDelta: mockSendDelta,
+      });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+
+      const badge = screen.getByTestId('ws-badge');
+      expect(badge).toHaveTextContent('error');
+    });
+  });
+
+  describe('Draw-Shortcut-Bar', () => {
+    it('sollte DrawShortcutBar anzeigen wenn canDraw=true', () => {
+      render(<LagekarteView einsatzId="einsatz-1" />);
+
+      expect(screen.getByTestId('draw-shortcut-bar')).toBeInTheDocument();
     });
   });
 });
