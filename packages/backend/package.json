@@ -1,6 +1,6 @@
 {
   "name": "@bluelight-hub/backend",
-  "version": "1.0.0-alpha.90",
+  "version": "1.0.0-alpha.91",
   "private": true,
   "scripts": {
     "dev": "nest start --watch",

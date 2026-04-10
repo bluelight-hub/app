@@ -1,3 +1,16 @@
+## Lagekarte – Zeichenwerkzeuge
+
+- **Neue Zeichenmodi**: Pfeile, Ellipsen und taktische Symbole können jetzt direkt auf der Karte platziert werden
+- **Symbol-Bibliothek**: Kategorisierte taktische Symbole für schnellen Zugriff während der Lageerstellung
+- **Vorlagen für Formen**: Vordefinierte Zeichenvorlagen für häufig verwendete Elemente
+- **Pfeil-Darstellung**: Pfeile werden automatisch mit Pfeilspitzen in korrekter Ausrichtung gerendert, Größe passt sich der Strichstärke an
+- **Schneller Punkt-Modus**: Mehrere Markierungen können ohne Moduswechsel nacheinander gesetzt werden
+- **Gruppierung**: Mehrere Elemente können gemeinsam ausgewählt und bearbeitet werden
+- **Sperrmodus**: Neue Sperr-Funktion verhindert versehentliches Bearbeiten oder Verschieben von Kartenelementen
+- **Ellipsen-Bearbeitung**: Proportionales Skalieren beim Ändern der Größe
+- **Tastatursteuerung**: ESC-Taste hebt Auswahl auf und kehrt zum normalen Modus zurück
+- **Werkzeugleiste**: Übersichtlichere 2-Spalten-Ansicht mit Kategorie-Trennern
+
 ## Lagekarte
 
 - **Echtzeit-Kollaboration:** Zeichnungen und Markierungen auf der Lagekarte werden jetzt in Echtzeit zwischen allen Teilnehmern synchronisiert. Änderungen sind sofort für alle sichtbar.
