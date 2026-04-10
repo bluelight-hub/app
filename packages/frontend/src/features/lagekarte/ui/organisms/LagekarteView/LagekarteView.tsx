@@ -42,6 +42,8 @@ import { OsmMarkierungPopup } from '../../molecules/OsmMarkierungPopup.molecule'
 import { GamsZonenPanel } from '../../molecules/GamsZonenPanel.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
+import { TaktischeZeichenLayer } from '../../molecules/TaktischeZeichenLayer.molecule';
+import { useEinsatzZeichen } from '@/features/taktische-zeichen';
 import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
 
@@ -76,6 +78,11 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
   // Polling-Fallback: 5s Polling wenn WebSocket nicht verbunden ist
   const { data: lagekarteData } = useLagekarte(einsatzId, { refetchInterval: wsIsConnected ? false : 5000 });
+
+  // Taktische Zeichen des Einsatzes (Polling-Fallback wenn kein WebSocket)
+  const { data: einsatzZeichen = [] } = useEinsatzZeichen(einsatzId, {
+    refetchInterval: wsIsConnected ? false : 10_000,
+  });
 
   // Draw-Store State
   const drawMode = useStore(drawStore, (s) => s.drawMode);
@@ -435,6 +442,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
         {/* NINA Warnungen GeoJSON Layer */}
         {ninaGeoJson && <NinaGeoJsonLayer data={ninaGeoJson} ninaOverlays={ninaOverlays} />}
+
+        {/* Taktische Zeichen Layer (DV 102) */}
+        <TaktischeZeichenLayer mapRef={mapRef} isMapLoaded={isMapLoaded} zeichen={einsatzZeichen} />
 
         {/* Detail-Popup am Klick-Punkt */}
         {results.length > 0 && coordinate && !isPanelOpen && <MapDetailPopup results={results} coordinate={coordinate} onShowDetails={openPanel} onClose={clearSelection} />}
