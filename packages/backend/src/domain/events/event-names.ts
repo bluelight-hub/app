@@ -291,6 +291,22 @@ export const EVENT_NAMES = {
     /** Event: Gefahrenmatrix wurde aktualisiert (Bewertung geändert) */
     AKTUALISIERT: 'gefahrenmatrix.aktualisiert',
   },
+
+  /**
+   * Taktische Zeichen Bounded Context Events (Issue #636)
+   */
+  TAKTISCHES_ZEICHEN: {
+    /** Event: Taktisches Zeichen wurde neu erstellt */
+    ERSTELLT: 'taktisches_zeichen.erstellt',
+    /** Event: Taktisches Zeichen wurde auf der Lagekarte platziert */
+    PLATZIERT: 'taktisches_zeichen.platziert',
+    /** Event: Taktisches Zeichen wurde verschoben */
+    VERSCHOBEN: 'taktisches_zeichen.verschoben',
+    /** Event: Metadaten des taktischen Zeichens wurden aktualisiert */
+    AKTUALISIERT: 'taktisches_zeichen.aktualisiert',
+    /** Event: Taktisches Zeichen wurde von der Lagekarte entfernt */
+    ENTFERNT: 'taktisches_zeichen.entfernt',
+  },
 } as const;
 
 /**
@@ -325,4 +341,5 @@ export type EventName =
   | (typeof EVENT_NAMES.SYSTEM)[keyof typeof EVENT_NAMES.SYSTEM]
   | (typeof EVENT_NAMES.OPERATIVE_ROLLE)[keyof typeof EVENT_NAMES.OPERATIVE_ROLLE]
   | (typeof EVENT_NAMES.BEITRITTSANFRAGE)[keyof typeof EVENT_NAMES.BEITRITTSANFRAGE]
-  | (typeof EVENT_NAMES.GEFAHRENMATRIX)[keyof typeof EVENT_NAMES.GEFAHRENMATRIX];
+  | (typeof EVENT_NAMES.GEFAHRENMATRIX)[keyof typeof EVENT_NAMES.GEFAHRENMATRIX]
+  | (typeof EVENT_NAMES.TAKTISCHES_ZEICHEN)[keyof typeof EVENT_NAMES.TAKTISCHES_ZEICHEN];

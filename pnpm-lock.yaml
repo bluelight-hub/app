@@ -412,6 +412,12 @@ importers:
       tailwindcss:
         specifier: ^4.2.2
         version: 4.2.2
+      taktische-zeichen-core:
+        specifier: ^0.10.0
+        version: 0.10.0
+      taktische-zeichen-react:
+        specifier: ^0.10.0
+        version: 0.10.0(react@19.2.4)
       use-debounce:
         specifier: ^10.1.1
         version: 10.1.1(react@19.2.4)
@@ -10551,6 +10557,14 @@ packages:
 
   tailwindcss@4.2.2:
     resolution: {integrity: sha512-KWBIxs1Xb6NoLdMVqhbhgwZf2PGBpPEiwOqgI4pFIYbNTfBXiKYyWoTsXgBQ9WFg/OlhnvHaY+AEpW7wSmFo2Q==}
+
+  taktische-zeichen-core@0.10.0:
+    resolution: {integrity: sha512-jo4jZmAuBbAsKJrDppHY1hSprnZGmC8f8fRI1GwpZ6fOKDXXEaxVrNWJDfvywnjYXwEfOsRl7obbLW/LT77J9g==}
+
+  taktische-zeichen-react@0.10.0:
+    resolution: {integrity: sha512-tVoFQ7fmpBEC7eRL93oc0itJ4uX/eCmCkobHqZlj2nChRrDz7k9O/jksmVlTnnsy0eHZ4gd1V72AP4C/QpAraA==}
+    peerDependencies:
+      react: '>= 17.0.0'
 
   tapable@2.3.2:
     resolution: {integrity: sha512-1MOpMXuhGzGL5TTCZFItxCc0AARf1EZFQkGqMm7ERKj8+Hgr5oLvJOVFcC+lRmR8hCe2S3jC4T5D7Vg/d7/fhA==}
@@ -24459,6 +24473,15 @@ snapshots:
   tailwind-merge@3.5.0: {}
 
   tailwindcss@4.2.2: {}
+
+  taktische-zeichen-core@0.10.0:
+    dependencies:
+      base64-js: 1.5.1
+
+  taktische-zeichen-react@0.10.0(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+      taktische-zeichen-core: 0.10.0
 
   tapable@2.3.2: {}
 
