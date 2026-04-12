@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import type { ITaktischesZeichenRepository } from '@domain/taktische-zeichen/ports/itaktisches-zeichen.repository';
-import { TAKTISCHE_ZEICHEN_REPOSITORY } from '../../di-tokens';
+import { TAKTISCHE_ZEICHEN_REPOSITORY } from '@infrastructure/di-tokens';
 import { TaktischesZeichenResponseFactory } from '../../factories/taktisches-zeichen-response.factory';
 import type { TaktischesZeichenResponseDto } from '../../dtos/taktisches-zeichen-response.dto';
 import type { FindeZeichenFuerLagekarteQuery } from './finde-zeichen-fuer-lagekarte.query';
