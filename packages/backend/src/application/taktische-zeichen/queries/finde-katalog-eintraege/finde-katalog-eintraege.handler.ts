@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import type { IZeichenKatalogRepository } from '@domain/taktische-zeichen/ports/izeichen-katalog.repository';
-import { ZEICHEN_KATALOG_REPOSITORY } from '../../di-tokens';
+import { ZEICHEN_KATALOG_REPOSITORY } from '@infrastructure/di-tokens';
 import type { ZeichenKatalogEintragResponseDto } from '../../dtos/zeichen-katalog-eintrag-response.dto';
 import type { FindeKatalogEintraegeQuery } from './finde-katalog-eintraege.query';
 

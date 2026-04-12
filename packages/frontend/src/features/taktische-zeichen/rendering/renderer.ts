@@ -1,11 +1,4 @@
-import type {
-  EinheitId,
-  FachaufgabeId,
-  GrundzeichenId,
-  OrganisationId,
-  SymbolId,
-  VerwaltungsstufeId,
-} from 'taktische-zeichen-core';
+import type { EinheitId, FachaufgabeId, GrundzeichenId, OrganisationId, SymbolId, VerwaltungsstufeId } from 'taktische-zeichen-core';
 
 /**
  * Definition eines taktischen Zeichens für die Darstellung.

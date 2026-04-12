@@ -2,7 +2,7 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { FindeZeichenFuerEinsatzHandler } from '../finde-zeichen-fuer-einsatz.handler';
 import { FindeZeichenFuerEinsatzQuery } from '../finde-zeichen-fuer-einsatz.query';
-import { TAKTISCHE_ZEICHEN_REPOSITORY } from '../../../di-tokens';
+import { TAKTISCHE_ZEICHEN_REPOSITORY } from '@infrastructure/di-tokens';
 import type { ITaktischesZeichenRepository } from '@domain/taktische-zeichen/ports/itaktisches-zeichen.repository';
 import { TaktischesZeichenResponseFactory } from '../../../factories/taktisches-zeichen-response.factory';
 import { Result } from '@domain/common/result';

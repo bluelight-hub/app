@@ -24,13 +24,5 @@ export function ZeichenPreview({ definition, size = 'md', className }: ZeichenPr
   const dataUrl = useMemo(() => renderer.renderDataUrl(definition), [definition]);
   const px = SIZE_MAP[size];
 
-  return (
-    <img
-      src={dataUrl}
-      alt={`Taktisches Zeichen: ${definition.grundzeichen ?? 'unbekannt'}`}
-      width={px}
-      height={px}
-      className={cn('object-contain', className)}
-    />
-  );
+  return <img src={dataUrl} alt={`Taktisches Zeichen: ${definition.grundzeichen ?? 'unbekannt'}`} width={px} height={px} className={cn('object-contain', className)} />;
 }

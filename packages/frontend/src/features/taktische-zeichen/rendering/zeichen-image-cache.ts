@@ -28,9 +28,7 @@ const imageCache = new Map<string, HTMLImageElement>();
  * @param definition - Definition des taktischen Zeichens
  * @returns Schlüssel und geladenes HTMLImageElement
  */
-export async function getOrCreateImage(
-  definition: ZeichenDefinition,
-): Promise<{ key: string; image: HTMLImageElement }> {
+export async function getOrCreateImage(definition: ZeichenDefinition): Promise<{ key: string; image: HTMLImageElement }> {
   const key = `tz-${getCacheKey(definition)}`;
   const cached = imageCache.get(key);
   if (cached) return { key, image: cached };
