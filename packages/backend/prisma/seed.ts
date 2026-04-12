@@ -2,7 +2,7 @@ import '@dotenvx/dotenvx/config';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Logger } from '@nestjs/common';
-import { EtbKategorie, FahrzeugtypKategorie, PrismaClient, QualifikationKategorie } from '../src/generated/prisma/client';
+import { EinsatzEinheitTyp, EtbKategorie, FahrzeugtypKategorie, PrismaClient, QualifikationKategorie } from '../src/generated/prisma/client';
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -67,6 +67,12 @@ async function main() {
   // Stammdaten (Story 2.0) - MUSS nach seedKraefteConfig laufen (braucht Fahrzeugtypen + Qualifikationen)
   // MUSS in allen Umgebungen laufen - Stammdaten sind essentielle Entwicklungsdaten
   await seedStammdaten(systemUser.id);
+
+  // Zeichen-Katalog (DV 102) - MUSS in allen Umgebungen laufen
+  await seedZeichenKatalog();
+
+  // Default-Zeichen für Fahrzeugtypen und Einheitentypen - MUSS nach seedKraefteConfig laufen
+  await seedZeichenDefaults();
 
   // Erstelle ETB Textbausteine NUR für Entwicklung
   if (process.env.NODE_ENV === 'development') {
@@ -301,6 +307,258 @@ async function seedStammdaten(systemUserId: string): Promise<void> {
   logger.log(`Created ${personen.length} Stamm-Personen mit Qualifikationen`);
 
   logger.log('Stammdaten Seed completed');
+}
+
+/**
+ * Erstellt den Zeichen-Katalog nach DV 102.
+ * Löscht alle Standard-Einträge und erstellt sie neu (Idempotenz).
+ */
+async function seedZeichenKatalog(): Promise<void> {
+  logger.log('Erstelle Zeichen-Katalog (DV 102)...');
+
+  // Bestehende Standard-Einträge löschen für Idempotenz
+  await prisma.zeichenKatalogEintrag.deleteMany({ where: { istStandard: true } });
+
+  const katalogEintraege = [
+    // FUEHRUNG
+    { name: 'Einsatzleitung', kategorie: 'FUEHRUNG', zeichenDefinition: { grundzeichen: 'befehlsstelle', fachaufgabe: 'fuehrung' }, tags: ['el', 'einsatzleitung', 'führung'], sortOrder: 1 },
+    {
+      name: 'Einsatzleitung Feuerwehr',
+      kategorie: 'FUEHRUNG',
+      zeichenDefinition: { grundzeichen: 'befehlsstelle', organisation: 'feuerwehr', fachaufgabe: 'fuehrung' },
+      tags: ['el', 'feuerwehr'],
+      sortOrder: 2,
+    },
+    { name: 'Einsatzleitung THW', kategorie: 'FUEHRUNG', zeichenDefinition: { grundzeichen: 'befehlsstelle', organisation: 'thw', fachaufgabe: 'fuehrung' }, tags: ['el', 'thw'], sortOrder: 3 },
+    {
+      name: 'Einsatzabschnittsleitung',
+      kategorie: 'FUEHRUNG',
+      zeichenDefinition: { grundzeichen: 'befehlsstelle', fachaufgabe: 'fuehrung', einheit: 'zug' },
+      tags: ['eal', 'abschnitt'],
+      sortOrder: 4,
+    },
+
+    // EINHEITEN
+    {
+      name: 'Löschzug Feuerwehr',
+      kategorie: 'EINHEITEN',
+      zeichenDefinition: { grundzeichen: 'taktische-formation', organisation: 'feuerwehr', fachaufgabe: 'brandbekaempfung', einheit: 'zug' },
+      tags: ['lz', 'löschzug', 'feuerwehr'],
+      sortOrder: 10,
+    },
+    {
+      name: 'Löschgruppe Feuerwehr',
+      kategorie: 'EINHEITEN',
+      zeichenDefinition: { grundzeichen: 'taktische-formation', organisation: 'feuerwehr', fachaufgabe: 'brandbekaempfung', einheit: 'gruppe' },
+      tags: ['lg', 'löschgruppe'],
+      sortOrder: 11,
+    },
+    {
+      name: 'Bergungsgruppe THW',
+      kategorie: 'EINHEITEN',
+      zeichenDefinition: { grundzeichen: 'taktische-formation', organisation: 'thw', fachaufgabe: 'bergung', einheit: 'gruppe' },
+      tags: ['b', 'bergung', 'thw'],
+      sortOrder: 12,
+    },
+    {
+      name: 'SEG Rettung',
+      kategorie: 'EINHEITEN',
+      zeichenDefinition: { grundzeichen: 'taktische-formation', organisation: 'hilfsorganisation', fachaufgabe: 'rettungswesen', einheit: 'gruppe' },
+      tags: ['seg', 'rettung'],
+      sortOrder: 13,
+    },
+    {
+      name: 'SEG Betreuung',
+      kategorie: 'EINHEITEN',
+      zeichenDefinition: { grundzeichen: 'taktische-formation', organisation: 'hilfsorganisation', fachaufgabe: 'betreuung', einheit: 'gruppe' },
+      tags: ['seg', 'betreuung'],
+      sortOrder: 14,
+    },
+
+    // FAHRZEUGE
+    {
+      name: 'ELW 1',
+      kategorie: 'FAHRZEUGE',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'feuerwehr', fachaufgabe: 'fuehrung' },
+      tags: ['elw', 'einsatzleitwagen'],
+      sortOrder: 20,
+    },
+    {
+      name: 'ELW 2',
+      kategorie: 'FAHRZEUGE',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'feuerwehr', fachaufgabe: 'fuehrung', einheit: 'zug' },
+      tags: ['elw2'],
+      sortOrder: 21,
+    },
+    {
+      name: 'RTW',
+      kategorie: 'FAHRZEUGE',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'rettungswesen' },
+      tags: ['rtw', 'rettungswagen'],
+      sortOrder: 22,
+    },
+    {
+      name: 'KTW',
+      kategorie: 'FAHRZEUGE',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'transport' },
+      tags: ['ktw', 'krankentransport'],
+      sortOrder: 23,
+    },
+    {
+      name: 'LF 20',
+      kategorie: 'FAHRZEUGE',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'feuerwehr', fachaufgabe: 'brandbekaempfung' },
+      tags: ['lf', 'löschfahrzeug'],
+      sortOrder: 24,
+    },
+    {
+      name: 'GKW THW',
+      kategorie: 'FAHRZEUGE',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'thw', fachaufgabe: 'bergung' },
+      tags: ['gkw', 'gerätekraftwagen', 'thw'],
+      sortOrder: 25,
+    },
+
+    // GEFAHREN
+    { name: 'Brandstelle', kategorie: 'GEFAHREN', zeichenDefinition: { grundzeichen: 'gefahr-akut', fachaufgabe: 'brandbekaempfung' }, tags: ['brand', 'feuer', 'gefahr'], sortOrder: 30 },
+    { name: 'Gefahrstoff', kategorie: 'GEFAHREN', zeichenDefinition: { grundzeichen: 'gefahr-akut', fachaufgabe: 'abc' }, tags: ['gefahrstoff', 'abc', 'cbrn'], sortOrder: 31 },
+    { name: 'Einsturzgefahr', kategorie: 'GEFAHREN', zeichenDefinition: { grundzeichen: 'gefahr-vermutet', fachaufgabe: 'bergung' }, tags: ['einsturz', 'gebäude'], sortOrder: 32 },
+    {
+      name: 'Überflutung',
+      kategorie: 'GEFAHREN',
+      zeichenDefinition: { grundzeichen: 'gefahr-akut', fachaufgabe: 'abwehr-wassergefahren' },
+      tags: ['wasser', 'überflutung', 'hochwasser'],
+      sortOrder: 33,
+    },
+
+    // VERSORGUNG
+    {
+      name: 'Behandlungsplatz',
+      kategorie: 'VERSORGUNG',
+      zeichenDefinition: { grundzeichen: 'stelle', organisation: 'hilfsorganisation', fachaufgabe: 'aerztliche-versorgung' },
+      tags: ['bhp', 'behandlungsplatz', 'sanität'],
+      sortOrder: 40,
+    },
+    { name: 'Bereitstellungsraum', kategorie: 'VERSORGUNG', zeichenDefinition: { grundzeichen: 'stelle', fachaufgabe: 'logistik' }, tags: ['br', 'bereitstellungsraum'], sortOrder: 41 },
+    { name: 'Sammelstelle', kategorie: 'VERSORGUNG', zeichenDefinition: { grundzeichen: 'stelle', fachaufgabe: 'betreuung' }, tags: ['sammelstelle', 'sammelpunkt'], sortOrder: 42 },
+    { name: 'Verpflegungsstelle', kategorie: 'VERSORGUNG', zeichenDefinition: { grundzeichen: 'stelle', fachaufgabe: 'verpflegung' }, tags: ['verpflegung', 'essen'], sortOrder: 43 },
+    { name: 'Hubschrauberlandeplatz', kategorie: 'VERSORGUNG', zeichenDefinition: { grundzeichen: 'stelle', fachaufgabe: 'transport' }, tags: ['hubschrauber', 'landeplatz', 'rth'], sortOrder: 44 },
+
+    // INFRASTRUKTUR
+    {
+      name: 'Wasserentnahmestelle',
+      kategorie: 'INFRASTRUKTUR',
+      zeichenDefinition: { grundzeichen: 'stelle', fachaufgabe: 'wasserversorgung' },
+      tags: ['wasser', 'entnahme', 'hydrant'],
+      sortOrder: 50,
+    },
+    {
+      name: 'Stromversorgung',
+      kategorie: 'INFRASTRUKTUR',
+      zeichenDefinition: { grundzeichen: 'stelle', fachaufgabe: 'versorgung-elektrizitaet' },
+      tags: ['strom', 'elektrizität', 'nea'],
+      sortOrder: 51,
+    },
+    { name: 'Beleuchtung', kategorie: 'INFRASTRUKTUR', zeichenDefinition: { grundzeichen: 'stelle', fachaufgabe: 'beleuchtung' }, tags: ['licht', 'beleuchtung'], sortOrder: 52 },
+    { name: 'IuK-Stelle', kategorie: 'INFRASTRUKTUR', zeichenDefinition: { grundzeichen: 'stelle', fachaufgabe: 'iuk' }, tags: ['iuk', 'funk', 'kommunikation'], sortOrder: 53 },
+  ];
+
+  await prisma.zeichenKatalogEintrag.createMany({
+    data: katalogEintraege.map((e) => ({
+      name: e.name,
+      kategorie: e.kategorie,
+      zeichenDefinition: e.zeichenDefinition,
+      tags: e.tags,
+      sortOrder: e.sortOrder,
+      istStandard: true,
+    })),
+  });
+
+  logger.log(`${katalogEintraege.length} Zeichen-Katalog-Einträge erstellt`);
+}
+
+/**
+ * Erstellt Default-Zeichen-Definitionen für Fahrzeugtypen und Einheitentypen.
+ * Nutzt Upsert-Pattern für Idempotenz bei mehrfacher Ausführung.
+ * Läuft nach seedKraefteConfig(), da Fahrzeugtyp-IDs benötigt werden.
+ */
+async function seedZeichenDefaults(): Promise<void> {
+  logger.log('Erstelle Default-Zeichen für Fahrzeugtypen und Einheitentypen...');
+
+  // Default-Zeichen für Fahrzeugtypen (verknüpft mit bestehenden Fahrzeugtypen aus seedKraefteConfig)
+  const fahrzeugtypDefaults = [
+    {
+      code: 'RTW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'rettungswesen' },
+    },
+    {
+      code: 'KTW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'transport' },
+    },
+    {
+      code: 'NEF',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'aerztliche-versorgung' },
+    },
+    {
+      code: 'NAW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'aerztliche-versorgung', einheit: 'trupp' },
+    },
+    {
+      code: 'ELW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', fachaufgabe: 'fuehrung' },
+    },
+    {
+      code: 'MTW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'transport', einheit: 'trupp' },
+    },
+  ];
+
+  let fahrzeugtypCount = 0;
+  for (const entry of fahrzeugtypDefaults) {
+    const fahrzeugtyp = await prisma.fahrzeugtyp.findUnique({ where: { code: entry.code } });
+    if (!fahrzeugtyp) {
+      logger.warn(`Fahrzeugtyp '${entry.code}' nicht gefunden — Default-Zeichen übersprungen`);
+      continue;
+    }
+
+    await prisma.fahrzeugtypZeichenDefault.upsert({
+      where: { fahrzeugtypId: fahrzeugtyp.id },
+      create: {
+        fahrzeugtypId: fahrzeugtyp.id,
+        zeichenDefinition: entry.zeichenDefinition,
+      },
+      update: {
+        zeichenDefinition: entry.zeichenDefinition,
+      },
+    });
+    fahrzeugtypCount++;
+  }
+  logger.log(`${fahrzeugtypCount} FahrzeugtypZeichenDefaults erstellt/aktualisiert`);
+
+  // Default-Zeichen für Einheitentypen (feste Enum-Werte, kein FK)
+  const einheitentypDefaults: Array<{ einheitentyp: EinsatzEinheitTyp; zeichenDefinition: Record<string, string> }> = [
+    { einheitentyp: EinsatzEinheitTyp.TRUPP, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'trupp' } },
+    { einheitentyp: EinsatzEinheitTyp.STAFFEL, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'staffel' } },
+    { einheitentyp: EinsatzEinheitTyp.GRUPPE, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'gruppe' } },
+    { einheitentyp: EinsatzEinheitTyp.ZUG, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'zug' } },
+    { einheitentyp: EinsatzEinheitTyp.ABSCHNITT, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'bereitschaft' } },
+  ];
+
+  for (const entry of einheitentypDefaults) {
+    await prisma.einheitentypZeichenDefault.upsert({
+      where: { einheitentyp: entry.einheitentyp },
+      create: {
+        einheitentyp: entry.einheitentyp,
+        zeichenDefinition: entry.zeichenDefinition,
+      },
+      update: {
+        zeichenDefinition: entry.zeichenDefinition,
+      },
+    });
+  }
+  logger.log(`${einheitentypDefaults.length} EinheitentypZeichenDefaults erstellt/aktualisiert`);
+
+  logger.log('Default-Zeichen Seed completed');
 }
 
 main()

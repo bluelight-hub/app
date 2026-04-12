@@ -25,12 +25,13 @@ import {
   PiPolygon,
   PiRectangle,
   PiScribbleLoop,
+  PiShieldStar,
   PiStamp,
   PiTarget,
   PiTextT,
 } from 'react-icons/pi';
 import type { DrawMode } from '../../drawing/types';
-import { drawStore, toggleDrawToolbar, toggleLock, toggleSymbolPanel, toggleTemplatePanel } from '../../stores/draw.store';
+import { drawStore, toggleDrawToolbar, toggleLock, toggleSymbolPanel, toggleTemplatePanel, toggleZeichenSidebar } from '../../stores/draw.store';
 
 /** Props für die DrawToolbar-Komponente */
 export interface DrawToolbarProps {
@@ -81,11 +82,12 @@ export function DrawToolbar({ activeMode, onModeChange }: DrawToolbarProps) {
   const isSymbolPanelVisible = useStore(drawStore, (s) => s.isSymbolPanelVisible);
   const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
   const isLocked = useStore(drawStore, (s) => s.isLocked);
+  const isZeichenSidebarVisible = useStore(drawStore, (s) => s.isZeichenSidebarVisible);
   const isDrawing = activeMode !== 'idle' && activeMode !== 'select';
 
   return (
     <div className="absolute top-4 left-4 z-10 flex flex-col overflow-hidden rounded-lg border border-border-subtle bg-surface-panel shadow-lg" role="toolbar" aria-label="Zeichenwerkzeuge">
-      {/* Toggle-Button + Lock-Button nebeneinander */}
+      {/* Toggle-Button + Lock-Button + Zeichen-Button nebeneinander */}
       <div className="flex">
         <button
           type="button"
@@ -98,6 +100,17 @@ export function DrawToolbar({ activeMode, onModeChange }: DrawToolbarProps) {
           className={cn(buttonBase, 'flex-1', isLocked ? 'text-text-muted' : isExpanded || isDrawing ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
         >
           <PiPencilSimple className="h-5 w-5" aria-hidden="true" />
+        </button>
+
+        <button
+          type="button"
+          aria-label="Taktische Zeichen"
+          aria-pressed={isZeichenSidebarVisible}
+          title="Taktische Zeichen"
+          onClick={toggleZeichenSidebar}
+          className={cn(buttonBase, isZeichenSidebarVisible ? 'bg-action-secondary text-action-primary' : 'text-text-muted hover:bg-action-secondary hover:text-text-primary')}
+        >
+          <PiShieldStar className="h-5 w-5" aria-hidden="true" />
         </button>
 
         <button

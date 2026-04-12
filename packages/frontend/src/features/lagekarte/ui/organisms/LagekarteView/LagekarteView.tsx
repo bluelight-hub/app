@@ -42,6 +42,10 @@ import { OsmMarkierungPopup } from '../../molecules/OsmMarkierungPopup.molecule'
 import { GamsZonenPanel } from '../../molecules/GamsZonenPanel.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
+import { TaktischeZeichenLayer } from '../../molecules/TaktischeZeichenLayer.molecule';
+import { KartenZeichenSidebar } from '../../molecules/KartenZeichenSidebar.molecule';
+import { useEinsatzZeichen } from '@/features/taktische-zeichen';
+import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
 
@@ -77,7 +81,12 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // Polling-Fallback: 5s Polling wenn WebSocket nicht verbunden ist
   const { data: lagekarteData } = useLagekarte(einsatzId, { refetchInterval: wsIsConnected ? false : 5000 });
 
-  // Draw-Store State
+  // Taktische Zeichen des Einsatzes (Polling-Fallback wenn kein WebSocket)
+  const { data: einsatzZeichen = [] } = useEinsatzZeichen(einsatzId, {
+    refetchInterval: wsIsConnected ? false : 10_000,
+  });
+
+  // Draw-Store State (vor useZeichenDrag, damit canDraw verfügbar)
   const drawMode = useStore(drawStore, (s) => s.drawMode);
   const selectedFeatureIds = useStore(drawStore, (s) => s.selectedFeatureIds);
   const isDirectSelect = useStore(drawStore, (s) => s.isDirectSelect);
@@ -85,9 +94,19 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const isSymbolPanelVisible = useStore(drawStore, (s) => s.isSymbolPanelVisible);
   const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
   const isLocked = useStore(drawStore, (s) => s.isLocked);
+  const isZeichenSidebarVisible = useStore(drawStore, (s) => s.isZeichenSidebarVisible);
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
+
+  // Drag & Drop für taktische Zeichen (nur wenn Zeichnen erlaubt und nicht gesperrt)
+  useZeichenDrag({
+    mapRef,
+    isMapLoaded,
+    zeichen: einsatzZeichen,
+    einsatzId,
+    canDrag: canDraw && !isLocked,
+  });
 
   // Style-Panel State (vor useDrawControl, damit activeStyleRef verfügbar ist)
   const [activeStyle, setActiveStyle] = useState<DrawingStyle>(DEFAULT_DRAWING_STYLE);
@@ -436,6 +455,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         {/* NINA Warnungen GeoJSON Layer */}
         {ninaGeoJson && <NinaGeoJsonLayer data={ninaGeoJson} ninaOverlays={ninaOverlays} />}
 
+        {/* Taktische Zeichen Layer (DV 102) */}
+        <TaktischeZeichenLayer mapRef={mapRef} isMapLoaded={isMapLoaded} zeichen={einsatzZeichen} />
+
         {/* Detail-Popup am Klick-Punkt */}
         {results.length > 0 && coordinate && !isPanelOpen && <MapDetailPopup results={results} coordinate={coordinate} onShowDetails={openPanel} onClose={clearSelection} />}
 
@@ -498,6 +520,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
       {/* Detail-Panel (Slide-In von rechts) */}
       <MapDetailPanel results={results} panelIndex={panelIndex} isOpen={isPanelOpen} onClose={closePanel} onNavigate={navigatePanel} />
+
+      {/* Karten-Zeichen-Sidebar (nur im Nicht-Präsentationsmodus) */}
+      {mode !== 'presentation' && <KartenZeichenSidebar einsatzId={einsatzId} isVisible={isZeichenSidebarVisible} />}
     </div>
   );
 };

@@ -23,6 +23,49 @@ export interface LagekarteStateGeaendertPayload {
 }
 
 /**
+ * WebSocket Payload für zeichen.erstellt Event.
+ */
+export interface ZeichenErstelltPayload {
+  zeichenId: string;
+  einsatzId: string;
+  timestamp: string; // ISO 8601
+}
+
+/**
+ * WebSocket Payload für zeichen.platziert Event.
+ */
+export interface ZeichenPlatziertPayload {
+  zeichenId: string;
+  einsatzId: string;
+  lagekarteId: string;
+  lat: number;
+  lng: number;
+  mgrs?: string;
+  timestamp: string; // ISO 8601
+}
+
+/**
+ * WebSocket Payload für zeichen.verschoben Event.
+ */
+export interface ZeichenVerschobenPayload {
+  zeichenId: string;
+  einsatzId: string;
+  lat: number;
+  lng: number;
+  mgrs?: string;
+  timestamp: string; // ISO 8601
+}
+
+/**
+ * WebSocket Payload für zeichen.entfernt Event.
+ */
+export interface ZeichenEntferntPayload {
+  zeichenId: string;
+  einsatzId: string;
+  timestamp: string; // ISO 8601
+}
+
+/**
  * WebSocket Gateway für Lagekarte Echtzeit-Kollaboration.
  *
  * **Issue #638: Lagekarte Echtzeit-Feature**
@@ -206,6 +249,50 @@ export class LagekarteGateway implements OnGatewayConnection, OnGatewayDisconnec
     const roomName = this.getRoomName(payload.einsatzId);
     this.server.to(roomName).emit('lagekarte:state.geaendert', payload);
     this.logger.log(`Emitted lagekarte:state.geaendert to room ${roomName}: lagekarteId=${payload.lagekarteId}`, 'LagekarteGateway');
+  }
+
+  /**
+   * Emittiert `zeichen:erstellt` Event an alle Clients im Einsatz-Room.
+   *
+   * @param payload - Event-Payload mit Zeichen-Informationen
+   */
+  emitZeichenErstellt(payload: ZeichenErstelltPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('zeichen:erstellt', payload);
+    this.logger.log(`Emitted zeichen:erstellt to room ${roomName}: zeichenId=${payload.zeichenId}`, 'LagekarteGateway');
+  }
+
+  /**
+   * Emittiert `zeichen:platziert` Event an alle Clients im Einsatz-Room.
+   *
+   * @param payload - Event-Payload mit Positions-Informationen
+   */
+  emitZeichenPlatziert(payload: ZeichenPlatziertPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('zeichen:platziert', payload);
+    this.logger.log(`Emitted zeichen:platziert to room ${roomName}: zeichenId=${payload.zeichenId}`, 'LagekarteGateway');
+  }
+
+  /**
+   * Emittiert `zeichen:verschoben` Event an alle Clients im Einsatz-Room.
+   *
+   * @param payload - Event-Payload mit neuer Position
+   */
+  emitZeichenVerschoben(payload: ZeichenVerschobenPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('zeichen:verschoben', payload);
+    this.logger.log(`Emitted zeichen:verschoben to room ${roomName}: zeichenId=${payload.zeichenId}`, 'LagekarteGateway');
+  }
+
+  /**
+   * Emittiert `zeichen:entfernt` Event an alle Clients im Einsatz-Room.
+   *
+   * @param payload - Event-Payload mit Zeichen-ID
+   */
+  emitZeichenEntfernt(payload: ZeichenEntferntPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('zeichen:entfernt', payload);
+    this.logger.log(`Emitted zeichen:entfernt to room ${roomName}: zeichenId=${payload.zeichenId}`, 'LagekarteGateway');
   }
 
   /**

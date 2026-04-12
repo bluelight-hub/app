@@ -48,6 +48,7 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { GeoModule } from './modules/geo/geo.module';
 import { EinsatzBeitrittModule } from './modules/einsatz-beitritt/einsatz-beitritt.module';
 import { GefahrModule } from './modules/gefahr/gefahr.module';
+import { TaktischeZeichenModule } from './modules/taktische-zeichen/taktische-zeichen.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -138,6 +139,7 @@ import { GefahrModule } from './modules/gefahr/gefahr.module';
     GeoModule, // PLZ-Lookup via zippopotam.us (Issue #525)
     EinsatzBeitrittModule, // Einsatz-Beitrittsanfragen (Issue #98)
     GefahrModule, // Gefahrenmatrix (Issue #414)
+    TaktischeZeichenModule, // Taktische Zeichen (DV 102) #636
   ],
   controllers: [AppController],
   providers: [

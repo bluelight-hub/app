@@ -20,6 +20,9 @@ export interface FeatureGroup {
   color?: string;
 }
 
+/** Aktiver Tab in der Karten-Zeichen-Sidebar */
+export type ZeichenSidebarTab = 'katalog' | 'baukasten';
+
 /**
  * State für die Zeichenwerkzeuge der Lagekarte
  */
@@ -42,6 +45,10 @@ export interface DrawStoreState {
   isTemplatePanelVisible: boolean;
   /** Features gegen Bearbeitung gesperrt */
   isLocked: boolean;
+  /** Ob die Karten-Zeichen-Sidebar sichtbar ist */
+  isZeichenSidebarVisible: boolean;
+  /** Aktiver Tab der Zeichen-Sidebar */
+  zeichenSidebarTab: ZeichenSidebarTab;
 }
 
 const initialState: DrawStoreState = {
@@ -54,6 +61,8 @@ const initialState: DrawStoreState = {
   isSymbolPanelVisible: false,
   isTemplatePanelVisible: false,
   isLocked: false,
+  isZeichenSidebarVisible: false,
+  zeichenSidebarTab: 'katalog',
 };
 
 /**
@@ -188,6 +197,37 @@ export const setFeatureGroups = (groups: FeatureGroup[]) => {
   drawStore.setState((state) => ({
     ...state,
     featureGroups: groups,
+  }));
+};
+
+/**
+ * Schaltet die Karten-Zeichen-Sidebar um
+ */
+export const toggleZeichenSidebar = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    isZeichenSidebarVisible: !state.isZeichenSidebarVisible,
+  }));
+};
+
+/**
+ * Öffnet die Zeichen-Sidebar mit einem bestimmten Tab
+ */
+export const openZeichenSidebar = (tab: ZeichenSidebarTab) => {
+  drawStore.setState((state) => ({
+    ...state,
+    isZeichenSidebarVisible: true,
+    zeichenSidebarTab: tab,
+  }));
+};
+
+/**
+ * Wechselt den aktiven Tab der Zeichen-Sidebar
+ */
+export const setZeichenSidebarTab = (tab: ZeichenSidebarTab) => {
+  drawStore.setState((state) => ({
+    ...state,
+    zeichenSidebarTab: tab,
   }));
 };
 
