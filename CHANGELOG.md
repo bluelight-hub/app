@@ -1,3 +1,13 @@
+## Lagekarte & Zeichen
+
+- **Verbesserte Zeichen-Verwaltung**: Zeichen werden jetzt erst beim Klick auf die Karte erstellt und direkt platziert. Das verhindert verwaiste, nicht platzierte Zeichen. In der Sidebar werden unplatzierte Zeichen angezeigt und können nachträglich platziert oder gelöscht werden.
+- In den Zeichen-Metadaten werden Benutzer-IDs nun in lesbare Benutzernamen aufgelöst.
+
+## Entwicklung & Tests
+
+- Test-Abdeckung für die Zeichen-Platzierung auf der Karte deutlich verbessert (25 zusätzliche Testfälle).
+- Dependency-Updates: Vite 8.0.8, Vitest 4.1.4, NestJS 11.1.19, oxlint 1.59.0 und weitere Entwicklungs-Abhängigkeiten aktualisiert.
+
 ## Lagekarte
 
 ### Zeichen-Detail-Panel
