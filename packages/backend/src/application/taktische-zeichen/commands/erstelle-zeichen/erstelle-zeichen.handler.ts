@@ -60,13 +60,26 @@ export class ErstelleZeichenHandler extends TransactionalCommandHandler<Erstelle
 
     const zeichen = zeichenResult.value;
 
-    // 3. Persistieren
+    // 2b. Optional: Sofort platzieren wenn Positionsdaten übergeben wurden (vor dem save, eine DB-Schreiboperation)
+    if (command.lagekarteId && command.lat !== undefined && command.lng !== undefined) {
+      const platziereResult = zeichen.platziere(command.lagekarteId, command.lat, command.lng, command.mgrs);
+      if (platziereResult.isFailure) {
+        return Result.fail<TaktischesZeichenResponseDto>(platziereResult.error ?? 'ZEICHEN_PLATZIEREN_FAILED');
+      }
+    }
+
+    // 3. Persistieren (ein einziger save mit vollständigem Zustand)
     const saveResult = await this.taktischeZeichenRepository.save(zeichen, tx);
     if (saveResult.isFailure) {
       return Result.fail<TaktischesZeichenResponseDto>(saveResult.error ?? 'ZEICHEN_SAVE_FAILED');
     }
 
-    this.logger.log(`Taktisches Zeichen erstellt (id: ${zeichen.id.value}, einsatzId: ${zeichen.einsatzId}, grundzeichen: "${zeichen.zeichenDefinition.grundzeichen}")`, 'ErstelleZeichenHandler');
+    this.logger.log(
+      command.lagekarteId
+        ? `Taktisches Zeichen erstellt und platziert (id: ${zeichen.id.value}, einsatzId: ${zeichen.einsatzId}, lagekarteId: ${command.lagekarteId})`
+        : `Taktisches Zeichen erstellt (id: ${zeichen.id.value}, einsatzId: ${zeichen.einsatzId}, grundzeichen: "${zeichen.zeichenDefinition.grundzeichen}")`,
+      'ErstelleZeichenHandler',
+    );
 
     // 4. Events sammeln
     const events = zeichen.getDomainEvents();

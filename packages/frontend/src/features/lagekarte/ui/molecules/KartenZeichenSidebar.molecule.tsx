@@ -11,15 +11,17 @@
  */
 
 import type * as React from 'react';
-import { useCallback, useState } from 'react';
-import { PiList, PiWrench, PiX } from 'react-icons/pi';
+import { useCallback, useMemo, useState } from 'react';
+import { PiList, PiMapPin, PiTrash, PiWrench, PiX } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
 import { ZeichenKatalog } from '@/features/taktische-zeichen/ui/organisms/ZeichenKatalog';
 import { ZeichenBaukasten } from '@/features/taktische-zeichen/ui/organisms/ZeichenBaukasten';
 import type { KatalogEintragData } from '@/features/taktische-zeichen/ui/molecules/KatalogEintrag';
 import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
-import { useZeichenKatalog, useCreateZeichen } from '@/features/taktische-zeichen';
-import type { ZeichenKatalogEintragResponseDto } from '@bluelight-hub/shared/client';
+import { useZeichenKatalog, useEinsatzZeichen, useRemoveZeichen } from '@/features/taktische-zeichen';
+import { useUserNames } from '@/features/auth/api/use-users';
+import { ZeichenPreview } from '@/features/taktische-zeichen/rendering/ZeichenPreview';
+import type { ZeichenKatalogEintragResponseDto, TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 import { drawStore, setZeichenSidebarTab, toggleZeichenSidebar, setPendingZeichenPlacement, clearPendingZeichenPlacement } from '@/features/lagekarte/stores/draw.store';
 import { useStore } from '@tanstack/react-store';
 
@@ -61,60 +63,32 @@ export function KartenZeichenSidebar({ einsatzId, isVisible }: KartenZeichenSide
   // Zeichen-Katalog vom Backend laden
   const { data: katalogDtos = [], isLoading: isKatalogLoading, error: katalogError } = useZeichenKatalog(einsatzId);
 
-  // Zeichen-Erstellung
-  const { mutate: createZeichen, isPending: isCreating } = useCreateZeichen(einsatzId);
+  // Alle Zeichen des Einsatzes laden (für unplatzierte Zeichen)
+  const { data: einsatzZeichen = [] } = useEinsatzZeichen(einsatzId);
+  const { mutate: removeZeichen } = useRemoveZeichen(einsatzId);
+  const { getUserName } = useUserNames();
+
+  // Unplatzierte Zeichen filtern
+  const unplatzierteZeichen = useMemo(() => einsatzZeichen.filter((z) => !z.istPlatziert), [einsatzZeichen]);
 
   // Katalog-DTOs in lokales Format konvertieren
   const katalogEintraege: KatalogEintragData[] = katalogDtos.map(dtoZuKatalogEintrag);
 
-  /** Aus Katalog: Zeichen dem Einsatz hinzufügen und Platzierungsmodus aktivieren */
-  const handleKatalogSelect = useCallback(
-    (eintrag: KatalogEintragData) => {
-      setSelectedEintragId(eintrag.id);
-      createZeichen(
-        {
-          zeichenDefinition: {
-            grundzeichen: eintrag.zeichenDefinition.grundzeichen ?? 'kraftfahrzeug-gelaendegaengig',
-            organisation: eintrag.zeichenDefinition.organisation,
-            fachaufgabe: eintrag.zeichenDefinition.fachaufgabe,
-            einheit: eintrag.zeichenDefinition.einheit,
-            verwaltungsstufe: eintrag.zeichenDefinition.verwaltungsstufe,
-          },
-          katalogEintragId: eintrag.id,
-        },
-        {
-          onSuccess: (created) => {
-            setPendingZeichenPlacement(created.id, eintrag.zeichenDefinition);
-          },
-        },
-      );
-    },
-    [createZeichen],
-  );
+  /** Aus Katalog: Platzierungsmodus aktivieren (Zeichen wird erst beim Karten-Klick erstellt) */
+  const handleKatalogSelect = useCallback((eintrag: KatalogEintragData) => {
+    setSelectedEintragId(eintrag.id);
+    setPendingZeichenPlacement(eintrag.zeichenDefinition);
+  }, []);
 
-  /** Aus Baukasten: Eigenes Zeichen erstellen und Platzierungsmodus aktivieren */
-  const handleBaukastenErstellen = useCallback(
-    (definition: ZeichenDefinition, label?: string) => {
-      createZeichen(
-        {
-          zeichenDefinition: {
-            grundzeichen: definition.grundzeichen ?? 'kraftfahrzeug-gelaendegaengig',
-            organisation: definition.organisation,
-            fachaufgabe: definition.fachaufgabe,
-            einheit: definition.einheit,
-            verwaltungsstufe: definition.verwaltungsstufe,
-          },
-          ...(label && { label }),
-        },
-        {
-          onSuccess: (created) => {
-            setPendingZeichenPlacement(created.id, definition);
-          },
-        },
-      );
-    },
-    [createZeichen],
-  );
+  /** Aus Baukasten: Platzierungsmodus aktivieren (Zeichen wird erst beim Karten-Klick erstellt) */
+  const handleBaukastenErstellen = useCallback((definition: ZeichenDefinition) => {
+    setPendingZeichenPlacement(definition);
+  }, []);
+
+  /** Bestehendes unplatziertes Zeichen zur Platzierung auswählen */
+  const handlePlatziereUnplatziert = useCallback((zeichen: TaktischesZeichenResponseDto) => {
+    setPendingZeichenPlacement(zeichen.zeichenDefinition as unknown as ZeichenDefinition, zeichen.id);
+  }, []);
 
   return (
     <div
@@ -189,9 +163,43 @@ export function KartenZeichenSidebar({ einsatzId, isVisible }: KartenZeichenSide
 
         {/* Baukasten-Tab */}
         <div id="zeichen-tab-baukasten" role="tabpanel" aria-labelledby="zeichen-tab-btn-baukasten" hidden={activeTab !== 'baukasten'} className="flex min-h-0 flex-1 flex-col p-3">
-          <ZeichenBaukasten onErstelleZeichen={handleBaukastenErstellen} isCreating={isCreating} isPendingPlacement={!!pendingPlacement} onCancelPlacement={clearPendingZeichenPlacement} />
+          <ZeichenBaukasten onErstelleZeichen={handleBaukastenErstellen} isCreating={false} isPendingPlacement={!!pendingPlacement} onCancelPlacement={clearPendingZeichenPlacement} />
         </div>
       </div>
+
+      {/* Unplatzierte Zeichen */}
+      {unplatzierteZeichen.length > 0 && (
+        <div className="border-t border-border-subtle">
+          <div className="px-4 py-2 text-xs font-semibold tracking-wider text-text-muted uppercase">Nicht platziert ({unplatzierteZeichen.length})</div>
+          <ul className="max-h-48 divide-y divide-border-subtle overflow-y-auto">
+            {unplatzierteZeichen.map((z) => (
+              <li key={z.id} className="flex items-center gap-2 px-4 py-2">
+                <ZeichenPreview definition={z.zeichenDefinition as unknown as ZeichenDefinition} size="sm" />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-xs text-text-primary">{z.label ?? z.zeichenDefinition.grundzeichen}</span>
+                  <span className="truncate text-[10px] text-text-muted">von {getUserName(z.createdBy)}</span>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Zeichen platzieren"
+                  onClick={() => handlePlatziereUnplatziert(z)}
+                  className="rounded p-1 text-text-muted transition-colors hover:bg-action-secondary hover:text-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none"
+                >
+                  <PiMapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Zeichen löschen"
+                  onClick={() => removeZeichen(z.id)}
+                  className="hover:text-status-error rounded p-1 text-text-muted transition-colors hover:bg-action-secondary focus-visible:shadow-focus-ring focus-visible:outline-none"
+                >
+                  <PiTrash className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

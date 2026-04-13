@@ -50,8 +50,8 @@ export interface DrawStoreState {
   isZeichenSidebarVisible: boolean;
   /** Aktiver Tab der Zeichen-Sidebar */
   zeichenSidebarTab: ZeichenSidebarTab;
-  /** Wartet auf Platzierung: Zeichen-ID + Definition eines neu erstellten, aber noch nicht platzierten Zeichens */
-  pendingZeichenPlacement: { zeichenId: string; definition: ZeichenDefinition } | null;
+  /** Wartet auf Platzierung: Definition für ein neues Zeichen, optional existierende Zeichen-ID für unplatzierte Zeichen */
+  pendingZeichenPlacement: { definition: ZeichenDefinition; existingZeichenId?: string } | null;
   /** ID des aktuell im Detail-Panel angezeigten Zeichens (null = Panel geschlossen) */
   selectedZeichenId: string | null;
 }
@@ -241,12 +241,13 @@ export const setZeichenSidebarTab = (tab: ZeichenSidebarTab) => {
 };
 
 /**
- * Setzt ein Zeichen als wartend auf Platzierung (nächster Karten-Klick platziert es)
+ * Setzt ein Zeichen als wartend auf Platzierung (nächster Karten-Klick platziert es).
+ * Für neue Zeichen: nur definition. Für bestehende unplatzierte Zeichen: zusätzlich existingZeichenId.
  */
-export const setPendingZeichenPlacement = (zeichenId: string, definition: ZeichenDefinition) => {
+export const setPendingZeichenPlacement = (definition: ZeichenDefinition, existingZeichenId?: string) => {
   drawStore.setState((state) => ({
     ...state,
-    pendingZeichenPlacement: { zeichenId, definition },
+    pendingZeichenPlacement: { definition, existingZeichenId },
   }));
 };
 

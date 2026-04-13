@@ -72,6 +72,10 @@ export class TaktischeZeichenController {
       istAusKatalog: dto.istAusKatalog,
       katalogEintragId: dto.katalogEintragId,
       erstelltVon: user.userId,
+      lagekarteId: dto.lagekarteId,
+      lat: dto.lat,
+      lng: dto.lng,
+      mgrs: dto.mgrs,
     });
     if (cmdResult.isFailure || !cmdResult.value) {
       throw new BadRequestException(cmdResult.error);
