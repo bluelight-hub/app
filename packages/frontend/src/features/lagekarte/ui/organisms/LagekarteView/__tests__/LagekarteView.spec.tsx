@@ -158,6 +158,8 @@ vi.mock('@/features/lagekarte/stores/draw.store', () => ({
       isLocked: false,
       isZeichenSidebarVisible: false,
       zeichenSidebarTab: 'katalog',
+      pendingZeichenPlacement: null,
+      selectedZeichenId: null,
     },
     subscribe: vi.fn((cb) => {
       cb();
@@ -178,6 +180,9 @@ vi.mock('@/features/lagekarte/stores/draw.store', () => ({
   setDrawMode: vi.fn(),
   setSelectedFeatures: vi.fn(),
   setDirectSelect: vi.fn(),
+  clearPendingZeichenPlacement: vi.fn(),
+  openZeichenDetail: vi.fn(),
+  closeZeichenDetail: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-store', () => ({
@@ -199,17 +204,23 @@ vi.mock('@tanstack/react-store', () => ({
       isLocked: false,
       isZeichenSidebarVisible: false,
       zeichenSidebarTab: 'katalog',
+      pendingZeichenPlacement: null,
+      selectedZeichenId: null,
     };
     return selector(state);
   }),
 }));
 
-vi.mock('@/features/taktische-zeichen/api/use-einsatz-zeichen', () => ({
+vi.mock('@/features/taktische-zeichen', () => ({
   useEinsatzZeichen: () => ({ data: [], isLoading: false, isError: false }),
+  usePlaceZeichen: () => ({ mutate: vi.fn() }),
+  useUpdateZeichen: () => ({ mutate: vi.fn() }),
+  useRemoveZeichen: () => ({ mutate: vi.fn(), isPending: false }),
+  ZeichenPreview: () => <div data-testid="zeichen-preview" />,
 }));
 
 vi.mock('@/features/lagekarte/hooks/use-zeichen-drag', () => ({
-  useZeichenDrag: vi.fn(),
+  useZeichenDrag: vi.fn(() => ({ isDragging: false, selectedZeichenId: null, deselectZeichen: vi.fn() })),
 }));
 
 vi.mock('@/features/lagekarte/drawing/types', () => ({
@@ -285,6 +296,14 @@ vi.mock('@/features/lagekarte/ui/molecules/TaktischeZeichenLayer.molecule', () =
 
 vi.mock('@/features/lagekarte/ui/molecules/KartenZeichenSidebar.molecule', () => ({
   KartenZeichenSidebar: () => <div data-testid="karten-zeichen-sidebar" />,
+}));
+
+vi.mock('@/features/lagekarte/ui/molecules/ZeichenDetailPanel.molecule', () => ({
+  ZeichenDetailPanel: () => <div data-testid="zeichen-detail-panel" />,
+}));
+
+vi.mock('@/features/lagekarte/ui/molecules/GhostZeichenMarker.molecule', () => ({
+  GhostZeichenMarker: () => <div data-testid="ghost-zeichen-marker" />,
 }));
 
 vi.mock('@/features/lagekarte/ui/organisms/FullscreenCloseButton/FullscreenCloseButton', () => ({
