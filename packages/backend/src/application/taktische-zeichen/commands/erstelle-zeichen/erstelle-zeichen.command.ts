@@ -14,6 +14,10 @@ export interface ErstelleZeichenCommandProps {
   istAusKatalog?: boolean;
   katalogEintragId?: string;
   erstelltVon: string;
+  lagekarteId?: string;
+  lat?: number;
+  lng?: number;
+  mgrs?: string;
 }
 
 /**
@@ -30,6 +34,10 @@ export class ErstelleZeichenCommand {
     public readonly label: string | undefined,
     public readonly notiz: string | undefined,
     public readonly katalogEintragId: string | undefined,
+    public readonly lagekarteId: string | undefined,
+    public readonly lat: number | undefined,
+    public readonly lng: number | undefined,
+    public readonly mgrs: string | undefined,
   ) {}
 
   static create(props: ErstelleZeichenCommandProps): Result<ErstelleZeichenCommand> {
@@ -47,6 +55,12 @@ export class ErstelleZeichenCommand {
       return Result.fail<ErstelleZeichenCommand>('GRUNDZEICHEN_REQUIRED');
     }
 
+    const hasAnyPositionField = props.lagekarteId?.trim() || props.lat !== undefined || props.lng !== undefined;
+    const hasCompletePosition = props.lagekarteId?.trim() && props.lat !== undefined && props.lng !== undefined;
+    if (hasAnyPositionField && !hasCompletePosition) {
+      return Result.fail<ErstelleZeichenCommand>('POSITION_FIELDS_INCOMPLETE');
+    }
+
     return Result.ok(
       new ErstelleZeichenCommand(
         trimmedEinsatzId,
@@ -58,6 +72,10 @@ export class ErstelleZeichenCommand {
         props.label?.trim() || undefined,
         props.notiz?.trim() || undefined,
         props.katalogEintragId?.trim() || undefined,
+        props.lagekarteId?.trim() || undefined,
+        props.lat,
+        props.lng,
+        props.mgrs?.trim() || undefined,
       ),
     );
   }

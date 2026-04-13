@@ -11,6 +11,7 @@ import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client'
 import { ZeichenPreview } from '@/features/taktische-zeichen';
 import type { ZeichenDefinition } from '@/features/taktische-zeichen';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { useUserNames } from '@/features/auth/api/use-users';
 
 /** Labels für die Kompositions-Felder */
 const KOMPOSITION_LABELS: { key: keyof TaktischesZeichenResponseDto['zeichenDefinition']; label: string }[] = [
@@ -40,6 +41,8 @@ interface ZeichenDetailContentProps {
 }
 
 export function ZeichenDetailContent({ zeichen, onUpdateLabel, onUpdateNotiz, onRemove, isRemoving }: ZeichenDetailContentProps) {
+  const { getUserName } = useUserNames();
+
   // Lokaler State für sofortige Input-Reaktion + Debounce
   const [label, setLabel] = useState(zeichen.label ?? '');
   const [notiz, setNotiz] = useState(zeichen.notiz ?? '');
@@ -175,11 +178,11 @@ export function ZeichenDetailContent({ zeichen, onUpdateLabel, onUpdateNotiz, on
           </div>
           <div className="mt-1 text-xs leading-relaxed text-text-muted">
             <p>
-              Erstellt von <span className="text-text-secondary">{zeichen.createdBy}</span> · {formatDateTime(zeichen.createdAt)}
+              Erstellt von <span className="text-text-secondary">{getUserName(zeichen.createdBy)}</span> · {formatDateTime(zeichen.createdAt)}
             </p>
             {zeichen.updatedBy && (
               <p>
-                Geändert von <span className="text-text-secondary">{zeichen.updatedBy}</span> · {formatDateTime(zeichen.updatedAt)}
+                Geändert von <span className="text-text-secondary">{getUserName(zeichen.updatedBy)}</span> · {formatDateTime(zeichen.updatedAt)}
               </p>
             )}
           </div>

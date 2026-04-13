@@ -46,7 +46,7 @@ import { TaktischeZeichenLayer } from '../../molecules/TaktischeZeichenLayer.mol
 import { GhostZeichenMarker } from '../../molecules/GhostZeichenMarker.molecule';
 import { KartenZeichenSidebar } from '../../molecules/KartenZeichenSidebar.molecule';
 import { ZeichenDetailPanel } from '../../molecules/ZeichenDetailPanel.molecule';
-import { useEinsatzZeichen, usePlaceZeichen } from '@/features/taktische-zeichen';
+import { useEinsatzZeichen, useCreateZeichen, usePlaceZeichen } from '@/features/taktische-zeichen';
 import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
@@ -106,7 +106,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // Zeichen für Detail-Panel aus Cache ableiten
   const selectedZeichen = selectedZeichenId ? einsatzZeichen.find((z) => z.id === selectedZeichenId) : undefined;
 
-  // Platzierung von taktischen Zeichen per Karten-Klick
+  // Erstellung + Platzierung von taktischen Zeichen per Karten-Klick
+  const { mutate: createZeichen } = useCreateZeichen(einsatzId);
   const { mutate: placeZeichen } = usePlaceZeichen(einsatzId);
 
   // Zeichen-Selektion → Detail-Panel steuern
@@ -385,14 +386,38 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
    */
   const handleCombinedClick = useCallback(
     (event: MapLayerMouseEvent) => {
-      // 0. Taktisches Zeichen platzieren (Klick nach Sidebar-Erstellung)
+      // 0. Taktisches Zeichen platzieren (Klick nach Sidebar-Auswahl)
       if (pendingZeichenPlacement && lagekarteData?.id) {
         const { lng, lat } = event.lngLat;
-        placeZeichen({
-          zeichenId: pendingZeichenPlacement.zeichenId,
-          dto: { lagekarteId: lagekarteData.id, lat, lng },
-        });
-        clearPendingZeichenPlacement();
+
+        if (pendingZeichenPlacement.existingZeichenId) {
+          // Bestehendes unplatziertes Zeichen platzieren
+          placeZeichen(
+            {
+              zeichenId: pendingZeichenPlacement.existingZeichenId,
+              dto: { lagekarteId: lagekarteData.id, lat, lng },
+            },
+            { onSuccess: () => clearPendingZeichenPlacement() },
+          );
+        } else {
+          // Neues Zeichen erstellen + direkt platzieren (atomar)
+          const def = pendingZeichenPlacement.definition;
+          createZeichen(
+            {
+              zeichenDefinition: {
+                grundzeichen: def.grundzeichen,
+                organisation: def.organisation,
+                fachaufgabe: def.fachaufgabe,
+                einheit: def.einheit,
+                verwaltungsstufe: def.verwaltungsstufe,
+              },
+              lagekarteId: lagekarteData.id,
+              lat,
+              lng,
+            },
+            { onSuccess: () => clearPendingZeichenPlacement() },
+          );
+        }
         return;
       }
 
@@ -410,7 +435,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       // 3. Idle/Select: Bestehender Detail-Provider-Flow
       handleMapClick(event);
     },
-    [drawMode, handleOsmClick, handleMapClick, pendingZeichenPlacement, lagekarteData?.id, placeZeichen],
+    [drawMode, handleOsmClick, handleMapClick, pendingZeichenPlacement, lagekarteData?.id, createZeichen, placeZeichen],
   );
 
   /** Cursor je nach Modus bestimmen */

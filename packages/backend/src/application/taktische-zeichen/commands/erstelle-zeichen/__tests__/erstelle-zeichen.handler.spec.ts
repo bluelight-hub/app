@@ -3,6 +3,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { ErstelleZeichenHandler } from '../erstelle-zeichen.handler';
 import { ErstelleZeichenCommand } from '../erstelle-zeichen.command';
 import { ZeichenErstelltEvent } from '@domain/taktische-zeichen/events/zeichen-erstellt.event';
+import { ZeichenPlatziertEvent } from '@domain/taktische-zeichen/events/zeichen-platziert.event';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { OUTBOX_REPOSITORY, LOGGER, TAKTISCHE_ZEICHEN_REPOSITORY } from '@infrastructure/di-tokens';
 import type { ITaktischesZeichenRepository } from '@domain/taktische-zeichen/ports/itaktisches-zeichen.repository';
@@ -299,6 +300,35 @@ describe('ErstelleZeichenHandler', () => {
       expect(result.value?.einsatzId).toBe('clw3h8x9y0000qwertyuiopas');
     });
 
+    it('should fail when only lagekarteId is provided without lat/lng', () => {
+      // Given & When
+      const result = ErstelleZeichenCommand.create({
+        einsatzId: VALID_EINSATZ_ID,
+        zeichenDefinition: validZeichenDefinition,
+        erstelltVon: VALID_USER_ID,
+        lagekarteId: 'lagekarte-1',
+      });
+
+      // Then
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('POSITION_FIELDS_INCOMPLETE');
+    });
+
+    it('should fail when lat/lng are provided without lagekarteId', () => {
+      // Given & When
+      const result = ErstelleZeichenCommand.create({
+        einsatzId: VALID_EINSATZ_ID,
+        zeichenDefinition: validZeichenDefinition,
+        erstelltVon: VALID_USER_ID,
+        lat: 48.8566,
+        lng: 2.3522,
+      });
+
+      // Then
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('POSITION_FIELDS_INCOMPLETE');
+    });
+
     it('should default istAusKatalog to false', () => {
       // Given & When
       const result = ErstelleZeichenCommand.create({
@@ -341,6 +371,95 @@ describe('ErstelleZeichenHandler', () => {
       expect(result.isSuccess).toBe(true);
       const txContext = mockRepository.save.mock.calls[0]?.[1]!;
       expect(txContext).toBe(txMarker);
+    });
+  });
+
+  describe('Atomare Erstellung mit Platzierung', () => {
+    const VALID_LAGEKARTE_ID = 'clw3h8x9y0004qwertyuiopas';
+
+    it('should create and place zeichen in one transaction when position is provided', async () => {
+      // Given
+      const commandResult = createValidCommand({
+        lagekarteId: VALID_LAGEKARTE_ID,
+        lat: 48.8566,
+        lng: 2.3522,
+      });
+      const command = commandResult.value!;
+
+      // When
+      const result = await handler.execute(command);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.istPlatziert).toBe(true);
+      expect(result.value?.lat).toBe(48.8566);
+      expect(result.value?.lng).toBe(2.3522);
+      expect(result.value?.lagekarteId).toBe(VALID_LAGEKARTE_ID);
+      expect(mockRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should emit both ZeichenErstelltEvent and ZeichenPlatziertEvent', async () => {
+      // Given
+      const commandResult = createValidCommand({
+        lagekarteId: VALID_LAGEKARTE_ID,
+        lat: 48.8566,
+        lng: 2.3522,
+      });
+      const command = commandResult.value!;
+
+      // When
+      await handler.execute(command);
+
+      // Then
+      const savedEvents = mockOutboxRepository.save.mock.calls[0]?.[0]!;
+      expect(savedEvents).toHaveLength(2);
+      expect(savedEvents[0]).toBeInstanceOf(ZeichenErstelltEvent);
+      expect(savedEvents[1]).toBeInstanceOf(ZeichenPlatziertEvent);
+    });
+
+    it('should include mgrs when provided', async () => {
+      // Given
+      const commandResult = createValidCommand({
+        lagekarteId: VALID_LAGEKARTE_ID,
+        lat: 48.8566,
+        lng: 2.3522,
+        mgrs: '32UMA1234567890',
+      });
+      const command = commandResult.value!;
+
+      // When
+      const result = await handler.execute(command);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.mgrs).toBe('32UMA1234567890');
+    });
+
+    it('should reject command when only lat/lng provided without lagekarteId', () => {
+      // Given & When
+      const commandResult = createValidCommand({ lat: 48.8566, lng: 2.3522 });
+
+      // Then — Command-Validierung lehnt unvollständige Positionsdaten ab
+      expect(commandResult.isFailure).toBe(true);
+      expect(commandResult.error).toBe('POSITION_FIELDS_INCOMPLETE');
+    });
+
+    it('should rollback entire transaction when save fails with position', async () => {
+      // Given — save()-Call schlägt fehl
+      mockRepository.save.mockResolvedValueOnce(Result.fail('DB_ERROR'));
+
+      const commandResult = createValidCommand({
+        lagekarteId: VALID_LAGEKARTE_ID,
+        lat: 48.8566,
+        lng: 2.3522,
+      });
+
+      // When
+      const result = await handler.execute(commandResult.value!);
+
+      // Then — Transaction-Rollback
+      expect(result.isFailure).toBe(true);
+      expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });
   });
 

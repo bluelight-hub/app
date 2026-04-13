@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ZeichenDefinitionRequestDto } from './zeichen-definition.dto';
 
@@ -38,4 +38,24 @@ export class CreateTaktischesZeichenDto {
   @IsString()
   @IsOptional()
   katalogEintragId?: string;
+
+  @ApiPropertyOptional({ description: 'ID der Lagekarte für sofortige Platzierung' })
+  @IsString()
+  @IsOptional()
+  lagekarteId?: string;
+
+  @ApiPropertyOptional({ description: 'WGS84 Breitengrad für sofortige Platzierung' })
+  @IsNumber()
+  @IsOptional()
+  lat?: number;
+
+  @ApiPropertyOptional({ description: 'WGS84 Längengrad für sofortige Platzierung' })
+  @IsNumber()
+  @IsOptional()
+  lng?: number;
+
+  @ApiPropertyOptional({ description: 'MGRS-Koordinate für sofortige Platzierung' })
+  @IsString()
+  @IsOptional()
+  mgrs?: string;
 }

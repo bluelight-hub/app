@@ -213,6 +213,7 @@ vi.mock('@tanstack/react-store', () => ({
 
 vi.mock('@/features/taktische-zeichen', () => ({
   useEinsatzZeichen: () => ({ data: [], isLoading: false, isError: false }),
+  useCreateZeichen: () => ({ mutate: vi.fn() }),
   usePlaceZeichen: () => ({ mutate: vi.fn() }),
   useUpdateZeichen: () => ({ mutate: vi.fn() }),
   useRemoveZeichen: () => ({ mutate: vi.fn(), isPending: false }),
