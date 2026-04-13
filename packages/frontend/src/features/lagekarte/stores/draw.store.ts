@@ -7,6 +7,7 @@
 
 import { createStore } from '@tanstack/react-store';
 import type { DrawMode } from '../drawing/types';
+import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
 
 /** Feature-Gruppe für zusammengehörige Zeichnungsobjekte */
 export interface FeatureGroup {
@@ -49,6 +50,10 @@ export interface DrawStoreState {
   isZeichenSidebarVisible: boolean;
   /** Aktiver Tab der Zeichen-Sidebar */
   zeichenSidebarTab: ZeichenSidebarTab;
+  /** Wartet auf Platzierung: Zeichen-ID + Definition eines neu erstellten, aber noch nicht platzierten Zeichens */
+  pendingZeichenPlacement: { zeichenId: string; definition: ZeichenDefinition } | null;
+  /** ID des aktuell im Detail-Panel angezeigten Zeichens (null = Panel geschlossen) */
+  selectedZeichenId: string | null;
 }
 
 const initialState: DrawStoreState = {
@@ -63,6 +68,8 @@ const initialState: DrawStoreState = {
   isLocked: false,
   isZeichenSidebarVisible: false,
   zeichenSidebarTab: 'katalog',
+  pendingZeichenPlacement: null,
+  selectedZeichenId: null,
 };
 
 /**
@@ -207,6 +214,8 @@ export const toggleZeichenSidebar = () => {
   drawStore.setState((state) => ({
     ...state,
     isZeichenSidebarVisible: !state.isZeichenSidebarVisible,
+    // Beim Schließen: Wartende Platzierung abbrechen
+    ...(!state.isZeichenSidebarVisible ? {} : { pendingZeichenPlacement: null }),
   }));
 };
 
@@ -228,6 +237,49 @@ export const setZeichenSidebarTab = (tab: ZeichenSidebarTab) => {
   drawStore.setState((state) => ({
     ...state,
     zeichenSidebarTab: tab,
+  }));
+};
+
+/**
+ * Setzt ein Zeichen als wartend auf Platzierung (nächster Karten-Klick platziert es)
+ */
+export const setPendingZeichenPlacement = (zeichenId: string, definition: ZeichenDefinition) => {
+  drawStore.setState((state) => ({
+    ...state,
+    pendingZeichenPlacement: { zeichenId, definition },
+  }));
+};
+
+/**
+ * Löscht die wartende Zeichen-Platzierung
+ */
+export const clearPendingZeichenPlacement = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    pendingZeichenPlacement: null,
+  }));
+};
+
+/**
+ * Öffnet das Zeichen-Detail-Panel für ein bestimmtes Zeichen.
+ * Schließt dabei die Zeichen-Sidebar und bricht wartende Platzierungen ab.
+ */
+export const openZeichenDetail = (zeichenId: string) => {
+  drawStore.setState((state) => ({
+    ...state,
+    selectedZeichenId: zeichenId,
+    isZeichenSidebarVisible: false,
+    pendingZeichenPlacement: null,
+  }));
+};
+
+/**
+ * Schließt das Zeichen-Detail-Panel
+ */
+export const closeZeichenDetail = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    selectedZeichenId: null,
   }));
 };
 
