@@ -1,3 +1,15 @@
+## Zeichen-Katalog
+
+- Der Zeichen-Katalog wird nun beim Start der Anwendung automatisch mit 149 DV-102-konformen taktischen Zeichen befüllt (Schwerpunkt: Hilfsorganisationen, THW, Feuerwehr)
+- Zeichen können jetzt über Tags durchsucht werden – die Suche findet auch Teilübereinstimmungen
+- Sortierung erfolgt automatisch nach Kategorie, Organisation und Name für bessere Übersichtlichkeit
+
+## Technische Updates
+
+- React auf Version 19.2.5 aktualisiert
+- Prisma-Datenbankschicht auf Version 7.7.0 aktualisiert
+- NestJS-Komponenten auf aktuelle Versionen aktualisiert
+
 ## Taktische Zeichen (DV 102)
 
 Das Bluelight Hub unterstützt jetzt taktische Zeichen nach DIN 14035 (DV 102) – direkt auf der Lagekarte.
