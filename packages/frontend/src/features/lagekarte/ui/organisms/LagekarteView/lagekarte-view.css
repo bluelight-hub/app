@@ -8,11 +8,11 @@
 
 /* Controls nach links schieben wenn ein Side-Panel offen ist */
 .maplibregl-ctrl-top-right {
-  transition: right 300ms ease-out;
+  transition: transform 300ms ease-out;
 }
 
 .has-right-panel .maplibregl-ctrl-top-right {
-  right: 20.5rem; /* w-80 (20rem) + etwas Abstand */
+  transform: translateX(-20.5rem); /* w-80 (20rem) + etwas Abstand */
 }
 
 /* MapboxDraw Default-Controls ausblenden — eigene Toolbar wird verwendet */
