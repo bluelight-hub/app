@@ -4,6 +4,7 @@ import { LOGGER, TAKTISCHE_ZEICHEN_REPOSITORY, ZEICHEN_KATALOG_REPOSITORY } from
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { PrismaTaktischesZeichenRepository } from './repositories/prisma-taktisches-zeichen.repository';
 import { PrismaZeichenKatalogRepository } from './repositories/prisma-zeichen-katalog.repository';
+import { ZeichenKatalogSeederService } from './zeichen-katalog-seeder.service';
 
 @Module({
   imports: [PrismaModule],
@@ -20,6 +21,7 @@ import { PrismaZeichenKatalogRepository } from './repositories/prisma-zeichen-ka
       provide: ZEICHEN_KATALOG_REPOSITORY,
       useClass: PrismaZeichenKatalogRepository,
     },
+    ZeichenKatalogSeederService,
   ],
   exports: [TAKTISCHE_ZEICHEN_REPOSITORY, ZEICHEN_KATALOG_REPOSITORY],
 })
