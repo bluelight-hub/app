@@ -3,11 +3,12 @@
  *
  * Schritte: Grundzeichen → Organisation → Fachaufgabe → Einheit.
  * Live-Vorschau des entstehenden Zeichens.
- * "Erstellen"-Button am Ende delegiert an den Aufrufer.
+ * Nach Erstellung: Prominenter Platzierungsmodus mit Abbruch-/Neustart-Option.
  */
 
 import { useState } from 'react';
 import type { EinheitId, FachaufgabeId, GrundzeichenId, OrganisationId } from 'taktische-zeichen-core';
+import { PiCursorClick, PiArrowCounterClockwise, PiX } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
 import { ZeichenPreview } from '../../rendering/ZeichenPreview';
 import type { ZeichenDefinition } from '../../rendering/renderer';
@@ -25,11 +26,15 @@ export interface ZeichenBaukastenProps {
   onErstelleZeichen: (definition: ZeichenDefinition, label?: string) => void;
   /** Ladezustand des Erstell-Vorgangs */
   isCreating?: boolean;
+  /** Zeichen wartet auf Platzierung auf der Karte */
+  isPendingPlacement?: boolean;
+  /** Platzierung abbrechen */
+  onCancelPlacement?: () => void;
 }
 
 const DEFAULT_GRUNDZEICHEN: GrundzeichenId = 'kraftfahrzeug-gelaendegaengig';
 
-export function ZeichenBaukasten({ onErstelleZeichen, isCreating }: ZeichenBaukastenProps) {
+export function ZeichenBaukasten({ onErstelleZeichen, isCreating, isPendingPlacement, onCancelPlacement }: ZeichenBaukastenProps) {
   const [aktiverSchritt, setAktiverSchritt] = useState<number>(0);
   const [grundzeichen, setGrundzeichen] = useState<GrundzeichenId>(DEFAULT_GRUNDZEICHEN);
   const [organisation, setOrganisation] = useState<OrganisationId | undefined>(undefined);
@@ -46,7 +51,6 @@ export function ZeichenBaukasten({ onErstelleZeichen, isCreating }: ZeichenBauka
 
   const handleGrundzeichenChange = (id: GrundzeichenId) => {
     setGrundzeichen(id);
-    // Fachaufgabe und Einheit zurücksetzen bei Grundzeichen-Wechsel
     setFachaufgabe(undefined);
     setEinheit(undefined);
   };
@@ -67,14 +71,72 @@ export function ZeichenBaukasten({ onErstelleZeichen, isCreating }: ZeichenBauka
     onErstelleZeichen(aktuellDefinition, label.trim() || undefined);
   };
 
+  const resetBaukasten = () => {
+    setAktiverSchritt(0);
+    setGrundzeichen(DEFAULT_GRUNDZEICHEN);
+    setOrganisation(undefined);
+    setFachaufgabe(undefined);
+    setEinheit(undefined);
+    setLabel('');
+  };
+
+  const handleNeuBeginnen = () => {
+    onCancelPlacement?.();
+    resetBaukasten();
+  };
+
   const istLetzterSchritt = aktiverSchritt === SCHRITTE.length - 1;
 
+  // Platzierungsmodus: Zeichen wurde erstellt, wartet auf Karten-Klick
+  if (isPendingPlacement) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6 px-2">
+        {/* Erfolgs-Vorschau */}
+        <div className="relative">
+          <div className="absolute -inset-3 animate-pulse rounded-full bg-action-primary/10" />
+          <div className="relative rounded-xl border border-action-primary/20 bg-gradient-to-b from-action-primary/5 to-transparent p-5">
+            <ZeichenPreview definition={aktuellDefinition} size="lg" />
+          </div>
+        </div>
+
+        {/* Platzierungs-Hinweis */}
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex items-center gap-2 text-action-primary">
+            <PiCursorClick className="h-5 w-5 animate-bounce" />
+            <span className="text-sm font-semibold">Auf Karte klicken</span>
+          </div>
+          <p className="text-xs leading-relaxed text-text-muted">Klicke auf die gewünschte Position,{'\u00A0'}um das Zeichen zu platzieren.</p>
+        </div>
+
+        {/* Aktionen */}
+        <div className="flex w-full flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleNeuBeginnen}
+            className="flex items-center justify-center gap-2 rounded-lg bg-action-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-action-primary-hover"
+          >
+            <PiArrowCounterClockwise className="h-4 w-4" />
+            Neues Zeichen erstellen
+          </button>
+          <button
+            type="button"
+            onClick={onCancelPlacement}
+            className="hover:bg-surface-hover flex items-center justify-center gap-2 rounded-lg border border-border-subtle px-4 py-2 text-sm text-text-muted transition-colors hover:text-text-primary"
+          >
+            <PiX className="h-4 w-4" />
+            Platzierung abbrechen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
       {/* Live-Vorschau oben */}
       <div className="flex flex-col items-center gap-2 rounded-lg border border-border-subtle bg-surface-panel p-4">
         <span className="text-xs font-medium text-text-secondary">Vorschau</span>
-        <ZeichenPreview definition={aktuellDefinition} size="lg" />
+        <ZeichenPreview definition={aktuellDefinition} size="md" />
       </div>
 
       {/* Schritt-Indikatoren */}

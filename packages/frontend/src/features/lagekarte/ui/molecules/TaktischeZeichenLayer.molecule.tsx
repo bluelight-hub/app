@@ -73,7 +73,22 @@ export const TaktischeZeichenLayer: React.FC<TaktischeZeichenLayerProps> = ({ ma
 
   return (
     <>
-      <Source id={TAKTISCHE_ZEICHEN_SOURCE_ID} type="geojson" data={geojson}>
+      <Source id={TAKTISCHE_ZEICHEN_SOURCE_ID} type="geojson" data={geojson} promoteId="zeichenId">
+        {/* Auswahl-Indikator: Dezentes Highlight-Pad unter dem ausgewählten Symbol */}
+        <Layer
+          id="taktische-zeichen-selection-ring"
+          type="circle"
+          paint={{
+            'circle-radius': 20,
+            'circle-color': '#3b82f6',
+            'circle-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 0.12, 0],
+            'circle-stroke-color': '#3b82f6',
+            'circle-stroke-width': 1.5,
+            'circle-stroke-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 0.35, 0],
+            'circle-blur': 0.4,
+          }}
+        />
+
         {/* Symbol-Layer: rendert das SVG-Bild des taktischen Zeichens */}
         <Layer
           id={TAKTISCHE_ZEICHEN_LAYER_ID}
@@ -91,6 +106,7 @@ export const TaktischeZeichenLayer: React.FC<TaktischeZeichenLayerProps> = ({ ma
             'text-optional': true,
           }}
           paint={{
+            'icon-opacity': ['case', ['boolean', ['feature-state', 'dragging'], false], 0.8, 1],
             'text-color': '#1a1a1a',
             'text-halo-color': '#ffffff',
             'text-halo-width': 1.5,
