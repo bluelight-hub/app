@@ -1,3 +1,19 @@
+## Taktische Zeichen (DV 102)
+
+Das Bluelight Hub unterstützt jetzt taktische Zeichen nach DIN 14035 (DV 102) – direkt auf der Lagekarte.
+
+- **Zeichen-Katalog**: Durchsuchbare Bibliothek mit vordefinierten taktischen Zeichen, nach Kategorien sortiert
+- **Zeichen-Baukasten**: Geführter 4-Schritt-Editor zum individuellen Erstellen eigener taktischer Zeichen
+- **Lagekarten-Integration**: Zeichen werden als Symbole mit Beschriftung direkt auf der Karte angezeigt
+- **Drag & Drop**: Taktische Zeichen können per Maus auf der Karte verschoben und neu positioniert werden
+- **Kräfte-Verknüpfung**: Einheiten und Fahrzeuge können automatisch mit passenden taktischen Zeichen verknüpft werden
+- **Live-Vorschau**: Änderungen an Zeichen werden in Echtzeit im Editor angezeigt
+- **Echtzeit-Synchronisation**: Änderungen an taktischen Zeichen werden sofort an alle Nutzer übertragen
+
+## Technische Verbesserungen
+
+- Dependency-Updates für @headlessui/react und axios
+
 ## Lagekarte – Zeichenwerkzeuge
 
 - **Neue Zeichenmodi**: Pfeile, Ellipsen und taktische Symbole können jetzt direkt auf der Karte platziert werden
