@@ -1,3 +1,31 @@
+## Lagekarte
+
+### Zeichen-Detail-Panel
+
+- Neues Detail-Panel für taktische Zeichen mit umfassenden Informationen und Bearbeitungsmöglichkeiten
+- Panel bleibt nicht-modal – die Karte kann weiterhin bedient werden, während Details angezeigt werden
+- Sechs übersichtliche Sektionen: Grunddaten, Position, Darstellung, Zeitstempel, Notizen und erweiterte Eigenschaften
+- Zeichen können direkt aus dem Panel bearbeitet und gelöscht werden
+
+### Zeichen-Platzierung
+
+- Ghost-Marker zeigt Vorschau beim Platzieren neuer Zeichen
+- Optimistische Cache-Updates für flüssigeres Arbeiten – platzierte Zeichen erscheinen sofort auf der Karte
+- Verbesserter Zeichen-Katalog und Baukasten mit optimierter Bedienoberfläche
+
+### Kartenoberfläche
+
+- Bessere Platzausnutzung: Lagekarte nutzt verfügbaren Bildschirmplatz optimal aus (~84px mehr Kartenfläche auf Desktop)
+- Map-Controls (Zoom +/-) weichen automatisch zur Seite, wenn Detail-Panels geöffnet sind
+- Schnellaktionen in der Sidebar bleiben dauerhaft sichtbar am unteren Rand fixiert
+- Kompakteres Sidebar-Layout mit reduziertem Spacing
+- Flüssigere Animationen durch konsistente Transform-basierte Übergänge
+- Mobile-Optimierung durch dynamische Viewport-Einheiten
+
+## Abhängigkeiten
+
+- TanStack-Bibliotheken aktualisiert (React Query, React Router, React Form, React Store)
+
 ## Zeichen-Katalog
 
 - Der Zeichen-Katalog wird nun beim Start der Anwendung automatisch mit 149 DV-102-konformen taktischen Zeichen befüllt (Schwerpunkt: Hilfsorganisationen, THW, Feuerwehr)
