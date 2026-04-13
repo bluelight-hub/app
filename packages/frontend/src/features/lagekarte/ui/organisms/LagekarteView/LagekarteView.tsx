@@ -391,7 +391,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   };
 
   return (
-    <div className={cn('relative w-full overflow-hidden rounded-lg', mode === 'standard' && 'h-[600px] md:h-[calc(100vh-180px)]', (mode === 'fullscreen' || mode === 'presentation') && 'h-screen')}>
+    <div className={cn('relative w-full overflow-hidden rounded-lg', mode === 'standard' && 'h-full', (mode === 'fullscreen' || mode === 'presentation') && 'h-screen')}>
       {mode !== 'standard' && <FullscreenCloseButton />}
 
       {isLoading && (

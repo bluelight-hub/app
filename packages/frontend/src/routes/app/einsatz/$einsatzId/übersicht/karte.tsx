@@ -20,5 +20,9 @@ function RouteComponent() {
   const { einsatzId } = Route.useParams();
   const { mode } = Route.useSearch();
 
-  return <LagekarteView einsatzId={einsatzId} mode={mode} />;
+  return (
+    <div className={mode === 'standard' ? 'h-[calc(100dvh-14rem)] lg:h-[calc(100dvh-6rem)]' : undefined}>
+      <LagekarteView einsatzId={einsatzId} mode={mode} />
+    </div>
+  );
 }
