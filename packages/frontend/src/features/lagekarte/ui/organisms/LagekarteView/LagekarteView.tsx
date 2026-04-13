@@ -423,7 +423,14 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   };
 
   return (
-    <div className={cn('relative w-full overflow-hidden rounded-lg', mode === 'standard' && 'h-full', (mode === 'fullscreen' || mode === 'presentation') && 'h-screen')}>
+    <div
+      className={cn(
+        'relative w-full overflow-hidden rounded-lg',
+        mode === 'standard' && 'h-full',
+        (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
+        (isPanelOpen || selectedZeichenId || isZeichenSidebarVisible) && 'has-right-panel',
+      )}
+    >
       {mode !== 'standard' && <FullscreenCloseButton />}
 
       {isLoading && (
