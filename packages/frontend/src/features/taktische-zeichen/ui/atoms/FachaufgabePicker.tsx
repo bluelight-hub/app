@@ -38,7 +38,7 @@ export function FachaufgabePicker({ grundzeichen: gz, organisation, value, onCha
       </button>
 
       {/* Fachaufgaben-Grid */}
-      <div className="grid max-h-52 grid-cols-3 gap-1 overflow-y-auto">
+      <div className="grid grid-cols-3 gap-1">
         {fachaufgaben.map((fa) => {
           const definition: ZeichenDefinition = {
             grundzeichen: gz,

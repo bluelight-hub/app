@@ -3,6 +3,7 @@
  *
  * Setzt oder aktualisiert die Kartenposition (lat/lng) eines Zeichens
  * und verknüpft es mit einer Lagekarte.
+ * Optimistisches Update: Position wird sofort im Cache aktualisiert.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,22 +17,6 @@ interface PlaceZeichenParams {
   dto: PlatziereZeichenDto;
 }
 
-/**
- * Hook zum Platzieren oder Verschieben eines taktischen Zeichens auf der Karte.
- *
- * Wird sowohl für die Erstplatzierung als auch für das Verschieben (Drag & Drop)
- * auf der Lagekarte verwendet.
- *
- * @param einsatzId - Die Einsatz-ID
- * @returns TanStack Mutation Result
- *
- * @example
- * ```tsx
- * const { mutate } = usePlaceZeichen(einsatzId);
- *
- * mutate({ zeichenId: 'abc123', dto: { lagekarteId: 'lk1', lat: 51.5, lng: 9.3 } });
- * ```
- */
 export const usePlaceZeichen = (einsatzId: string) => {
   const queryClient = useQueryClient();
 
@@ -39,14 +24,36 @@ export const usePlaceZeichen = (einsatzId: string) => {
     mutationFn: async ({ zeichenId, dto }: PlaceZeichenParams): Promise<TaktischesZeichenResponseDto> => {
       return await apiPlaceZeichen(einsatzId, zeichenId, dto);
     },
-    onSuccess: () => {
+    onMutate: async ({ zeichenId, dto }) => {
+      // Laufende Queries abbrechen, damit sie das optimistische Update nicht überschreiben
+      await queryClient.cancelQueries({
+        queryKey: TAKTISCHE_ZEICHEN_QUERY_KEYS.zeichen(einsatzId),
+      });
+
+      // Vorherigen Cache-Wert sichern (für Rollback bei Fehler)
+      const previousZeichen = queryClient.getQueryData<TaktischesZeichenResponseDto[]>(TAKTISCHE_ZEICHEN_QUERY_KEYS.zeichen(einsatzId));
+
+      // Optimistisches Update: Position sofort aktualisieren
+      if (previousZeichen) {
+        queryClient.setQueryData<TaktischesZeichenResponseDto[]>(TAKTISCHE_ZEICHEN_QUERY_KEYS.zeichen(einsatzId), (old) =>
+          old?.map((z) => (z.id === zeichenId ? { ...z, lat: dto.lat, lng: dto.lng, lagekarteId: dto.lagekarteId, istPlatziert: true } : z)),
+        );
+      }
+
+      return { previousZeichen };
+    },
+    onError: (error, _variables, context) => {
+      // Rollback bei Fehler
+      if (context?.previousZeichen) {
+        queryClient.setQueryData(TAKTISCHE_ZEICHEN_QUERY_KEYS.zeichen(einsatzId), context.previousZeichen);
+      }
+      logger.error('Fehler beim Platzieren des taktischen Zeichens', error);
+    },
+    onSettled: () => {
+      // Nach Erfolg oder Fehler: Cache revalidieren
       queryClient.invalidateQueries({
         queryKey: TAKTISCHE_ZEICHEN_QUERY_KEYS.zeichen(einsatzId),
       });
-      logger.info('Taktisches Zeichen erfolgreich platziert');
-    },
-    onError: (error) => {
-      logger.error('Fehler beim Platzieren des taktischen Zeichens', error);
     },
   });
 };
