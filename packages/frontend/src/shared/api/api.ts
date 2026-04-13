@@ -45,6 +45,7 @@ import {
   UserManagementApi,
   UsersApi,
   WarnungenApi,
+  TaktischeZeichenApi,
 } from '@bluelight-hub/shared/client';
 import { fetchWithRefresh } from './fetchWithRefresh';
 
@@ -160,6 +161,7 @@ class BackendApi {
   private readonly navigationApi: NavigationApi;
   private readonly permissionsApi: PermissionsApi;
   private readonly warnungenApi: WarnungenApi;
+  private readonly taktischeZeichenApi: TaktischeZeichenApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -219,6 +221,7 @@ class BackendApi {
     this.navigationApi = new NavigationApi(this.configuration);
     this.permissionsApi = new PermissionsApi(this.configuration);
     this.warnungenApi = new WarnungenApi(this.configuration);
+    this.taktischeZeichenApi = new TaktischeZeichenApi(this.configuration);
   }
 
   /**
@@ -601,6 +604,15 @@ class BackendApi {
    */
   warnungen(): WarnungenApi {
     return this.warnungenApi;
+  }
+
+  /**
+   * Gibt die gecachte TaktischeZeichen-API-Instanz zurück
+   *
+   * @returns Die TaktischeZeichen-API-Instanz für taktische Zeichen (DV 102)
+   */
+  taktischeZeichen(): TaktischeZeichenApi {
+    return this.taktischeZeichenApi;
   }
 }
 

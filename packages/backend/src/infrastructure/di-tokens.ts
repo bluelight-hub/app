@@ -397,6 +397,15 @@ export const MONITORING = {
   GATEWAY: Symbol('MonitoringGateway'),
 } as const;
 
+/** Repository Token für ITaktischesZeichenRepository (Issue #636) */
+export const TAKTISCHE_ZEICHEN_REPOSITORY = Symbol('ITaktischesZeichenRepository');
+
+/** Repository Token für IDefaultZeichenRepository (Issue #668) */
+export const DEFAULT_ZEICHEN_REPOSITORY = Symbol('IDefaultZeichenRepository');
+
+/** Repository Token für IZeichenKatalogRepository (Issue #636) */
+export const ZEICHEN_KATALOG_REPOSITORY = Symbol('IZeichenKatalogRepository');
+
 /**
  * Alias für konsistente Verwendung in Application Layer.
  *

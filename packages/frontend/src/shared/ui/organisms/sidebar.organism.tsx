@@ -71,7 +71,7 @@ function NavItem({ item, variant }: { item: SidebarItem; variant: 'dark' | 'ligh
  */
 export function Sidebar({ items, header, footer, variant = 'dark' }: SidebarProps) {
   return (
-    <aside className={cn('flex h-full w-60 flex-col', variant === 'dark' && 'bg-surface-inverse text-text-inverse', variant === 'light' && 'bg-surface-primary border-r border-border-subtle')}>
+    <aside className={cn('flex h-full w-60 flex-col', variant === 'dark' && 'bg-surface-sidebar text-white', variant === 'light' && 'bg-surface-primary border-r border-border-subtle')}>
       {/* Header */}
       <div className={cn('border-b px-4 py-4', variant === 'dark' ? 'border-white/10' : 'border-border-subtle')}>{header}</div>
 

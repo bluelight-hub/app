@@ -88,6 +88,10 @@ import type { EinheitAufgeloestEvent } from '@domain/kraefte/events/einheit-aufg
 import type { PersonZuEinheitZugewiesenEvent } from '@domain/kraefte/events/person-zu-einheit-zugewiesen.event';
 import type { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von-einheit-entfernt.event';
 import type { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
+import type { ZeichenErstelltEvent } from '@domain/taktische-zeichen/events/zeichen-erstellt.event';
+import type { ZeichenPlatziertEvent } from '@domain/taktische-zeichen/events/zeichen-platziert.event';
+import type { ZeichenVerschobenEvent } from '@domain/taktische-zeichen/events/zeichen-verschoben.event';
+import type { ZeichenEntferntEvent } from '@domain/taktische-zeichen/events/zeichen-entfernt.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -421,6 +425,18 @@ export class EventSerializer {
       // ===== GEFAHRENMATRIX EVENTS (Issue #414) =====
       case 'gefahrenmatrix.aktualisiert':
         return this.serializeGefahrenmatrixAktualisiert(event as unknown as GefahrenmatrixAktualisiertEvent);
+
+      // ===== TAKTISCHE ZEICHEN EVENTS (Issue #636) =====
+      case 'taktisches_zeichen.erstellt':
+        return this.serializeZeichenErstellt(event as unknown as ZeichenErstelltEvent);
+      case 'taktisches_zeichen.platziert':
+        return this.serializeZeichenPlatziert(event as unknown as ZeichenPlatziertEvent);
+      case 'taktisches_zeichen.verschoben':
+        return this.serializeZeichenVerschoben(event as unknown as ZeichenVerschobenEvent);
+      case 'taktisches_zeichen.aktualisiert':
+        return this.serializeZeichenErstellt(event as unknown as ZeichenErstelltEvent);
+      case 'taktisches_zeichen.entfernt':
+        return this.serializeZeichenEntfernt(event as unknown as ZeichenEntferntEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1403,6 +1419,60 @@ export class EventSerializer {
       schutzobjekt: event.schutzobjekt,
       warnstufe: event.warnstufe,
       aktualisiertVon: event.aktualisiertVon,
+    };
+  }
+
+  // ===== TAKTISCHE ZEICHEN SERIALIZERS (Issue #636) =====
+
+  /**
+   * Serialisiert ZeichenErstelltEvent (Issue #636).
+   */
+  private serializeZeichenErstellt(event: ZeichenErstelltEvent): Record<string, unknown> {
+    return {
+      zeichenId: event.zeichenId,
+      einsatzId: event.einsatzId,
+      zeichenDefinition: event.zeichenDefinition,
+      label: event.label,
+      referenzTyp: event.referenzTyp,
+      referenzId: event.referenzId,
+      createdBy: event.createdBy,
+    };
+  }
+
+  /**
+   * Serialisiert ZeichenPlatziertEvent (Issue #636).
+   */
+  private serializeZeichenPlatziert(event: ZeichenPlatziertEvent): Record<string, unknown> {
+    return {
+      zeichenId: event.zeichenId,
+      einsatzId: event.einsatzId,
+      lagekarteId: event.lagekarteId,
+      lat: event.lat,
+      lng: event.lng,
+      mgrs: event.mgrs,
+    };
+  }
+
+  /**
+   * Serialisiert ZeichenVerschobenEvent (Issue #636).
+   */
+  private serializeZeichenVerschoben(event: ZeichenVerschobenEvent): Record<string, unknown> {
+    return {
+      zeichenId: event.zeichenId,
+      einsatzId: event.einsatzId,
+      lat: event.lat,
+      lng: event.lng,
+      mgrs: event.mgrs,
+    };
+  }
+
+  /**
+   * Serialisiert ZeichenEntferntEvent (Issue #636).
+   */
+  private serializeZeichenEntfernt(event: ZeichenEntferntEvent): Record<string, unknown> {
+    return {
+      zeichenId: event.zeichenId,
+      einsatzId: event.einsatzId,
     };
   }
 }

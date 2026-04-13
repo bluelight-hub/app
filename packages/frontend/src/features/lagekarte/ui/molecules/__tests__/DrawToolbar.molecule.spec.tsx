@@ -16,7 +16,13 @@ import { DrawToolbar, TOOLBAR_ITEMS } from '../DrawToolbar.molecule';
 // Mock draw store
 vi.mock('../../../stores/draw.store', () => ({
   drawStore: {
-    state: { isDrawToolbarVisible: true, isSymbolPanelVisible: false, isTemplatePanelVisible: false, isLocked: false },
+    state: {
+      isDrawToolbarVisible: true,
+      isSymbolPanelVisible: false,
+      isTemplatePanelVisible: false,
+      isLocked: false,
+      isZeichenSidebarVisible: false,
+    },
     subscribe: vi.fn((cb) => {
       cb();
       return () => {};
@@ -26,12 +32,19 @@ vi.mock('../../../stores/draw.store', () => ({
   toggleLock: vi.fn(),
   toggleSymbolPanel: vi.fn(),
   toggleTemplatePanel: vi.fn(),
+  toggleZeichenSidebar: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-store', () => ({
   useStore: vi.fn((_store: unknown, selector: unknown) => {
     if (typeof selector === 'function') {
-      return (selector as Function)({ isDrawToolbarVisible: true, isSymbolPanelVisible: false, isTemplatePanelVisible: false, isLocked: false });
+      return (selector as Function)({
+        isDrawToolbarVisible: true,
+        isSymbolPanelVisible: false,
+        isTemplatePanelVisible: false,
+        isLocked: false,
+        isZeichenSidebarVisible: false,
+      });
     }
     return true;
   }),

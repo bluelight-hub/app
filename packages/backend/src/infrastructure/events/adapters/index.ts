@@ -56,3 +56,4 @@ export * from './person-zu-einheit-zugewiesen-etb-event.adapter';
 export * from './person-von-einheit-entfernt-etb-event.adapter';
 export * from './fahrzeug-einheit-zugewiesen-etb-event.adapter';
 export * from './lagekarte-state-geaendert-websocket-event.adapter';
+export * from './zeichen-event.adapter';

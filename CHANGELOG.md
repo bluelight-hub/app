@@ -1,3 +1,75 @@
+## Administration
+
+- Neue Admin-Oberfläche zur Konfiguration von Standard-Zeichen für Einsätze
+- Verwaltung von Zeichen über Baukasten und Katalog-Ansicht
+- Verbesserte Dark-Mode-Unterstützung in der Sidebar und Zeichen-Vorschau
+
+## Lagekarte & Zeichen
+
+- **Verbesserte Zeichen-Verwaltung**: Zeichen werden jetzt erst beim Klick auf die Karte erstellt und direkt platziert. Das verhindert verwaiste, nicht platzierte Zeichen. In der Sidebar werden unplatzierte Zeichen angezeigt und können nachträglich platziert oder gelöscht werden.
+- In den Zeichen-Metadaten werden Benutzer-IDs nun in lesbare Benutzernamen aufgelöst.
+
+## Entwicklung & Tests
+
+- Test-Abdeckung für die Zeichen-Platzierung auf der Karte deutlich verbessert (25 zusätzliche Testfälle).
+- Dependency-Updates: Vite 8.0.8, Vitest 4.1.4, NestJS 11.1.19, oxlint 1.59.0 und weitere Entwicklungs-Abhängigkeiten aktualisiert.
+
+## Lagekarte
+
+### Zeichen-Detail-Panel
+
+- Neues Detail-Panel für taktische Zeichen mit umfassenden Informationen und Bearbeitungsmöglichkeiten
+- Panel bleibt nicht-modal – die Karte kann weiterhin bedient werden, während Details angezeigt werden
+- Sechs übersichtliche Sektionen: Grunddaten, Position, Darstellung, Zeitstempel, Notizen und erweiterte Eigenschaften
+- Zeichen können direkt aus dem Panel bearbeitet und gelöscht werden
+
+### Zeichen-Platzierung
+
+- Ghost-Marker zeigt Vorschau beim Platzieren neuer Zeichen
+- Optimistische Cache-Updates für flüssigeres Arbeiten – platzierte Zeichen erscheinen sofort auf der Karte
+- Verbesserter Zeichen-Katalog und Baukasten mit optimierter Bedienoberfläche
+
+### Kartenoberfläche
+
+- Bessere Platzausnutzung: Lagekarte nutzt verfügbaren Bildschirmplatz optimal aus (~84px mehr Kartenfläche auf Desktop)
+- Map-Controls (Zoom +/-) weichen automatisch zur Seite, wenn Detail-Panels geöffnet sind
+- Schnellaktionen in der Sidebar bleiben dauerhaft sichtbar am unteren Rand fixiert
+- Kompakteres Sidebar-Layout mit reduziertem Spacing
+- Flüssigere Animationen durch konsistente Transform-basierte Übergänge
+- Mobile-Optimierung durch dynamische Viewport-Einheiten
+
+## Abhängigkeiten
+
+- TanStack-Bibliotheken aktualisiert (React Query, React Router, React Form, React Store)
+
+## Zeichen-Katalog
+
+- Der Zeichen-Katalog wird nun beim Start der Anwendung automatisch mit 149 DV-102-konformen taktischen Zeichen befüllt (Schwerpunkt: Hilfsorganisationen, THW, Feuerwehr)
+- Zeichen können jetzt über Tags durchsucht werden – die Suche findet auch Teilübereinstimmungen
+- Sortierung erfolgt automatisch nach Kategorie, Organisation und Name für bessere Übersichtlichkeit
+
+## Technische Updates
+
+- React auf Version 19.2.5 aktualisiert
+- Prisma-Datenbankschicht auf Version 7.7.0 aktualisiert
+- NestJS-Komponenten auf aktuelle Versionen aktualisiert
+
+## Taktische Zeichen (DV 102)
+
+Das Bluelight Hub unterstützt jetzt taktische Zeichen nach DIN 14035 (DV 102) – direkt auf der Lagekarte.
+
+- **Zeichen-Katalog**: Durchsuchbare Bibliothek mit vordefinierten taktischen Zeichen, nach Kategorien sortiert
+- **Zeichen-Baukasten**: Geführter 4-Schritt-Editor zum individuellen Erstellen eigener taktischer Zeichen
+- **Lagekarten-Integration**: Zeichen werden als Symbole mit Beschriftung direkt auf der Karte angezeigt
+- **Drag & Drop**: Taktische Zeichen können per Maus auf der Karte verschoben und neu positioniert werden
+- **Kräfte-Verknüpfung**: Einheiten und Fahrzeuge können automatisch mit passenden taktischen Zeichen verknüpft werden
+- **Live-Vorschau**: Änderungen an Zeichen werden in Echtzeit im Editor angezeigt
+- **Echtzeit-Synchronisation**: Änderungen an taktischen Zeichen werden sofort an alle Nutzer übertragen
+
+## Technische Verbesserungen
+
+- Dependency-Updates für @headlessui/react und axios
+
 ## Lagekarte – Zeichenwerkzeuge
 
 - **Neue Zeichenmodi**: Pfeile, Ellipsen und taktische Symbole können jetzt direkt auf der Karte platziert werden

@@ -7,6 +7,7 @@
 
 import { createStore } from '@tanstack/react-store';
 import type { DrawMode } from '../drawing/types';
+import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
 
 /** Feature-Gruppe für zusammengehörige Zeichnungsobjekte */
 export interface FeatureGroup {
@@ -19,6 +20,9 @@ export interface FeatureGroup {
   /** Optionale Gruppenfarbe */
   color?: string;
 }
+
+/** Aktiver Tab in der Karten-Zeichen-Sidebar */
+export type ZeichenSidebarTab = 'katalog' | 'baukasten';
 
 /**
  * State für die Zeichenwerkzeuge der Lagekarte
@@ -42,6 +46,14 @@ export interface DrawStoreState {
   isTemplatePanelVisible: boolean;
   /** Features gegen Bearbeitung gesperrt */
   isLocked: boolean;
+  /** Ob die Karten-Zeichen-Sidebar sichtbar ist */
+  isZeichenSidebarVisible: boolean;
+  /** Aktiver Tab der Zeichen-Sidebar */
+  zeichenSidebarTab: ZeichenSidebarTab;
+  /** Wartet auf Platzierung: Definition für ein neues Zeichen, optional existierende Zeichen-ID für unplatzierte Zeichen */
+  pendingZeichenPlacement: { definition: ZeichenDefinition; existingZeichenId?: string } | null;
+  /** ID des aktuell im Detail-Panel angezeigten Zeichens (null = Panel geschlossen) */
+  selectedZeichenId: string | null;
 }
 
 const initialState: DrawStoreState = {
@@ -54,6 +66,10 @@ const initialState: DrawStoreState = {
   isSymbolPanelVisible: false,
   isTemplatePanelVisible: false,
   isLocked: false,
+  isZeichenSidebarVisible: false,
+  zeichenSidebarTab: 'katalog',
+  pendingZeichenPlacement: null,
+  selectedZeichenId: null,
 };
 
 /**
@@ -188,6 +204,83 @@ export const setFeatureGroups = (groups: FeatureGroup[]) => {
   drawStore.setState((state) => ({
     ...state,
     featureGroups: groups,
+  }));
+};
+
+/**
+ * Schaltet die Karten-Zeichen-Sidebar um
+ */
+export const toggleZeichenSidebar = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    isZeichenSidebarVisible: !state.isZeichenSidebarVisible,
+    // Beim Schließen: Wartende Platzierung abbrechen
+    ...(!state.isZeichenSidebarVisible ? {} : { pendingZeichenPlacement: null }),
+  }));
+};
+
+/**
+ * Öffnet die Zeichen-Sidebar mit einem bestimmten Tab
+ */
+export const openZeichenSidebar = (tab: ZeichenSidebarTab) => {
+  drawStore.setState((state) => ({
+    ...state,
+    isZeichenSidebarVisible: true,
+    zeichenSidebarTab: tab,
+  }));
+};
+
+/**
+ * Wechselt den aktiven Tab der Zeichen-Sidebar
+ */
+export const setZeichenSidebarTab = (tab: ZeichenSidebarTab) => {
+  drawStore.setState((state) => ({
+    ...state,
+    zeichenSidebarTab: tab,
+  }));
+};
+
+/**
+ * Setzt ein Zeichen als wartend auf Platzierung (nächster Karten-Klick platziert es).
+ * Für neue Zeichen: nur definition. Für bestehende unplatzierte Zeichen: zusätzlich existingZeichenId.
+ */
+export const setPendingZeichenPlacement = (definition: ZeichenDefinition, existingZeichenId?: string) => {
+  drawStore.setState((state) => ({
+    ...state,
+    pendingZeichenPlacement: { definition, existingZeichenId },
+  }));
+};
+
+/**
+ * Löscht die wartende Zeichen-Platzierung
+ */
+export const clearPendingZeichenPlacement = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    pendingZeichenPlacement: null,
+  }));
+};
+
+/**
+ * Öffnet das Zeichen-Detail-Panel für ein bestimmtes Zeichen.
+ * Schließt dabei die Zeichen-Sidebar und bricht wartende Platzierungen ab.
+ */
+export const openZeichenDetail = (zeichenId: string) => {
+  drawStore.setState((state) => ({
+    ...state,
+    selectedZeichenId: zeichenId,
+    isZeichenSidebarVisible: false,
+    pendingZeichenPlacement: null,
+  }));
+};
+
+/**
+ * Schließt das Zeichen-Detail-Panel
+ */
+export const closeZeichenDetail = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    selectedZeichenId: null,
   }));
 };
 

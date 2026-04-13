@@ -214,6 +214,18 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get gefahrenmatrixBewertung() {
     return this._client.gefahrenmatrixBewertung;
   }
+  get fahrzeugtypZeichenDefault() {
+    return this._client.fahrzeugtypZeichenDefault;
+  }
+  get einheitentypZeichenDefault() {
+    return this._client.einheitentypZeichenDefault;
+  }
+  get taktischesZeichen() {
+    return this._client.taktischesZeichen;
+  }
+  get zeichenKatalogEintrag() {
+    return this._client.zeichenKatalogEintrag;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

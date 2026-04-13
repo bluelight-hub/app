@@ -41,6 +41,7 @@ import {
   PersonVonEinheitEntferntEtbEventAdapter,
   FahrzeugEinheitZugewiesenEtbEventAdapter,
   LagekarteStateGeaendertWebsocketEventAdapter,
+  ZeichenEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -169,6 +170,7 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     PersonVonEinheitEntferntEtbEventAdapter, // Issue #411: PersonVonEinheitEntfernt ETB-Eintrag
     FahrzeugEinheitZugewiesenEtbEventAdapter, // Issue #411: FahrzeugEinheitZugewiesen ETB-Eintrag
     LagekarteStateGeaendertWebsocketEventAdapter, // Issue #638: LagekarteStateGeaendert WebSocket-Broadcast
+    ZeichenEventAdapter, // Issue #636: Taktische Zeichen WebSocket-Broadcast
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

@@ -24,6 +24,7 @@
   --ring-1-color-surface-raised: #e8eef6;
   --ring-1-color-surface-overlay: rgb(255 255 255 / 0.78);
   --ring-1-color-surface-inverse: #10223d;
+  --ring-1-color-surface-sidebar: #10223d;
 
   --ring-1-color-border-subtle: #d7e1ed;
   --ring-1-color-border-strong: #b0bfd2;
@@ -103,6 +104,7 @@
   --ring-1-color-surface-raised: #162336;
   --ring-1-color-surface-overlay: rgb(17 28 45 / 0.82);
   --ring-1-color-surface-inverse: #eff4fa;
+  --ring-1-color-surface-sidebar: #10223d;
 
   --ring-1-color-border-subtle: #26364c;
   --ring-1-color-border-strong: #38506f;
@@ -201,6 +203,7 @@
   --color-surface-elevated: var(--ring-1-color-surface-raised);
   --color-surface-overlay: var(--ring-1-color-surface-overlay);
   --color-surface-inverse: var(--ring-1-color-surface-inverse);
+  --color-surface-sidebar: var(--ring-1-color-surface-sidebar);
 
   --color-border-subtle: var(--ring-1-color-border-subtle);
   --color-border-strong: var(--ring-1-color-border-strong);

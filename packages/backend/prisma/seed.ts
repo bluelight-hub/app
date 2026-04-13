@@ -2,7 +2,7 @@ import '@dotenvx/dotenvx/config';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Logger } from '@nestjs/common';
-import { EtbKategorie, FahrzeugtypKategorie, PrismaClient, QualifikationKategorie } from '../src/generated/prisma/client';
+import { EinsatzEinheitTyp, EtbKategorie, FahrzeugtypKategorie, PrismaClient, QualifikationKategorie } from '../src/generated/prisma/client';
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -67,6 +67,12 @@ async function main() {
   // Stammdaten (Story 2.0) - MUSS nach seedKraefteConfig laufen (braucht Fahrzeugtypen + Qualifikationen)
   // MUSS in allen Umgebungen laufen - Stammdaten sind essentielle Entwicklungsdaten
   await seedStammdaten(systemUser.id);
+
+  // Zeichen-Katalog (DV 102) - MUSS in allen Umgebungen laufen
+  await seedZeichenKatalog();
+
+  // Default-Zeichen für Fahrzeugtypen und Einheitentypen - MUSS nach seedKraefteConfig laufen
+  await seedZeichenDefaults();
 
   // Erstelle ETB Textbausteine NUR für Entwicklung
   if (process.env.NODE_ENV === 'development') {
@@ -301,6 +307,118 @@ async function seedStammdaten(systemUserId: string): Promise<void> {
   logger.log(`Created ${personen.length} Stamm-Personen mit Qualifikationen`);
 
   logger.log('Stammdaten Seed completed');
+}
+
+/**
+ * Erstellt den Zeichen-Katalog nach DV 102.
+ * Löscht alle Standard-Einträge und erstellt sie neu (Idempotenz).
+ * Nutzt die gleiche Datenquelle wie der Startup-Seeder.
+ */
+async function seedZeichenKatalog(): Promise<void> {
+  logger.log('Erstelle Zeichen-Katalog (DV 102)...');
+
+  // Bestehende Standard-Einträge löschen für Idempotenz
+  await prisma.zeichenKatalogEintrag.deleteMany({ where: { istStandard: true } });
+
+  // Importiere Katalog-Daten aus der zentralen Datei
+  const { ZEICHEN_KATALOG_STANDARD_EINTRAEGE } = await import('../src/infrastructure/taktische-zeichen/zeichen-katalog-daten');
+
+  await prisma.zeichenKatalogEintrag.createMany({
+    data: ZEICHEN_KATALOG_STANDARD_EINTRAEGE.map((e) => ({
+      name: e.name,
+      kategorie: e.kategorie,
+      zeichenDefinition: e.zeichenDefinition as object,
+      tags: [...e.tags],
+      sortOrder: 0,
+      istStandard: true,
+    })),
+  });
+
+  logger.log(`${ZEICHEN_KATALOG_STANDARD_EINTRAEGE.length} Zeichen-Katalog-Einträge erstellt`);
+}
+
+/**
+ * Erstellt Default-Zeichen-Definitionen für Fahrzeugtypen und Einheitentypen.
+ * Nutzt Upsert-Pattern für Idempotenz bei mehrfacher Ausführung.
+ * Läuft nach seedKraefteConfig(), da Fahrzeugtyp-IDs benötigt werden.
+ */
+async function seedZeichenDefaults(): Promise<void> {
+  logger.log('Erstelle Default-Zeichen für Fahrzeugtypen und Einheitentypen...');
+
+  // Default-Zeichen für Fahrzeugtypen (verknüpft mit bestehenden Fahrzeugtypen aus seedKraefteConfig)
+  const fahrzeugtypDefaults = [
+    {
+      code: 'RTW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'rettungswesen' },
+    },
+    {
+      code: 'KTW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'transport' },
+    },
+    {
+      code: 'NEF',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'aerztliche-versorgung' },
+    },
+    {
+      code: 'NAW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'aerztliche-versorgung', einheit: 'trupp' },
+    },
+    {
+      code: 'ELW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', fachaufgabe: 'fuehrung' },
+    },
+    {
+      code: 'MTW',
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-gelaendegaengig', organisation: 'hilfsorganisation', fachaufgabe: 'transport', einheit: 'trupp' },
+    },
+  ];
+
+  let fahrzeugtypCount = 0;
+  for (const entry of fahrzeugtypDefaults) {
+    const fahrzeugtyp = await prisma.fahrzeugtyp.findUnique({ where: { code: entry.code } });
+    if (!fahrzeugtyp) {
+      logger.warn(`Fahrzeugtyp '${entry.code}' nicht gefunden — Default-Zeichen übersprungen`);
+      continue;
+    }
+
+    await prisma.fahrzeugtypZeichenDefault.upsert({
+      where: { fahrzeugtypId: fahrzeugtyp.id },
+      create: {
+        fahrzeugtypId: fahrzeugtyp.id,
+        zeichenDefinition: entry.zeichenDefinition,
+      },
+      update: {
+        zeichenDefinition: entry.zeichenDefinition,
+      },
+    });
+    fahrzeugtypCount++;
+  }
+  logger.log(`${fahrzeugtypCount} FahrzeugtypZeichenDefaults erstellt/aktualisiert`);
+
+  // Default-Zeichen für Einheitentypen (feste Enum-Werte, kein FK)
+  const einheitentypDefaults: Array<{ einheitentyp: EinsatzEinheitTyp; zeichenDefinition: Record<string, string> }> = [
+    { einheitentyp: EinsatzEinheitTyp.TRUPP, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'trupp' } },
+    { einheitentyp: EinsatzEinheitTyp.STAFFEL, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'staffel' } },
+    { einheitentyp: EinsatzEinheitTyp.GRUPPE, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'gruppe' } },
+    { einheitentyp: EinsatzEinheitTyp.ZUG, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'zug' } },
+    { einheitentyp: EinsatzEinheitTyp.ABSCHNITT, zeichenDefinition: { grundzeichen: 'taktische-formation', einheit: 'bereitschaft' } },
+  ];
+
+  for (const entry of einheitentypDefaults) {
+    await prisma.einheitentypZeichenDefault.upsert({
+      where: { einheitentyp: entry.einheitentyp },
+      create: {
+        einheitentyp: entry.einheitentyp,
+        zeichenDefinition: entry.zeichenDefinition,
+      },
+      update: {
+        zeichenDefinition: entry.zeichenDefinition,
+      },
+    });
+  }
+  logger.log(`${einheitentypDefaults.length} EinheitentypZeichenDefaults erstellt/aktualisiert`);
+
+  logger.log('Default-Zeichen Seed completed');
 }
 
 main()

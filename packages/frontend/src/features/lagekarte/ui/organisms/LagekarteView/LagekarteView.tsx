@@ -12,7 +12,7 @@ import { useOsmMarkierung } from '@/features/lagekarte/hooks/use-osm-markierung'
 import { useGamsZonen } from '@/features/lagekarte/hooks/use-gams-zonen';
 import { useSnapControl } from '@/features/lagekarte/hooks/use-snap-control';
 import { useSymbolMarker } from '@/features/lagekarte/hooks/use-symbol-marker';
-import { drawStore, toggleSnapEnabled, toggleSymbolPanel, toggleTemplatePanel } from '@/features/lagekarte/stores/draw.store';
+import { drawStore, toggleSnapEnabled, toggleSymbolPanel, toggleTemplatePanel, clearPendingZeichenPlacement, openZeichenDetail, closeZeichenDetail } from '@/features/lagekarte/stores/draw.store';
 import { DEFAULT_DRAWING_STYLE } from '@/features/lagekarte/drawing/types';
 import type { DrawingStyle, HatchConfig } from '@/features/lagekarte/drawing/types';
 import type { ShapeTemplate } from '@/features/lagekarte/drawing/templates/template-registry';
@@ -42,6 +42,12 @@ import { OsmMarkierungPopup } from '../../molecules/OsmMarkierungPopup.molecule'
 import { GamsZonenPanel } from '../../molecules/GamsZonenPanel.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
+import { TaktischeZeichenLayer } from '../../molecules/TaktischeZeichenLayer.molecule';
+import { GhostZeichenMarker } from '../../molecules/GhostZeichenMarker.molecule';
+import { KartenZeichenSidebar } from '../../molecules/KartenZeichenSidebar.molecule';
+import { ZeichenDetailPanel } from '../../molecules/ZeichenDetailPanel.molecule';
+import { useEinsatzZeichen, useCreateZeichen, usePlaceZeichen } from '@/features/taktische-zeichen';
+import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
 
@@ -77,7 +83,12 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // Polling-Fallback: 5s Polling wenn WebSocket nicht verbunden ist
   const { data: lagekarteData } = useLagekarte(einsatzId, { refetchInterval: wsIsConnected ? false : 5000 });
 
-  // Draw-Store State
+  // Taktische Zeichen des Einsatzes (Polling-Fallback wenn kein WebSocket)
+  const { data: einsatzZeichen = [] } = useEinsatzZeichen(einsatzId, {
+    refetchInterval: wsIsConnected ? false : 10_000,
+  });
+
+  // Draw-Store State (vor useZeichenDrag, damit canDraw verfügbar)
   const drawMode = useStore(drawStore, (s) => s.drawMode);
   const selectedFeatureIds = useStore(drawStore, (s) => s.selectedFeatureIds);
   const isDirectSelect = useStore(drawStore, (s) => s.isDirectSelect);
@@ -85,9 +96,38 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const isSymbolPanelVisible = useStore(drawStore, (s) => s.isSymbolPanelVisible);
   const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
   const isLocked = useStore(drawStore, (s) => s.isLocked);
+  const isZeichenSidebarVisible = useStore(drawStore, (s) => s.isZeichenSidebarVisible);
+  const pendingZeichenPlacement = useStore(drawStore, (s) => s.pendingZeichenPlacement);
+  const selectedZeichenId = useStore(drawStore, (s) => s.selectedZeichenId);
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
+
+  // Zeichen für Detail-Panel aus Cache ableiten
+  const selectedZeichen = selectedZeichenId ? einsatzZeichen.find((z) => z.id === selectedZeichenId) : undefined;
+
+  // Erstellung + Platzierung von taktischen Zeichen per Karten-Klick
+  const { mutate: createZeichen } = useCreateZeichen(einsatzId);
+  const { mutate: placeZeichen } = usePlaceZeichen(einsatzId);
+
+  // Zeichen-Selektion → Detail-Panel steuern
+  const handleZeichenSelect = useCallback((zeichenId: string | null) => {
+    if (zeichenId) {
+      openZeichenDetail(zeichenId);
+    } else {
+      closeZeichenDetail();
+    }
+  }, []);
+
+  // Drag & Drop für taktische Zeichen (nur wenn Zeichnen erlaubt und nicht gesperrt)
+  const { deselectZeichen } = useZeichenDrag({
+    mapRef,
+    isMapLoaded,
+    zeichen: einsatzZeichen,
+    einsatzId,
+    canDrag: canDraw && !isLocked,
+    onSelect: handleZeichenSelect,
+  });
 
   // Style-Panel State (vor useDrawControl, damit activeStyleRef verfügbar ist)
   const [activeStyle, setActiveStyle] = useState<DrawingStyle>(DEFAULT_DRAWING_STYLE);
@@ -346,6 +386,41 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
    */
   const handleCombinedClick = useCallback(
     (event: MapLayerMouseEvent) => {
+      // 0. Taktisches Zeichen platzieren (Klick nach Sidebar-Auswahl)
+      if (pendingZeichenPlacement && lagekarteData?.id) {
+        const { lng, lat } = event.lngLat;
+
+        if (pendingZeichenPlacement.existingZeichenId) {
+          // Bestehendes unplatziertes Zeichen platzieren
+          placeZeichen(
+            {
+              zeichenId: pendingZeichenPlacement.existingZeichenId,
+              dto: { lagekarteId: lagekarteData.id, lat, lng },
+            },
+            { onSuccess: () => clearPendingZeichenPlacement() },
+          );
+        } else {
+          // Neues Zeichen erstellen + direkt platzieren (atomar)
+          const def = pendingZeichenPlacement.definition;
+          createZeichen(
+            {
+              zeichenDefinition: {
+                grundzeichen: def.grundzeichen,
+                organisation: def.organisation,
+                fachaufgabe: def.fachaufgabe,
+                einheit: def.einheit,
+                verwaltungsstufe: def.verwaltungsstufe,
+              },
+              lagekarteId: lagekarteData.id,
+              lat,
+              lng,
+            },
+            { onSuccess: () => clearPendingZeichenPlacement() },
+          );
+        }
+        return;
+      }
+
       // 1. Im Zeichenmodus: Draw hat Vorrang (MapboxDraw verarbeitet den Klick)
       if (drawMode !== 'idle' && drawMode !== 'select' && drawMode !== 'osm_mark') {
         return;
@@ -360,19 +435,27 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       // 3. Idle/Select: Bestehender Detail-Provider-Flow
       handleMapClick(event);
     },
-    [drawMode, handleOsmClick, handleMapClick],
+    [drawMode, handleOsmClick, handleMapClick, pendingZeichenPlacement, lagekarteData?.id, createZeichen, placeZeichen],
   );
 
   /** Cursor je nach Modus bestimmen */
   const getCursor = () => {
     if (isDetailLoading) return 'wait';
+    if (pendingZeichenPlacement) return 'crosshair';
     if (drawMode === 'osm_mark') return 'crosshair';
     if (drawMode !== 'idle' && drawMode !== 'select') return 'crosshair';
     return undefined;
   };
 
   return (
-    <div className={cn('relative w-full overflow-hidden rounded-lg', mode === 'standard' && 'h-[600px] md:h-[calc(100vh-180px)]', (mode === 'fullscreen' || mode === 'presentation') && 'h-screen')}>
+    <div
+      className={cn(
+        'relative w-full overflow-hidden rounded-lg',
+        mode === 'standard' && 'h-full',
+        (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
+        (isPanelOpen || selectedZeichenId || isZeichenSidebarVisible) && 'has-right-panel',
+      )}
+    >
       {mode !== 'standard' && <FullscreenCloseButton />}
 
       {isLoading && (
@@ -436,6 +519,12 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         {/* NINA Warnungen GeoJSON Layer */}
         {ninaGeoJson && <NinaGeoJsonLayer data={ninaGeoJson} ninaOverlays={ninaOverlays} />}
 
+        {/* Taktische Zeichen Layer (DV 102) */}
+        <TaktischeZeichenLayer mapRef={mapRef} isMapLoaded={isMapLoaded} zeichen={einsatzZeichen} />
+
+        {/* Ghost-Marker: Halbtransparente Vorschau beim Platzieren */}
+        {pendingZeichenPlacement && <GhostZeichenMarker mapRef={mapRef} isMapLoaded={isMapLoaded} definition={pendingZeichenPlacement.definition} />}
+
         {/* Detail-Popup am Klick-Punkt */}
         {results.length > 0 && coordinate && !isPanelOpen && <MapDetailPopup results={results} coordinate={coordinate} onShowDetails={openPanel} onClose={clearSelection} />}
 
@@ -498,6 +587,20 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
       {/* Detail-Panel (Slide-In von rechts) */}
       <MapDetailPanel results={results} panelIndex={panelIndex} isOpen={isPanelOpen} onClose={closePanel} onNavigate={navigatePanel} />
+
+      {/* Zeichen-Detail-Panel (Slide-In von rechts) */}
+      <ZeichenDetailPanel
+        zeichen={selectedZeichen}
+        einsatzId={einsatzId}
+        isOpen={selectedZeichenId !== null}
+        onClose={() => {
+          closeZeichenDetail();
+          deselectZeichen();
+        }}
+      />
+
+      {/* Karten-Zeichen-Sidebar (nur im Nicht-Präsentationsmodus) */}
+      {mode !== 'presentation' && <KartenZeichenSidebar einsatzId={einsatzId} isVisible={isZeichenSidebarVisible} />}
     </div>
   );
 };
