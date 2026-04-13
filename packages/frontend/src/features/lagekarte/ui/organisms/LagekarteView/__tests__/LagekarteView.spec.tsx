@@ -16,9 +16,14 @@ import { LagekarteView } from '../LagekarteView';
 // Mocks
 // ============================================
 
+// Capture für Map onClick-Handler (für handleCombinedClick-Tests)
+let capturedMapOnClick: ((event: any) => void) | null = null;
+
 // MapLibre + react-map-gl müssen vor dem Import gemockt werden
 vi.mock('react-map-gl/maplibre', () => ({
-  Map: vi.fn(({ children, onLoad, 'aria-label': ariaLabel }: any) => {
+  Map: vi.fn(({ children, onLoad, onClick, 'aria-label': ariaLabel }: any) => {
+    // onClick-Handler für Tests zugänglich machen
+    capturedMapOnClick = onClick;
     // Auto-fire onLoad für Tests
     setTimeout(() => onLoad?.(), 0);
     return (
@@ -69,8 +74,9 @@ vi.mock('@/features/lagekarte/api/use-nina-map-data', () => ({
   useNinaMapData: () => ({ data: null }),
 }));
 
+const mockLagekarteData = vi.fn().mockReturnValue({ data: null });
 vi.mock('@/features/lagekarte/api/use-lagekarte', () => ({
-  useLagekarte: () => ({ data: null }),
+  useLagekarte: (...args: any[]) => mockLagekarteData(...args),
 }));
 
 const mockCanDraw = vi.fn().mockReturnValue(true);
@@ -185,6 +191,8 @@ vi.mock('@/features/lagekarte/stores/draw.store', () => ({
   closeZeichenDetail: vi.fn(),
 }));
 
+let mockDrawStoreOverrides: Record<string, any> = {};
+
 vi.mock('@tanstack/react-store', () => ({
   createStore: vi.fn((initialState: any) => ({
     state: initialState,
@@ -206,15 +214,19 @@ vi.mock('@tanstack/react-store', () => ({
       zeichenSidebarTab: 'katalog',
       pendingZeichenPlacement: null,
       selectedZeichenId: null,
+      ...mockDrawStoreOverrides,
     };
     return selector(state);
   }),
 }));
 
+const mockCreateZeichen = vi.fn();
+const mockPlaceZeichen = vi.fn();
+
 vi.mock('@/features/taktische-zeichen', () => ({
   useEinsatzZeichen: () => ({ data: [], isLoading: false, isError: false }),
-  useCreateZeichen: () => ({ mutate: vi.fn() }),
-  usePlaceZeichen: () => ({ mutate: vi.fn() }),
+  useCreateZeichen: () => ({ mutate: mockCreateZeichen }),
+  usePlaceZeichen: () => ({ mutate: mockPlaceZeichen }),
   useUpdateZeichen: () => ({ mutate: vi.fn() }),
   useRemoveZeichen: () => ({ mutate: vi.fn(), isPending: false }),
   ZeichenPreview: () => <div data-testid="zeichen-preview" />,
@@ -326,8 +338,11 @@ vi.mock('@/shared/lib/logger', () => ({
 describe('LagekarteView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    capturedMapOnClick = null;
+    mockDrawStoreOverrides = {};
     mockCanDraw.mockReturnValue(true);
     mockWsConnected.mockReturnValue(true);
+    mockLagekarteData.mockReturnValue({ data: null });
     mockGamsZonen.mockReturnValue({
       pendingGamsCenter: null,
       confirmiereGamsZonen: vi.fn(),
@@ -483,6 +498,85 @@ describe('LagekarteView', () => {
       render(<LagekarteView einsatzId="einsatz-1" />);
 
       expect(screen.getByTestId('draw-shortcut-bar')).toBeInTheDocument();
+    });
+  });
+
+  describe('handleCombinedClick — Taktische Zeichen Platzierung', () => {
+    const mockMapEvent = {
+      lngLat: { lng: 10.5, lat: 50.3 },
+      point: { x: 100, y: 200 },
+      features: [],
+    };
+
+    it('sollte neues Zeichen erstellen + platzieren wenn pendingZeichenPlacement ohne existingZeichenId', () => {
+      const definition = { grundzeichen: 'stelle', organisation: 'thw', fachaufgabe: undefined, einheit: undefined, verwaltungsstufe: undefined };
+
+      mockDrawStoreOverrides = {
+        pendingZeichenPlacement: { definition },
+      };
+      mockLagekarteData.mockReturnValue({ data: { id: 'lagekarte-42', state: null } });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+
+      expect(capturedMapOnClick).toBeDefined();
+      capturedMapOnClick!(mockMapEvent);
+
+      expect(mockCreateZeichen).toHaveBeenCalledWith(
+        {
+          zeichenDefinition: {
+            grundzeichen: 'stelle',
+            organisation: 'thw',
+            fachaufgabe: undefined,
+            einheit: undefined,
+            verwaltungsstufe: undefined,
+          },
+          lagekarteId: 'lagekarte-42',
+          lat: 50.3,
+          lng: 10.5,
+        },
+        expect.objectContaining({ onSuccess: expect.any(Function) }),
+      );
+      expect(mockPlaceZeichen).not.toHaveBeenCalled();
+    });
+
+    it('sollte bestehendes Zeichen platzieren wenn pendingZeichenPlacement mit existingZeichenId', () => {
+      mockDrawStoreOverrides = {
+        pendingZeichenPlacement: {
+          definition: { grundzeichen: 'fahrzeug' },
+          existingZeichenId: 'z-existing-1',
+        },
+      };
+      mockLagekarteData.mockReturnValue({ data: { id: 'lagekarte-42', state: null } });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+
+      expect(capturedMapOnClick).toBeDefined();
+      capturedMapOnClick!(mockMapEvent);
+
+      expect(mockPlaceZeichen).toHaveBeenCalledWith(
+        {
+          zeichenId: 'z-existing-1',
+          dto: { lagekarteId: 'lagekarte-42', lat: 50.3, lng: 10.5 },
+        },
+        expect.objectContaining({ onSuccess: expect.any(Function) }),
+      );
+      expect(mockCreateZeichen).not.toHaveBeenCalled();
+    });
+
+    it('sollte NICHT platzieren wenn keine lagekarteData vorhanden', () => {
+      mockDrawStoreOverrides = {
+        pendingZeichenPlacement: {
+          definition: { grundzeichen: 'stelle' },
+        },
+      };
+      mockLagekarteData.mockReturnValue({ data: null });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+
+      capturedMapOnClick!(mockMapEvent);
+
+      expect(mockCreateZeichen).not.toHaveBeenCalled();
+      expect(mockPlaceZeichen).not.toHaveBeenCalled();
     });
   });
 });
