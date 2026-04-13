@@ -35,8 +35,11 @@
     "semantic-release-gitmoji": "^1.6.9"
   },
   "lint-staged": {
-    "**/*.{js,ts,tsx,json,yml,yaml}": [
+    "**/*.{js,ts,tsx}": [
       "oxlint --fix",
+      "oxfmt --write --no-error-on-unmatched-pattern"
+    ],
+    "**/*.{json,yml,yaml}": [
       "oxfmt --write --no-error-on-unmatched-pattern"
     ],
     "**/*.md": [
