@@ -109,13 +109,23 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // Platzierung von taktischen Zeichen per Karten-Klick
   const { mutate: placeZeichen } = usePlaceZeichen(einsatzId);
 
+  // Zeichen-Selektion → Detail-Panel steuern
+  const handleZeichenSelect = useCallback((zeichenId: string | null) => {
+    if (zeichenId) {
+      openZeichenDetail(zeichenId);
+    } else {
+      closeZeichenDetail();
+    }
+  }, []);
+
   // Drag & Drop für taktische Zeichen (nur wenn Zeichnen erlaubt und nicht gesperrt)
-  useZeichenDrag({
+  const { deselectZeichen } = useZeichenDrag({
     mapRef,
     isMapLoaded,
     zeichen: einsatzZeichen,
     einsatzId,
     canDrag: canDraw && !isLocked,
+    onSelect: handleZeichenSelect,
   });
 
   // Style-Panel State (vor useDrawControl, damit activeStyleRef verfügbar ist)
@@ -478,7 +488,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         {ninaGeoJson && <NinaGeoJsonLayer data={ninaGeoJson} ninaOverlays={ninaOverlays} />}
 
         {/* Taktische Zeichen Layer (DV 102) */}
-        <TaktischeZeichenLayer mapRef={mapRef} isMapLoaded={isMapLoaded} zeichen={einsatzZeichen} onZeichenClick={(z) => openZeichenDetail(z.id)} />
+        <TaktischeZeichenLayer mapRef={mapRef} isMapLoaded={isMapLoaded} zeichen={einsatzZeichen} />
 
         {/* Ghost-Marker: Halbtransparente Vorschau beim Platzieren */}
         {pendingZeichenPlacement && <GhostZeichenMarker mapRef={mapRef} isMapLoaded={isMapLoaded} definition={pendingZeichenPlacement.definition} />}
@@ -547,7 +557,15 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       <MapDetailPanel results={results} panelIndex={panelIndex} isOpen={isPanelOpen} onClose={closePanel} onNavigate={navigatePanel} />
 
       {/* Zeichen-Detail-Panel (Slide-In von rechts) */}
-      <ZeichenDetailPanel zeichen={selectedZeichen} einsatzId={einsatzId} isOpen={selectedZeichenId !== null} onClose={closeZeichenDetail} />
+      <ZeichenDetailPanel
+        zeichen={selectedZeichen}
+        einsatzId={einsatzId}
+        isOpen={selectedZeichenId !== null}
+        onClose={() => {
+          closeZeichenDetail();
+          deselectZeichen();
+        }}
+      />
 
       {/* Karten-Zeichen-Sidebar (nur im Nicht-Präsentationsmodus) */}
       {mode !== 'presentation' && <KartenZeichenSidebar einsatzId={einsatzId} isVisible={isZeichenSidebarVisible} />}
