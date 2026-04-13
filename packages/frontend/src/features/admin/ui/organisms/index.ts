@@ -34,4 +34,6 @@ export { CreateInviteDialog } from './CreateInviteDialog'; // Access-Token Manag
 export { TokenCreationModal } from './TokenCreationModal';
 export { TokenList } from './TokenList';
 export { TokenRevokeConfirmDialog } from './TokenRevokeConfirmDialog';
-export { TokenRotationModal } from './TokenRotationModal';
+export { TokenRotationModal } from './TokenRotationModal'; // Default-Zeichen Management
+export { DefaultZeichenTypTable } from './DefaultZeichenTypTable';
+export { ZeichenEditPanel } from './ZeichenEditPanel';

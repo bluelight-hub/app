@@ -41,6 +41,7 @@ import { Route as AdminStammdatenFahrzeugeRouteImport } from './routes/admin/sta
 import { Route as AdminKraefteRollenDefinitionenRouteImport } from './routes/admin/kraefte/rollen-definitionen'
 import { Route as AdminKraefteQualifikationenRouteImport } from './routes/admin/kraefte/qualifikationen'
 import { Route as AdminKraefteFahrzeugtypenRouteImport } from './routes/admin/kraefte/fahrzeugtypen'
+import { Route as AdminKraefteDefaultZeichenRouteImport } from './routes/admin/kraefte/default-zeichen'
 import { Route as AdminIntegrationsHiorgRouteImport } from './routes/admin/integrations/hiorg'
 import { Route as AppEinsatzEinsatzIdIndexRouteImport } from './routes/app/einsatz/$einsatzId/index'
 import { Route as AppEinsatzEinsatzIdChar220bersichtIndexRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/index'
@@ -244,6 +245,12 @@ const AdminKraefteFahrzeugtypenRoute =
   AdminKraefteFahrzeugtypenRouteImport.update({
     id: '/kraefte/fahrzeugtypen',
     path: '/kraefte/fahrzeugtypen',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminKraefteDefaultZeichenRoute =
+  AdminKraefteDefaultZeichenRouteImport.update({
+    id: '/kraefte/default-zeichen',
+    path: '/kraefte/default-zeichen',
     getParentRoute: () => AdminRoute,
   } as any)
 const AdminIntegrationsHiorgRoute = AdminIntegrationsHiorgRouteImport.update({
@@ -492,6 +499,7 @@ export interface FileRoutesByFullPath {
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
+  '/admin/kraefte/default-zeichen': typeof AdminKraefteDefaultZeichenRoute
   '/admin/kraefte/fahrzeugtypen': typeof AdminKraefteFahrzeugtypenRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
   '/admin/kraefte/rollen-definitionen': typeof AdminKraefteRollenDefinitionenRoute
@@ -561,6 +569,7 @@ export interface FileRoutesByTo {
   '/server/setup': typeof ServerSetupRoute
   '/admin': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
+  '/admin/kraefte/default-zeichen': typeof AdminKraefteDefaultZeichenRoute
   '/admin/kraefte/fahrzeugtypen': typeof AdminKraefteFahrzeugtypenRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
   '/admin/kraefte/rollen-definitionen': typeof AdminKraefteRollenDefinitionenRoute
@@ -631,6 +640,7 @@ export interface FileRoutesById {
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
+  '/admin/kraefte/default-zeichen': typeof AdminKraefteDefaultZeichenRoute
   '/admin/kraefte/fahrzeugtypen': typeof AdminKraefteFahrzeugtypenRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
   '/admin/kraefte/rollen-definitionen': typeof AdminKraefteRollenDefinitionenRoute
@@ -704,6 +714,7 @@ export interface FileRouteTypes {
     | '/server/setup'
     | '/admin/'
     | '/admin/integrations/hiorg'
+    | '/admin/kraefte/default-zeichen'
     | '/admin/kraefte/fahrzeugtypen'
     | '/admin/kraefte/qualifikationen'
     | '/admin/kraefte/rollen-definitionen'
@@ -773,6 +784,7 @@ export interface FileRouteTypes {
     | '/server/setup'
     | '/admin'
     | '/admin/integrations/hiorg'
+    | '/admin/kraefte/default-zeichen'
     | '/admin/kraefte/fahrzeugtypen'
     | '/admin/kraefte/qualifikationen'
     | '/admin/kraefte/rollen-definitionen'
@@ -842,6 +854,7 @@ export interface FileRouteTypes {
     | '/server/setup'
     | '/admin/'
     | '/admin/integrations/hiorg'
+    | '/admin/kraefte/default-zeichen'
     | '/admin/kraefte/fahrzeugtypen'
     | '/admin/kraefte/qualifikationen'
     | '/admin/kraefte/rollen-definitionen'
@@ -1127,6 +1140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKraefteFahrzeugtypenRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/kraefte/default-zeichen': {
+      id: '/admin/kraefte/default-zeichen'
+      path: '/kraefte/default-zeichen'
+      fullPath: '/admin/kraefte/default-zeichen'
+      preLoaderRoute: typeof AdminKraefteDefaultZeichenRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/integrations/hiorg': {
       id: '/admin/integrations/hiorg'
       path: '/integrations/hiorg'
@@ -1401,6 +1421,7 @@ interface AdminRouteChildren {
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminIntegrationsHiorgRoute: typeof AdminIntegrationsHiorgRoute
+  AdminKraefteDefaultZeichenRoute: typeof AdminKraefteDefaultZeichenRoute
   AdminKraefteFahrzeugtypenRoute: typeof AdminKraefteFahrzeugtypenRoute
   AdminKraefteQualifikationenRoute: typeof AdminKraefteQualifikationenRoute
   AdminKraefteRollenDefinitionenRoute: typeof AdminKraefteRollenDefinitionenRoute
@@ -1421,6 +1442,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminIntegrationsHiorgRoute: AdminIntegrationsHiorgRoute,
+  AdminKraefteDefaultZeichenRoute: AdminKraefteDefaultZeichenRoute,
   AdminKraefteFahrzeugtypenRoute: AdminKraefteFahrzeugtypenRoute,
   AdminKraefteQualifikationenRoute: AdminKraefteQualifikationenRoute,
   AdminKraefteRollenDefinitionenRoute: AdminKraefteRollenDefinitionenRoute,

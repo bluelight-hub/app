@@ -11,6 +11,7 @@ import { EntferneZeichenHandler } from '@application/taktische-zeichen/commands/
 import { FindeZeichenFuerEinsatzHandler } from '@application/taktische-zeichen/queries/finde-zeichen-fuer-einsatz/finde-zeichen-fuer-einsatz.handler';
 import { FindeKatalogEintraegeHandler } from '@application/taktische-zeichen/queries/finde-katalog-eintraege/finde-katalog-eintraege.handler';
 import { FindeDefaultZeichenHandler } from '@application/taktische-zeichen/queries/finde-default-zeichen/finde-default-zeichen.handler';
+import { SetzeDefaultZeichenHandler } from '@application/taktische-zeichen/commands/setze-default-zeichen/setze-default-zeichen.handler';
 import { TaktischesZeichenResponseFactory } from '@application/taktische-zeichen/factories/taktisches-zeichen-response.factory';
 import { TaktischeZeichenController } from './taktische-zeichen.controller';
 
@@ -29,6 +30,7 @@ import { TaktischeZeichenController } from './taktische-zeichen.controller';
     FindeZeichenFuerEinsatzHandler,
     FindeKatalogEintraegeHandler,
     FindeDefaultZeichenHandler,
+    SetzeDefaultZeichenHandler,
     TaktischesZeichenResponseFactory,
   ],
 })

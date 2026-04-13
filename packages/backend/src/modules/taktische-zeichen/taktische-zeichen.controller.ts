@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -8,6 +8,7 @@ import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { TaktischesZeichenResponseDto } from '@application/taktische-zeichen/dtos/taktisches-zeichen-response.dto';
 import { ZeichenKatalogEintragResponseDto } from '@application/taktische-zeichen/dtos/zeichen-katalog-eintrag-response.dto';
+import { DefaultZeichenResponseDto } from '@application/taktische-zeichen/dtos/default-zeichen-response.dto';
 import { ErstelleZeichenCommand } from '@application/taktische-zeichen/commands/erstelle-zeichen/erstelle-zeichen.command';
 import { ErstelleZeichenHandler } from '@application/taktische-zeichen/commands/erstelle-zeichen/erstelle-zeichen.handler';
 import { PlatziereZeichenCommand } from '@application/taktische-zeichen/commands/platziere-zeichen/platziere-zeichen.command';
@@ -16,6 +17,8 @@ import { AktualisiereZeichenCommand } from '@application/taktische-zeichen/comma
 import { AktualisiereZeichenHandler } from '@application/taktische-zeichen/commands/aktualisiere-zeichen/aktualisiere-zeichen.handler';
 import { EntferneZeichenCommand } from '@application/taktische-zeichen/commands/entferne-zeichen/entferne-zeichen.command';
 import { EntferneZeichenHandler } from '@application/taktische-zeichen/commands/entferne-zeichen/entferne-zeichen.handler';
+import { SetzeDefaultZeichenCommand } from '@application/taktische-zeichen/commands/setze-default-zeichen/setze-default-zeichen.command';
+import { SetzeDefaultZeichenHandler } from '@application/taktische-zeichen/commands/setze-default-zeichen/setze-default-zeichen.handler';
 import { FindeZeichenFuerEinsatzQuery } from '@application/taktische-zeichen/queries/finde-zeichen-fuer-einsatz/finde-zeichen-fuer-einsatz.query';
 import { FindeZeichenFuerEinsatzHandler } from '@application/taktische-zeichen/queries/finde-zeichen-fuer-einsatz/finde-zeichen-fuer-einsatz.handler';
 import { FindeKatalogEintraegeQuery } from '@application/taktische-zeichen/queries/finde-katalog-eintraege/finde-katalog-eintraege.query';
@@ -25,6 +28,7 @@ import { FindeDefaultZeichenHandler } from '@application/taktische-zeichen/queri
 import { CreateTaktischesZeichenDto } from './dtos/create-taktisches-zeichen.dto';
 import { UpdateTaktischesZeichenDto } from './dtos/update-taktisches-zeichen.dto';
 import { PlatziereZeichenDto } from './dtos/platziere-zeichen.dto';
+import { SetzeDefaultZeichenDto } from './dtos/setze-default-zeichen.dto';
 
 @ApiTags('Taktische Zeichen')
 @ApiBearerAuth()
@@ -41,6 +45,7 @@ export class TaktischeZeichenController {
     private readonly findeZeichenHandler: FindeZeichenFuerEinsatzHandler,
     private readonly findeKatalogHandler: FindeKatalogEintraegeHandler,
     private readonly findeDefaultHandler: FindeDefaultZeichenHandler,
+    private readonly setzeDefaultHandler: SetzeDefaultZeichenHandler,
   ) {}
 
   @Get('einsatz/:einsatzId/taktische-zeichen')
@@ -158,9 +163,26 @@ export class TaktischeZeichenController {
     return result.value;
   }
 
+  @Get('taktische-zeichen/katalog')
+  @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Globaler Zeichen-Katalog (ohne Einsatz-Kontext)' })
+  @ApiQuery({ name: 'suche', required: false })
+  @ApiQuery({ name: 'kategorie', required: false })
+  @ApiWrappedResponse(ZeichenKatalogEintragResponseDto, { isArray: true, description: 'Katalog-Einträge' })
+  async getGlobalKatalog(@Query('suche') suche?: string, @Query('kategorie') kategorie?: string) {
+    const queryResult = FindeKatalogEintraegeQuery.create({ suche, kategorie });
+    if (queryResult.isFailure || !queryResult.value) {
+      throw new BadRequestException(queryResult.error);
+    }
+    const result = await this.findeKatalogHandler.execute(queryResult.value);
+    if (result.isFailure) throw new BadRequestException(result.error);
+    return result.value;
+  }
+
   @Get('taktische-zeichen/defaults/fahrzeugtypen')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Default-Zeichen für Fahrzeugtypen' })
+  @ApiWrappedResponse(DefaultZeichenResponseDto, { isArray: true, description: 'Default-Zeichen aller Fahrzeugtypen' })
   async getDefaultsFahrzeugtypen() {
     const queryResult = FindeDefaultZeichenQuery.create({ typ: 'fahrzeugtypen' });
     if (queryResult.isFailure || !queryResult.value) {
@@ -174,12 +196,59 @@ export class TaktischeZeichenController {
   @Get('taktische-zeichen/defaults/einheitentypen')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Default-Zeichen für Einheitentypen' })
+  @ApiWrappedResponse(DefaultZeichenResponseDto, { isArray: true, description: 'Default-Zeichen aller Einheitentypen' })
   async getDefaultsEinheitentypen() {
     const queryResult = FindeDefaultZeichenQuery.create({ typ: 'einheitentypen' });
     if (queryResult.isFailure || !queryResult.value) {
       throw new BadRequestException(queryResult.error);
     }
     const result = await this.findeDefaultHandler.execute(queryResult.value);
+    if (result.isFailure) throw new BadRequestException(result.error);
+    return result.value;
+  }
+
+  @Put('taktische-zeichen/defaults/fahrzeugtypen/:fahrzeugtypId')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Default-Zeichen für Fahrzeugtyp setzen' })
+  @ApiWrappedResponse(DefaultZeichenResponseDto, { description: 'Default-Zeichen gesetzt' })
+  async setDefaultFahrzeugtyp(@Param('fahrzeugtypId') fahrzeugtypId: string, @Body() dto: SetzeDefaultZeichenDto) {
+    const cmdResult = SetzeDefaultZeichenCommand.create({
+      entityTyp: 'fahrzeugtyp',
+      referenzId: fahrzeugtypId,
+      zeichenDefinition: dto.zeichenDefinition,
+    });
+    if (cmdResult.isFailure || !cmdResult.value) {
+      throw new BadRequestException(cmdResult.error);
+    }
+    const result = await this.setzeDefaultHandler.execute(cmdResult.value);
+    if (result.isFailure) {
+      if (result.error?.includes('FAHRZEUGTYP_NOT_FOUND')) {
+        throw new NotFoundException('Fahrzeugtyp nicht gefunden');
+      }
+      throw new BadRequestException(result.error);
+    }
+    return result.value;
+  }
+
+  @Put('taktische-zeichen/defaults/einheitentypen/:einheitentyp')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Default-Zeichen für Einheitentyp setzen' })
+  @ApiWrappedResponse(DefaultZeichenResponseDto, { description: 'Default-Zeichen gesetzt' })
+  async setDefaultEinheitentyp(@Param('einheitentyp') einheitentyp: string, @Body() dto: SetzeDefaultZeichenDto) {
+    const validEinheitentypen = ['TRUPP', 'STAFFEL', 'GRUPPE', 'ZUG', 'ABSCHNITT'];
+    if (!validEinheitentypen.includes(einheitentyp)) {
+      throw new BadRequestException(`Ungültiger Einheitentyp: ${einheitentyp}. Erlaubt: ${validEinheitentypen.join(', ')}`);
+    }
+
+    const cmdResult = SetzeDefaultZeichenCommand.create({
+      entityTyp: 'einheitentyp',
+      referenzId: einheitentyp,
+      zeichenDefinition: dto.zeichenDefinition,
+    });
+    if (cmdResult.isFailure || !cmdResult.value) {
+      throw new BadRequestException(cmdResult.error);
+    }
+    const result = await this.setzeDefaultHandler.execute(cmdResult.value);
     if (result.isFailure) throw new BadRequestException(result.error);
     return result.value;
   }

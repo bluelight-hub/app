@@ -15,7 +15,7 @@
 import { useMemo } from 'react';
 import type { EinheitId, GrundzeichenId } from 'taktische-zeichen-core';
 import type { ZeichenDefinition } from '../rendering/renderer';
-import type { EinsatzEinheitDto, EinsatzFahrzeugDto } from '@bluelight-hub/shared/client';
+import type { DefaultZeichenResponseDto, EinsatzEinheitDto, EinsatzFahrzeugDto } from '@bluelight-hub/shared/client';
 
 /** Typ der Quell-Entität */
 export type ZeichenEntityTyp = 'einheit' | 'fahrzeug';
@@ -112,4 +112,30 @@ export function useZeichenFromEntity(typ: ZeichenEntityTyp, entity: EinsatzEinhe
     // entity-Referenz als Dep reicht nicht — spezifische Felder verwenden
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typ, (entity as EinsatzEinheitDto).typ ?? '', (entity as EinsatzFahrzeugDto).funkrufname ?? '', (entity as EinsatzEinheitDto).name ?? '']);
+}
+
+/**
+ * Wendet ein DB-Default-Zeichen auf einen Fahrzeugtyp an, falls vorhanden.
+ * Fällt auf die übergebene Fallback-Definition zurück, wenn kein Default existiert.
+ *
+ * Pure Utility (kein Hook) — kann innerhalb und außerhalb von React verwendet werden.
+ */
+export function applyFahrzeugtypDefault(defaults: DefaultZeichenResponseDto[] | undefined, fahrzeugtypId: string | undefined, fallback: ZeichenDefinition): ZeichenDefinition {
+  if (!defaults || !fahrzeugtypId) return fallback;
+  const match = defaults.find((d) => d.referenzId === fahrzeugtypId);
+  if (!match?.zeichenDefinition) return fallback;
+  return match.zeichenDefinition as unknown as ZeichenDefinition;
+}
+
+/**
+ * Wendet ein DB-Default-Zeichen auf einen Einheitentyp an, falls vorhanden.
+ * Sucht anhand des `typBezeichnung`-Feldes (Enum-Wert: TRUPP, STAFFEL etc.).
+ *
+ * Pure Utility (kein Hook) — kann innerhalb und außerhalb von React verwendet werden.
+ */
+export function applyEinheitentypDefault(defaults: DefaultZeichenResponseDto[] | undefined, einheitentyp: string | undefined, fallback: ZeichenDefinition): ZeichenDefinition {
+  if (!defaults || !einheitentyp) return fallback;
+  const match = defaults.find((d) => d.typBezeichnung === einheitentyp);
+  if (!match?.zeichenDefinition) return fallback;
+  return match.zeichenDefinition as unknown as ZeichenDefinition;
 }

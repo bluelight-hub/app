@@ -1,5 +1,5 @@
 import type { SidebarGroup } from '@/shared/ui/organisms/sidebar.organism';
-import { PiArrowsLeftRight, PiBell, PiCar, PiCertificate, PiChartBar, PiEnvelope, PiGear, PiKey, PiListChecks, PiMegaphone, PiPlugs, PiShieldCheck, PiTruck, PiUsers } from 'react-icons/pi';
+import { PiArrowsLeftRight, PiBell, PiCar, PiCertificate, PiChartBar, PiEnvelope, PiGear, PiKey, PiListChecks, PiMegaphone, PiPlugs, PiShapes, PiShieldCheck, PiTruck, PiUsers } from 'react-icons/pi';
 
 /** Sidebar-Navigationsstruktur für den Admin-Bereich. */
 export const adminSidebarItems: SidebarGroup[] = [
@@ -12,6 +12,7 @@ export const adminSidebarItems: SidebarGroup[] = [
       { label: 'Qualifikationen', to: '/admin/kraefte/qualifikationen', icon: PiCertificate },
       { label: 'Rollen', to: '/admin/kraefte/rollen-definitionen', icon: PiShieldCheck },
       { label: 'Fahrzeugtypen', to: '/admin/kraefte/fahrzeugtypen', icon: PiTruck },
+      { label: 'Default-Zeichen', to: '/admin/kraefte/default-zeichen', icon: PiShapes },
     ],
   },
   {

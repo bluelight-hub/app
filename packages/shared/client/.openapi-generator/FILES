@@ -194,6 +194,7 @@ models/CreateStammFahrzeugDto.ts
 models/CreateStammPersonDto.ts
 models/CreateTaktischesZeichenDto.ts
 models/CreateUserDto.ts
+models/DefaultZeichenResponseDto.ts
 models/DeleteManagedUserResponse.ts
 models/DeleteManagedUserResponseData.ts
 models/DeleteRuntimeConfigResultDto.ts
@@ -417,6 +418,7 @@ models/SetupInviteCodeDto.ts
 models/SetupResponseDto.ts
 models/SetupTokenDto.ts
 models/SetupUserDto.ts
+models/SetzeDefaultZeichenDto.ts
 models/SnoozeErinnerungDto.ts
 models/StammFahrzeugDto.ts
 models/StammPersonDto.ts
@@ -429,7 +431,9 @@ models/SystemHealthDto.ts
 models/TaktischeStaerkeDto.ts
 models/TaktischeZeichenControllerCreateVAlpha201Response.ts
 models/TaktischeZeichenControllerFindAllVAlpha200Response.ts
+models/TaktischeZeichenControllerGetDefaultsFahrzeugtypenVAlpha200Response.ts
 models/TaktischeZeichenControllerGetKatalogVAlpha200Response.ts
+models/TaktischeZeichenControllerSetDefaultFahrzeugtypVAlpha200Response.ts
 models/TaktischesZeichenResponseDto.ts
 models/TextbausteinDto.ts
 models/TimelineUserDto.ts

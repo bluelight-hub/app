@@ -6,6 +6,7 @@
 
 export { AdminBefehlsgeberVorschlaege } from './AdminBefehlsgeberVorschlaege';
 export { AdminDashboard } from './AdminDashboard';
+export { AdminDefaultZeichen } from './AdminDefaultZeichen';
 export { AdminFahrzeugtypen } from './AdminFahrzeugtypen';
 export { AdminHiOrgIntegration } from './AdminHiOrgIntegration';
 export { AdminIntegrationOverview } from './AdminIntegrationOverview';
