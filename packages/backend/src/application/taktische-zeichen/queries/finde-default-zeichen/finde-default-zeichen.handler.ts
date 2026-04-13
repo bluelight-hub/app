@@ -1,59 +1,36 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
-import { PrismaService } from '@/infrastructure/database/prisma.service';
+import type { IDefaultZeichenRepository } from '@domain/taktische-zeichen/ports/idefault-zeichen.repository';
+import { DEFAULT_ZEICHEN_REPOSITORY } from '@infrastructure/di-tokens';
+import { DefaultZeichenResponseDto } from '../../dtos/default-zeichen-response.dto';
 import type { FindeDefaultZeichenQuery } from './finde-default-zeichen.query';
 
 /**
- * DTO für einen Standard-Zeichen-Eintrag (Fahrzeugtyp oder Einheitentyp).
- */
-export interface DefaultZeichenDto {
-  /** ID des Fahrzeug- oder Einheitentyps (foreignKey) */
-  referenzId: string;
-  /** Typ-Bezeichnung (Fahrzeugtypcode oder Einheitentypname) */
-  typBezeichnung: string;
-  /** Zeichendefinition als JSON-Objekt */
-  zeichenDefinition: Record<string, unknown>;
-}
-
-/**
  * Query Handler: Standard-Zeichen-Definitionen für Fahrzeug- oder Einheitentypen laden.
- * Liest direkt via PrismaService (kein Repository, da einfacher Lesezugriff auf Admin-Daten).
+ * Nutzt IDefaultZeichenRepository Port für Clean Architecture Konformität.
  */
 @Injectable()
 export class FindeDefaultZeichenHandler {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(DEFAULT_ZEICHEN_REPOSITORY)
+    private readonly defaultZeichenRepository: IDefaultZeichenRepository,
+  ) {}
 
-  async execute(query: FindeDefaultZeichenQuery): Promise<Result<DefaultZeichenDto[]>> {
-    if (query.typ === 'fahrzeugtypen') {
-      const eintraege = await this.prisma.fahrzeugtypZeichenDefault.findMany({
-        include: {
-          fahrzeugtyp: {
-            select: { id: true, code: true },
-          },
-        },
-        orderBy: { fahrzeugtyp: { code: 'asc' } },
-      });
+  async execute(query: FindeDefaultZeichenQuery): Promise<Result<DefaultZeichenResponseDto[]>> {
+    const entriesResult = query.typ === 'fahrzeugtypen' ? await this.defaultZeichenRepository.findAllFahrzeugtypen() : await this.defaultZeichenRepository.findAllEinheitentypen();
 
-      const dtos: DefaultZeichenDto[] = eintraege.map((eintrag) => ({
-        referenzId: eintrag.fahrzeugtypId,
-        typBezeichnung: eintrag.fahrzeugtyp.code,
-        zeichenDefinition: eintrag.zeichenDefinition as Record<string, unknown>,
-      }));
-
-      return Result.ok<DefaultZeichenDto[]>(dtos);
-    } else {
-      // einheitentypen
-      const eintraege = await this.prisma.einheitentypZeichenDefault.findMany({
-        orderBy: { einheitentyp: 'asc' },
-      });
-
-      const dtos: DefaultZeichenDto[] = eintraege.map((eintrag) => ({
-        referenzId: eintrag.id,
-        typBezeichnung: eintrag.einheitentyp,
-        zeichenDefinition: eintrag.zeichenDefinition as Record<string, unknown>,
-      }));
-
-      return Result.ok<DefaultZeichenDto[]>(dtos);
+    if (entriesResult.isFailure || !entriesResult.value) {
+      return Result.fail(entriesResult.error ?? 'DEFAULT_ZEICHEN_LOAD_FAILED');
     }
+
+    const dtos: DefaultZeichenResponseDto[] = entriesResult.value.map((entry) => {
+      const dto = new DefaultZeichenResponseDto();
+      dto.referenzId = entry.referenzId;
+      dto.typBezeichnung = entry.typBezeichnung;
+      dto.zeichenDefinition = entry.zeichenDefinition.toJson();
+      return dto;
+    });
+
+    return Result.ok(dtos);
   }
 }
