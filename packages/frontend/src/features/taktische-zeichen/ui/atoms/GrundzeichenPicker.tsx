@@ -49,7 +49,7 @@ export function GrundzeichenPicker({ value, onChange }: GrundzeichenPickerProps)
   });
 
   return (
-    <div className="grid max-h-64 grid-cols-4 gap-1.5 overflow-y-auto">
+    <div className="grid grid-cols-4 gap-1.5">
       {sortiertGrundzeichen.map((gz) => {
         const definition: ZeichenDefinition = { grundzeichen: gz.id as GrundzeichenId };
         const isSelected = value === gz.id;

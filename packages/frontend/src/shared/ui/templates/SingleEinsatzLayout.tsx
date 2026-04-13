@@ -481,8 +481,8 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         onOpenModuleOverview={() => setShowModuleOverview(true)}
         sidebarHeader={<EinsatzSwitcher />}
         quickActionsSlot={
-          <div className="border-t border-border-subtle pt-4">
-            <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
+          <div className="space-y-1">
+            <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
               <PiRadio className="mr-2 h-4 w-4" />
               {currentEinsatzPersonId ? (
                 <span className="truncate">{teilnahmeData?.data?.personFunkrufname || `${teilnahmeData?.data?.personVorname} ${teilnahmeData?.data?.personNachname}`}</span>
@@ -491,12 +491,12 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
               )}
             </Button>
             {isFuehrungskraft && (
-              <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowExterneEinladenDialog(true)} aria-haspopup="dialog">
+              <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowExterneEinladenDialog(true)} aria-haspopup="dialog">
                 <PiUserPlus className="mr-2 h-4 w-4" />
                 Externe einladen
               </Button>
             )}
-            <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
+            <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
               <PiSpeakerHigh className="mr-2 h-4 w-4" />
               Audio-Einstellungen
             </Button>

@@ -142,134 +142,138 @@ export function WorkspaceShell({
         <Container maxWidth="full">
           <div className="flex gap-3 xl:gap-4">
             <aside className="hidden w-52 flex-shrink-0 py-2 lg:block xl:w-56">
-              <div className="sticky top-24 h-[calc(100vh-8rem)] space-y-2 overflow-y-auto rounded-panel border border-border-subtle bg-surface-panel p-2 shadow-panel">
-                {sidebarHeader}
-                {onCommandTriggerClick ? (
-                  <div className="px-0.5">
-                    <CommandTrigger onClick={onCommandTriggerClick} label={commandTriggerLabel} />
-                  </div>
-                ) : null}
+              <div className="sticky top-24 flex h-[calc(100vh-8rem)] flex-col rounded-panel border border-border-subtle bg-surface-panel p-2 shadow-panel">
+                <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
+                  {sidebarHeader}
+                  {onCommandTriggerClick ? (
+                    <div className="px-0.5">
+                      <CommandTrigger onClick={onCommandTriggerClick} label={commandTriggerLabel} />
+                    </div>
+                  ) : null}
 
-                <nav aria-label="Modulseiten" className="-mt-1 space-y-0.5 pb-3">
-                  <h2 className="mb-3 px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Navigation</h2>
-                  {navigationGroups.map((module) => (
-                    <div key={module.id} className="space-y-1 pb-2 last:pb-0">
-                      {isDisabled(module.visibility) ? (
-                        <div aria-disabled="true" className="flex items-center gap-2 rounded-control px-2.5 py-2 text-text-muted" title={module.visibility.reason}>
-                          <module.icon className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
-                          <h3 className="text-body-sm font-medium">{module.label}</h3>
-                          {getShortcutBadge(module) ? (
-                            <span
+                  <nav aria-label="Modulseiten" className="-mt-1 space-y-0.5 pb-3">
+                    <h2 className="mb-3 px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Navigation</h2>
+                    {navigationGroups.map((module) => (
+                      <div key={module.id} className="space-y-1 pb-2 last:pb-0">
+                        {isDisabled(module.visibility) ? (
+                          <div aria-disabled="true" className="flex items-center gap-2 rounded-control px-2.5 py-2 text-text-muted" title={module.visibility.reason}>
+                            <module.icon className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
+                            <h3 className="text-body-sm font-medium">{module.label}</h3>
+                            {getShortcutBadge(module) ? (
+                              <span
+                                aria-hidden="true"
+                                className="ml-auto rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] leading-none text-text-secondary shadow-sm"
+                              >
+                                {getShortcutBadge(module)}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <DynamicLink
+                            to={module.routeTarget}
+                            params={routeParams}
+                            aria-label={module.label}
+                            aria-keyshortcuts={module.shortcut ? [...module.shortcut.modifiers, module.shortcut.key].join('+') : undefined}
+                            className={cn(
+                              'group flex cursor-pointer items-center gap-2 rounded-control px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring',
+                              module.id === currentModule.id ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
+                            )}
+                            search={(prev) => prev}
+                            aria-description={getBadgeText(module)}
+                            title={
+                              module.shortcut
+                                ? `Tastenkürzel: ${module.shortcut.modifiers.join('+').toLowerCase() === 'alt' ? `Alt+${module.shortcut.key}` : [...module.shortcut.modifiers, module.shortcut.key].join('+')}`
+                                : undefined
+                            }
+                          >
+                            <module.icon
+                              className={cn('h-4 w-4 flex-shrink-0 transition-colors', module.id === currentModule.id ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')}
                               aria-hidden="true"
-                              className="ml-auto rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] leading-none text-text-secondary shadow-sm"
-                            >
-                              {getShortcutBadge(module)}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <DynamicLink
-                          to={module.routeTarget}
-                          params={routeParams}
-                          aria-label={module.label}
-                          aria-keyshortcuts={module.shortcut ? [...module.shortcut.modifiers, module.shortcut.key].join('+') : undefined}
-                          className={cn(
-                            'group flex cursor-pointer items-center gap-2 rounded-control px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring',
-                            module.id === currentModule.id ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
-                          )}
-                          search={(prev) => prev}
-                          aria-description={getBadgeText(module)}
-                          title={
-                            module.shortcut
-                              ? `Tastenkürzel: ${module.shortcut.modifiers.join('+').toLowerCase() === 'alt' ? `Alt+${module.shortcut.key}` : [...module.shortcut.modifiers, module.shortcut.key].join('+')}`
-                              : undefined
-                          }
-                        >
-                          <module.icon
-                            className={cn('h-4 w-4 flex-shrink-0 transition-colors', module.id === currentModule.id ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')}
-                            aria-hidden="true"
-                          />
-                          <h3 className="text-body-sm font-medium">{module.label}</h3>
-                          {getShortcutBadge(module) ? (
-                            <span
-                              aria-hidden="true"
-                              className="ml-auto rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] leading-none text-text-secondary shadow-sm"
-                            >
-                              {getShortcutBadge(module)}
-                            </span>
-                          ) : null}
-                        </DynamicLink>
-                      )}
+                            />
+                            <h3 className="text-body-sm font-medium">{module.label}</h3>
+                            {getShortcutBadge(module) ? (
+                              <span
+                                aria-hidden="true"
+                                className="ml-auto rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] leading-none text-text-secondary shadow-sm"
+                              >
+                                {getShortcutBadge(module)}
+                              </span>
+                            ) : null}
+                          </DynamicLink>
+                        )}
 
-                      {module.badgeHint ? (
-                        <div className="ml-2.5 flex items-center gap-2 px-2.5 py-1 text-body-xs text-text-secondary">
-                          <span className="font-medium">{module.badgeHint.label}</span>
-                          {module.badgeHint.value !== undefined ? (
-                            <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 text-body-xs font-semibold text-text-primary">{module.badgeHint.value}</span>
-                          ) : null}
-                        </div>
-                      ) : null}
+                        {module.badgeHint ? (
+                          <div className="ml-2.5 flex items-center gap-2 px-2.5 py-1 text-body-xs text-text-secondary">
+                            <span className="font-medium">{module.badgeHint.label}</span>
+                            {module.badgeHint.value !== undefined ? (
+                              <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 text-body-xs font-semibold text-text-primary">{module.badgeHint.value}</span>
+                            ) : null}
+                          </div>
+                        ) : null}
 
-                      {module.id !== currentModule.id || isDisabled(module.visibility)
-                        ? null
-                        : module.visibleSubPages.map((page) => {
-                            const isActive = page.href === resolvedActivePageHref;
-                            const pageIsDisabled = isDisabled(page.visibility);
+                        {module.id !== currentModule.id || isDisabled(module.visibility)
+                          ? null
+                          : module.visibleSubPages.map((page) => {
+                              const isActive = page.href === resolvedActivePageHref;
+                              const pageIsDisabled = isDisabled(page.visibility);
 
-                            if (pageIsDisabled) {
-                              return (
-                                <div key={page.id} aria-disabled="true" className="ml-2.5 rounded-control px-2.5 py-2 text-text-muted" title={page.visibility.reason}>
-                                  <div className="flex items-start gap-3">
-                                    <page.icon className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
-                                    <div className="min-w-0 flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-body-sm font-medium">{page.label}</span>
-                                        {page.badge ? <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 text-body-xs font-semibold text-text-secondary">{page.badge}</span> : null}
+                              if (pageIsDisabled) {
+                                return (
+                                  <div key={page.id} aria-disabled="true" className="ml-2.5 rounded-control px-2.5 py-2 text-text-muted" title={page.visibility.reason}>
+                                    <div className="flex items-start gap-3">
+                                      <page.icon className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-body-sm font-medium">{page.label}</span>
+                                          {page.badge ? <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 text-body-xs font-semibold text-text-secondary">{page.badge}</span> : null}
+                                        </div>
+                                        {page.description ? <p className="mt-0.5 text-body-xs">{page.description}</p> : null}
+                                        {page.visibility.reason ? <p className="mt-1 text-body-xs">{page.visibility.reason}</p> : null}
                                       </div>
-                                      {page.description ? <p className="mt-0.5 text-body-xs">{page.description}</p> : null}
-                                      {page.visibility.reason ? <p className="mt-1 text-body-xs">{page.visibility.reason}</p> : null}
                                     </div>
                                   </div>
-                                </div>
-                              );
-                            }
+                                );
+                              }
 
-                            return (
-                              <DynamicLink
-                                key={page.id}
-                                to={page.href}
-                                params={routeParams}
-                                search={(prev) => prev}
-                                aria-current={isActive ? 'page' : undefined}
-                                className={cn(
-                                  'group ml-2.5 flex cursor-pointer items-start gap-3 rounded-control px-2.5 py-2 transition-colors',
-                                  isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
-                                )}
-                              >
-                                <page.icon className={cn('mt-0.5 h-5 w-5 shrink-0 transition-colors', isActive ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-body-sm font-medium">{page.label}</span>
-                                    {page.badge ? <span className="rounded-pill bg-action-primary px-1.5 py-0.5 text-body-xs font-semibold text-text-inverse">{page.badge}</span> : null}
+                              return (
+                                <DynamicLink
+                                  key={page.id}
+                                  to={page.href}
+                                  params={routeParams}
+                                  search={(prev) => prev}
+                                  aria-current={isActive ? 'page' : undefined}
+                                  className={cn(
+                                    'group ml-2.5 flex cursor-pointer items-start gap-3 rounded-control px-2.5 py-2 transition-colors',
+                                    isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
+                                  )}
+                                >
+                                  <page.icon className={cn('mt-0.5 h-5 w-5 shrink-0 transition-colors', isActive ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-body-sm font-medium">{page.label}</span>
+                                      {page.badge ? <span className="rounded-pill bg-action-primary px-1.5 py-0.5 text-body-xs font-semibold text-text-inverse">{page.badge}</span> : null}
+                                    </div>
+                                    {page.description ? <p className="mt-0.5 text-body-xs text-text-secondary">{page.description}</p> : null}
                                   </div>
-                                  {page.description ? <p className="mt-0.5 text-body-xs text-text-secondary">{page.description}</p> : null}
-                                </div>
-                              </DynamicLink>
-                            );
-                          })}
-                    </div>
-                  ))}
-                </nav>
+                                </DynamicLink>
+                              );
+                            })}
+                      </div>
+                    ))}
+                  </nav>
+                </div>
 
-                {quickActionsSlot ? (
-                  <section aria-label="Schnellaktionen" className="space-y-2 border-t border-border-subtle pt-3">
-                    <h2 className="px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Schnellaktionen</h2>
-                    {quickActionsSlot}
-                  </section>
-                ) : null}
+                <div className="flex-shrink-0">
+                  {quickActionsSlot ? (
+                    <section aria-label="Schnellaktionen" className="space-y-1 border-t border-border-subtle pt-2">
+                      <h2 className="px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Schnellaktionen</h2>
+                      {quickActionsSlot}
+                    </section>
+                  ) : null}
 
-                <StatusRail items={statusItems} />
-                {sidebarFooter}
+                  <StatusRail items={statusItems} />
+                  {sidebarFooter}
+                </div>
               </div>
             </aside>
 

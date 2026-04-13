@@ -6,6 +6,15 @@
   z-index: 0 !important;
 }
 
+/* Controls nach links schieben wenn ein Side-Panel offen ist */
+.maplibregl-ctrl-top-right {
+  transition: transform 300ms ease-out;
+}
+
+.has-right-panel .maplibregl-ctrl-top-right {
+  transform: translateX(-20.5rem); /* w-80 (20rem) + etwas Abstand */
+}
+
 /* MapboxDraw Default-Controls ausblenden — eigene Toolbar wird verwendet */
 .mapboxgl-ctrl-group:has(.mapbox-gl-draw_ctrl-draw-btn) {
   display: none;

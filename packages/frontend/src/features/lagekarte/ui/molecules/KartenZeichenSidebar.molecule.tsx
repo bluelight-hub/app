@@ -20,7 +20,7 @@ import type { KatalogEintragData } from '@/features/taktische-zeichen/ui/molecul
 import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
 import { useZeichenKatalog, useCreateZeichen } from '@/features/taktische-zeichen';
 import type { ZeichenKatalogEintragResponseDto } from '@bluelight-hub/shared/client';
-import { drawStore, setZeichenSidebarTab, toggleZeichenSidebar } from '@/features/lagekarte/stores/draw.store';
+import { drawStore, setZeichenSidebarTab, toggleZeichenSidebar, setPendingZeichenPlacement, clearPendingZeichenPlacement } from '@/features/lagekarte/stores/draw.store';
 import { useStore } from '@tanstack/react-store';
 
 /** Konvertiert ein API-DTO in das lokale KatalogEintragData-Format */
@@ -55,6 +55,7 @@ interface KartenZeichenSidebarProps {
  */
 export function KartenZeichenSidebar({ einsatzId, isVisible }: KartenZeichenSidebarProps) {
   const activeTab = useStore(drawStore, (s) => s.zeichenSidebarTab);
+  const pendingPlacement = useStore(drawStore, (s) => s.pendingZeichenPlacement);
   const [selectedEintragId, setSelectedEintragId] = useState<string | undefined>(undefined);
 
   // Zeichen-Katalog vom Backend laden
@@ -66,37 +67,51 @@ export function KartenZeichenSidebar({ einsatzId, isVisible }: KartenZeichenSide
   // Katalog-DTOs in lokales Format konvertieren
   const katalogEintraege: KatalogEintragData[] = katalogDtos.map(dtoZuKatalogEintrag);
 
-  /** Aus Katalog: Zeichen dem Einsatz hinzufügen */
+  /** Aus Katalog: Zeichen dem Einsatz hinzufügen und Platzierungsmodus aktivieren */
   const handleKatalogSelect = useCallback(
     (eintrag: KatalogEintragData) => {
       setSelectedEintragId(eintrag.id);
-      createZeichen({
-        zeichenDefinition: {
-          grundzeichen: eintrag.zeichenDefinition.grundzeichen ?? 'kraftfahrzeug-gelaendegaengig',
-          organisation: eintrag.zeichenDefinition.organisation,
-          fachaufgabe: eintrag.zeichenDefinition.fachaufgabe,
-          einheit: eintrag.zeichenDefinition.einheit,
-          verwaltungsstufe: eintrag.zeichenDefinition.verwaltungsstufe,
+      createZeichen(
+        {
+          zeichenDefinition: {
+            grundzeichen: eintrag.zeichenDefinition.grundzeichen ?? 'kraftfahrzeug-gelaendegaengig',
+            organisation: eintrag.zeichenDefinition.organisation,
+            fachaufgabe: eintrag.zeichenDefinition.fachaufgabe,
+            einheit: eintrag.zeichenDefinition.einheit,
+            verwaltungsstufe: eintrag.zeichenDefinition.verwaltungsstufe,
+          },
+          katalogEintragId: eintrag.id,
         },
-        katalogEintragId: eintrag.id,
-      });
+        {
+          onSuccess: (created) => {
+            setPendingZeichenPlacement(created.id, eintrag.zeichenDefinition);
+          },
+        },
+      );
     },
     [createZeichen],
   );
 
-  /** Aus Baukasten: Eigenes Zeichen erstellen */
+  /** Aus Baukasten: Eigenes Zeichen erstellen und Platzierungsmodus aktivieren */
   const handleBaukastenErstellen = useCallback(
     (definition: ZeichenDefinition, label?: string) => {
-      createZeichen({
-        zeichenDefinition: {
-          grundzeichen: definition.grundzeichen ?? 'kraftfahrzeug-gelaendegaengig',
-          organisation: definition.organisation,
-          fachaufgabe: definition.fachaufgabe,
-          einheit: definition.einheit,
-          verwaltungsstufe: definition.verwaltungsstufe,
+      createZeichen(
+        {
+          zeichenDefinition: {
+            grundzeichen: definition.grundzeichen ?? 'kraftfahrzeug-gelaendegaengig',
+            organisation: definition.organisation,
+            fachaufgabe: definition.fachaufgabe,
+            einheit: definition.einheit,
+            verwaltungsstufe: definition.verwaltungsstufe,
+          },
+          ...(label && { label }),
         },
-        ...(label && { label }),
-      });
+        {
+          onSuccess: (created) => {
+            setPendingZeichenPlacement(created.id, definition);
+          },
+        },
+      );
     },
     [createZeichen],
   );
@@ -158,23 +173,23 @@ export function KartenZeichenSidebar({ einsatzId, isVisible }: KartenZeichenSide
       </div>
 
       {/* Tab-Inhalte */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col">
         {/* Katalog-Tab */}
-        <div id="zeichen-tab-katalog" role="tabpanel" aria-labelledby="zeichen-tab-btn-katalog" hidden={activeTab !== 'katalog'}>
+        <div id="zeichen-tab-katalog" role="tabpanel" aria-labelledby="zeichen-tab-btn-katalog" hidden={activeTab !== 'katalog'} className="flex min-h-0 flex-1 flex-col">
           <ZeichenKatalog
             eintraege={katalogEintraege}
             isLoading={isKatalogLoading}
             error={katalogError ? 'Katalog konnte nicht geladen werden.' : undefined}
             onSelectEintrag={handleKatalogSelect}
             selectedEintragId={selectedEintragId}
+            isPendingPlacement={!!pendingPlacement}
+            onCancelPlacement={clearPendingZeichenPlacement}
           />
         </div>
 
         {/* Baukasten-Tab */}
-        <div id="zeichen-tab-baukasten" role="tabpanel" aria-labelledby="zeichen-tab-btn-baukasten" hidden={activeTab !== 'baukasten'}>
-          <div className="p-3">
-            <ZeichenBaukasten onErstelleZeichen={handleBaukastenErstellen} isCreating={isCreating} />
-          </div>
+        <div id="zeichen-tab-baukasten" role="tabpanel" aria-labelledby="zeichen-tab-btn-baukasten" hidden={activeTab !== 'baukasten'} className="flex min-h-0 flex-1 flex-col p-3">
+          <ZeichenBaukasten onErstelleZeichen={handleBaukastenErstellen} isCreating={isCreating} isPendingPlacement={!!pendingPlacement} onCancelPlacement={clearPendingZeichenPlacement} />
         </div>
       </div>
     </div>

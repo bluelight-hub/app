@@ -1,171 +1,304 @@
 /**
- * Hook für Drag & Drop von taktischen Zeichen auf der Lagekarte.
+ * Hook für Auswahl & Drag von taktischen Zeichen auf der Lagekarte.
  *
- * Ermöglicht das Verschieben platzierter Zeichen durch:
- * 1. mousedown auf einen Zeichen-Symbol → Drag-Start
- * 2. mousemove → optimistische Positions-Aktualisierung in der GeoJSON-Source
- * 3. mouseup → API-Call via usePlaceZeichen zur persistenten Speicherung
+ * Zweistufiges Verschieben:
+ * 1. Klick auf Symbol → Auswahl (visuelles Highlight)
+ * 2. Drag auf ausgewähltes Symbol → Ghost folgt dem Cursor, Original bleibt gedimmt
  *
- * Während des Drags wird die Karte nicht bewegt (dragPan deaktiviert).
+ * Klick auf leere Karte oder anderes Symbol → Auswahl wechseln/aufheben.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/maplibre';
 import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 import { TAKTISCHE_ZEICHEN_LAYER_ID, TAKTISCHE_ZEICHEN_SOURCE_ID } from '@/features/lagekarte/ui/molecules/TaktischeZeichenLayer.molecule';
 import type { ZeichenFeatureProperties } from './use-zeichen-layer';
 import { usePlaceZeichen } from '@/features/taktische-zeichen';
 
+const DRAG_THRESHOLD_PX = 5;
+
+const DRAG_GHOST_SOURCE = 'drag-ghost-source';
+const DRAG_GHOST_LAYER = 'drag-ghost-layer';
+
 interface UseZeichenDragOptions {
-  /** Referenz auf die MapLibre-GL-Instanz */
   mapRef: React.RefObject<MapRef | null>;
-  /** Ob die Karte vollständig geladen ist */
   isMapLoaded: boolean;
-  /** Alle taktischen Zeichen des Einsatzes */
   zeichen: TaktischesZeichenResponseDto[];
-  /** Einsatz-ID für den API-Call */
   einsatzId: string;
-  /** Ob das Zeichen verschieben erlaubt ist (Berechtigungs-Guard) */
   canDrag?: boolean;
+  /** Wird aufgerufen wenn ein Zeichen selektiert/deselektiert wird */
+  onSelect?: (zeichenId: string | null) => void;
 }
 
-/**
- * Aktiviert Drag & Drop für platzierte taktische Zeichen.
- *
- * @returns isDragging — true während ein Zeichen aktiv verschoben wird
- */
-export function useZeichenDrag({ mapRef, isMapLoaded, zeichen, einsatzId, canDrag = true }: UseZeichenDragOptions): { isDragging: boolean } {
+export function useZeichenDrag({ mapRef, isMapLoaded, zeichen, einsatzId, canDrag = true, onSelect }: UseZeichenDragOptions) {
   const { mutate: placeZeichen } = usePlaceZeichen(einsatzId);
+  const [selectedZeichenId, setSelectedZeichenId] = useState<string | null>(null);
 
-  // Aktueller Drag-Zustand (kein Re-Render nötig — direkte DOM-Interaktion)
   const dragStateRef = useRef<{
     zeichenId: string;
     lagekarteId: string;
+    originLng: number;
+    originLat: number;
+    imageId: string;
   } | null>(null);
   const isDraggingRef = useRef(false);
+  const isPendingRef = useRef(false);
+  const startPointRef = useRef<{ x: number; y: number } | null>(null);
+  const selectedIdRef = useRef<string | null>(null);
 
-  // Stable ref für zeichen-Array (Lookup ohne Effect-Dependency)
+  useEffect(() => {
+    selectedIdRef.current = selectedZeichenId;
+  }, [selectedZeichenId]);
+
   const zeichenRef = useRef<TaktischesZeichenResponseDto[]>(zeichen);
   useEffect(() => {
     zeichenRef.current = zeichen;
   }, [zeichen]);
 
-  const setupDragHandlers = useCallback(() => {
+  const setFeatureState = useCallback(
+    (zeichenId: string, state: Record<string, boolean>) => {
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+      try {
+        map.setFeatureState({ source: TAKTISCHE_ZEICHEN_SOURCE_ID, id: zeichenId }, state);
+      } catch {
+        // Feature evtl. noch nicht in der Source
+      }
+    },
+    [mapRef],
+  );
+
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
+
+  const selectZeichen = useCallback(
+    (zeichenId: string | null) => {
+      if (selectedIdRef.current && selectedIdRef.current !== zeichenId) {
+        setFeatureState(selectedIdRef.current, { selected: false });
+      }
+      if (zeichenId) {
+        setFeatureState(zeichenId, { selected: true });
+      }
+      setSelectedZeichenId(zeichenId);
+      onSelectRef.current?.(zeichenId);
+    },
+    [setFeatureState],
+  );
+
+  /** Ghost-Symbol am Cursor anzeigen (halbtransparenter Klon) */
+  const showGhost = useCallback(
+    (lng: number, lat: number, imageId: string) => {
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+
+      const data: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] }, properties: { imageId } }],
+      };
+
+      const source = map.getSource(DRAG_GHOST_SOURCE) as maplibregl.GeoJSONSource | undefined;
+      if (source) {
+        source.setData(data);
+      } else {
+        map.addSource(DRAG_GHOST_SOURCE, { type: 'geojson', data });
+        map.addLayer({
+          id: DRAG_GHOST_LAYER,
+          source: DRAG_GHOST_SOURCE,
+          type: 'symbol',
+          layout: {
+            'icon-image': ['get', 'imageId'],
+            'icon-size': 0.5,
+            'icon-allow-overlap': true,
+            'icon-anchor': 'bottom',
+          },
+          paint: {
+            'icon-opacity': 0.5,
+          },
+        });
+      }
+    },
+    [mapRef],
+  );
+
+  /** Ghost-Position aktualisieren */
+  const updateGhost = useCallback(
+    (lng: number, lat: number, imageId: string) => {
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+
+      const source = map.getSource(DRAG_GHOST_SOURCE) as maplibregl.GeoJSONSource | undefined;
+      if (source) {
+        source.setData({
+          type: 'FeatureCollection',
+          features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] }, properties: { imageId } }],
+        });
+      }
+    },
+    [mapRef],
+  );
+
+  /** Ghost ausblenden */
+  const hideGhost = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    if (map.getLayer(DRAG_GHOST_LAYER)) {
+      map.removeLayer(DRAG_GHOST_LAYER);
+    }
+    if (map.getSource(DRAG_GHOST_SOURCE)) {
+      map.removeSource(DRAG_GHOST_SOURCE);
+    }
+  }, [mapRef]);
+
+  const setupHandlers = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map || !canDrag) return;
 
-    /** Cursor anpassen wenn Maus über einen Zeichen-Symbol fährt */
-    const handleMouseEnter = () => {
-      map.getCanvas().style.cursor = 'grab';
+    const handleMouseEnter = (e: maplibregl.MapMouseEvent) => {
+      if (isDraggingRef.current) return;
+      const features = map.queryRenderedFeatures(e.point, { layers: [TAKTISCHE_ZEICHEN_LAYER_ID] });
+      if (!features.length) return;
+      const props = features[0].properties as ZeichenFeatureProperties;
+      map.getCanvas().style.cursor = props.zeichenId === selectedIdRef.current ? 'grab' : 'pointer';
     };
+
     const handleMouseLeave = () => {
       if (!isDraggingRef.current) {
         map.getCanvas().style.cursor = '';
       }
     };
 
-    /** Drag-Start: Zeichen-Feature unter dem Cursor ermitteln */
-    const handleMouseDown = (e: maplibregl.MapMouseEvent) => {
-      if (!canDrag) return;
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: [TAKTISCHE_ZEICHEN_LAYER_ID],
-      });
+    /** Mousedown: Drag nur für ausgewähltes Symbol vorbereiten */
+    const handleLayerMouseDown = (e: maplibregl.MapMouseEvent) => {
+      const features = map.queryRenderedFeatures(e.point, { layers: [TAKTISCHE_ZEICHEN_LAYER_ID] });
       if (!features.length) return;
 
       const props = features[0].properties as ZeichenFeatureProperties;
-      const foundZeichen = zeichenRef.current.find((z) => z.id === props.zeichenId);
-      if (!foundZeichen?.lagekarteId) return;
+      if (props.zeichenId !== selectedIdRef.current) return;
 
-      // Drag starten
+      const foundZeichen = zeichenRef.current.find((z) => z.id === props.zeichenId);
+      if (!foundZeichen?.lagekarteId || foundZeichen.lng == null || foundZeichen.lat == null) return;
+
       dragStateRef.current = {
         zeichenId: foundZeichen.id,
         lagekarteId: foundZeichen.lagekarteId,
+        originLng: foundZeichen.lng,
+        originLat: foundZeichen.lat,
+        imageId: props.imageId,
       };
-      isDraggingRef.current = true;
+      isPendingRef.current = true;
+      startPointRef.current = { x: e.point.x, y: e.point.y };
 
-      // Karten-Pan deaktivieren während des Drags
       map.dragPan.disable();
-      map.getCanvas().style.cursor = 'grabbing';
-
-      // Browser-Default verhindern (verhindert Text-Selektion)
       e.originalEvent.preventDefault();
     };
 
-    /** Drag-Move: GeoJSON-Source optimistisch aktualisieren */
+    /** Mousemove: Threshold prüfen, Ghost aktualisieren */
     const handleMouseMove = (e: maplibregl.MapMouseEvent) => {
-      if (!isDraggingRef.current || !dragStateRef.current) return;
+      if (!dragStateRef.current) return;
 
-      const source = map.getSource(TAKTISCHE_ZEICHEN_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-      if (!source) return;
+      if (isPendingRef.current && startPointRef.current) {
+        const dx = e.point.x - startPointRef.current.x;
+        const dy = e.point.y - startPointRef.current.y;
+        if (Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD_PX) return;
 
-      // Aktuelle GeoJSON-Daten laden und das gezogene Feature verschieben
-      // Da die Source eine FeatureCollection ist, müssen wir sie aktualisieren
-      const { lng, lat } = e.lngLat;
-      const { zeichenId } = dragStateRef.current;
+        // Drag aktivieren — Original dimmen, Ghost starten
+        isPendingRef.current = false;
+        isDraggingRef.current = true;
+        map.getCanvas().style.cursor = 'grabbing';
+        setFeatureState(dragStateRef.current.zeichenId, { selected: true, dragging: true });
+        showGhost(e.lngLat.lng, e.lngLat.lat, dragStateRef.current.imageId);
+      }
 
-      // @ts-expect-error — _data ist intern, aber stabil in MapLibre
-      const currentData = source._data as GeoJSON.FeatureCollection<GeoJSON.Point, ZeichenFeatureProperties> | undefined;
-      if (!currentData) return;
+      if (!isDraggingRef.current) return;
 
-      const updatedFeatures = currentData.features.map((feature) => {
-        if (feature.properties.zeichenId === zeichenId) {
-          return {
-            ...feature,
-            geometry: { ...feature.geometry, coordinates: [lng, lat] },
-          };
-        }
-        return feature;
-      });
-
-      source.setData({ ...currentData, features: updatedFeatures });
+      // Ghost dem Cursor folgen lassen (Original bleibt am Ursprung)
+      updateGhost(e.lngLat.lng, e.lngLat.lat, dragStateRef.current.imageId);
     };
 
-    /** Drag-End: Position via API persistieren */
+    /** Mouseup: Drag abschließen */
     const handleMouseUp = (e: maplibregl.MapMouseEvent) => {
-      if (!isDraggingRef.current || !dragStateRef.current) return;
+      const wasDragging = isDraggingRef.current;
+      const wasPending = isPendingRef.current;
+      const state = dragStateRef.current;
 
-      const { zeichenId, lagekarteId } = dragStateRef.current;
-      const { lng, lat } = e.lngLat;
+      if (wasDragging || wasPending) {
+        map.dragPan.enable();
+      }
 
-      // Drag-Zustand zurücksetzen
+      if (wasDragging && state) {
+        setFeatureState(state.zeichenId, { selected: true, dragging: false });
+        hideGhost();
+        map.getCanvas().style.cursor = 'grab';
+
+        // API-Call mit optimistischem Cache-Update (aktualisiert sofort die GeoJSON-Source via React)
+        const { lng, lat } = e.lngLat;
+        placeZeichen({
+          zeichenId: state.zeichenId,
+          dto: { lagekarteId: state.lagekarteId, lat, lng },
+        });
+      }
+
       isDraggingRef.current = false;
+      isPendingRef.current = false;
+      startPointRef.current = null;
       dragStateRef.current = null;
-      map.dragPan.enable();
-      map.getCanvas().style.cursor = '';
+    };
 
-      // Position via API persistieren
-      placeZeichen({
-        zeichenId,
-        dto: { lagekarteId, lat, lng },
-      });
+    /** Klick: Auswahl verwalten */
+    const handleMapClick = (e: maplibregl.MapMouseEvent) => {
+      if (isDraggingRef.current) return;
+
+      const features = map.queryRenderedFeatures(e.point, { layers: [TAKTISCHE_ZEICHEN_LAYER_ID] });
+
+      if (features.length > 0) {
+        const props = features[0].properties as ZeichenFeatureProperties;
+
+        if (props.zeichenId === selectedIdRef.current) {
+          selectZeichen(null);
+          map.getCanvas().style.cursor = 'pointer';
+        } else {
+          selectZeichen(props.zeichenId);
+          map.getCanvas().style.cursor = 'grab';
+        }
+      } else if (selectedIdRef.current) {
+        selectZeichen(null);
+      }
     };
 
     map.on('mouseenter', TAKTISCHE_ZEICHEN_LAYER_ID, handleMouseEnter);
     map.on('mouseleave', TAKTISCHE_ZEICHEN_LAYER_ID, handleMouseLeave);
-    map.on('mousedown', TAKTISCHE_ZEICHEN_LAYER_ID, handleMouseDown);
+    map.on('mousedown', TAKTISCHE_ZEICHEN_LAYER_ID, handleLayerMouseDown);
     map.on('mousemove', handleMouseMove);
     map.on('mouseup', handleMouseUp);
+    map.on('click', handleMapClick);
 
     return () => {
       map.off('mouseenter', TAKTISCHE_ZEICHEN_LAYER_ID, handleMouseEnter);
       map.off('mouseleave', TAKTISCHE_ZEICHEN_LAYER_ID, handleMouseLeave);
-      map.off('mousedown', TAKTISCHE_ZEICHEN_LAYER_ID, handleMouseDown);
+      map.off('mousedown', TAKTISCHE_ZEICHEN_LAYER_ID, handleLayerMouseDown);
       map.off('mousemove', handleMouseMove);
       map.off('mouseup', handleMouseUp);
+      map.off('click', handleMapClick);
 
-      // Sicherheits-Cleanup: dragPan reaktivieren falls noch deaktiviert
       if (isDraggingRef.current) {
         map.dragPan.enable();
         isDraggingRef.current = false;
+        isPendingRef.current = false;
         dragStateRef.current = null;
+        hideGhost();
       }
     };
-  }, [mapRef, canDrag, placeZeichen]);
+  }, [mapRef, canDrag, placeZeichen, selectZeichen, setFeatureState, showGhost, updateGhost, hideGhost]);
 
   useEffect(() => {
     if (!isMapLoaded) return;
-    return setupDragHandlers();
-  }, [isMapLoaded, setupDragHandlers]);
+    return setupHandlers();
+  }, [isMapLoaded, setupHandlers]);
 
-  return { isDragging: isDraggingRef.current };
+  const deselectZeichen = useCallback(() => selectZeichen(null), [selectZeichen]);
+
+  return { isDragging: isDraggingRef.current, selectedZeichenId, deselectZeichen };
 }
