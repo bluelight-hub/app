@@ -1,3 +1,9 @@
+## Administration
+
+- Neue Admin-Oberfläche zur Konfiguration von Standard-Zeichen für Einsätze
+- Verwaltung von Zeichen über Baukasten und Katalog-Ansicht
+- Verbesserte Dark-Mode-Unterstützung in der Sidebar und Zeichen-Vorschau
+
 ## Lagekarte & Zeichen
 
 - **Verbesserte Zeichen-Verwaltung**: Zeichen werden jetzt erst beim Klick auf die Karte erstellt und direkt platziert. Das verhindert verwaiste, nicht platzierte Zeichen. In der Sidebar werden unplatzierte Zeichen angezeigt und können nachträglich platziert oder gelöscht werden.
