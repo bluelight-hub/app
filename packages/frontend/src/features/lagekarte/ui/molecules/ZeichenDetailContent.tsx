@@ -66,12 +66,13 @@ export function ZeichenDetailContent({ zeichen, einsatzId, onUpdateLabel, onUpda
     setNotiz(zeichen.notiz ?? '');
   }, [zeichen.notiz]);
 
-  // Debounced Save für Label
+  // Debounced Save für Label (nicht bei verknüpften Zeichen — Label wird dort extern verwaltet)
   useEffect(() => {
+    if (zeichen.referenzTyp) return;
     if (label === (zeichen.label ?? '')) return;
     const timer = setTimeout(() => onUpdateLabel(label), 500);
     return () => clearTimeout(timer);
-  }, [label, zeichen.label, onUpdateLabel]);
+  }, [label, zeichen.label, zeichen.referenzTyp, onUpdateLabel]);
 
   // Debounced Save für Notiz
   useEffect(() => {
@@ -121,7 +122,8 @@ export function ZeichenDetailContent({ zeichen, einsatzId, onUpdateLabel, onUpda
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="Bezeichnung eingeben..."
-                className="mt-0.5 w-full rounded-md border border-border-subtle bg-surface-raised px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none"
+                disabled={!!zeichen.referenzTyp}
+                className="mt-0.5 w-full rounded-md border border-border-subtle bg-surface-raised px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
             <div>

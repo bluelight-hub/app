@@ -126,4 +126,17 @@ describe('DrawToolbar', () => {
     expect(lockBtn).toBeInTheDocument();
     expect(lockBtn).toHaveAttribute('aria-pressed', 'false');
   });
+
+  it('sollte Badge mit Anzahl unplatzierter Zeichen anzeigen', () => {
+    render(<DrawToolbar activeMode="idle" onModeChange={vi.fn()} unplatzierteZeichenCount={3} />);
+
+    const badge = screen.getByText('3');
+    expect(badge).toBeInTheDocument();
+  });
+
+  it('sollte kein Badge anzeigen wenn keine unplatzierten Zeichen', () => {
+    render(<DrawToolbar activeMode="idle" onModeChange={vi.fn()} unplatzierteZeichenCount={0} />);
+
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
+  });
 });

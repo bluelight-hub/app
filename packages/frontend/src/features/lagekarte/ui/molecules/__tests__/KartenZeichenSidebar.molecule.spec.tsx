@@ -160,10 +160,7 @@ describe('KartenZeichenSidebar', () => {
 
       await user.click(screen.getByTestId('baukasten-erstellen-btn'));
 
-      expect(mockSetPendingZeichenPlacement).toHaveBeenCalledWith({
-        grundzeichen: 'fahrzeug',
-        organisation: 'fw',
-      });
+      expect(mockSetPendingZeichenPlacement).toHaveBeenCalledWith({ grundzeichen: 'fahrzeug', organisation: 'fw' }, undefined, undefined);
     });
   });
 
