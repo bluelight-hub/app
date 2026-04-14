@@ -62,12 +62,15 @@ export function FahrzeugZeichenPanel({ isOpen, onClose, einsatzId, fahrzeugId, f
     (definition: ZeichenDefinition, label: string) => {
       if (zeichen) {
         // Bestehendes Zeichen aktualisieren
-        updateZeichen({
-          dto: {
-            zeichenDefinition: definition as unknown as ZeichenDefinitionRequestDto,
-            label: label || undefined,
+        updateZeichen(
+          {
+            dto: {
+              zeichenDefinition: definition as unknown as ZeichenDefinitionRequestDto,
+              label: label || undefined,
+            },
           },
-        });
+          { onSuccess: onClose },
+        );
       } else {
         // Neues Zeichen erstellen mit Fahrzeug-Verknüpfung
         createZeichenMutation(
@@ -80,12 +83,13 @@ export function FahrzeugZeichenPanel({ isOpen, onClose, einsatzId, fahrzeugId, f
           {
             onSuccess: () => {
               queryClient.invalidateQueries({ queryKey: KRAEFTE_QUERY_KEYS.fahrzeugZeichen(einsatzId, fahrzeugId) });
+              onClose();
             },
           },
         );
       }
     },
-    [zeichen, updateZeichen, createZeichenMutation, fahrzeugId, queryClient, einsatzId],
+    [zeichen, updateZeichen, createZeichenMutation, fahrzeugId, queryClient, einsatzId, onClose],
   );
 
   return (
