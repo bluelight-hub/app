@@ -1,3 +1,14 @@
+## Taktische Zeichen
+
+- **Automatische Zeichen-Erstellung**: Beim Anlegen neuer Einheiten und Fahrzeuge werden jetzt automatisch taktische Zeichen basierend auf Standardvorlagen erstellt
+- **Zeichen-Verwaltung**: Taktische Zeichen können pro Einheit und Fahrzeug eingesehen und individuell angepasst werden
+- **Verknüpfte Anzeige**: In der Zeichen-Detailansicht werden nun zugehörige Einheiten und Fahrzeuge angezeigt
+- **Automatische Bereinigung**: Beim Löschen von Einheiten oder Fahrzeugen werden die zugehörigen taktischen Zeichen automatisch mit entfernt
+
+## Technische Verbesserungen
+
+- Aktualisierung verschiedener Tauri-Plugins auf neuere Versionen für verbesserte Stabilität
+
 ## Administration
 
 - Neue Admin-Oberfläche zur Konfiguration von Standard-Zeichen für Einsätze
