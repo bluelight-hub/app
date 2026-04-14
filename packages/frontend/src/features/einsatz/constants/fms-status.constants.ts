@@ -7,15 +7,15 @@
  */
 export const FMS_STATUS_LABELS: Record<number, string> = {
   0: 'Notruf',
-  1: 'Frei über Funk',
+  1: 'Einsatzbereit über Funk',
   2: 'Einsatzbereit auf Wache',
-  3: 'Einsatz übernommen',
+  3: 'Einsatzauftrag übernommen',
   4: 'Am Einsatzort',
   5: 'Sprechwunsch',
-  6: 'Nicht einsatzbereit',
+  6: 'Außer Dienst',
   7: 'Patient aufgenommen',
-  8: 'Am Transportziel',
-  9: 'Quittung',
+  8: 'Transportziel erreicht',
+  9: 'Außerhalb Funkbereich',
 };
 
 /**
