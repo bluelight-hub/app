@@ -1,3 +1,14 @@
+## Zeichenverwaltung
+
+- **Verbesserte Beschriftung von Zeichen**: Labels können nun direkt beim Erstellen von Zeichen im Baukasten vergeben werden und werden korrekt auf der Karte angezeigt
+- **Besseres Feedback beim Platzieren**: Nach dem Platzieren von Zeichen auf der Karte erscheint eine Erfolgsmeldung. Falls die Lagekarte noch nicht geladen ist, wird eine verständliche Fehlermeldung angezeigt
+- **Unplatzierte Zeichen hervorheben**: Der Bereich für noch nicht platzierte Zeichen ist nun deutlicher als Warnung gestaltet. Im Zeichen-Button der Toolbar wird zudem die Anzahl unplatzierter Zeichen angezeigt
+- **Schreibschutz für referenzierte Zeichen**: Die Beschriftung von referenzierten Zeichen kann nicht mehr versehentlich bearbeitet werden
+
+## Sonstiges
+
+- GitHub Sponsors Button für das Projekt aktiviert
+
 ## Taktische Zeichen
 
 - **Automatische Zeichen-Erstellung**: Beim Anlegen neuer Einheiten und Fahrzeuge werden jetzt automatisch taktische Zeichen basierend auf Standardvorlagen erstellt
