@@ -23,8 +23,12 @@ vi.mock('@/features/auth/api/use-users', () => ({
 }));
 
 vi.mock('@/features/kraefte/api', () => ({
-  useEinsatzEinheiten: () => ({ data: [] }),
-  useEinsatzFahrzeuge: () => ({ data: [] }),
+  useEinsatzEinheiten: () => ({
+    data: [{ id: 'einheit-1', name: 'Gruppe Alpha' }],
+  }),
+  useEinsatzFahrzeuge: () => ({
+    data: [{ id: 'fzg-1', funkrufname: 'KTW 1' }],
+  }),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -77,6 +81,40 @@ describe('ZeichenDetailContent', () => {
 
       expect(screen.getByText('Max Müller')).toBeInTheDocument();
       expect(screen.queryByText('Anna Schmidt')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Zuordnung (Referenz-Sektion)', () => {
+    it('sollte Einheit-Referenz mit aufgelöstem Namen anzeigen', () => {
+      const mitEinheitReferenz = {
+        ...baseZeichen,
+        referenzTyp: 'EINHEIT',
+        referenzId: 'einheit-1',
+      };
+
+      render(<ZeichenDetailContent zeichen={mitEinheitReferenz} einsatzId="einsatz-1" onUpdateLabel={vi.fn()} onUpdateNotiz={vi.fn()} onRemove={vi.fn()} isRemoving={false} />);
+
+      expect(screen.getByText('Zuordnung')).toBeInTheDocument();
+      expect(screen.getByText('Gruppe Alpha')).toBeInTheDocument();
+    });
+
+    it('sollte Fahrzeug-Referenz mit Funkrufname anzeigen', () => {
+      const mitFahrzeugReferenz = {
+        ...baseZeichen,
+        referenzTyp: 'FAHRZEUG',
+        referenzId: 'fzg-1',
+      };
+
+      render(<ZeichenDetailContent zeichen={mitFahrzeugReferenz} einsatzId="einsatz-1" onUpdateLabel={vi.fn()} onUpdateNotiz={vi.fn()} onRemove={vi.fn()} isRemoving={false} />);
+
+      expect(screen.getByText('Zuordnung')).toBeInTheDocument();
+      expect(screen.getByText('KTW 1')).toBeInTheDocument();
+    });
+
+    it('sollte keine Zuordnung anzeigen ohne referenzTyp', () => {
+      render(<ZeichenDetailContent zeichen={baseZeichen} onUpdateLabel={vi.fn()} onUpdateNotiz={vi.fn()} onRemove={vi.fn()} isRemoving={false} />);
+
+      expect(screen.queryByText('Zuordnung')).not.toBeInTheDocument();
     });
   });
 });

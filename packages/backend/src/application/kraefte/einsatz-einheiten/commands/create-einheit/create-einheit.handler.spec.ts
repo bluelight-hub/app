@@ -5,10 +5,12 @@ import { CreateEinheitHandler } from './create-einheit.handler';
 import { CreateEinheitCommand } from './create-einheit.command';
 import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@/infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY, TAKTISCHE_ZEICHEN_REPOSITORY, DEFAULT_ZEICHEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
+import type { ITaktischesZeichenRepository } from '@domain/taktische-zeichen/ports/itaktisches-zeichen.repository';
+import type { IDefaultZeichenRepository } from '@domain/taktische-zeichen/ports/idefault-zeichen.repository';
 
 /**
  * Unit Tests für CreateEinheitHandler.
@@ -27,6 +29,8 @@ describe('CreateEinheitHandler', () => {
   let mockOutboxRepository: jest.Mocked<IOutboxRepository>;
   let mockPrismaService: { $transaction: jest.Mock };
   let mockLogger: jest.Mocked<ILogger>;
+  let mockZeichenRepository: jest.Mocked<ITaktischesZeichenRepository>;
+  let mockDefaultZeichenRepository: jest.Mocked<IDefaultZeichenRepository>;
 
   /** Gemeinsame Test-IDs */
   const einsatzId = 'einsatz-uuid-1234';
@@ -78,6 +82,24 @@ describe('CreateEinheitHandler', () => {
       debug: jest.fn(),
     } as unknown as jest.Mocked<ILogger>;
 
+    // Mock TaktischesZeichen Repository
+    mockZeichenRepository = {
+      save: jest.fn().mockResolvedValue(Result.ok(undefined)),
+      findById: jest.fn().mockResolvedValue(Result.ok(null)),
+      findByEinsatzId: jest.fn().mockResolvedValue(Result.ok([])),
+      findByLagekarteId: jest.fn().mockResolvedValue(Result.ok([])),
+      findByReferenz: jest.fn().mockResolvedValue(Result.ok([])),
+      delete: jest.fn().mockResolvedValue(Result.ok(undefined)),
+    } as unknown as jest.Mocked<ITaktischesZeichenRepository>;
+
+    // Mock DefaultZeichen Repository
+    mockDefaultZeichenRepository = {
+      findAllFahrzeugtypen: jest.fn().mockResolvedValue(Result.ok([])),
+      findAllEinheitentypen: jest.fn().mockResolvedValue(Result.ok([])),
+      saveFahrzeugtypDefault: jest.fn().mockResolvedValue(Result.ok(undefined)),
+      saveEinheitentypDefault: jest.fn().mockResolvedValue(Result.ok(undefined)),
+    } as unknown as jest.Mocked<IDefaultZeichenRepository>;
+
     // Mock PrismaService mit Transaction-Support
     mockPrismaService = {
       $transaction: jest.fn().mockImplementation(async (callback) => {
@@ -92,6 +114,8 @@ describe('CreateEinheitHandler', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: KRAEFTE_REPOSITORIES.EINSATZ_EINHEIT, useValue: mockEinheitRepository },
+        { provide: TAKTISCHE_ZEICHEN_REPOSITORY, useValue: mockZeichenRepository },
+        { provide: DEFAULT_ZEICHEN_REPOSITORY, useValue: mockDefaultZeichenRepository },
         { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
