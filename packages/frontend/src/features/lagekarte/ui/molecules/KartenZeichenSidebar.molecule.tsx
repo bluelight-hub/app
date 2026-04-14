@@ -12,7 +12,7 @@
 
 import type * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import { PiList, PiMapPin, PiTrash, PiWrench, PiX } from 'react-icons/pi';
+import { PiList, PiMapPin, PiTrash, PiWarning, PiWrench, PiX } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
 import { ZeichenKatalog } from '@/features/taktische-zeichen/ui/organisms/ZeichenKatalog';
 import { ZeichenBaukasten } from '@/features/taktische-zeichen/ui/organisms/ZeichenBaukasten';
@@ -81,8 +81,8 @@ export function KartenZeichenSidebar({ einsatzId, isVisible }: KartenZeichenSide
   }, []);
 
   /** Aus Baukasten: Platzierungsmodus aktivieren (Zeichen wird erst beim Karten-Klick erstellt) */
-  const handleBaukastenErstellen = useCallback((definition: ZeichenDefinition) => {
-    setPendingZeichenPlacement(definition);
+  const handleBaukastenErstellen = useCallback((definition: ZeichenDefinition, label?: string) => {
+    setPendingZeichenPlacement(definition, undefined, label);
   }, []);
 
   /** Bestehendes unplatziertes Zeichen zur Platzierung auswählen */
@@ -169,9 +169,12 @@ export function KartenZeichenSidebar({ einsatzId, isVisible }: KartenZeichenSide
 
       {/* Unplatzierte Zeichen */}
       {unplatzierteZeichen.length > 0 && (
-        <div className="border-t border-border-subtle">
-          <div className="px-4 py-2 text-xs font-semibold tracking-wider text-text-muted uppercase">Nicht platziert ({unplatzierteZeichen.length})</div>
-          <ul className="max-h-48 divide-y divide-border-subtle overflow-y-auto">
+        <div className="border-t border-status-warning-border bg-status-warning-surface">
+          <div className="flex items-center gap-1.5 px-4 py-2">
+            <PiWarning className="h-3.5 w-3.5 shrink-0 text-status-warning-text" aria-hidden="true" />
+            <span className="text-xs font-semibold tracking-wider text-status-warning-text uppercase">Nicht platziert ({unplatzierteZeichen.length})</span>
+          </div>
+          <ul className="max-h-48 divide-y divide-status-warning-border overflow-y-auto">
             {unplatzierteZeichen.map((z) => (
               <li key={z.id} className="flex items-center gap-2 px-4 py-2">
                 <ZeichenPreview definition={z.zeichenDefinition as unknown as ZeichenDefinition} size="sm" />
@@ -183,7 +186,7 @@ export function KartenZeichenSidebar({ einsatzId, isVisible }: KartenZeichenSide
                   type="button"
                   aria-label="Zeichen platzieren"
                   onClick={() => handlePlatziereUnplatziert(z)}
-                  className="rounded p-1 text-text-muted transition-colors hover:bg-action-secondary hover:text-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none"
+                  className="rounded p-1 text-text-muted transition-colors hover:bg-action-secondary hover:text-status-warning-text focus-visible:shadow-focus-ring focus-visible:outline-none"
                 >
                   <PiMapPin className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>

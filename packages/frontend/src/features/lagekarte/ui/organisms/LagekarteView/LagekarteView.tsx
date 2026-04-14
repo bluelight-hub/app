@@ -48,6 +48,7 @@ import { KartenZeichenSidebar } from '../../molecules/KartenZeichenSidebar.molec
 import { ZeichenDetailPanel } from '../../molecules/ZeichenDetailPanel.molecule';
 import { useEinsatzZeichen, useCreateZeichen, usePlaceZeichen } from '@/features/taktische-zeichen';
 import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
+import { toast } from 'sonner';
 import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
 
@@ -387,6 +388,10 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const handleCombinedClick = useCallback(
     (event: MapLayerMouseEvent) => {
       // 0. Taktisches Zeichen platzieren (Klick nach Sidebar-Auswahl)
+      if (pendingZeichenPlacement && !lagekarteData?.id) {
+        toast.error('Lagekarte noch nicht geladen — bitte einen Moment warten');
+        return;
+      }
       if (pendingZeichenPlacement && lagekarteData?.id) {
         const { lng, lat } = event.lngLat;
 
@@ -397,7 +402,15 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
               zeichenId: pendingZeichenPlacement.existingZeichenId,
               dto: { lagekarteId: lagekarteData.id, lat, lng },
             },
-            { onSuccess: () => clearPendingZeichenPlacement() },
+            {
+              onSuccess: () => {
+                clearPendingZeichenPlacement();
+                toast.success('Zeichen platziert');
+              },
+              onError: () => {
+                toast.error('Fehler beim Platzieren des Zeichens');
+              },
+            },
           );
         } else {
           // Neues Zeichen erstellen + direkt platzieren (atomar)
@@ -411,11 +424,20 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
                 einheit: def.einheit,
                 verwaltungsstufe: def.verwaltungsstufe,
               },
+              label: pendingZeichenPlacement.label,
               lagekarteId: lagekarteData.id,
               lat,
               lng,
             },
-            { onSuccess: () => clearPendingZeichenPlacement() },
+            {
+              onSuccess: () => {
+                clearPendingZeichenPlacement();
+                toast.success('Zeichen platziert');
+              },
+              onError: () => {
+                toast.error('Fehler beim Platzieren des Zeichens');
+              },
+            },
           );
         }
         return;
@@ -546,7 +568,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       {/* Draw-Toolbar (immer sichtbar für Lock-Button, ShortcutBar nur wenn nicht gesperrt) */}
       {canDraw && (
         <>
-          <DrawToolbar activeMode={drawMode} onModeChange={setMode} />
+          <DrawToolbar activeMode={drawMode} onModeChange={setMode} unplatzierteZeichenCount={einsatzZeichen.filter((z) => !z.istPlatziert).length} />
           {!isLocked && (
             <DrawShortcutBar
               activeMode={drawMode}

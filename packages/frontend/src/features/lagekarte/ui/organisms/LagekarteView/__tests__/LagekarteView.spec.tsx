@@ -325,6 +325,15 @@ vi.mock('@/features/lagekarte/ui/organisms/FullscreenCloseButton/FullscreenClose
 
 vi.mock('@/features/lagekarte/detail-providers', () => ({}));
 
+const mockToastSuccess = vi.fn();
+const mockToastError = vi.fn();
+vi.mock('sonner', () => ({
+  toast: {
+    success: (...args: any[]) => mockToastSuccess(...args),
+    error: (...args: any[]) => mockToastError(...args),
+  },
+}));
+
 vi.mock('../lagekarte-view.css', () => ({}));
 
 vi.mock('@/shared/lib/logger', () => ({
@@ -530,13 +539,56 @@ describe('LagekarteView', () => {
             einheit: undefined,
             verwaltungsstufe: undefined,
           },
+          label: undefined,
           lagekarteId: 'lagekarte-42',
           lat: 50.3,
           lng: 10.5,
         },
-        expect.objectContaining({ onSuccess: expect.any(Function) }),
+        expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
       );
       expect(mockPlaceZeichen).not.toHaveBeenCalled();
+    });
+
+    it('sollte Label im createZeichen-DTO durchreichen', () => {
+      const definition = { grundzeichen: 'stelle', organisation: 'thw', fachaufgabe: undefined, einheit: undefined, verwaltungsstufe: undefined };
+
+      mockDrawStoreOverrides = {
+        pendingZeichenPlacement: { definition, label: 'ELW-1' },
+      };
+      mockLagekarteData.mockReturnValue({ data: { id: 'lagekarte-42', state: null } });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+      capturedMapOnClick!(mockMapEvent);
+
+      expect(mockCreateZeichen).toHaveBeenCalledWith(expect.objectContaining({ label: 'ELW-1' }), expect.any(Object));
+    });
+
+    it('sollte toast.success zeigen bei erfolgreicher Erstellung', () => {
+      const definition = { grundzeichen: 'stelle' };
+      mockDrawStoreOverrides = { pendingZeichenPlacement: { definition } };
+      mockLagekarteData.mockReturnValue({ data: { id: 'lagekarte-42', state: null } });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+      capturedMapOnClick!(mockMapEvent);
+
+      const callArgs = mockCreateZeichen.mock.calls[0][1];
+      callArgs.onSuccess();
+
+      expect(mockToastSuccess).toHaveBeenCalledWith('Zeichen platziert');
+    });
+
+    it('sollte toast.error zeigen bei fehlgeschlagener Erstellung', () => {
+      const definition = { grundzeichen: 'stelle' };
+      mockDrawStoreOverrides = { pendingZeichenPlacement: { definition } };
+      mockLagekarteData.mockReturnValue({ data: { id: 'lagekarte-42', state: null } });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+      capturedMapOnClick!(mockMapEvent);
+
+      const callArgs = mockCreateZeichen.mock.calls[0][1];
+      callArgs.onError();
+
+      expect(mockToastError).toHaveBeenCalledWith('Fehler beim Platzieren des Zeichens');
     });
 
     it('sollte bestehendes Zeichen platzieren wenn pendingZeichenPlacement mit existingZeichenId', () => {
@@ -558,12 +610,30 @@ describe('LagekarteView', () => {
           zeichenId: 'z-existing-1',
           dto: { lagekarteId: 'lagekarte-42', lat: 50.3, lng: 10.5 },
         },
-        expect.objectContaining({ onSuccess: expect.any(Function) }),
+        expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
       );
       expect(mockCreateZeichen).not.toHaveBeenCalled();
     });
 
-    it('sollte NICHT platzieren wenn keine lagekarteData vorhanden', () => {
+    it('sollte toast.success zeigen bei erfolgreicher Platzierung eines bestehenden Zeichens', () => {
+      mockDrawStoreOverrides = {
+        pendingZeichenPlacement: {
+          definition: { grundzeichen: 'fahrzeug' },
+          existingZeichenId: 'z-existing-1',
+        },
+      };
+      mockLagekarteData.mockReturnValue({ data: { id: 'lagekarte-42', state: null } });
+
+      render(<LagekarteView einsatzId="einsatz-1" />);
+      capturedMapOnClick!(mockMapEvent);
+
+      const callArgs = mockPlaceZeichen.mock.calls[0][1];
+      callArgs.onSuccess();
+
+      expect(mockToastSuccess).toHaveBeenCalledWith('Zeichen platziert');
+    });
+
+    it('sollte toast.error zeigen wenn Lagekarte noch nicht geladen', () => {
       mockDrawStoreOverrides = {
         pendingZeichenPlacement: {
           definition: { grundzeichen: 'stelle' },
@@ -577,6 +647,7 @@ describe('LagekarteView', () => {
 
       expect(mockCreateZeichen).not.toHaveBeenCalled();
       expect(mockPlaceZeichen).not.toHaveBeenCalled();
+      expect(mockToastError).toHaveBeenCalledWith('Lagekarte noch nicht geladen — bitte einen Moment warten');
     });
   });
 });

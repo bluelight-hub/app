@@ -39,6 +39,8 @@ export interface DrawToolbarProps {
   activeMode: DrawMode;
   /** Modus wechseln */
   onModeChange: (mode: DrawMode) => void;
+  /** Anzahl unplatzierter taktischer Zeichen (für Badge-Anzeige) */
+  unplatzierteZeichenCount?: number;
 }
 
 /** Konfiguration für einen Zeichenmodus-Button */
@@ -77,7 +79,7 @@ export const TOOLBAR_ITEMS: ToolbarItem[] = [
 /** Gemeinsame Button-Styles */
 const buttonBase = 'flex items-center justify-center p-2 transition-colors duration-100 focus-visible:shadow-focus-ring focus-visible:outline-none';
 
-export function DrawToolbar({ activeMode, onModeChange }: DrawToolbarProps) {
+export function DrawToolbar({ activeMode, onModeChange, unplatzierteZeichenCount = 0 }: DrawToolbarProps) {
   const isExpanded = useStore(drawStore, (s) => s.isDrawToolbarVisible);
   const isSymbolPanelVisible = useStore(drawStore, (s) => s.isSymbolPanelVisible);
   const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
@@ -108,9 +110,14 @@ export function DrawToolbar({ activeMode, onModeChange }: DrawToolbarProps) {
           aria-pressed={isZeichenSidebarVisible}
           title="Taktische Zeichen"
           onClick={toggleZeichenSidebar}
-          className={cn(buttonBase, isZeichenSidebarVisible ? 'bg-action-secondary text-action-primary' : 'text-text-muted hover:bg-action-secondary hover:text-text-primary')}
+          className={cn(buttonBase, 'relative', isZeichenSidebarVisible ? 'bg-action-secondary text-action-primary' : 'text-text-muted hover:bg-action-secondary hover:text-text-primary')}
         >
           <PiShieldStar className="h-5 w-5" aria-hidden="true" />
+          {unplatzierteZeichenCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-warning-surface text-[10px] font-bold text-status-warning-text ring-1 ring-status-warning-border">
+              {unplatzierteZeichenCount}
+            </span>
+          )}
         </button>
 
         <button
