@@ -9,15 +9,20 @@ import { createFileRoute, useParams } from '@tanstack/react-router';
 import { EinsatzRolleGate } from '@/features/einsatz/ui/molecules/EinsatzRolleGate';
 import { useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz/api';
 import { useEinsatzEinheiten, useAssignFahrzeugZuEinheit } from '@/features/kraefte/api';
+import { useEinsatzZeichen } from '@/features/taktische-zeichen';
 import { EinheitZuweisungsDropdown } from '@/features/kraefte/ui/molecules/EinheitZuweisungsDropdown';
 import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
+import { FahrzeugZeichenPanel } from '@/features/kraefte/ui/organisms/FahrzeugZeichenPanel';
 import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzResourceWidget';
+import { ZeichenPreview } from '@/features/taktische-zeichen/rendering/ZeichenPreview';
+import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
+import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import type { FmsStatus } from '@/features/einsatz';
-import { useState, useCallback } from 'react';
-import { PiTruck, PiUsers, PiUser, PiGauge } from 'react-icons/pi';
+import { useState, useCallback, useMemo } from 'react';
+import { PiMapPin, PiTruck, PiUsers, PiUser, PiGauge } from 'react-icons/pi';
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/kräfte/fahrzeuge')({
   component: RouteComponent,
@@ -39,12 +44,32 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
   const handleOpenFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(true), []);
   const handleCloseFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(false), []);
 
+  // State für Zeichen-Panel
+  const [zeichenPanelFahrzeugId, setZeichenPanelFahrzeugId] = useState<string | null>(null);
+  const handleOpenZeichen = useCallback((fahrzeugId: string) => setZeichenPanelFahrzeugId(fahrzeugId), []);
+  const handleCloseZeichen = useCallback(() => setZeichenPanelFahrzeugId(null), []);
+
   // State für Einheit-Zuweisungs-Race-Condition-Guard
   const [assigningFahrzeugIds, setAssigningFahrzeugIds] = useState<Set<string>>(new Set());
 
   // Daten laden
   const { data: fahrzeuge = [], isLoading, error } = useEinsatzFahrzeuge(einsatzId);
   const { data: einheiten = [] } = useEinsatzEinheiten(einsatzId);
+  const { data: alleZeichen = [] } = useEinsatzZeichen(einsatzId);
+
+  /** Taktische Zeichen nach Fahrzeug-ID indexiert */
+  const zeichenByFahrzeug = useMemo(() => {
+    const map = new Map<string, TaktischesZeichenResponseDto>();
+    for (const z of alleZeichen) {
+      if (z.referenzTyp === 'FAHRZEUG' && z.referenzId) {
+        map.set(z.referenzId, z);
+      }
+    }
+    return map;
+  }, [alleZeichen]);
+
+  /** Fahrzeug-Daten für das aktuell geöffnete Zeichen-Panel */
+  const zeichenPanelFahrzeug = fahrzeuge.find((f) => f.id === zeichenPanelFahrzeugId);
 
   // Mutations
   const updateFmsStatus = useUpdateFmsStatus(einsatzId);
@@ -172,7 +197,13 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
       </div>
 
       {/* Fahrzeug-Widget (Story 3-3 Pattern) */}
-      <EinsatzResourceWidget fahrzeuge={fahrzeuge} onStatusChange={handleStatusChange} onAddResource={handleOpenFahrzeugDialog} />
+      <EinsatzResourceWidget
+        fahrzeuge={fahrzeuge}
+        onStatusChange={handleStatusChange}
+        onAddResource={handleOpenFahrzeugDialog}
+        zeichenByFahrzeug={zeichenByFahrzeug}
+        onManageZeichen={handleOpenZeichen}
+      />
 
       {/* Detaillierte Fahrzeug-Liste nach Status gruppiert */}
       {totalFahrzeuge > 0 && (
@@ -184,42 +215,55 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
                 <h3 className="text-sm font-semibold text-status-success-text">Im Einsatz ({fahrzeugeImEinsatz.length})</h3>
               </div>
               <div className="divide-y divide-border-subtle">
-                {fahrzeugeImEinsatz.map((fahrzeug) => (
-                  <div key={fahrzeug.id} className="px-4 py-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <PiTruck className="h-5 w-5 text-text-muted" />
-                          <div>
-                            <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                            {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
-                          </div>
-                        </div>
-                        {fahrzeug.besatzung && fahrzeug.besatzung.length > 0 && (
-                          <div className="mt-2 ml-8">
-                            <p className="mb-1 text-xs font-medium text-text-secondary">Besatzung ({fahrzeug.besatzung.length}):</p>
-                            <div className="flex flex-wrap gap-2">
-                              {fahrzeug.besatzung.map((person) => (
-                                <span key={person.id} className="inline-flex items-center gap-1.5 rounded-control bg-surface-raised px-2.5 py-1 text-xs text-text-secondary">
-                                  <PiUser className="h-3 w-3" />
-                                  {person.vorname} {person.nachname}
-                                </span>
-                              ))}
+                {fahrzeugeImEinsatz.map((fahrzeug) => {
+                  const zeichen = zeichenByFahrzeug.get(fahrzeug.id);
+                  return (
+                    <div key={fahrzeug.id} className="px-4 py-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            {zeichen ? <ZeichenPreview definition={zeichen.zeichenDefinition as unknown as ZeichenDefinition} size="sm" /> : <PiTruck className="h-5 w-5 text-text-muted" />}
+                            <div>
+                              <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
+                              {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
                             </div>
+                            <Button
+                              intent="secondary"
+                              appearance="ghost"
+                              size="icon"
+                              onClick={() => handleOpenZeichen(fahrzeug.id)}
+                              title="Taktisches Zeichen"
+                              aria-label="Taktisches Zeichen verwalten"
+                            >
+                              <PiMapPin className="h-4 w-4" />
+                            </Button>
                           </div>
-                        )}
-                      </div>
-                      <div className="w-48 flex-shrink-0">
-                        <EinheitZuweisungsDropdown
-                          currentEinheitId={fahrzeug.einheitId}
-                          einheiten={einheitenOptions}
-                          onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
-                          isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
-                        />
+                          {fahrzeug.besatzung && fahrzeug.besatzung.length > 0 && (
+                            <div className="mt-2 ml-8">
+                              <p className="mb-1 text-xs font-medium text-text-secondary">Besatzung ({fahrzeug.besatzung.length}):</p>
+                              <div className="flex flex-wrap gap-2">
+                                {fahrzeug.besatzung.map((person) => (
+                                  <span key={person.id} className="inline-flex items-center gap-1.5 rounded-control bg-surface-raised px-2.5 py-1 text-xs text-text-secondary">
+                                    <PiUser className="h-3 w-3" />
+                                    {person.vorname} {person.nachname}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="w-48 flex-shrink-0">
+                          <EinheitZuweisungsDropdown
+                            currentEinheitId={fahrzeug.einheitId}
+                            einheiten={einheitenOptions}
+                            onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
+                            isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -231,27 +275,33 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
                 <h3 className="text-sm font-semibold text-status-info-text">Einsatzbereit ({fahrzeugeBereit.length})</h3>
               </div>
               <div className="divide-y divide-border-subtle">
-                {fahrzeugeBereit.map((fahrzeug) => (
-                  <div key={fahrzeug.id} className="px-4 py-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <PiTruck className="h-5 w-5 text-text-muted" />
-                        <div>
-                          <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                          {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
+                {fahrzeugeBereit.map((fahrzeug) => {
+                  const zeichen = zeichenByFahrzeug.get(fahrzeug.id);
+                  return (
+                    <div key={fahrzeug.id} className="px-4 py-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          {zeichen ? <ZeichenPreview definition={zeichen.zeichenDefinition as unknown as ZeichenDefinition} size="sm" /> : <PiTruck className="h-5 w-5 text-text-muted" />}
+                          <div>
+                            <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
+                            {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
+                          </div>
+                          <Button intent="secondary" appearance="ghost" size="icon" onClick={() => handleOpenZeichen(fahrzeug.id)} title="Taktisches Zeichen" aria-label="Taktisches Zeichen verwalten">
+                            <PiMapPin className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="w-48 flex-shrink-0">
+                          <EinheitZuweisungsDropdown
+                            currentEinheitId={fahrzeug.einheitId}
+                            einheiten={einheitenOptions}
+                            onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
+                            isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
+                          />
                         </div>
                       </div>
-                      <div className="w-48 flex-shrink-0">
-                        <EinheitZuweisungsDropdown
-                          currentEinheitId={fahrzeug.einheitId}
-                          einheiten={einheitenOptions}
-                          onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
-                          isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
-                        />
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -263,27 +313,33 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
                 <h3 className="text-sm font-semibold text-text-primary">Weitere Fahrzeuge ({fahrzeugeAndere.length})</h3>
               </div>
               <div className="divide-y divide-border-subtle">
-                {fahrzeugeAndere.map((fahrzeug) => (
-                  <div key={fahrzeug.id} className="px-4 py-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <PiTruck className="h-5 w-5 text-text-muted" />
-                        <div>
-                          <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                          {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
+                {fahrzeugeAndere.map((fahrzeug) => {
+                  const zeichen = zeichenByFahrzeug.get(fahrzeug.id);
+                  return (
+                    <div key={fahrzeug.id} className="px-4 py-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          {zeichen ? <ZeichenPreview definition={zeichen.zeichenDefinition as unknown as ZeichenDefinition} size="sm" /> : <PiTruck className="h-5 w-5 text-text-muted" />}
+                          <div>
+                            <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
+                            {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
+                          </div>
+                          <Button intent="secondary" appearance="ghost" size="icon" onClick={() => handleOpenZeichen(fahrzeug.id)} title="Taktisches Zeichen" aria-label="Taktisches Zeichen verwalten">
+                            <PiMapPin className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="w-48 flex-shrink-0">
+                          <EinheitZuweisungsDropdown
+                            currentEinheitId={fahrzeug.einheitId}
+                            einheiten={einheitenOptions}
+                            onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
+                            isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
+                          />
                         </div>
                       </div>
-                      <div className="w-48 flex-shrink-0">
-                        <EinheitZuweisungsDropdown
-                          currentEinheitId={fahrzeug.einheitId}
-                          einheiten={einheitenOptions}
-                          onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
-                          isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
-                        />
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -292,6 +348,17 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
 
       {/* Fahrzeug hinzufügen Dialog */}
       <FahrzeugHinzufuegenDialog isOpen={showFahrzeugDialog} onClose={handleCloseFahrzeugDialog} einsatzId={einsatzId} />
+
+      {/* Taktisches Zeichen Panel */}
+      {zeichenPanelFahrzeug && (
+        <FahrzeugZeichenPanel
+          isOpen={!!zeichenPanelFahrzeugId}
+          onClose={handleCloseZeichen}
+          einsatzId={einsatzId}
+          fahrzeugId={zeichenPanelFahrzeug.id}
+          fahrzeugName={zeichenPanelFahrzeug.funkrufname}
+        />
+      )}
     </div>
   );
 }

@@ -43,6 +43,12 @@ export const KRAEFTE_QUERY_KEYS = {
 
   /** Kraefte POIs fuer Lagekarte (Story 8.1) */
   pois: (einsatzId: string) => [...KRAEFTE_QUERY_KEYS.byEinsatz(einsatzId), 'pois'] as const,
+
+  /** Taktisches Zeichen einer Einheit (Issue #667) */
+  einheitZeichen: (einsatzId: string, einheitId: string) => [...KRAEFTE_QUERY_KEYS.einheiten(einsatzId), einheitId, 'zeichen'] as const,
+
+  /** Taktisches Zeichen eines Fahrzeugs */
+  fahrzeugZeichen: (einsatzId: string, fahrzeugId: string) => [...KRAEFTE_QUERY_KEYS.fahrzeuge(einsatzId), fahrzeugId, 'zeichen'] as const,
 } as const;
 
 /**

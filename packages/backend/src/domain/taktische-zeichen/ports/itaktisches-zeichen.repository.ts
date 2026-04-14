@@ -49,6 +49,16 @@ export interface ITaktischesZeichenRepository {
   findByLagekarteId(lagekarteId: string): Promise<Result<TaktischesZeichen[]>>;
 
   /**
+   * Findet taktische Zeichen anhand einer Referenz-Verknüpfung (z.B. EINHEIT, FAHRZEUG).
+   *
+   * @param referenzTyp - Typ der verknüpften Ressource (z.B. 'EINHEIT', 'FAHRZEUG')
+   * @param referenzId - ID der verknüpften Ressource
+   * @param tx - Optionaler Transaction Context
+   * @returns Result<TaktischesZeichen[]> - Verknüpfte Zeichen (leer wenn keine vorhanden)
+   */
+  findByReferenz(referenzTyp: string, referenzId: string, tx?: TransactionContext): Promise<Result<TaktischesZeichen[]>>;
+
+  /**
    * Löscht ein taktisches Zeichen permanent aus der Datenbank.
    *
    * @param id - CUID-String der Zeichen-ID

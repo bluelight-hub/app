@@ -4,6 +4,7 @@
  * Zeigt ein Grid aller verfügbaren Grundzeichen mit Mini-Vorschau.
  */
 
+import { useState } from 'react';
 import { grundzeichen } from 'taktische-zeichen-core';
 import { cn } from '@/shared/ui/cn';
 import { ZeichenPreview } from '../../rendering/ZeichenPreview';
@@ -38,6 +39,8 @@ export interface GrundzeichenPickerProps {
 }
 
 export function GrundzeichenPicker({ value, onChange }: GrundzeichenPickerProps) {
+  const [suche, setSuche] = useState('');
+
   // Sortiere: priorisierte zuerst, dann alphabetisch nach Label
   const sortiertGrundzeichen = [...SICHTBARE_GRUNDZEICHEN].sort((a, b) => {
     const prioA = PRIORISIERTE_GRUNDZEICHEN.indexOf(a.id as GrundzeichenId);
@@ -48,28 +51,42 @@ export function GrundzeichenPicker({ value, onChange }: GrundzeichenPickerProps)
     return a.label.localeCompare(b.label, 'de');
   });
 
-  return (
-    <div className="grid grid-cols-4 gap-1.5">
-      {sortiertGrundzeichen.map((gz) => {
-        const definition: ZeichenDefinition = { grundzeichen: gz.id as GrundzeichenId };
-        const isSelected = value === gz.id;
+  /** Gefilterte Grundzeichen basierend auf Suchbegriff */
+  const gefilterteGrundzeichen = sortiertGrundzeichen.filter((gz) => gz.label.toLowerCase().includes(suche.toLowerCase()));
 
-        return (
-          <button
-            key={gz.id}
-            type="button"
-            title={gz.label}
-            onClick={() => onChange(gz.id as GrundzeichenId)}
-            className={cn(
-              'flex flex-col items-center gap-1 rounded-md p-1.5 text-center transition-colors',
-              isSelected ? 'border-2 border-action-primary bg-action-secondary' : 'hover:bg-surface-hover border-2 border-transparent',
-            )}
-          >
-            <ZeichenPreview definition={definition} size="sm" />
-            <span className="w-full truncate text-[9px] leading-tight text-text-muted">{gz.label}</span>
-          </button>
-        );
-      })}
+  return (
+    <div className="flex flex-col gap-2">
+      <input
+        type="text"
+        value={suche}
+        onChange={(e) => setSuche(e.target.value)}
+        placeholder="Grundzeichen suchen..."
+        autoComplete="off"
+        autoCorrect="off"
+        className="mb-2 w-full rounded-md border border-border-subtle bg-surface-raised px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none"
+      />
+      <div className="grid grid-cols-4 gap-1.5">
+        {gefilterteGrundzeichen.map((gz) => {
+          const definition: ZeichenDefinition = { grundzeichen: gz.id as GrundzeichenId };
+          const isSelected = value === gz.id;
+
+          return (
+            <button
+              key={gz.id}
+              type="button"
+              title={gz.label}
+              onClick={() => onChange(gz.id as GrundzeichenId)}
+              className={cn(
+                'flex flex-col items-center gap-1 rounded-md p-1.5 text-center transition-colors',
+                isSelected ? 'border-2 border-action-primary bg-action-secondary' : 'hover:bg-surface-hover border-2 border-transparent',
+              )}
+            >
+              <ZeichenPreview definition={definition} size="sm" />
+              <span className="w-full truncate text-[9px] leading-tight text-text-muted">{gz.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

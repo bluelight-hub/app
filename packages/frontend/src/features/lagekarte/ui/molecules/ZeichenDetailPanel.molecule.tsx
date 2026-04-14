@@ -75,7 +75,9 @@ export function ZeichenDetailPanel({ zeichen, einsatzId, isOpen, onClose }: Zeic
 
       {/* Scrollbarer Inhalt */}
       <div className="flex-1 overflow-y-auto p-3">
-        {zeichen && <ZeichenDetailContent zeichen={zeichen} onUpdateLabel={handleUpdateLabel} onUpdateNotiz={handleUpdateNotiz} onRemove={handleRemove} isRemoving={isRemoving} />}
+        {zeichen && (
+          <ZeichenDetailContent zeichen={zeichen} einsatzId={einsatzId} onUpdateLabel={handleUpdateLabel} onUpdateNotiz={handleUpdateNotiz} onRemove={handleRemove} isRemoving={isRemoving} />
+        )}
       </div>
     </div>
   );

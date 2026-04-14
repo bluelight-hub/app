@@ -36,7 +36,26 @@ export class EntferneZeichenHandler extends TransactionalCommandHandler<Entferne
 
     const zeichen = findResult.value;
 
-    // 2. Zeichen löschen
+    // 2. Verknüpfte Zeichen (Einheit/Fahrzeug) nur deplatzieren statt löschen
+    if (zeichen.referenzTyp && zeichen.istPlatziert) {
+      const entferneResult = zeichen.entferneVonKarte();
+      if (entferneResult.isFailure) {
+        return Result.fail<void>(entferneResult.error ?? 'ZEICHEN_DEPLATZIEREN_FAILED');
+      }
+
+      const saveResult = await this.taktischeZeichenRepository.save(zeichen, tx);
+      if (saveResult.isFailure) {
+        return Result.fail<void>(saveResult.error ?? 'ZEICHEN_SAVE_FAILED');
+      }
+
+      this.logger.log(`Verknüpftes Zeichen von Karte entfernt (id: ${command.zeichenId}, referenzTyp: ${zeichen.referenzTyp}, referenzId: ${zeichen.referenzId})`, 'EntferneZeichenHandler');
+
+      const events = zeichen.getDomainEvents();
+      zeichen.clearDomainEvents();
+      return { result: undefined, events };
+    }
+
+    // 3. Nicht-verknüpfte Zeichen komplett löschen
     const deleteResult = await this.taktischeZeichenRepository.delete(command.zeichenId, tx);
     if (deleteResult.isFailure) {
       return Result.fail<void>(deleteResult.error ?? 'ZEICHEN_DELETE_FAILED');
@@ -44,7 +63,7 @@ export class EntferneZeichenHandler extends TransactionalCommandHandler<Entferne
 
     this.logger.log(`Taktisches Zeichen gelöscht (id: ${command.zeichenId}, einsatzId: ${command.einsatzId}, entferntVon: ${command.entferntVon})`, 'EntferneZeichenHandler');
 
-    // 3. ZeichenEntferntEvent erzeugen
+    // 4. ZeichenEntferntEvent erzeugen
     const events: DomainEvent[] = [new ZeichenEntferntEvent(zeichen.id.value, zeichen.einsatzId, zeichen.id.value)];
 
     return { result: undefined, events };

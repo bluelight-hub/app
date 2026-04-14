@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import type { EinsatzFahrzeugDto } from '@/shared';
+import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 
 import { PiPlus, PiTreeStructure, PiShieldCheck, PiWarning, PiXCircle } from 'react-icons/pi';
 
@@ -17,6 +18,7 @@ import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 
 import { useEinsatzEinheiten } from '@/features/kraefte/api/use-einsatz-einheiten';
 import { useEinsatzFahrzeuge } from '@/features/kraefte/api/use-einsatz-fahrzeuge';
+import { useEinsatzZeichen } from '@/features/taktische-zeichen';
 import { useChangeEinheitStatus } from '@/features/kraefte/api/use-change-einheit-status';
 import { useDeleteEinheit } from '@/features/kraefte/api/use-delete-einheit';
 
@@ -25,6 +27,7 @@ import { EinheitCreateDialog } from '../organisms/EinheitCreateDialog';
 import { EinheitEditDialog } from '../organisms/EinheitEditDialog';
 import { PersonZuweisungPanel } from '../organisms/PersonZuweisungPanel';
 import { FahrzeugZuweisungPanel } from '../organisms/FahrzeugZuweisungPanel';
+import { EinheitZeichenPanel } from '../organisms/EinheitZeichenPanel';
 
 interface TaktischeEinheitenPageProps {
   /** Einsatz-ID */
@@ -45,10 +48,12 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
   const [deleteEinheitId, setDeleteEinheitId] = useState<string | null>(null);
   const [zuweisungEinheitId, setZuweisungEinheitId] = useState<string | null>(null);
   const [fahrzeugZuweisungEinheitId, setFahrzeugZuweisungEinheitId] = useState<string | null>(null);
+  const [zeichenPanelEinheitId, setZeichenPanelEinheitId] = useState<string | null>(null);
 
   // === Daten laden ===
   const { data: einheiten = [], isLoading, error } = useEinsatzEinheiten(einsatzId);
   const { data: fahrzeuge = [] } = useEinsatzFahrzeuge(einsatzId);
+  const { data: alleZeichen = [] } = useEinsatzZeichen(einsatzId);
 
   /** Fahrzeuge nach Einheit-ID gruppiert */
   const fahrzeugeByEinheit = useMemo(() => {
@@ -61,6 +66,17 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
     }
     return map;
   }, [fahrzeuge]);
+
+  /** Taktische Zeichen nach Einheit-ID indexiert */
+  const zeichenByEinheit = useMemo(() => {
+    const map = new Map<string, TaktischesZeichenResponseDto>();
+    for (const z of alleZeichen) {
+      if (z.referenzTyp === 'EINHEIT' && z.referenzId) {
+        map.set(z.referenzId, z);
+      }
+    }
+    return map;
+  }, [alleZeichen]);
 
   // === Mutations ===
   const { mutate: changeStatus } = useChangeEinheitStatus(einsatzId);
@@ -139,6 +155,14 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
 
   const handleCloseFahrzeugZuweisung = useCallback(() => {
     setFahrzeugZuweisungEinheitId(null);
+  }, []);
+
+  const handleOpenZeichen = useCallback((einheitId: string) => {
+    setZeichenPanelEinheitId(einheitId);
+  }, []);
+
+  const handleCloseZeichen = useCallback(() => {
+    setZeichenPanelEinheitId(null);
   }, []);
 
   // === Loading State ===
@@ -233,6 +257,8 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
         onAssignPersonen={handleOpenZuweisung}
         onAssignFahrzeuge={handleOpenFahrzeugZuweisung}
         fahrzeugeByEinheit={fahrzeugeByEinheit}
+        onManageZeichen={handleOpenZeichen}
+        zeichenByEinheit={zeichenByEinheit}
       />
 
       {/* Erstellen Dialog */}
@@ -265,6 +291,17 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
           einsatzId={einsatzId}
           einheitId={fahrzeugZuweisungEinheitId}
           einheitName={einheiten.find((e) => e.id === fahrzeugZuweisungEinheitId)?.name ?? 'Einheit'}
+        />
+      )}
+
+      {/* Taktisches Zeichen Panel */}
+      {zeichenPanelEinheitId && (
+        <EinheitZeichenPanel
+          isOpen={!!zeichenPanelEinheitId}
+          onClose={handleCloseZeichen}
+          einsatzId={einsatzId}
+          einheitId={zeichenPanelEinheitId}
+          einheitName={einheiten.find((e) => e.id === zeichenPanelEinheitId)?.name ?? 'Einheit'}
         />
       )}
     </div>

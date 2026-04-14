@@ -4,6 +4,7 @@
  * Zeigt ein Grid aller Organisationen mit farbiger Vorschau.
  */
 
+import { useState } from 'react';
 import { organisationen } from 'taktische-zeichen-core';
 import { cn } from '@/shared/ui/cn';
 import { ZeichenPreview } from '../../rendering/ZeichenPreview';
@@ -20,6 +21,11 @@ export interface OrganisationPickerProps {
 }
 
 export function OrganisationPicker({ grundzeichen: gz, value, onChange }: OrganisationPickerProps) {
+  const [suche, setSuche] = useState('');
+
+  /** Gefilterte Organisationen basierend auf Suchbegriff */
+  const gefilterteOrganisationen = organisationen.filter((org) => org.label.toLowerCase().includes(suche.toLowerCase()));
+
   return (
     <div className="flex flex-col gap-2">
       {/* Keine Organisation */}
@@ -35,9 +41,20 @@ export function OrganisationPicker({ grundzeichen: gz, value, onChange }: Organi
         <span>Keine / Allgemein</span>
       </button>
 
+      {/* Suchfeld */}
+      <input
+        type="text"
+        value={suche}
+        onChange={(e) => setSuche(e.target.value)}
+        placeholder="Organisation suchen..."
+        autoComplete="off"
+        autoCorrect="off"
+        className="mb-2 w-full rounded-md border border-border-subtle bg-surface-raised px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none"
+      />
+
       {/* Organisationen */}
       <div className="grid grid-cols-2 gap-1.5">
-        {organisationen.map((org) => {
+        {gefilterteOrganisationen.map((org) => {
           const definition: ZeichenDefinition = { grundzeichen: gz, organisation: org.id as OrganisationId };
           const isSelected = value === org.id;
 

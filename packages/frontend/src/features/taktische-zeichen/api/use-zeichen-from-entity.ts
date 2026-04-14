@@ -7,7 +7,7 @@
  *
  * Mapping-Regeln:
  * - Einheiten: typ → EinheitId (TRUPP, STAFFEL, GRUPPE, ZUG, ABSCHNITT)
- * - Fahrzeuge: Grundzeichen 'kraftfahrzeug-gelaendegaengig'
+ * - Fahrzeuge: Grundzeichen 'kraftfahrzeug-landgebunden'
  * - Organisation und Fachaufgabe werden nicht automatisch abgeleitet
  *   (keine entsprechenden Felder in den DTOs)
  */
@@ -38,10 +38,10 @@ const EINHEIT_TYP_ZU_ZEICHEN_ID: Record<string, EinheitId> = {
 };
 
 /** Standard-Grundzeichen für taktische Einheiten */
-const DEFAULT_GRUNDZEICHEN_EINHEIT: GrundzeichenId = 'person';
+const DEFAULT_GRUNDZEICHEN_EINHEIT: GrundzeichenId = 'taktische-formation';
 
 /** Standard-Grundzeichen für Fahrzeuge */
-const DEFAULT_GRUNDZEICHEN_FAHRZEUG: GrundzeichenId = 'kraftfahrzeug-gelaendegaengig';
+const DEFAULT_GRUNDZEICHEN_FAHRZEUG: GrundzeichenId = 'kraftfahrzeug-landgebunden';
 
 /**
  * Leitet aus einer EinsatzEinheit eine ZeichenDefinition ab.

@@ -19,7 +19,11 @@ import { cn } from '@/shared/ui/cn';
 import { FmsStatusBadge } from '@/features/einsatz/ui/atoms/FmsStatusBadge.atom';
 import { isFmsStatus, type FmsStatus } from '@/features/einsatz/constants/fms-status.constants';
 import type { EinsatzFahrzeugDto } from '@/shared';
-import { PiTruck, PiUsers } from 'react-icons/pi';
+import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
+import { ZeichenPreview } from '@/features/taktische-zeichen/rendering/ZeichenPreview';
+import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { PiMapPin, PiTruck, PiUsers } from 'react-icons/pi';
 import { useDashboardMode, type DashboardMode } from '../../contexts';
 
 interface FahrzeugCardProps {
@@ -31,6 +35,10 @@ interface FahrzeugCardProps {
   isLoading?: boolean;
   /** Zusätzliche CSS Klassen */
   className?: string;
+  /** Handler für "Zeichen verwalten" */
+  onManageZeichen?: (fahrzeugId: string) => void;
+  /** Verknüpftes taktisches Zeichen (null/undefined wenn keins vorhanden) */
+  zeichen?: TaktischesZeichenResponseDto | null;
 }
 
 /**
@@ -98,7 +106,7 @@ export function FahrzeugCardSkeleton({ className }: { className?: string }) {
  *
  * Story 6.2: Mode-aware via useDashboardMode() Context.
  */
-export function FahrzeugCard({ fahrzeug, onClick, isLoading, className }: FahrzeugCardProps) {
+export function FahrzeugCard({ fahrzeug, onClick, isLoading, className, onManageZeichen, zeichen }: FahrzeugCardProps) {
   const mode = useDashboardMode();
   const classes = getModeClasses(mode);
 
@@ -140,12 +148,32 @@ export function FahrzeugCard({ fahrzeug, onClick, isLoading, className }: Fahrze
       <div className="flex items-start justify-between gap-3">
         {/* Fahrzeug-Info */}
         <div className="flex items-center gap-2">
+          {zeichen && <ZeichenPreview definition={zeichen.zeichenDefinition as unknown as ZeichenDefinition} size="sm" />}
           <PiTruck className={cn('text-text-muted', classes.truckIcon)} />
           <h3 className={classes.funkrufname}>{fahrzeug.funkrufname}</h3>
         </div>
 
-        {/* FMS-Status Badge - Story 6.2: Mode-spezifische Größe via className */}
-        <FmsStatusBadge status={validFmsStatus} className={cn(mode === 'fullscreen' && 'px-3 py-1 text-sm', mode === 'compact' && 'px-1.5 py-0.5 text-[10px]')} />
+        <div className="flex items-center gap-2">
+          {/* Taktisches Zeichen verwalten */}
+          {onManageZeichen && (
+            <Button
+              intent="secondary"
+              appearance="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onManageZeichen(fahrzeug.id);
+              }}
+              title="Taktisches Zeichen"
+              aria-label="Taktisches Zeichen verwalten"
+            >
+              <PiMapPin className="h-4 w-4" />
+            </Button>
+          )}
+
+          {/* FMS-Status Badge - Story 6.2: Mode-spezifische Größe via className */}
+          <FmsStatusBadge status={validFmsStatus} className={cn(mode === 'fullscreen' && 'px-3 py-1 text-sm', mode === 'compact' && 'px-1.5 py-0.5 text-[10px]')} />
+        </div>
       </div>
 
       {/* AC4: Besatzungs-Preview */}
