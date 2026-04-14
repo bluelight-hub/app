@@ -231,6 +231,7 @@ models/EinsatzFahrzeugDto.ts
 models/EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response.ts
 models/EinsatzFahrzeugeControllerFindAllVAlpha200Response.ts
 models/EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200Response.ts
+models/EinsatzFahrzeugeControllerGetZeichenVAlpha200Response.ts
 models/EinsatzListItemDto.ts
 models/EinsatzListItemDtoEinsatzort.ts
 models/EinsatzPersonResponseDto.ts
@@ -429,7 +430,6 @@ models/StatusCountsResponseDto.ts
 models/StopRecurringSeriesDto.ts
 models/SystemHealthDto.ts
 models/TaktischeStaerkeDto.ts
-models/TaktischeZeichenControllerCreateVAlpha201Response.ts
 models/TaktischeZeichenControllerFindAllVAlpha200Response.ts
 models/TaktischeZeichenControllerGetDefaultsFahrzeugtypenVAlpha200Response.ts
 models/TaktischeZeichenControllerGetKatalogVAlpha200Response.ts

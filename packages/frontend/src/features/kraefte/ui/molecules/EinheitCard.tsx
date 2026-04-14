@@ -8,13 +8,16 @@
 
 import { useCallback, useState } from 'react';
 
-import { PiCaretDown, PiCaretRight, PiPencilSimple, PiPlus, PiTrash, PiTruck, PiUserCircle, PiUsers } from 'react-icons/pi';
+import { PiCaretDown, PiCaretRight, PiMapPin, PiPaintBrush, PiPencilSimple, PiPlus, PiTrash, PiTruck, PiUserCircle, PiUsers } from 'react-icons/pi';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
 
 import type { EinsatzFahrzeugDto } from '@/shared';
+import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 import type { EinheitTreeNode } from '@/features/kraefte/utils/einheiten-tree.utils';
+import { ZeichenPreview } from '@/features/taktische-zeichen/rendering/ZeichenPreview';
+import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
 
 import { EinheitStatusBadge } from './EinheitStatusBadge';
 import { EinheitTypBadge } from './EinheitTypBadge';
@@ -47,6 +50,10 @@ interface EinheitCardProps {
   onAssignFahrzeuge: (einheitId: string) => void;
   /** Alle Fahrzeuge des Einsatzes (für Badges, Filterung nach einheitId intern) */
   fahrzeugeByEinheit: Map<string, EinsatzFahrzeugDto[]>;
+  /** Handler für "Zeichen verwalten" */
+  onManageZeichen: (einheitId: string) => void;
+  /** Zeichen nach Einheit-ID indexiert */
+  zeichenByEinheit: Map<string, TaktischesZeichenResponseDto>;
 }
 
 /**
@@ -55,7 +62,19 @@ interface EinheitCardProps {
  * Unterstützt beliebige Verschachtelungstiefe durch rekursives Rendering
  * der children. Die Einrückung erfolgt über dynamische padding-left Berechnung.
  */
-export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onAddChild, onAssignPersonen, onAssignFahrzeuge, fahrzeugeByEinheit }: EinheitCardProps) {
+export function EinheitCard({
+  node,
+  depth,
+  onEdit,
+  onDelete,
+  onStatusChange,
+  onAddChild,
+  onAssignPersonen,
+  onAssignFahrzeuge,
+  fahrzeugeByEinheit,
+  onManageZeichen,
+  zeichenByEinheit,
+}: EinheitCardProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
@@ -85,6 +104,13 @@ export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onA
   const handleAssignFahrzeuge = useCallback(() => {
     onAssignFahrzeuge(einheit.id);
   }, [onAssignFahrzeuge, einheit.id]);
+
+  const handleManageZeichen = useCallback(() => {
+    onManageZeichen(einheit.id);
+  }, [onManageZeichen, einheit.id]);
+
+  /** Verknüpftes taktisches Zeichen (null wenn keins vorhanden) */
+  const zeichen = zeichenByEinheit?.get(einheit.id) ?? null;
 
   /** Fahrzeuge dieser Einheit */
   const einheitFahrzeuge = fahrzeugeByEinheit.get(einheit.id) ?? [];
@@ -126,6 +152,14 @@ export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onA
           {/* Einheit Info */}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
+              {zeichen ? (
+                <ZeichenPreview definition={zeichen.zeichenDefinition as unknown as ZeichenDefinition} size="sm" />
+              ) : (
+                <Button intent="secondary" appearance="outline" size="sm" onClick={handleManageZeichen} title="Taktisches Zeichen zuweisen">
+                  <PiPaintBrush className="mr-1 h-3.5 w-3.5" />
+                  Zeichen zuweisen
+                </Button>
+              )}
               <h3 className="truncate text-sm font-semibold text-text-primary">{einheit.name}</h3>
               <EinheitTypBadge typ={einheit.typ} />
               <EinheitStatusBadge status={einheit.status} />
@@ -191,6 +225,11 @@ export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onA
             {/* Fahrzeuge zuweisen */}
             <Button intent="secondary" appearance="ghost" size="icon" onClick={handleAssignFahrzeuge} title="Fahrzeuge zuweisen" aria-label={`Fahrzeuge für ${einheit.name} zuweisen`}>
               <PiTruck className="h-4 w-4" />
+            </Button>
+
+            {/* Taktisches Zeichen verwalten */}
+            <Button intent="secondary" appearance="ghost" size="icon" onClick={handleManageZeichen} title="Taktisches Zeichen" aria-label="Taktisches Zeichen verwalten">
+              <PiMapPin className="h-4 w-4" />
             </Button>
 
             {/* Status ändern */}
@@ -266,6 +305,8 @@ export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onA
               onAssignPersonen={onAssignPersonen}
               onAssignFahrzeuge={onAssignFahrzeuge}
               fahrzeugeByEinheit={fahrzeugeByEinheit}
+              onManageZeichen={onManageZeichen}
+              zeichenByEinheit={zeichenByEinheit}
             />
           ))}
         </div>

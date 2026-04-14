@@ -8,9 +8,14 @@ import { EinsatzFahrzeug } from '@domain/kraefte/aggregates/einsatz-fahrzeug.agg
 import { IEinsatzFahrzeugRepository } from '@domain/kraefte/repositories/i-einsatz-fahrzeug.repository';
 import { IFahrzeugtypRepository } from '@domain/kraefte/repositories/i-fahrzeugtyp.repository';
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+import type { IDefaultZeichenRepository } from '@domain/taktische-zeichen/ports/idefault-zeichen.repository';
+import type { ITaktischesZeichenRepository } from '@domain/taktische-zeichen/ports/itaktisches-zeichen.repository';
+import { TaktischesZeichen } from '@domain/taktische-zeichen/aggregates/taktisches-zeichen.aggregate';
+import { ZeichenDefinition } from '@domain/taktische-zeichen/value-objects/zeichen-definition.vo';
+import type { ZeichenDefinitionProps } from '@domain/taktische-zeichen/value-objects/zeichen-definition.vo';
 import { FahrzeugtypId } from '@domain/kraefte/value-objects/fahrzeugtyp-id';
 import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/kraefte/common/einsatz-fahrzeug-error-codes';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER, TAKTISCHE_ZEICHEN_REPOSITORY, DEFAULT_ZEICHEN_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { EinsatzFahrzeugDto } from '../../dto';
 import { EinsatzFahrzeugQueryMapper } from '../../queries/einsatz-fahrzeug-query.mapper';
@@ -48,6 +53,10 @@ export class ErfasseTemporalesFahrzeugHandler extends TransactionalCommandHandle
     private readonly einsatzFahrzeugRepository: IEinsatzFahrzeugRepository,
     @Inject(KRAEFTE_REPOSITORIES.FAHRZEUGTYP)
     private readonly fahrzeugtypRepository: IFahrzeugtypRepository,
+    @Inject(TAKTISCHE_ZEICHEN_REPOSITORY)
+    private readonly taktischesZeichenRepository: ITaktischesZeichenRepository,
+    @Inject(DEFAULT_ZEICHEN_REPOSITORY)
+    private readonly defaultZeichenRepository: IDefaultZeichenRepository,
     @Inject(LOGGER)
     protected readonly logger: ILogger,
   ) {
@@ -119,13 +128,54 @@ export class ErfasseTemporalesFahrzeugHandler extends TransactionalCommandHandle
       return Result.fail(saveResult.error ?? 'Fehler beim Speichern des EinsatzFahrzeugs');
     }
 
-    // 6. Extract Domain Events (für Outbox - AC4)
+    // 6. Default-Zeichen synchron in derselben Transaktion erstellen
+    try {
+      const defaultsResult = await this.defaultZeichenRepository.findAllFahrzeugtypen();
+      let zeichenDefProps: ZeichenDefinitionProps = {
+        grundzeichen: 'kraftfahrzeug-landgebunden',
+      };
+
+      // DB-Default überschreibt den Fallback (match auf fahrzeugtypId)
+      if (defaultsResult.isSuccess && defaultsResult.value) {
+        const match = defaultsResult.value.find((d) => d.referenzId === command.fahrzeugtypId);
+        if (match) {
+          zeichenDefProps = match.zeichenDefinition.toJson();
+        }
+      }
+
+      const zeichenDefResult = ZeichenDefinition.create(zeichenDefProps);
+      if (zeichenDefResult.isSuccess && zeichenDefResult.value) {
+        const zeichenResult = TaktischesZeichen.create({
+          einsatzId: command.einsatzId,
+          zeichenDefinition: zeichenDefResult.value,
+          referenzTyp: 'FAHRZEUG',
+          referenzId: einsatzFahrzeug.id.value,
+          label: einsatzFahrzeug.funkrufname,
+          istAusKatalog: false,
+          createdBy: command.createdBy,
+        });
+
+        if (zeichenResult.isSuccess && zeichenResult.value) {
+          const saveZeichenResult = await this.taktischesZeichenRepository.save(zeichenResult.value, tx);
+          if (saveZeichenResult.isSuccess) {
+            this.logger.log(`Default-Zeichen für Fahrzeug ${einsatzFahrzeug.id.value} (${einsatzFahrzeug.funkrufname}) erstellt`);
+          } else {
+            this.logger.error(`Fehler beim Speichern des Default-Zeichens: ${saveZeichenResult.error}`);
+          }
+        }
+      }
+    } catch (error) {
+      // Zeichen-Erstellung darf Fahrzeug-Erstellung nicht blockieren
+      this.logger.error(`Fehler beim Erstellen des Default-Zeichens für Fahrzeug ${einsatzFahrzeug.id.value}: ${String(error)}`);
+    }
+
+    // 7. Extract Domain Events (für Outbox - AC4)
     const events = einsatzFahrzeug.getDomainEvents();
     einsatzFahrzeug.clearDomainEvents();
 
     this.logger.log(`Temporäres EinsatzFahrzeug erfasst: ${einsatzFahrzeug.id.value} (${einsatzFahrzeug.funkrufname}) für Einsatz ${command.einsatzId}`);
 
-    // 7. Map to DTO and return
+    // 8. Map to DTO and return
     const dto = EinsatzFahrzeugQueryMapper.toDto(einsatzFahrzeug, fahrzeugtyp);
     return { result: dto, events };
   }

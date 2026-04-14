@@ -7,9 +7,23 @@ import { EinsatzEinheit } from '@domain/kraefte/aggregates/einsatz-einheit.aggre
 import { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import type { IDefaultZeichenRepository } from '@domain/taktische-zeichen/ports/idefault-zeichen.repository';
+import type { ITaktischesZeichenRepository } from '@domain/taktische-zeichen/ports/itaktisches-zeichen.repository';
+import { TaktischesZeichen } from '@domain/taktische-zeichen/aggregates/taktisches-zeichen.aggregate';
+import { ZeichenDefinition } from '@domain/taktische-zeichen/value-objects/zeichen-definition.vo';
+import type { ZeichenDefinitionProps } from '@domain/taktische-zeichen/value-objects/zeichen-definition.vo';
+import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY, TAKTISCHE_ZEICHEN_REPOSITORY, DEFAULT_ZEICHEN_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { CreateEinheitCommand } from './create-einheit.command';
+
+/** Mapping von EinsatzEinheitTyp → taktische-zeichen-core EinheitId */
+const EINHEIT_TYP_ZU_ZEICHEN_EINHEIT: Record<string, string> = {
+  TRUPP: 'trupp',
+  STAFFEL: 'staffel',
+  GRUPPE: 'gruppe',
+  ZUG: 'zug',
+  ABSCHNITT: 'abschnitt',
+};
 
 /**
  * Handler für CreateEinheitCommand.
@@ -27,6 +41,10 @@ export class CreateEinheitHandler extends TransactionalCommandHandler<CreateEinh
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(KRAEFTE_REPOSITORIES.EINSATZ_EINHEIT)
     private readonly einsatzEinheitRepository: IEinsatzEinheitRepository,
+    @Inject(TAKTISCHE_ZEICHEN_REPOSITORY)
+    private readonly taktischesZeichenRepository: ITaktischesZeichenRepository,
+    @Inject(DEFAULT_ZEICHEN_REPOSITORY)
+    private readonly defaultZeichenRepository: IDefaultZeichenRepository,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
@@ -69,7 +87,50 @@ export class CreateEinheitHandler extends TransactionalCommandHandler<CreateEinh
       return Result.fail(saveResult.error ?? 'Fehler beim Speichern der Einheit');
     }
 
-    // 3. Domain Events extrahieren (für Outbox)
+    // 3. Default-Zeichen synchron in derselben Transaktion erstellen
+    try {
+      // Default-Zeichendefinition für den Einheitentyp laden
+      const defaultsResult = await this.defaultZeichenRepository.findAllEinheitentypen();
+      let zeichenDefProps: ZeichenDefinitionProps = {
+        grundzeichen: 'taktische-formation',
+        einheit: EINHEIT_TYP_ZU_ZEICHEN_EINHEIT[command.typ],
+      };
+
+      // DB-Default überschreibt den Fallback
+      if (defaultsResult.isSuccess && defaultsResult.value) {
+        const match = defaultsResult.value.find((d) => d.typBezeichnung === command.typ);
+        if (match) {
+          zeichenDefProps = match.zeichenDefinition.toJson();
+        }
+      }
+
+      const zeichenDefResult = ZeichenDefinition.create(zeichenDefProps);
+      if (zeichenDefResult.isSuccess && zeichenDefResult.value) {
+        const zeichenResult = TaktischesZeichen.create({
+          einsatzId: command.einsatzId,
+          zeichenDefinition: zeichenDefResult.value,
+          referenzTyp: 'EINHEIT',
+          referenzId: einheit.id.value,
+          label: command.name,
+          istAusKatalog: false,
+          createdBy: command.createdBy,
+        });
+
+        if (zeichenResult.isSuccess && zeichenResult.value) {
+          const saveZeichenResult = await this.taktischesZeichenRepository.save(zeichenResult.value, tx);
+          if (saveZeichenResult.isSuccess) {
+            this.logger.log(`Default-Zeichen für Einheit ${einheit.id.value} (${einheit.name}) erstellt`);
+          } else {
+            this.logger.error(`Fehler beim Speichern des Default-Zeichens: ${saveZeichenResult.error}`);
+          }
+        }
+      }
+    } catch (error) {
+      // Zeichen-Erstellung darf Einheit-Erstellung nicht blockieren
+      this.logger.error(`Fehler beim Erstellen des Default-Zeichens für Einheit ${einheit.id.value}: ${String(error)}`);
+    }
+
+    // 4. Domain Events extrahieren (für Outbox)
     const events = einheit.getDomainEvents();
     einheit.clearDomainEvents();
 

@@ -33,3 +33,7 @@ export { useRemovePersonFromEinheit } from './use-remove-person-from-einheit';
 export { useMoveEinheit } from './use-move-einheit';
 export { useDeleteEinheit } from './use-delete-einheit';
 export { useAssignFahrzeugZuEinheit } from './use-assign-fahrzeug-zu-einheit';
+
+// Query/Mutation Hooks (Issue #667 - Einheit taktisches Zeichen)
+export { useEinheitZeichen } from './use-einheit-zeichen';
+export { useUpdateEinheitZeichen } from './use-update-einheit-zeichen';

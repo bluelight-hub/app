@@ -4,7 +4,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
 import { StammFahrzeug } from '@domain/kraefte/aggregates/stamm-fahrzeug.aggregate';
 import { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER, TAKTISCHE_ZEICHEN_REPOSITORY, DEFAULT_ZEICHEN_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { EINSATZ_FAHRZEUG_ERROR_CODES } from '@domain/kraefte/common/einsatz-fahrzeug-error-codes';
 import { ErfasseFahrzeugAusStammdatenHandler } from '../erfasse-fahrzeug-aus-stammdaten.handler';
@@ -145,6 +145,8 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
         { provide: KRAEFTE_REPOSITORIES.EINSATZ_FAHRZEUG, useValue: mockEinsatzFahrzeugRepository },
         { provide: KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG, useValue: mockStammFahrzeugRepository },
         { provide: KRAEFTE_REPOSITORIES.FAHRZEUGTYP, useValue: mockFahrzeugtypRepository },
+        { provide: TAKTISCHE_ZEICHEN_REPOSITORY, useValue: { save: jest.fn().mockResolvedValue(Result.ok(undefined)), findByReferenz: jest.fn().mockResolvedValue(Result.ok([])) } },
+        { provide: DEFAULT_ZEICHEN_REPOSITORY, useValue: { findAllFahrzeugtypen: jest.fn().mockResolvedValue(Result.ok([])) } },
         { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();

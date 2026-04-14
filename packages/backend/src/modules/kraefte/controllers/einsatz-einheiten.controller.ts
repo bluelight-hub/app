@@ -52,6 +52,8 @@ import { MoveEinheitHandler } from '@application/kraefte/einsatz-einheiten/comma
 import { DeleteEinheitHandler } from '@application/kraefte/einsatz-einheiten/commands/delete-einheit/delete-einheit.handler';
 import { GetEinsatzEinheitenHandler } from '@application/kraefte/einsatz-einheiten/queries/get-einsatz-einheiten/get-einsatz-einheiten.handler';
 import { GetEinheitDetailsHandler } from '@application/kraefte/einsatz-einheiten/queries/get-einheit-details/get-einheit-details.handler';
+import { GetEinheitZeichenHandler } from '@application/kraefte/einsatz-einheiten/queries/get-einheit-zeichen/get-einheit-zeichen.handler';
+import { AktualisiereZeichenHandler } from '@application/taktische-zeichen/commands/aktualisiere-zeichen/aktualisiere-zeichen.handler';
 
 // Commands & Queries
 import { CreateEinheitCommand } from '@application/kraefte/einsatz-einheiten/commands/create-einheit/create-einheit.command';
@@ -64,6 +66,8 @@ import { MoveEinheitCommand } from '@application/kraefte/einsatz-einheiten/comma
 import { DeleteEinheitCommand } from '@application/kraefte/einsatz-einheiten/commands/delete-einheit/delete-einheit.command';
 import { GetEinsatzEinheitenQuery } from '@application/kraefte/einsatz-einheiten/queries/get-einsatz-einheiten/get-einsatz-einheiten.query';
 import { GetEinheitDetailsQuery } from '@application/kraefte/einsatz-einheiten/queries/get-einheit-details/get-einheit-details.query';
+import { GetEinheitZeichenQuery } from '@application/kraefte/einsatz-einheiten/queries/get-einheit-zeichen/get-einheit-zeichen.query';
+import { AktualisiereZeichenCommand } from '@application/taktische-zeichen/commands/aktualisiere-zeichen/aktualisiere-zeichen.command';
 
 // DTOs
 import {
@@ -77,6 +81,10 @@ import {
   MoveEinheitDto,
   EinheitCreatedResponseDto,
 } from '@application/kraefte/einsatz-einheiten/dto';
+
+// Taktische Zeichen DTOs (Issue #667)
+import { TaktischesZeichenResponseDto } from '@application/taktische-zeichen/dtos/taktisches-zeichen-response.dto';
+import { UpdateTaktischesZeichenDto } from '@/modules/taktische-zeichen/dtos/update-taktisches-zeichen.dto';
 
 // Error Codes
 import { EINSATZ_EINHEIT_ERROR_CODES, EinsatzEinheitError } from '@domain/kraefte/common/einsatz-einheit-error-codes';
@@ -115,6 +123,8 @@ export class EinsatzEinheitenController {
     private readonly deleteEinheitHandler: DeleteEinheitHandler,
     private readonly getEinsatzEinheitenHandler: GetEinsatzEinheitenHandler,
     private readonly getEinheitDetailsHandler: GetEinheitDetailsHandler,
+    private readonly getEinheitZeichenHandler: GetEinheitZeichenHandler,
+    private readonly aktualisiereZeichenHandler: AktualisiereZeichenHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
@@ -723,6 +733,141 @@ export class EinsatzEinheitenController {
     this.logger.log(`EinsatzEinheit verschoben: ${id} → Parent ${dto.parentId ?? 'Root'} für Einsatz ${einsatzId} von User ${user.userId}`, 'EinsatzEinheitenController');
 
     return result.value;
+  }
+
+  /**
+   * Taktisches Zeichen einer Einheit abrufen.
+   *
+   * Gibt das verknüpfte taktische Zeichen der Einheit zurück,
+   * oder null wenn kein Zeichen vorhanden ist.
+   *
+   * **Issue #667:** Einheit-Zeichen-Verknüpfung
+   *
+   * @param einsatzId - UUID des Einsatzes
+   * @param einheitId - CUID2 der EinsatzEinheit
+   * @returns TaktischesZeichenResponseDto oder null
+   */
+  @Get(':einheitId/zeichen')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: 'Taktisches Zeichen der Einheit abrufen' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
+  @ApiParam({ name: 'einheitId', type: String, format: 'cuid2', description: 'EinsatzEinheit-ID (CUID2)' })
+  @ApiWrappedResponse(TaktischesZeichenResponseDto, { description: 'Zeichen der Einheit (null wenn keins vorhanden)' })
+  @ApiBadRequestResponse({ description: 'Ungültige ID' })
+  async getZeichen(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @Param('einheitId', ParseCuidPipe) einheitId: string): Promise<TaktischesZeichenResponseDto | null> {
+    const queryResult = GetEinheitZeichenQuery.create(einsatzId, einheitId);
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const query = queryResult.value;
+    if (!query) {
+      throw new BadRequestException('Fehler beim Erstellen der Query');
+    }
+
+    const result = await this.getEinheitZeichenHandler.execute(query);
+
+    if (result.isFailure) {
+      this.logger.error(`Fehler beim Abrufen des Zeichens für Einheit ${einheitId}: ${result.error}`, 'EinsatzEinheitenController');
+      throw new InternalServerErrorException('Fehler beim Abrufen des taktischen Zeichens');
+    }
+
+    return result.value ?? null;
+  }
+
+  /**
+   * Taktisches Zeichen einer Einheit aktualisieren.
+   *
+   * Aktualisiert die Zeichendefinition, Label oder Notiz des
+   * verknüpften taktischen Zeichens der Einheit.
+   *
+   * **Issue #667:** Einheit-Zeichen-Verknüpfung
+   *
+   * @param einsatzId - UUID des Einsatzes
+   * @param einheitId - CUID2 der EinsatzEinheit
+   * @param user - Aktueller Benutzer (aus JWT Token)
+   * @param dto - UpdateTaktischesZeichenDto mit optionalen Feldern
+   * @returns Aktualisiertes TaktischesZeichenResponseDto
+   * @throws NotFoundException wenn kein Zeichen für die Einheit existiert
+   */
+  @Patch(':einheitId/zeichen')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Taktisches Zeichen der Einheit aktualisieren' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
+  @ApiParam({ name: 'einheitId', type: String, format: 'cuid2', description: 'EinsatzEinheit-ID (CUID2)' })
+  @ApiWrappedResponse(TaktischesZeichenResponseDto, { description: 'Zeichen aktualisiert' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler' })
+  @ApiNotFoundResponse({ description: 'Kein Zeichen für diese Einheit vorhanden' })
+  async updateZeichen(
+    @Param('einsatzId', ParseCuidPipe) einsatzId: string,
+    @Param('einheitId', ParseCuidPipe) einheitId: string,
+    @CurrentUser() user: ValidatedUser,
+    @Body() dto: UpdateTaktischesZeichenDto,
+  ): Promise<TaktischesZeichenResponseDto> {
+    // 1. Zeichen über Query-Handler finden
+    const queryResult = GetEinheitZeichenQuery.create(einsatzId, einheitId);
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const query = queryResult.value;
+    if (!query) {
+      throw new BadRequestException('Fehler beim Erstellen der Query');
+    }
+
+    const zeichenResult = await this.getEinheitZeichenHandler.execute(query);
+
+    if (zeichenResult.isFailure) {
+      this.logger.error(`Fehler beim Abrufen des Zeichens für Einheit ${einheitId}: ${zeichenResult.error}`, 'EinsatzEinheitenController');
+      throw new InternalServerErrorException('Fehler beim Abrufen des taktischen Zeichens');
+    }
+
+    const zeichen = zeichenResult.value;
+    if (!zeichen) {
+      throw new NotFoundException(`Kein taktisches Zeichen für Einheit '${einheitId}' vorhanden`);
+    }
+
+    // 2. Aktualisierungs-Command erstellen
+    const commandResult = AktualisiereZeichenCommand.create({
+      einsatzId,
+      zeichenId: zeichen.id,
+      zeichenDefinition: dto.zeichenDefinition,
+      label: dto.label,
+      notiz: dto.notiz,
+      aktualisiertVon: user.userId,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Fehler beim Erstellen des Commands');
+    }
+
+    // 3. Zeichen aktualisieren
+    const updateResult = await this.aktualisiereZeichenHandler.execute(command);
+
+    if (updateResult.isFailure) {
+      const error = updateResult.error ?? '';
+
+      if (error.includes('ZEICHEN_NOT_FOUND')) {
+        throw new NotFoundException('Taktisches Zeichen nicht gefunden');
+      }
+
+      this.logger.error(`Fehler beim Aktualisieren des Zeichens für Einheit ${einheitId}: ${error}`, 'EinsatzEinheitenController');
+      throw new BadRequestException(error || 'Fehler beim Aktualisieren des taktischen Zeichens');
+    }
+
+    if (!updateResult.value) {
+      throw new InternalServerErrorException('Fehler beim Aktualisieren des taktischen Zeichens');
+    }
+
+    this.logger.log(`Taktisches Zeichen für Einheit ${einheitId} aktualisiert von User ${user.userId}`, 'EinsatzEinheitenController');
+
+    return updateResult.value;
   }
 
   /**

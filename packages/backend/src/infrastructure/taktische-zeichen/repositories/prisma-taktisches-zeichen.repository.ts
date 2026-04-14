@@ -84,6 +84,20 @@ export class PrismaTaktischesZeichenRepository implements ITaktischesZeichenRepo
     }
   }
 
+  async findByReferenz(referenzTyp: string, referenzId: string, tx?: TransactionContext): Promise<Result<TaktischesZeichen[]>> {
+    try {
+      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+      const data = await client.taktischesZeichen.findMany({
+        where: { referenzTyp, referenzId },
+        orderBy: { createdAt: 'asc' },
+      });
+      return Result.ok<TaktischesZeichen[]>(data.map(PrismaTaktischesZeichenMapper.toDomain));
+    } catch (error) {
+      this.logger.error(`Failed to find TaktischeZeichen für Referenz ${referenzTyp}/${referenzId}: ${error}`, 'PrismaTaktischesZeichenRepository');
+      return Result.fail<TaktischesZeichen[]>(`Database error: ${error}`);
+    }
+  }
+
   async delete(id: string, tx?: TransactionContext): Promise<Result<void>> {
     try {
       const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;

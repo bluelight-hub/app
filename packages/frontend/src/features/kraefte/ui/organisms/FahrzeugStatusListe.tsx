@@ -17,10 +17,14 @@
  * - Zeigt "Keine Fahrzeuge erfasst" wenn Liste leer
  */
 
+import { useState, useMemo, useCallback } from 'react';
 import { cn } from '@/shared/ui/cn';
+import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 import { DashboardErrorCard } from '@/features/kraefte/ui';
 import { FahrzeugCard, FahrzeugCardSkeleton } from '../molecules/FahrzeugCard';
+import { FahrzeugZeichenPanel } from './FahrzeugZeichenPanel';
 import { useEinsatzFahrzeuge } from '@/features/kraefte';
+import { useEinsatzZeichen } from '@/features/taktische-zeichen';
 import { useDashboardMode, type DashboardMode } from '../../contexts';
 import { PiArrowClockwise, PiTruck } from 'react-icons/pi';
 import type { EinsatzFahrzeugDto } from '@/shared';
@@ -105,6 +109,9 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
   const mode = useDashboardMode();
   const containerClasses = getContainerClasses(mode);
 
+  // Zeichen-Panel State
+  const [zeichenPanelFahrzeugId, setZeichenPanelFahrzeugId] = useState<string | null>(null);
+
   // AC3: refetchInterval nur in Fullscreen
   const {
     data: fahrzeuge,
@@ -115,6 +122,29 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
   } = useEinsatzFahrzeuge(einsatzId, {
     refetchInterval: mode === 'fullscreen' ? 30000 : false,
   });
+
+  // Alle Zeichen des Einsatzes laden und nach Fahrzeug-ID indexieren
+  const { data: alleZeichen = [] } = useEinsatzZeichen(einsatzId);
+  const zeichenByFahrzeug = useMemo(() => {
+    const map = new Map<string, TaktischesZeichenResponseDto>();
+    for (const z of alleZeichen) {
+      if (z.referenzTyp === 'FAHRZEUG' && z.referenzId) {
+        map.set(z.referenzId, z);
+      }
+    }
+    return map;
+  }, [alleZeichen]);
+
+  const handleManageZeichen = useCallback((fahrzeugId: string) => {
+    setZeichenPanelFahrzeugId(fahrzeugId);
+  }, []);
+
+  const handleCloseZeichenPanel = useCallback(() => {
+    setZeichenPanelFahrzeugId(null);
+  }, []);
+
+  /** Fahrzeug-Daten für das aktuell geöffnete Zeichen-Panel */
+  const zeichenPanelFahrzeug = fahrzeuge?.find((f) => f.id === zeichenPanelFahrzeugId);
 
   // Loading State
   if (isLoading) {
@@ -183,7 +213,13 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
       {fahrzeuge && fahrzeuge.length > 0 ? (
         <div className={mode === 'fullscreen' ? 'space-y-4' : 'space-y-3'}>
           {fahrzeuge.map((fahrzeug) => (
-            <FahrzeugCard key={fahrzeug.id} fahrzeug={fahrzeug} onClick={onFahrzeugClick ? () => onFahrzeugClick(fahrzeug.id) : undefined} />
+            <FahrzeugCard
+              key={fahrzeug.id}
+              fahrzeug={fahrzeug}
+              onClick={onFahrzeugClick ? () => onFahrzeugClick(fahrzeug.id) : undefined}
+              onManageZeichen={handleManageZeichen}
+              zeichen={zeichenByFahrzeug.get(fahrzeug.id)}
+            />
           ))}
         </div>
       ) : (
@@ -192,6 +228,17 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
           <PiTruck className="mb-2 h-12 w-12 opacity-50" />
           <p className="text-sm">Keine Fahrzeuge erfasst</p>
         </div>
+      )}
+
+      {/* Zeichen-Panel */}
+      {zeichenPanelFahrzeug && (
+        <FahrzeugZeichenPanel
+          isOpen={!!zeichenPanelFahrzeugId}
+          onClose={handleCloseZeichenPanel}
+          einsatzId={einsatzId}
+          fahrzeugId={zeichenPanelFahrzeug.id}
+          fahrzeugName={zeichenPanelFahrzeug.funkrufname}
+        />
       )}
     </div>
   );

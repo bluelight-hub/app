@@ -46,6 +46,8 @@ import { UpdateFmsStatusHandler } from '@application/kraefte/einsatz-fahrzeuge/c
 import { AssignFahrzeugToEinheitHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/assign-fahrzeug-to-einheit/assign-fahrzeug-to-einheit.handler';
 import { GetEinsatzFahrzeugeHandler } from '@application/kraefte/einsatz-fahrzeuge/queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.handler';
 import { GetKraeftePoisHandler } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/get-kraefte-pois.handler';
+import { GetFahrzeugZeichenHandler } from '@application/kraefte/einsatz-fahrzeuge/queries/get-fahrzeug-zeichen/get-fahrzeug-zeichen.handler';
+import { AktualisiereZeichenHandler } from '@application/taktische-zeichen/commands/aktualisiere-zeichen/aktualisiere-zeichen.handler';
 
 // Commands & Queries
 import { ErfasseFahrzeugAusStammdatenCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.command';
@@ -54,7 +56,11 @@ import { UpdateFmsStatusCommand } from '@application/kraefte/einsatz-fahrzeuge/c
 import { AssignFahrzeugToEinheitCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/assign-fahrzeug-to-einheit/assign-fahrzeug-to-einheit.command';
 import { GetEinsatzFahrzeugeQuery } from '@application/kraefte/einsatz-fahrzeuge/queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.query';
 import { GetKraeftePoisQuery } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/get-kraefte-pois.query';
+import { GetFahrzeugZeichenQuery } from '@application/kraefte/einsatz-fahrzeuge/queries/get-fahrzeug-zeichen/get-fahrzeug-zeichen.query';
+import { AktualisiereZeichenCommand } from '@application/taktische-zeichen/commands/aktualisiere-zeichen/aktualisiere-zeichen.command';
 import { KraeftePoisFeatureCollectionDto } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/kraefte-pois.dto';
+import { TaktischesZeichenResponseDto } from '@application/taktische-zeichen/dtos/taktisches-zeichen-response.dto';
+import { UpdateTaktischesZeichenDto } from '@/modules/taktische-zeichen/dtos/update-taktisches-zeichen.dto';
 
 // DTOs
 import { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto, UpdateFmsStatusDto, AssignFahrzeugToEinheitDto } from '@application/kraefte/einsatz-fahrzeuge/dto';
@@ -98,6 +104,8 @@ export class EinsatzFahrzeugeController {
     private readonly updateFmsStatusHandler: UpdateFmsStatusHandler,
     private readonly assignToEinheitHandler: AssignFahrzeugToEinheitHandler,
     private readonly getKraeftePoisHandler: GetKraeftePoisHandler,
+    private readonly getFahrzeugZeichenHandler: GetFahrzeugZeichenHandler,
+    private readonly aktualisiereZeichenHandler: AktualisiereZeichenHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
@@ -508,5 +516,136 @@ export class EinsatzFahrzeugeController {
 
     // Audit logging
     this.logger.log(`Fahrzeug ${id} Einheit-Zuweisung geändert: einheitId=${dto.einheitId ?? 'null'} für Einsatz ${einsatzId} von ${user.userId}`);
+  }
+
+  /**
+   * Taktisches Zeichen eines Fahrzeugs abrufen.
+   *
+   * Gibt das verknüpfte taktische Zeichen des Fahrzeugs zurück,
+   * oder null wenn kein Zeichen vorhanden ist.
+   *
+   * @param einsatzId - UUID des Einsatzes
+   * @param id - CUID2 des EinsatzFahrzeugs
+   * @returns TaktischesZeichenResponseDto oder null
+   */
+  @Get(':id/zeichen')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: 'Taktisches Zeichen des Fahrzeugs abrufen' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
+  @ApiParam({ name: 'id', type: String, format: 'cuid2', description: 'EinsatzFahrzeug-ID (CUID2)' })
+  @ApiWrappedResponse(TaktischesZeichenResponseDto, { description: 'Zeichen des Fahrzeugs (null wenn keins vorhanden)' })
+  @ApiBadRequestResponse({ description: 'Ungültige ID' })
+  async getZeichen(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @Param('id', ParseCuidPipe) id: string): Promise<TaktischesZeichenResponseDto | null> {
+    const queryResult = GetFahrzeugZeichenQuery.create(einsatzId, id);
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const query = queryResult.value;
+    if (!query) {
+      throw new BadRequestException('Fehler beim Erstellen der Query');
+    }
+
+    const result = await this.getFahrzeugZeichenHandler.execute(query);
+
+    if (result.isFailure) {
+      this.logger.error(`Fehler beim Abrufen des Zeichens für Fahrzeug ${id}: ${result.error}`, 'EinsatzFahrzeugeController');
+      throw new InternalServerErrorException('Fehler beim Abrufen des taktischen Zeichens');
+    }
+
+    return result.value ?? null;
+  }
+
+  /**
+   * Taktisches Zeichen eines Fahrzeugs aktualisieren.
+   *
+   * Aktualisiert die Zeichendefinition, Label oder Notiz des
+   * verknüpften taktischen Zeichens des Fahrzeugs.
+   *
+   * @param einsatzId - UUID des Einsatzes
+   * @param id - CUID2 des EinsatzFahrzeugs
+   * @param user - Aktueller Benutzer (aus JWT Token)
+   * @param dto - UpdateTaktischesZeichenDto mit optionalen Feldern
+   * @returns Aktualisiertes TaktischesZeichenResponseDto
+   * @throws NotFoundException wenn kein Zeichen für das Fahrzeug existiert
+   */
+  @Patch(':id/zeichen')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Taktisches Zeichen des Fahrzeugs aktualisieren' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
+  @ApiParam({ name: 'id', type: String, format: 'cuid2', description: 'EinsatzFahrzeug-ID (CUID2)' })
+  @ApiWrappedResponse(TaktischesZeichenResponseDto, { description: 'Zeichen aktualisiert' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler' })
+  @ApiNotFoundResponse({ description: 'Kein Zeichen für dieses Fahrzeug vorhanden' })
+  async updateZeichen(
+    @Param('einsatzId', ParseCuidPipe) einsatzId: string,
+    @Param('id', ParseCuidPipe) id: string,
+    @CurrentUser() user: ValidatedUser,
+    @Body() dto: UpdateTaktischesZeichenDto,
+  ): Promise<TaktischesZeichenResponseDto> {
+    // 1. Zeichen über Query-Handler finden
+    const queryResult = GetFahrzeugZeichenQuery.create(einsatzId, id);
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const query = queryResult.value;
+    if (!query) {
+      throw new BadRequestException('Fehler beim Erstellen der Query');
+    }
+
+    const zeichenResult = await this.getFahrzeugZeichenHandler.execute(query);
+
+    if (zeichenResult.isFailure) {
+      this.logger.error(`Fehler beim Abrufen des Zeichens für Fahrzeug ${id}: ${zeichenResult.error}`, 'EinsatzFahrzeugeController');
+      throw new InternalServerErrorException('Fehler beim Abrufen des taktischen Zeichens');
+    }
+
+    const zeichen = zeichenResult.value;
+    if (!zeichen) {
+      throw new NotFoundException(`Kein taktisches Zeichen für Fahrzeug '${id}' vorhanden`);
+    }
+
+    // 2. Aktualisierungs-Command erstellen
+    const commandResult = AktualisiereZeichenCommand.create({
+      einsatzId,
+      zeichenId: zeichen.id,
+      zeichenDefinition: dto.zeichenDefinition,
+      label: dto.label,
+      notiz: dto.notiz,
+      aktualisiertVon: user.userId,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Fehler beim Erstellen des Commands');
+    }
+
+    // 3. Zeichen aktualisieren
+    const updateResult = await this.aktualisiereZeichenHandler.execute(command);
+
+    if (updateResult.isFailure) {
+      const error = updateResult.error ?? '';
+
+      if (error.includes('ZEICHEN_NOT_FOUND')) {
+        throw new NotFoundException('Taktisches Zeichen nicht gefunden');
+      }
+
+      this.logger.error(`Fehler beim Aktualisieren des Zeichens für Fahrzeug ${id}: ${error}`, 'EinsatzFahrzeugeController');
+      throw new BadRequestException(error || 'Fehler beim Aktualisieren des taktischen Zeichens');
+    }
+
+    if (!updateResult.value) {
+      throw new InternalServerErrorException('Fehler beim Aktualisieren des taktischen Zeichens');
+    }
+
+    this.logger.log(`Taktisches Zeichen für Fahrzeug ${id} aktualisiert von User ${user.userId}`, 'EinsatzFahrzeugeController');
+
+    return updateResult.value;
   }
 }

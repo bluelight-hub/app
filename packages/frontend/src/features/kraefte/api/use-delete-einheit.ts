@@ -8,6 +8,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
+import { TAKTISCHE_ZEICHEN_QUERY_KEYS } from '@/features/taktische-zeichen/api/queries';
 import { KRAEFTE_QUERY_KEYS } from './queries';
 
 /**
@@ -45,6 +46,10 @@ export const useDeleteEinheit = (einsatzId: string) => {
       // Taktische Stärke aktualisieren (Einheit wurde entfernt)
       queryClient.invalidateQueries({
         queryKey: KRAEFTE_QUERY_KEYS.staerke(einsatzId),
+      });
+      // Taktische Zeichen invalidieren (Zeichen wird kaskadiert gelöscht, Issue #667)
+      queryClient.invalidateQueries({
+        queryKey: TAKTISCHE_ZEICHEN_QUERY_KEYS.zeichen(einsatzId),
       });
       logger.info('Taktische Einheit erfolgreich gelöscht');
     },

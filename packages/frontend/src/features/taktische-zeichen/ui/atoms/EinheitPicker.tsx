@@ -4,6 +4,7 @@
  * Zeigt alle Einheitsstufen mit Live-Vorschau.
  */
 
+import { useState } from 'react';
 import { einheiten } from 'taktische-zeichen-core';
 import { cn } from '@/shared/ui/cn';
 import { ZeichenPreview } from '../../rendering/ZeichenPreview';
@@ -24,6 +25,11 @@ export interface EinheitPickerProps {
 }
 
 export function EinheitPicker({ grundzeichen: gz, organisation, fachaufgabe, value, onChange }: EinheitPickerProps) {
+  const [suche, setSuche] = useState('');
+
+  /** Gefilterte Einheiten basierend auf Suchbegriff */
+  const gefilterteEinheiten = einheiten.filter((einheit) => einheit.label.toLowerCase().includes(suche.toLowerCase()));
+
   return (
     <div className="flex flex-col gap-2">
       {/* Keine Einheitsgröße */}
@@ -39,9 +45,20 @@ export function EinheitPicker({ grundzeichen: gz, organisation, fachaufgabe, val
         <span>Keine / Einzel</span>
       </button>
 
+      {/* Suchfeld */}
+      <input
+        type="text"
+        value={suche}
+        onChange={(e) => setSuche(e.target.value)}
+        placeholder="Einheit suchen..."
+        autoComplete="off"
+        autoCorrect="off"
+        className="mb-2 w-full rounded-md border border-border-subtle bg-surface-raised px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none"
+      />
+
       {/* Einheitsgrößen-Grid */}
       <div className="grid grid-cols-4 gap-1.5">
-        {einheiten.map((einheit) => {
+        {gefilterteEinheiten.map((einheit) => {
           const definition: ZeichenDefinition = {
             grundzeichen: gz,
             organisation,

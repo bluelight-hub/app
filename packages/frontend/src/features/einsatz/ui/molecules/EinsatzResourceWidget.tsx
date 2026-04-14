@@ -2,8 +2,11 @@ import { cn } from '@/shared/ui/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FmsStatusDropdown } from '@/features/einsatz';
 import type { EinsatzFahrzeugDto, BesatzungMemberDto } from '@/shared';
+import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 import { isFmsStatus, type FmsStatus } from '@/features/einsatz';
-import { PiTruck, PiUserPlus, PiUsers } from 'react-icons/pi';
+import { ZeichenPreview } from '@/features/taktische-zeichen/rendering/ZeichenPreview';
+import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
+import { PiMapPin, PiTruck, PiUserPlus, PiUsers } from 'react-icons/pi';
 import type { ReactNode } from 'react';
 
 /**
@@ -49,9 +52,13 @@ interface EinsatzResourceWidgetProps {
   className?: string;
   /** Callback to add new resource */
   onAddResource?: () => void;
+  /** Taktische Zeichen nach Fahrzeug-ID indexiert */
+  zeichenByFahrzeug?: Map<string, TaktischesZeichenResponseDto>;
+  /** Handler für "Zeichen verwalten" */
+  onManageZeichen?: (fahrzeugId: string) => void;
 }
 
-export function EinsatzResourceWidget({ fahrzeuge, onStatusChange, className, onAddResource }: EinsatzResourceWidgetProps) {
+export function EinsatzResourceWidget({ fahrzeuge, onStatusChange, className, onAddResource, zeichenByFahrzeug, onManageZeichen }: EinsatzResourceWidgetProps) {
   const totalFahrzeuge = fahrzeuge.length;
   const activeFahrzeuge = fahrzeuge.filter((f) => f.fmsStatus >= 3 && f.fmsStatus <= 4).length;
 
@@ -81,21 +88,29 @@ export function EinsatzResourceWidget({ fahrzeuge, onStatusChange, className, on
 
       {/* Fahrzeug List */}
       <div className="space-y-2">
-        {fahrzeuge.map((fahrzeug) => (
-          <div key={fahrzeug.id} className="flex items-center justify-between gap-3 rounded-panel bg-surface-raised p-3 transition-colors hover:bg-action-secondary">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <PiTruck className="h-5 w-5 shrink-0 text-text-muted" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                {fahrzeug.kennzeichen && <p className="truncate text-xs text-text-muted">{fahrzeug.kennzeichen}</p>}
-                {fahrzeug.besatzung && fahrzeug.besatzung.length > 0 && <div className="text-xs text-text-muted">{formatBesatzung(fahrzeug.besatzung)}</div>}
+        {fahrzeuge.map((fahrzeug) => {
+          const zeichen = zeichenByFahrzeug?.get(fahrzeug.id);
+          return (
+            <div key={fahrzeug.id} className="flex items-center justify-between gap-3 rounded-panel bg-surface-raised p-3 transition-colors hover:bg-action-secondary">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                {zeichen ? <ZeichenPreview definition={zeichen.zeichenDefinition as unknown as ZeichenDefinition} size="sm" /> : <PiTruck className="h-5 w-5 shrink-0 text-text-muted" />}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-text-primary">{fahrzeug.funkrufname}</p>
+                  {fahrzeug.kennzeichen && <p className="truncate text-xs text-text-muted">{fahrzeug.kennzeichen}</p>}
+                  {fahrzeug.besatzung && fahrzeug.besatzung.length > 0 && <div className="text-xs text-text-muted">{formatBesatzung(fahrzeug.besatzung)}</div>}
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {onManageZeichen && (
+                  <Button intent="secondary" appearance="ghost" size="icon" onClick={() => onManageZeichen(fahrzeug.id)} title="Taktisches Zeichen" aria-label="Taktisches Zeichen verwalten">
+                    <PiMapPin className="h-4 w-4" />
+                  </Button>
+                )}
+                <FmsStatusDropdown value={isFmsStatus(fahrzeug.fmsStatus) ? fahrzeug.fmsStatus : 1} onChange={(newStatus) => onStatusChange(fahrzeug.id, newStatus)} className="w-48" />
               </div>
             </div>
-            <div className="shrink-0">
-              <FmsStatusDropdown value={isFmsStatus(fahrzeug.fmsStatus) ? fahrzeug.fmsStatus : 1} onChange={(newStatus) => onStatusChange(fahrzeug.id, newStatus)} className="w-48" />
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {fahrzeuge.length === 0 && (
           <div className="py-8 text-center text-text-muted">

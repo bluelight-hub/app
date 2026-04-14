@@ -11,3 +11,5 @@ export { EinheitCreateDialog } from './EinheitCreateDialog';
 export { EinheitEditDialog } from './EinheitEditDialog';
 export { PersonZuweisungPanel } from './PersonZuweisungPanel';
 export { FahrzeugZuweisungPanel } from './FahrzeugZuweisungPanel';
+export { EinheitZeichenPanel } from './EinheitZeichenPanel';
+export { FahrzeugZeichenPanel } from './FahrzeugZeichenPanel';

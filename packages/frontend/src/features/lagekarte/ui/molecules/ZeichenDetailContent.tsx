@@ -1,15 +1,17 @@
 /**
  * ZeichenDetailContent - Inhalt des Zeichen-Detail-Panels
  *
- * 6 Sektionen: Vorschau, Label/Notiz (editierbar), Komposition, Position, Metadaten, Aktionen.
+ * 7 Sektionen: Vorschau, Label/Notiz (editierbar), Komposition, Zuordnung, Position, Metadaten, Aktionen.
  * Visueller Stil konsistent mit DwdPanelContent / NinaPanelContent.
  */
 
 import { useEffect, useState } from 'react';
-import { PiClock, PiMapPin, PiNotePencil, PiPuzzlePiece, PiTrash } from 'react-icons/pi';
+import { useNavigate } from '@tanstack/react-router';
+import { PiArrowSquareOut, PiClock, PiLink, PiMapPin, PiNotePencil, PiPuzzlePiece, PiTrash } from 'react-icons/pi';
 import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 import { ZeichenPreview } from '@/features/taktische-zeichen';
 import type { ZeichenDefinition } from '@/features/taktische-zeichen';
+import { useEinsatzEinheiten, useEinsatzFahrzeuge } from '@/features/kraefte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useUserNames } from '@/features/auth/api/use-users';
 
@@ -32,16 +34,24 @@ function formatDateTime(iso: string): string {
   }).format(new Date(iso));
 }
 
+/** Mapping von referenzTyp auf Anzeige-Label und Navigations-Route */
+const REFERENZ_CONFIG: Record<string, { label: string; route: string }> = {
+  EINHEIT: { label: 'Einheit', route: '/app/einsatz/$einsatzId/kräfte/einheiten' },
+  FAHRZEUG: { label: 'Fahrzeug', route: '/app/einsatz/$einsatzId/kräfte/fahrzeuge' },
+};
+
 interface ZeichenDetailContentProps {
   zeichen: TaktischesZeichenResponseDto;
+  einsatzId: string;
   onUpdateLabel: (label: string) => void;
   onUpdateNotiz: (notiz: string) => void;
   onRemove: () => void;
   isRemoving: boolean;
 }
 
-export function ZeichenDetailContent({ zeichen, onUpdateLabel, onUpdateNotiz, onRemove, isRemoving }: ZeichenDetailContentProps) {
+export function ZeichenDetailContent({ zeichen, einsatzId, onUpdateLabel, onUpdateNotiz, onRemove, isRemoving }: ZeichenDetailContentProps) {
   const { getUserName } = useUserNames();
+  const navigate = useNavigate();
 
   // Lokaler State für sofortige Input-Reaktion + Debounce
   const [label, setLabel] = useState(zeichen.label ?? '');
@@ -71,6 +81,18 @@ export function ZeichenDetailContent({ zeichen, onUpdateLabel, onUpdateNotiz, on
   }, [notiz, zeichen.notiz, onUpdateNotiz]);
 
   const definition: ZeichenDefinition = zeichen.zeichenDefinition;
+
+  // Referenz-Name auflösen (Daten liegen typischerweise im Query-Cache)
+  const { data: einheiten = [] } = useEinsatzEinheiten(zeichen.referenzTyp === 'EINHEIT' ? einsatzId : undefined);
+  const { data: fahrzeuge = [] } = useEinsatzFahrzeuge(zeichen.referenzTyp === 'FAHRZEUG' ? einsatzId : undefined);
+
+  const referenzConfig = zeichen.referenzTyp ? REFERENZ_CONFIG[zeichen.referenzTyp] : undefined;
+  const referenzName =
+    zeichen.referenzTyp === 'EINHEIT'
+      ? einheiten.find((e) => e.id === zeichen.referenzId)?.name
+      : zeichen.referenzTyp === 'FAHRZEUG'
+        ? fahrzeuge.find((f) => f.id === zeichen.referenzId)?.funkrufname
+        : undefined;
 
   return (
     <div className="space-y-0">
@@ -141,7 +163,37 @@ export function ZeichenDetailContent({ zeichen, onUpdateLabel, onUpdateNotiz, on
         </div>
       </section>
 
-      {/* 4. Position */}
+      {/* 4. Zuordnung (Backlink zur referenzierten Entität) */}
+      {referenzConfig && zeichen.referenzId && (
+        <section className="space-y-3.5 border-t border-border-subtle pt-3">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <PiLink className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Zuordnung</h4>
+            </div>
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: referenzConfig.route,
+                    params: { einsatzId },
+                  })
+                }
+                className="group flex w-full items-center justify-between rounded-md border border-border-subtle bg-surface-raised px-2.5 py-2 text-left transition-colors hover:border-action-primary hover:bg-action-secondary"
+              >
+                <div>
+                  <span className="text-[10px] text-text-muted">{referenzConfig.label}</span>
+                  <p className="text-sm font-medium text-text-primary">{referenzName ?? 'Laden...'}</p>
+                </div>
+                <PiArrowSquareOut className="h-4 w-4 shrink-0 text-text-muted transition-colors group-hover:text-action-primary" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 5. Position */}
       {zeichen.istPlatziert && zeichen.lat != null && zeichen.lng != null && (
         <section className="space-y-3.5 border-t border-border-subtle pt-3">
           <div>
@@ -169,7 +221,7 @@ export function ZeichenDetailContent({ zeichen, onUpdateLabel, onUpdateNotiz, on
         </section>
       )}
 
-      {/* 5. Metadaten */}
+      {/* 6. Metadaten */}
       <section className="space-y-3.5 border-t border-border-subtle pt-3">
         <div>
           <div className="flex items-center gap-1.5">
@@ -189,7 +241,7 @@ export function ZeichenDetailContent({ zeichen, onUpdateLabel, onUpdateNotiz, on
         </div>
       </section>
 
-      {/* 6. Aktionen */}
+      {/* 7. Aktionen */}
       <section className="border-t border-border-subtle pt-3">
         <Button intent="danger" size="sm" className="w-full" onClick={onRemove} loading={isRemoving} disabled={isRemoving}>
           <PiTrash className="mr-1.5 h-4 w-4" aria-hidden="true" />

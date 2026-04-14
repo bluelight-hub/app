@@ -10,6 +10,7 @@ import { useMemo } from 'react';
 import { PiTreeStructure } from 'react-icons/pi';
 
 import type { EinsatzEinheitDto, EinsatzFahrzeugDto } from '@/shared';
+import type { TaktischesZeichenResponseDto } from '@bluelight-hub/shared/client';
 import { buildEinheitenTree } from '@/features/kraefte/utils/einheiten-tree.utils';
 
 import { EinheitCard } from '../molecules/EinheitCard';
@@ -31,6 +32,10 @@ interface EinheitenBaumProps {
   onAssignFahrzeuge: (einheitId: string) => void;
   /** Fahrzeuge gruppiert nach Einheit-ID */
   fahrzeugeByEinheit: Map<string, EinsatzFahrzeugDto[]>;
+  /** Handler für "Zeichen verwalten" */
+  onManageZeichen: (einheitId: string) => void;
+  /** Zeichen nach Einheit-ID indexiert */
+  zeichenByEinheit: Map<string, TaktischesZeichenResponseDto>;
 }
 
 /**
@@ -39,7 +44,18 @@ interface EinheitenBaumProps {
  * Baut intern den Baum aus der flachen Liste und zeigt einen
  * Empty-State wenn keine Einheiten vorhanden sind.
  */
-export function EinheitenBaum({ einheiten, onEdit, onDelete, onStatusChange, onAddChild, onAssignPersonen, onAssignFahrzeuge, fahrzeugeByEinheit }: EinheitenBaumProps) {
+export function EinheitenBaum({
+  einheiten,
+  onEdit,
+  onDelete,
+  onStatusChange,
+  onAddChild,
+  onAssignPersonen,
+  onAssignFahrzeuge,
+  fahrzeugeByEinheit,
+  onManageZeichen,
+  zeichenByEinheit,
+}: EinheitenBaumProps) {
   /** Baum aus flacher Liste aufbauen */
   const tree = useMemo(() => buildEinheitenTree(einheiten), [einheiten]);
 
@@ -68,6 +84,8 @@ export function EinheitenBaum({ einheiten, onEdit, onDelete, onStatusChange, onA
           onAssignPersonen={onAssignPersonen}
           onAssignFahrzeuge={onAssignFahrzeuge}
           fahrzeugeByEinheit={fahrzeugeByEinheit}
+          onManageZeichen={onManageZeichen}
+          zeichenByEinheit={zeichenByEinheit}
         />
       ))}
     </div>
