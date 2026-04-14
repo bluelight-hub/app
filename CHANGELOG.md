@@ -1,3 +1,15 @@
+## Fahrzeugverwaltung
+
+- **Neue Kartenansicht**: Die Fahrzeuge-Seite wurde komplett überarbeitet und zeigt nun alle Fahrzeuge in einer übersichtlichen Kachelansicht im Statustableau-Stil
+- **FMS-Filter**: Schnelles Filtern der Fahrzeuge nach FMS-Status über neue Tab-Navigation
+- **Detailansicht**: Fahrzeugdetails öffnen sich jetzt in einem praktischen Seitenpanel, ohne die Übersicht zu verlassen
+- **BOS-konforme Darstellung**: FMS-Statusbezeichnungen und Farbcodierung entsprechen nun dem offiziellen BOS-Standard (Blaulicht-Organisationen)
+- **Responsives Design**: Die Kartenansicht passt sich automatisch an verschiedene Bildschirmgrößen an
+
+## Verbesserungen
+
+- Das Zeichen-Panel schließt sich nun automatisch nach der Verwendung
+
 ## Zeichenverwaltung
 
 - **Verbesserte Beschriftung von Zeichen**: Labels können nun direkt beim Erstellen von Zeichen im Baukasten vergeben werden und werden korrekt auf der Karte angezeigt
