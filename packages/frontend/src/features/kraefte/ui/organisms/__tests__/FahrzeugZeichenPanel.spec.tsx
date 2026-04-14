@@ -4,8 +4,8 @@
  * Prüft Rendering-Zustände: Loading, Empty State, Zeichen vorhanden, nicht platziert.
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FahrzeugZeichenPanel } from '../FahrzeugZeichenPanel';
 
@@ -13,11 +13,13 @@ import { FahrzeugZeichenPanel } from '../FahrzeugZeichenPanel';
 // Mocks
 // ============================================
 
-const { mockZeichenState } = vi.hoisted(() => ({
+const { mockZeichenState, mockUpdateMutate, mockCreateMutate } = vi.hoisted(() => ({
   mockZeichenState: {
     data: undefined as any,
     isLoading: false,
   },
+  mockUpdateMutate: vi.fn(),
+  mockCreateMutate: vi.fn(),
 }));
 
 vi.mock('@/features/kraefte/api/use-fahrzeug-zeichen', () => ({
@@ -25,11 +27,11 @@ vi.mock('@/features/kraefte/api/use-fahrzeug-zeichen', () => ({
 }));
 
 vi.mock('@/features/kraefte/api/use-update-fahrzeug-zeichen', () => ({
-  useUpdateFahrzeugZeichen: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateFahrzeugZeichen: () => ({ mutate: mockUpdateMutate, isPending: false }),
 }));
 
 vi.mock('@/features/taktische-zeichen/api/use-create-zeichen', () => ({
-  useCreateZeichen: () => ({ mutate: vi.fn(), isPending: false }),
+  useCreateZeichen: () => ({ mutate: mockCreateMutate, isPending: false }),
 }));
 
 vi.mock('@/features/taktische-zeichen/rendering/ZeichenPreview', () => ({
@@ -37,7 +39,14 @@ vi.mock('@/features/taktische-zeichen/rendering/ZeichenPreview', () => ({
 }));
 
 vi.mock('@/features/taktische-zeichen/ui/molecules/ZeichenEditor', () => ({
-  ZeichenEditor: ({ initialLabel }: any) => <div data-testid="zeichen-editor">Editor: {initialLabel}</div>,
+  ZeichenEditor: ({ initialLabel, onSave }: any) => (
+    <div data-testid="zeichen-editor">
+      Editor: {initialLabel}
+      <button data-testid="save-trigger" onClick={() => onSave({ grundzeichen: 'kraftfahrzeug-landgebunden' }, 'Label')}>
+        save
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock('@/shared/ui/atoms/LoadingState', () => ({
@@ -77,6 +86,11 @@ function renderPanel(overrides = {}) {
 }
 
 describe('FahrzeugZeichenPanel', () => {
+  beforeEach(() => {
+    mockUpdateMutate.mockReset();
+    mockCreateMutate.mockReset();
+  });
+
   it('rendert nicht wenn isOpen=false', () => {
     mockZeichenState.data = undefined;
     mockZeichenState.isLoading = false;
@@ -146,5 +160,39 @@ describe('FahrzeugZeichenPanel', () => {
 
     renderPanel();
     expect(screen.getByTestId('zeichen-editor')).toHaveTextContent('Editor: KTW 1');
+  });
+
+  it('schließt Panel nach erfolgreichem Erstellen eines Zeichens', () => {
+    mockZeichenState.data = undefined;
+    mockZeichenState.isLoading = false;
+    const onClose = vi.fn();
+
+    renderPanel({ onClose });
+    fireEvent.click(screen.getByTestId('save-trigger'));
+
+    expect(mockCreateMutate).toHaveBeenCalledTimes(1);
+    const onSuccess = mockCreateMutate.mock.calls[0][1].onSuccess;
+    onSuccess();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('schließt Panel nach erfolgreichem Aktualisieren eines Zeichens', () => {
+    mockZeichenState.data = {
+      id: 'z-1',
+      label: 'Existierend',
+      lat: 50.1,
+      lng: 10.5,
+      zeichenDefinition: { grundzeichen: 'kraftfahrzeug-landgebunden' },
+    };
+    mockZeichenState.isLoading = false;
+    const onClose = vi.fn();
+
+    renderPanel({ onClose });
+    fireEvent.click(screen.getByTestId('save-trigger'));
+
+    expect(mockUpdateMutate).toHaveBeenCalledTimes(1);
+    const onSuccess = mockUpdateMutate.mock.calls[0][1].onSuccess;
+    onSuccess();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

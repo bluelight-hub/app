@@ -72,6 +72,7 @@ export {
   FMS_STATUS_LABELS,
   FMS_STATUS_COLORS,
   FMS_STATUS_OPTIONS,
+  FMS_BORDER_LEFT_COLORS,
   getStatusClasses,
   getStatusBgClasses,
   getStatusBorderLeftClass,
