@@ -22,6 +22,15 @@ vi.mock('@/features/auth/api/use-users', () => ({
   }),
 }));
 
+vi.mock('@/features/kraefte/api', () => ({
+  useEinsatzEinheiten: () => ({ data: [] }),
+  useEinsatzFahrzeuge: () => ({ data: [] }),
+}));
+
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => vi.fn(),
+}));
+
 // ============================================
 // Tests
 // ============================================
