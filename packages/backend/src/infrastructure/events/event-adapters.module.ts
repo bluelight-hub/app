@@ -62,6 +62,7 @@ import { BefehlModule } from '@/modules/befehl/befehl.module';
 import { LagekarteModule } from '@/modules/lagekarte/lagekarte.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
+import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
 
 /**
  * NestJS Module für Event Adapters (Framework-zu-Application Delegation).
@@ -126,6 +127,8 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     OutboxModule,
     // ResilienceModule für Circuit Breaker (Story 4.3: ETB Event Adapters)
     ResilienceModule,
+    // WebsocketModule stellt EINSATZ_EVENT_PUBLISHER bereit (Issue #407, Task 18)
+    WebsocketModule,
   ],
   providers: [
     // Logger für Event Adapters (Infrastructure Logging)

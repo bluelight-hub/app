@@ -21,15 +21,9 @@ import type { FunkkanalReihenfolgeGeaendertEvent } from '@domain/events/funkkana
 import type { FunkkanalZuordnungErstelltEvent } from '@domain/events/funkkanal-zuordnung-erstellt.event';
 import type { FunkkanalZuordnungEntferntEvent } from '@domain/events/funkkanal-zuordnung-entfernt.event';
 import type { NotfallAlertRequestedEvent } from '@domain/events/notfall-alert-requested.event';
+import type { EinsatzEventName, IEinsatzEventPublisher } from '@infrastructure/websocket/events/einsatz-event.types';
 
-/**
- * Port-Interface für den WebSocket-Publisher eines Einsatz-Rooms.
- *
- * Die konkrete Implementation wird in Task 18 (`EinsatzEventsGateway`) geliefert.
- */
-export interface IEinsatzEventPublisher {
-  broadcast(einsatzId: string, channel: string, payload: Record<string, unknown>): Promise<void> | void;
-}
+export type { IEinsatzEventPublisher };
 
 @Injectable()
 export class FunkkanalEventAdapter {
@@ -104,7 +98,7 @@ export class FunkkanalEventAdapter {
     });
   }
 
-  private async emit(einsatzId: string, channel: string, payload: Record<string, unknown>): Promise<void> {
+  private async emit(einsatzId: string, channel: EinsatzEventName, payload: Record<string, unknown>): Promise<void> {
     if (!this.publisher) {
       this.logger.log(`FunkkanalEventAdapter: kein Publisher verfügbar — Event "${channel}" (Einsatz ${einsatzId}) wird nur geloggt.`, 'FunkkanalEventAdapter');
       return;
