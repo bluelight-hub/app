@@ -232,9 +232,27 @@ export class EtbCqrsController {
     type: Boolean,
     description: 'Soft-gelöschte Einträge anzeigen (default: false)',
   })
-  async getEtbByEinsatzId(@Param('einsatzId') einsatzId: string, @CurrentUser() user: ValidatedUser, @Query('includeDeleted') includeDeleted?: string): Promise<EtbDto> {
+  @ApiQuery({
+    name: 'kontextType',
+    required: false,
+    enum: ['standard', 'funkspruch'],
+    description: 'Issue #407: Filter auf Eintragskontext (standard / funkspruch)',
+  })
+  @ApiQuery({
+    name: 'kanalId',
+    required: false,
+    type: String,
+    description: 'Issue #407: Funkkanal-ID — impliziert kontextType=funkspruch',
+  })
+  async getEtbByEinsatzId(
+    @Param('einsatzId') einsatzId: string,
+    @CurrentUser() user: ValidatedUser,
+    @Query('includeDeleted') includeDeleted?: string,
+    @Query('kontextType') kontextType?: 'standard' | 'funkspruch',
+    @Query('kanalId') kanalId?: string,
+  ): Promise<EtbDto> {
     const includeDeletedBool = includeDeleted === 'true';
-    this.logger.log(`Getting ETB for Einsatz ${einsatzId} (includeDeleted: ${includeDeletedBool}) by user ${user.userId}`);
+    this.logger.log(`Getting ETB for Einsatz ${einsatzId} (includeDeleted: ${includeDeletedBool}, kontextType: ${kontextType ?? '-'}, kanalId: ${kanalId ?? '-'}) by user ${user.userId}`);
 
     // Story 5.9 (AC2, AC3): Prüfe ob User aktiver Einsatzteilnehmer ist
     const isActiveTeilnehmer = await this.checkUserIsActiveTeilnehmer(user.userId, einsatzId);
@@ -244,7 +262,8 @@ export class EtbCqrsController {
     }
 
     try {
-      const query = new GetEtbQuery(einsatzId, includeDeletedBool);
+      const kontextFilter = kontextType || kanalId ? { kontextType, kanalId } : undefined;
+      const query = new GetEtbQuery(einsatzId, includeDeletedBool, kontextFilter);
       const result = await this.getEtbQueryHandler.execute(query);
 
       if (result.isFailure) {
@@ -496,8 +515,10 @@ export class EtbCqrsController {
 
     // Convert optional ISO string to Date if present
     const occurredAt = dto.occurredAt ? new Date(dto.occurredAt) : undefined;
+    const ereignisZeitpunkt = dto.ereignisZeitpunkt ? new Date(dto.ereignisZeitpunkt) : undefined;
+    const kontext = dto.kontext as { type: 'standard' } | { type: 'funkspruch'; kanalId: string; funkPrioritaet: 'routine' | 'prioritaet' | 'notfall' } | undefined;
 
-    const commandResult = AddEintragCommand.create(etbId, dto.text, user.userId, dto.kategorie, einsatzId, dto.absender, dto.empfaenger, dto.metadata, occurredAt);
+    const commandResult = AddEintragCommand.create(etbId, dto.text, user.userId, dto.kategorie, einsatzId, dto.absender, dto.empfaenger, dto.metadata, occurredAt, ereignisZeitpunkt, kontext);
     if (commandResult.isFailure || !commandResult.value) {
       this.logger.error(`Invalid AddEintragCommand: ${commandResult.error}`);
       throw new BadRequestException(commandResult.error);

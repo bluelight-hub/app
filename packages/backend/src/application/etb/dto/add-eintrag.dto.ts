@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ETB_KATEGORIE_VALUES, type EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
-import { IsDateString, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsDateString, IsEnum, IsObject, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { type EintragKontextUnionDto } from './eintrag-kontext.dto';
 
 /**
  * DTO für AddEintrag-Request.
@@ -140,4 +141,29 @@ export class AddEintragDto {
   @IsOptional()
   @IsDateString({}, { message: 'occurredAt muss ein gültiger ISO 8601 DateTime String sein' })
   occurredAt?: string;
+
+  /**
+   * Issue #407 (Funkverkehr Wave 2): Optionaler fachlicher Ereignis-Zeitstempel.
+   * Wird im Aggregat als `ereignisZeitpunkt` gespeichert; Default = `createdAt`.
+   */
+  @ApiPropertyOptional({
+    description: 'Fachlicher Ereignis-Zeitstempel (Default: Erstellungszeitpunkt)',
+    example: '2025-01-15T14:25:00.000Z',
+    type: String,
+  })
+  @IsOptional()
+  @IsDateString({}, { message: 'ereignisZeitpunkt muss ein gültiger ISO 8601 DateTime String sein' })
+  ereignisZeitpunkt?: string;
+
+  /**
+   * Issue #407 (Funkverkehr Wave 2): Optionaler Eintrag-Kontext (standard / funkspruch).
+   * Bei `funkspruch` werden `kanalId` + `funkPrioritaet` zusätzlich validiert.
+   */
+  @ApiPropertyOptional({
+    description: 'Eintrag-Kontext (default: { type: "standard" })',
+    example: { type: 'funkspruch', kanalId: 'clkanal...', funkPrioritaet: 'routine' },
+  })
+  @IsOptional()
+  @IsObject({ message: 'kontext muss ein Objekt sein' })
+  kontext?: EintragKontextUnionDto;
 }

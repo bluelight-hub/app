@@ -166,6 +166,39 @@ describe('EtbQueryMapper', () => {
         timestamp: etb.version.timestamp,
       });
     });
+
+    // Issue #407 (Funkverkehr Wave 2): Kontext-Filter
+    it('sollte alle Eintraege als kontext.type=standard mappen, wenn kein expliziter Kontext gesetzt ist', () => {
+      const etb = createTestEtb({
+        einsatzId: generateTestCuid(),
+        userId: generateTestCuid(),
+        entriesCount: 2,
+      });
+      const dto = EtbQueryMapper.toEtbDto(etb);
+      expect(dto.eintraege.every((e) => e.kontext?.type === 'standard')).toBe(true);
+      expect(dto.eintraege.every((e) => e.ereignisZeitpunkt instanceof Date)).toBe(true);
+      expect(dto.eintraege.every((e) => e.erfasstAm instanceof Date)).toBe(true);
+    });
+
+    it('sollte mit kontextFilter=funkspruch nur Funk-Eintraege durchlassen (alle aus Fixture sind standard → leer)', () => {
+      const etb = createTestEtb({
+        einsatzId: generateTestCuid(),
+        userId: generateTestCuid(),
+        entriesCount: 3,
+      });
+      const dto = EtbQueryMapper.toEtbDto(etb, false, { kontextType: 'funkspruch' });
+      expect(dto.eintraege).toHaveLength(0);
+    });
+
+    it('sollte mit kontextFilter=standard alle Standard-Eintraege liefern', () => {
+      const etb = createTestEtb({
+        einsatzId: generateTestCuid(),
+        userId: generateTestCuid(),
+        entriesCount: 3,
+      });
+      const dto = EtbQueryMapper.toEtbDto(etb, false, { kontextType: 'standard' });
+      expect(dto.eintraege).toHaveLength(3);
+    });
   });
 
   // ============================================================================

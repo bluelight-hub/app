@@ -35,8 +35,23 @@ export class GetEtbQuery {
   constructor(
     public readonly einsatzId: string,
     public readonly includeDeleted: boolean = false,
+    public readonly kontextFilter?: GetEtbKontextFilter,
   ) {
     validateRequiredString(einsatzId, 'einsatzId');
     validateCuid2Format(einsatzId, 'einsatzId');
   }
+}
+
+/**
+ * Optionale Kontext-Filter (Issue #407 / Funkverkehr).
+ *
+ * - `kontextType` filtert auf `standard` oder `funkspruch`.
+ * - `kanalId` zusätzlich nur Funksprüche eines bestimmten Kanals (impliziert
+ *   `kontextType = 'funkspruch'`).
+ *
+ * Filterung erfolgt aktuell in-memory im Mapper (siehe Plan-Abweichung Task 24).
+ */
+export interface GetEtbKontextFilter {
+  readonly kontextType?: 'standard' | 'funkspruch';
+  readonly kanalId?: string;
 }

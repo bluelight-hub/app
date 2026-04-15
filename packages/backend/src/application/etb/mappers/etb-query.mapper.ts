@@ -102,9 +102,17 @@ export class EtbQueryMapper {
    * @param includeDeleted - Ob soft-deleted Eintraege inkludiert werden sollen (default: false)
    * @returns EtbDto fuer API-Response
    */
-  static toEtbDto(aggregate: EinsatztagebuchAggregate, includeDeleted = false): EtbDto {
+  static toEtbDto(aggregate: EinsatztagebuchAggregate, includeDeleted = false, kontextFilter?: { kontextType?: 'standard' | 'funkspruch'; kanalId?: string }): EtbDto {
     // Filter Eintraege basierend auf includeDeleted Parameter
-    const filteredEintraege = includeDeleted ? aggregate.eintraege : aggregate.eintraege.filter((e) => !e.isDeleted);
+    let filteredEintraege = includeDeleted ? aggregate.eintraege : aggregate.eintraege.filter((e) => !e.isDeleted);
+
+    // Issue #407 / Funkverkehr: optionaler Kontext-Filter
+    if (kontextFilter?.kontextType) {
+      filteredEintraege = filteredEintraege.filter((e) => e.kontext.type === kontextFilter.kontextType);
+    }
+    if (kontextFilter?.kanalId) {
+      filteredEintraege = filteredEintraege.filter((e) => e.kontext.type === 'funkspruch' && e.kontext.kanalId === kontextFilter.kanalId);
+    }
 
     // Map Eintraege zu DTOs
     const eintraegeDtos = filteredEintraege.map((eintrag) => EtbQueryMapper.toEintragDto(eintrag));
@@ -182,6 +190,10 @@ export class EtbQueryMapper {
       korrigiertDurchId: null,
       isKorrektur: false,
       isKorrigiert: false,
+      // Issue #407 (Funkverkehr Wave 2): Kontext + Zeitstempel
+      ereignisZeitpunkt: eintrag.ereignisZeitpunkt,
+      erfasstAm: eintrag.erfasstAm,
+      kontext: eintrag.kontext.toPersistence(),
     };
 
     // Optional: updatedAt nur setzen wenn vorhanden

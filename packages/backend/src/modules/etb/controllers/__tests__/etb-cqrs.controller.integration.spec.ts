@@ -258,6 +258,9 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
         createdBy: { value: adminUser.userId },
         createdAt: new Date(),
         isDeleted: false,
+        ereignisZeitpunkt: new Date(),
+        erfasstAm: new Date(),
+        kontext: { type: 'standard', toPersistence: () => ({ type: 'standard' }) },
       };
 
       mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
@@ -737,6 +740,9 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
         createdBy: { value: adminUser.userId },
         createdAt: new Date(),
         isDeleted: false,
+        ereignisZeitpunkt: new Date(),
+        erfasstAm: new Date(),
+        kontext: { type: 'standard', toPersistence: () => ({ type: 'standard' }) },
       };
       mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
 
