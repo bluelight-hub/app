@@ -10,6 +10,12 @@ import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands'
  * abgeschlossen wurde.
  *
  * Text: "Alarmierung abgeschlossen (durch {abgeschlossenVon})"
+ *
+ * **Hinweis Event-Form:** {@link AlarmierungAbgeschlossenEvent} legt
+ * `abgeschlossenVon` direkt als Constructor-Property auf der Event-Wurzel ab
+ * (kein `data`-Wrapper) — abweichend von den anderen Alarmierungs-Events,
+ * die einen `data`-Block tragen. Bei Anpassung der Event-Serialisierung in
+ * T4 (Outbox-Adapter) muss das berücksichtigt werden.
  */
 @Injectable()
 export class AlarmierungAbgeschlossenZuEtbHandler implements IEventHandler<AlarmierungAbgeschlossenEvent> {

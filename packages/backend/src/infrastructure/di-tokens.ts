@@ -313,7 +313,7 @@ export const EVENT_HANDLER = {
   /** Alarmierung-Erstellt → ETB-Eintrag Handler Token (Issue #408) */
   ALARMIERUNG_ERSTELLT_ZU_ETB: Symbol('IEventHandler<AlarmierungErstelltEvent>:EtbEintrag'),
 
-  /** Alarmierung-Empfaenger-Hinzugefuegt → ETB-Eintrag Handler Token (Issue #408) */
+  /** Alarmierung-Empfänger-Hinzugefügt → ETB-Eintrag Handler Token (Issue #408) */
   ALARMIERUNG_EMPFAENGER_HINZUGEFUEGT_ZU_ETB: Symbol('IEventHandler<AlarmierungEmpfaengerHinzugefuegtEvent>:EtbEintrag'),
 
   /** Alarmierung-Zeitpunkt-Korrigiert → ETB-Eintrag Handler Token (Issue #408) */

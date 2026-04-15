@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { SchliesseAlarmierungAbHandler } from '../schliesse-alarmierung-ab.handler';
 import { SchliesseAlarmierungAbCommand } from '../schliesse-alarmierung-ab.command';
@@ -6,40 +5,45 @@ import { AlarmierungAggregate } from '@domain/aggregates/alarmierung/alarmierung
 import { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
+import type { DomainEvent } from '@domain/common/domain-event';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ALARMIERUNG_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import {
+  asPrismaService,
+  createAlarmierungRepoMock,
+  createOutboxRepoMock,
+  createPrismaMock,
+  type AlarmierungRepoMock,
+  type OutboxRepoMock,
+  type PrismaServiceMock,
+} from '../../../__tests__/test-doubles';
 
-function makeAggregate() {
+function makeAggregate(): AlarmierungAggregate {
   const aggregate = AlarmierungAggregate.create({
-    einsatzId: EinsatzId.create().value!,
+    einsatzId: EinsatzId.create().value as EinsatzId,
     bezeichnung: 'Brand',
     createdBy: 'system',
-  }).value!;
+  }).value as AlarmierungAggregate;
   aggregate.clearDomainEvents();
   return aggregate;
 }
 
 describe('SchliesseAlarmierungAbHandler', () => {
   let handler: SchliesseAlarmierungAbHandler;
-  let mockRepo: any;
-  let mockOutbox: any;
-  let mockPrisma: any;
+  let mockRepo: AlarmierungRepoMock;
+  let mockOutbox: OutboxRepoMock;
+  let mockPrisma: PrismaServiceMock;
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    mockRepo = {
-      save: jest.fn().mockResolvedValue(undefined),
-      findById: jest.fn(),
-      findByEinsatzId: jest.fn().mockResolvedValue([]),
-      findAktiveByFahrzeugId: jest.fn().mockResolvedValue([]),
-    };
-    mockOutbox = { save: jest.fn().mockResolvedValue(undefined) };
-    mockPrisma = { $transaction: jest.fn().mockImplementation(async (cb: any) => cb({})) };
+    mockRepo = createAlarmierungRepoMock();
+    mockOutbox = createOutboxRepoMock();
+    mockPrisma = createPrismaMock();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SchliesseAlarmierungAbHandler,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: PrismaService, useValue: asPrismaService(mockPrisma) },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutbox },
         { provide: ALARMIERUNG_REPOSITORY, useValue: mockRepo },
       ],
@@ -52,12 +56,12 @@ describe('SchliesseAlarmierungAbHandler', () => {
     const aggregate = makeAggregate();
     mockRepo.findById.mockResolvedValue(aggregate);
 
-    const cmd = SchliesseAlarmierungAbCommand.create({ alarmierungId: aggregate.id.value, updatedBy: 'user-1' }).value!;
+    const cmd = SchliesseAlarmierungAbCommand.create({ alarmierungId: aggregate.id.value, updatedBy: 'user-1' }).value as SchliesseAlarmierungAbCommand;
     const result = await handler.execute(cmd);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.status).toBe('abgeschlossen');
-    const events = mockOutbox.save.mock.calls[0]?.[0] as unknown[];
+    expect((result.value as AlarmierungAggregate).status).toBe('abgeschlossen');
+    const events = mockOutbox.save.mock.calls[0]?.[0] as DomainEvent[];
     expect(events.some((e) => e instanceof AlarmierungAbgeschlossenEvent)).toBe(true);
   });
 
@@ -67,7 +71,7 @@ describe('SchliesseAlarmierungAbHandler', () => {
     aggregate.clearDomainEvents();
     mockRepo.findById.mockResolvedValue(aggregate);
 
-    const cmd = SchliesseAlarmierungAbCommand.create({ alarmierungId: aggregate.id.value, updatedBy: 'user-1' }).value!;
+    const cmd = SchliesseAlarmierungAbCommand.create({ alarmierungId: aggregate.id.value, updatedBy: 'user-1' }).value as SchliesseAlarmierungAbCommand;
     const result = await handler.execute(cmd);
 
     expect(result.isFailure).toBe(true);
@@ -78,9 +82,9 @@ describe('SchliesseAlarmierungAbHandler', () => {
   it('schlägt fehl, wenn Alarmierung nicht existiert', async () => {
     mockRepo.findById.mockResolvedValue(null);
     const cmd = SchliesseAlarmierungAbCommand.create({
-      alarmierungId: AlarmierungId.create().value!.value,
+      alarmierungId: (AlarmierungId.create().value as AlarmierungId).value,
       updatedBy: 'user-1',
-    }).value!;
+    }).value as SchliesseAlarmierungAbCommand;
 
     const result = await handler.execute(cmd);
     expect(result.isFailure).toBe(true);

@@ -1,5 +1,5 @@
-// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
+import type { Type } from '@nestjs/common';
 import { AlarmierungErstelltZuEtbHandler } from '../alarmierung-erstellt-zu-etb.handler';
 import { AlarmierungEmpfaengerHinzugefuegtZuEtbHandler } from '../alarmierung-empfaenger-hinzugefuegt-zu-etb.handler';
 import { AlarmierungZeitpunktKorrigiertZuEtbHandler } from '../alarmierung-zeitpunkt-korrigiert-zu-etb.handler';
@@ -11,29 +11,45 @@ import { AlarmierungZeitpunktKorrigiertEvent } from '@domain/events/alarmierung-
 import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
-import { AddEintragHandler } from '@application/etb/commands';
+import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands';
+import type { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import { LOGGER } from '@infrastructure/di-tokens';
 
+/**
+ * Minimaler Mock für `AddEintragHandler`. Wir benutzen nur `execute`. Wir
+ * casten den Mock am Provider-Edge zu `AddEintragHandler`, weil der
+ * Application-Handler den vollen Klassentyp injiziert.
+ */
+type AddEintragHandlerMock = Pick<jest.Mocked<AddEintragHandler>, 'execute'>;
+
 describe('Alarmierung → ETB Event-Handler', () => {
-  let mockAddEintragHandler: { execute: jest.Mock };
-  let mockLogger: any;
+  let mockAddEintragHandler: AddEintragHandlerMock;
+  let mockLogger: jest.Mocked<ILogger>;
   let einsatzId: EinsatzId;
   let alarmierungId: AlarmierungId;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    einsatzId = EinsatzId.create().value!;
-    alarmierungId = AlarmierungId.create().value!;
-    mockAddEintragHandler = { execute: jest.fn().mockResolvedValue(Result.ok({} as any)) };
+    einsatzId = EinsatzId.create().value as EinsatzId;
+    alarmierungId = AlarmierungId.create().value as AlarmierungId;
+    mockAddEintragHandler = { execute: jest.fn().mockResolvedValue(Result.ok({} as unknown as EtbEintrag)) };
     mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
   });
 
-  async function make<T>(cls: new (...args: any[]) => T): Promise<T> {
+  async function make<T>(cls: Type<T>): Promise<T> {
     const module: TestingModule = await Test.createTestingModule({
       providers: [cls, { provide: AddEintragHandler, useValue: mockAddEintragHandler }, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
     return module.get(cls);
+  }
+
+  /** Liefert den ersten an `execute` übergebenen Command. */
+  function firstAddEintragCommand(): AddEintragCommand {
+    const args = mockAddEintragHandler.execute.mock.calls[0];
+    if (!args) throw new Error('execute() wurde nicht aufgerufen');
+    return args[0];
   }
 
   it('AlarmierungErstelltZuEtbHandler erzeugt ETB-Eintrag mit Kategorie ALARMIERUNG', async () => {
@@ -47,7 +63,7 @@ describe('Alarmierung → ETB Event-Handler', () => {
     await handler.handle(event);
 
     expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
-    const cmd = mockAddEintragHandler.execute.mock.calls[0]![0];
+    const cmd = firstAddEintragCommand();
     expect(cmd.text).toContain('Brandschutz Süd');
     expect(cmd.text).toContain('3 Empfänger');
     expect(cmd.kategorie).toBe('ALARMIERUNG');
@@ -55,7 +71,7 @@ describe('Alarmierung → ETB Event-Handler', () => {
 
   it('AlarmierungEmpfaengerHinzugefuegtZuEtbHandler nutzt nameSnapshot im Text', async () => {
     const handler = await make(AlarmierungEmpfaengerHinzugefuegtZuEtbHandler);
-    const empfaengerId = AlarmierungEmpfaengerId.create().value!;
+    const empfaengerId = AlarmierungEmpfaengerId.create().value as AlarmierungEmpfaengerId;
     const event = new AlarmierungEmpfaengerHinzugefuegtEvent(alarmierungId, einsatzId, {
       empfaengerId,
       ref: { kind: 'fahrzeug', fahrzeugId: 'fz1' },
@@ -65,14 +81,14 @@ describe('Alarmierung → ETB Event-Handler', () => {
 
     await handler.handle(event);
 
-    const cmd = mockAddEintragHandler.execute.mock.calls[0]![0];
+    const cmd = firstAddEintragCommand();
     expect(cmd.text).toBe('Alarmiert: Florian Mainz 12-1');
     expect(cmd.kategorie).toBe('ALARMIERUNG');
   });
 
   it('AlarmierungZeitpunktKorrigiertZuEtbHandler schreibt Audit-Trail mit alt → neu', async () => {
     const handler = await make(AlarmierungZeitpunktKorrigiertZuEtbHandler);
-    const empfaengerId = AlarmierungEmpfaengerId.create().value!;
+    const empfaengerId = AlarmierungEmpfaengerId.create().value as AlarmierungEmpfaengerId;
     const event = new AlarmierungZeitpunktKorrigiertEvent(alarmierungId, einsatzId, {
       empfaengerId,
       nameSnapshot: 'Florian Mainz 12-1',
@@ -84,7 +100,7 @@ describe('Alarmierung → ETB Event-Handler', () => {
 
     await handler.handle(event);
 
-    const cmd = mockAddEintragHandler.execute.mock.calls[0]![0];
+    const cmd = firstAddEintragCommand();
     expect(cmd.text).toContain('vorOrtAm');
     expect(cmd.text).toContain('Florian Mainz 12-1');
     expect(cmd.text).toContain('user-1');
@@ -97,7 +113,7 @@ describe('Alarmierung → ETB Event-Handler', () => {
 
     await handler.handle(event);
 
-    const cmd = mockAddEintragHandler.execute.mock.calls[0]![0];
+    const cmd = firstAddEintragCommand();
     expect(cmd.text).toBe('Alarmierung abgeschlossen (durch user-1)');
     expect(cmd.kategorie).toBe('ALARMIERUNG');
   });
