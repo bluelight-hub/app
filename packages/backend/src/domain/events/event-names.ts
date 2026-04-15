@@ -293,6 +293,26 @@ export const EVENT_NAMES = {
   },
 
   /**
+   * Alarmierung Bounded Context Events (Issue #408)
+   */
+  ALARMIERUNG: {
+    /** Event: Neue Alarmierung wurde ausgelöst */
+    ERSTELLT: 'alarmierung.erstellt',
+    /** Event: Empfänger wurde zur Alarmierung hinzugefügt */
+    EMPFAENGER_HINZUGEFUEGT: 'alarmierung.empfaenger_hinzugefuegt',
+    /** Event: Empfänger wurde aus Alarmierung entfernt */
+    EMPFAENGER_ENTFERNT: 'alarmierung.empfaenger_entfernt',
+    /** Event: Zeitpunkt eines Empfängers wurde manuell korrigiert (auditierbar) */
+    ZEITPUNKT_KORRIGIERT: 'alarmierung.zeitpunkt_korrigiert',
+    /** Event: Zeitpunkt wurde automatisch aus FMS-Statuswechsel gesetzt */
+    ZEITPUNKT_FMS_GESETZT: 'alarmierung.zeitpunkt_fms_gesetzt',
+    /** Event: Alarmierung wurde abgeschlossen */
+    ABGESCHLOSSEN: 'alarmierung.abgeschlossen',
+    /** Event: Nachalarmierung wurde erstellt (referenziert Ursprungsalarmierung) */
+    NACHALARMIERUNG_ERSTELLT: 'alarmierung.nachalarmierung_erstellt',
+  },
+
+  /**
    * Funkkanal Bounded Context Events (Issue #407)
    */
   FUNKKANAL: {
@@ -370,4 +390,5 @@ export type EventName =
   | (typeof EVENT_NAMES.GEFAHRENMATRIX)[keyof typeof EVENT_NAMES.GEFAHRENMATRIX]
   | (typeof EVENT_NAMES.FUNKKANAL)[keyof typeof EVENT_NAMES.FUNKKANAL]
   | (typeof EVENT_NAMES.FUNK)[keyof typeof EVENT_NAMES.FUNK]
+  | (typeof EVENT_NAMES.ALARMIERUNG)[keyof typeof EVENT_NAMES.ALARMIERUNG]
   | (typeof EVENT_NAMES.TAKTISCHES_ZEICHEN)[keyof typeof EVENT_NAMES.TAKTISCHES_ZEICHEN];
