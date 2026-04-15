@@ -674,4 +674,58 @@ describe('EinsatztagebuchAggregate', () => {
       expect(etb.hasUncommittedSnapshots()).toBe(false);
     });
   });
+
+  describe('addEintrag mit Kontext und ereignisZeitpunkt (Issue #407)', () => {
+    const { EintragKontext } = require('@domain/value-objects/eintrag-kontext');
+
+    it('propagiert FunkKontext auf Eintrag und Event', () => {
+      const etb = EinsatztagebuchAggregate.create(einsatzId).value;
+      const kontext = EintragKontext.funkspruch({ kanalId: 'k1', funkPrioritaet: 'notfall' });
+
+      const result = etb.addEintrag('Brand 12', userId, EtbKategorie.KOMMUNIKATION(), 'Florian 1', 'LST', undefined, undefined, { kontext });
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value.kontext.type).toBe('funkspruch');
+
+      const addedEvent = etb.getDomainEvents().find((e) => e.constructor.name === 'EintragAddedEvent');
+      expect(addedEvent).toBeDefined();
+      expect((addedEvent as any).kontext).toMatchObject({ type: 'funkspruch', funkPrioritaet: 'notfall', kanalId: 'k1' });
+      expect((addedEvent as any).absender).toBe('Florian 1');
+    });
+
+    it('Default-Kontext ist standard wenn nicht übergeben', () => {
+      const etb = EinsatztagebuchAggregate.create(einsatzId).value;
+      const result = etb.addEintrag('Normaler Eintrag', userId);
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value.kontext.type).toBe('standard');
+
+      const addedEvent = etb.getDomainEvents().find((e) => e.constructor.name === 'EintragAddedEvent');
+      expect((addedEvent as any).kontext).toEqual({ type: 'standard' });
+    });
+
+    it('übernimmt expliziten ereignisZeitpunkt', () => {
+      const etb = EinsatztagebuchAggregate.create(einsatzId).value;
+      const ereignis = new Date('2026-04-14T08:00:00Z');
+
+      const result = etb.addEintrag('Rückblick', userId, undefined, undefined, undefined, undefined, undefined, {
+        ereignisZeitpunkt: ereignis,
+      });
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value.ereignisZeitpunkt.getTime()).toBe(ereignis.getTime());
+    });
+
+    it('lehnt ereignisZeitpunkt mehr als 60s in der Zukunft ab', () => {
+      const etb = EinsatztagebuchAggregate.create(einsatzId).value;
+      const future = new Date(Date.now() + 5 * 60_000); // 5 Minuten in der Zukunft
+
+      const result = etb.addEintrag('Zukunfts-Eintrag', userId, undefined, undefined, undefined, undefined, undefined, {
+        ereignisZeitpunkt: future,
+      });
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Zukunft');
+    });
+  });
 });

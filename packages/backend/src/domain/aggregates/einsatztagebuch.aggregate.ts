@@ -8,6 +8,8 @@ import { EtbCreatedEvent } from '@domain/events/etb-created.event';
 import { EtbLockedEvent } from '@domain/events/etb-locked.event';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EintragId } from '@domain/value-objects/eintrag-id';
+import type { EintragKontextShape } from '@domain/value-objects/eintrag-kontext';
+import { EintragKontext } from '@domain/value-objects/eintrag-kontext';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
 import { EtbSequenceNumber } from '@domain/value-objects/etb-sequence-number';
@@ -15,6 +17,19 @@ import { type EtbEintragSnapshot, EtbSnapshot } from '@domain/value-objects/etb-
 import { EtbStatus } from '@domain/value-objects/etb-status';
 import { EtbVersion } from '@domain/value-objects/etb-version';
 import type { UserId } from '@domain/value-objects/user-id';
+
+/**
+ * Optionale Zusatz-Parameter für {@link EinsatztagebuchAggregate.addEintrag}.
+ *
+ * Ermöglicht typisierte Erweiterungen (Kontext, fachlicher Zeitpunkt), ohne die
+ * Positional-Args-Liste weiter aufzublasen.
+ */
+export interface AddEintragOptions {
+  /** Fachlicher Zeitpunkt des Ereignisses (Default = occurredAt oder now()). */
+  readonly ereignisZeitpunkt?: Date;
+  /** Typisierter Kontext (Default = standard). Funksprüche triggern Notfall-Alert. */
+  readonly kontext?: EintragKontextShape;
+}
 
 /**
  * Einsatztagebuch (ETB) Aggregate Root mit Business Logic für Entry Management.
@@ -334,7 +349,16 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
    * @param occurredAt - Optional: Zeitpunkt des Auftretens (default: aktuelle Server-Zeit)
    * @returns Result<EtbEintrag> - Success mit erstelltem Eintrag oder Failure mit Error
    */
-  public addEintrag(text: string, userId: UserId, kategorie?: EtbKategorie, absender?: string, empfaenger?: string, metadata?: Record<string, unknown>, occurredAt?: Date): Result<EtbEintrag> {
+  public addEintrag(
+    text: string,
+    userId: UserId,
+    kategorie?: EtbKategorie,
+    absender?: string,
+    empfaenger?: string,
+    metadata?: Record<string, unknown>,
+    occurredAt?: Date,
+    options?: AddEintragOptions,
+  ): Result<EtbEintrag> {
     // Validate: ETB must not be locked
     if (this.isLocked()) {
       return Result.fail<EtbEintrag>('ETB ist gesperrt und kann nicht mehr geändert werden');
@@ -343,6 +367,13 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
     // Validate: Text must not be empty
     if (!text?.trim()) {
       return Result.fail<EtbEintrag>('Text darf nicht leer sein');
+    }
+
+    // Validate: ereignisZeitpunkt darf nicht mehr als 60s in der Zukunft liegen
+    const ereignisZeitpunkt = options?.ereignisZeitpunkt ?? occurredAt ?? new Date();
+    const maxFuture = Date.now() + 60_000;
+    if (ereignisZeitpunkt.getTime() > maxFuture) {
+      return Result.fail<EtbEintrag>('ereignisZeitpunkt darf nicht mehr als 60s in der Zukunft liegen');
     }
 
     // === SNAPSHOT VOR MUTATION (DRK-Compliance) ===
@@ -366,8 +397,26 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
 
     // Kategorie mit Default-Wert LAGE falls nicht angegeben
     const eintragKategorie = kategorie ?? EtbKategorie.LAGE();
+    const kontext = options?.kontext ?? EintragKontext.standard();
 
-    const eintrag = new EtbEintrag(eintragId, sequenceNumber, text, userId, occurredAt, eintragKategorie, absender, empfaenger, metadata);
+    const eintrag = new EtbEintrag(
+      eintragId,
+      sequenceNumber,
+      text,
+      userId,
+      occurredAt,
+      eintragKategorie,
+      absender,
+      empfaenger,
+      metadata,
+      undefined, // korrigiertEintragId
+      undefined, // korrigiertDurchId
+      undefined, // isDeleted
+      undefined, // updatedAt
+      ereignisZeitpunkt,
+      undefined, // erfasstAm -> Default = now()
+      kontext,
+    );
 
     // Add to entries list
     this._eintraege.push(eintrag);
@@ -378,8 +427,8 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
     // Increment version (creates new Version instance with new timestamp)
     this._version = this._version.increment();
 
-    // Emit domain event
-    this.addDomainEvent(new EintragAddedEvent(this.id, eintrag.id, eintrag.sequenceNumber.value, text, userId));
+    // Emit domain event (mit Kontext + Zeitpunkt für Notfall-Detection)
+    this.addDomainEvent(new EintragAddedEvent(this.id, eintrag.id, eintrag.sequenceNumber.value, text, userId, kontext.toPersistence(), ereignisZeitpunkt, absender, empfaenger));
 
     return Result.ok<EtbEintrag>(eintrag);
   }
