@@ -6,8 +6,9 @@
  * TanStack Form + Zod; hier geht es nur um Rendering + `onChange`.
  */
 
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { RadioGroup } from '@/shared/ui/atoms/radio-group.atom';
 import { cn } from '@/shared/ui/cn';
-import type { ChangeEvent } from 'react';
 
 export type KanalDetailsShape =
   | { type: 'tmo'; sprechgruppe: string; gssi?: string }
@@ -31,11 +32,6 @@ const DEFAULTS: Record<KanalDetailsShape['type'], KanalDetailsShape> = {
 export function KanalDetailsForm({ value, onChange, errors, disabled, className }: KanalDetailsFormProps) {
   const fieldId = (name: string) => `kanal-details-${name}`;
 
-  const handleTypeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.value as KanalDetailsShape['type'];
-    onChange(DEFAULTS[next]);
-  };
-
   const update = (patch: Partial<KanalDetailsShape>) => {
     onChange({ ...value, ...patch } as KanalDetailsShape);
   };
@@ -44,14 +40,17 @@ export function KanalDetailsForm({ value, onChange, errors, disabled, className 
     <fieldset className={cn('space-y-3', className)} disabled={disabled}>
       <legend className="text-sm font-medium text-slate-700 dark:text-slate-200">Kanaltyp</legend>
 
-      <div className="flex gap-3" role="radiogroup" aria-label="Kanaltyp">
-        {(['tmo', 'dmo', 'analog'] as const).map((type) => (
-          <label key={type} className="inline-flex items-center gap-2 text-sm">
-            <input type="radio" name="kanal-type" value={type} checked={value.type === type} onChange={handleTypeChange} />
-            <span className="uppercase">{type}</span>
-          </label>
-        ))}
-      </div>
+      <RadioGroup
+        name="kanal-type"
+        value={value.type}
+        onChange={(next) => onChange(DEFAULTS[next as KanalDetailsShape['type']])}
+        aria-label="Kanaltyp"
+        options={[
+          { value: 'tmo', label: <span className="uppercase">tmo</span> },
+          { value: 'dmo', label: <span className="uppercase">dmo</span> },
+          { value: 'analog', label: <span className="uppercase">analog</span> },
+        ]}
+      />
 
       {value.type === 'tmo' && (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -104,14 +103,16 @@ function Field({ id, label, value, error, required, onChange }: FieldProps) {
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
       </span>
-      <input
+      <Input
         id={id}
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={cn('mt-1 w-full rounded border px-2 py-1 text-sm dark:bg-slate-900', error ? 'border-red-500' : 'border-slate-300 dark:border-slate-700')}
+        variant={error ? 'error' : 'default'}
+        fullWidth
+        className="mt-1"
       />
       {error && (
         <span id={`${id}-error`} className="mt-1 block text-xs text-red-600">

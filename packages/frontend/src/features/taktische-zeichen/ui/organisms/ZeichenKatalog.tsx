@@ -7,8 +7,9 @@
  */
 
 import { useState, useMemo } from 'react';
-import { PiCursorClick, PiListBullets, PiX } from 'react-icons/pi';
+import { PiCursorClick, PiListBullets, PiMagnifyingGlass, PiX } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { ZeichenPreview } from '../../rendering/ZeichenPreview';
 import { KatalogEintrag, type KatalogEintragData } from '../molecules/KatalogEintrag';
 
@@ -113,13 +114,7 @@ export function ZeichenKatalog({ eintraege, isLoading, error, onSelectEintrag, s
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Suchfeld */}
       <div className="border-b border-border-subtle px-3 py-2">
-        <input
-          type="search"
-          placeholder="Zeichen suchen..."
-          value={suche}
-          onChange={(e) => setSuche(e.target.value)}
-          className="bg-surface-input w-full rounded-md border border-border-subtle px-3 py-1.5 text-sm text-text-primary placeholder-text-muted focus:border-action-primary focus:outline-none"
-        />
+        <Input type="search" placeholder="Zeichen suchen..." value={suche} onChange={(e) => setSuche(e.target.value)} leftIcon={<PiMagnifyingGlass className="h-4 w-4" />} fullWidth />
       </div>
 
       {/* Kategorie-Tabs */}

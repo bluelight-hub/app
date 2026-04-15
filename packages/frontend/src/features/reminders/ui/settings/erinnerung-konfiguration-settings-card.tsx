@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useErinnerungKonfiguration } from '../../hooks/use-erinnerung-konfiguration';
 import { LuLoader } from 'react-icons/lu';
+import { Input } from '@/shared/ui/atoms/input.atom';
 
 export const ErinnerungKonfigurationSettingsCard = () => {
   const { config, isLoading, updateTimeout, isUpdating } = useErinnerungKonfiguration();
@@ -44,7 +45,7 @@ export const ErinnerungKonfigurationSettingsCard = () => {
             Eskalations-Timeout (Minuten)
           </label>
           <div className="flex items-center gap-4">
-            <input
+            <Input
               type="number"
               id="timeout"
               min={1}
@@ -55,7 +56,7 @@ export const ErinnerungKonfigurationSettingsCard = () => {
                 setMinutes(val === '' ? '' : parseInt(val, 10));
                 setIsDirty(true);
               }}
-              className="block w-24 rounded-control border border-border-subtle bg-surface-panel p-2 text-text-primary shadow-sm focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring sm:text-sm"
+              className="w-24"
             />
             <span className="text-sm text-text-muted">(1-60 Minuten)</span>
           </div>

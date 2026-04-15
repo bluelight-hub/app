@@ -1,4 +1,4 @@
-import { cn } from '@/shared/ui/cn';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { PiMagnifyingGlass, PiX } from 'react-icons/pi';
 
 interface NotizSearchBarProps {
@@ -18,8 +18,7 @@ export function NotizSearchBar({ value, onChange, onClear, resultCount, totalCou
       <label className="sr-only" htmlFor="notiz-search">
         Notizen durchsuchen
       </label>
-      <PiMagnifyingGlass aria-hidden="true" className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-text-muted" />
-      <input
+      <Input
         id="notiz-search"
         type="text"
         value={value}
@@ -28,15 +27,9 @@ export function NotizSearchBar({ value, onChange, onClear, resultCount, totalCou
         aria-label="Notizen durchsuchen"
         spellCheck={false}
         autoComplete="off"
-        autoCorrect="off"
         autoCapitalize="off"
-        className={cn(
-          'w-full py-2 pl-9 text-sm',
-          showResultCount || hasValue ? 'pr-24' : 'pr-4',
-          'rounded-control border border-border-subtle bg-surface-panel text-text-primary',
-          'focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring',
-          'placeholder:text-text-muted',
-        )}
+        fullWidth
+        leftIcon={<PiMagnifyingGlass aria-hidden="true" className="h-4 w-4" />}
       />
       <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
         {showResultCount && (

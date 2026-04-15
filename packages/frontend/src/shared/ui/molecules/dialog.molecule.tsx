@@ -1,4 +1,5 @@
 import { cn } from '@/shared/ui/cn';
+import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
 import { CloseButton } from '../atoms/close-button.atom';
 import { Button } from '../atoms/button.atom';
 import { InlineSpinner } from '../atoms/spinner.atom';
@@ -244,16 +245,14 @@ Dialog.Confirm = ({
         </div>
         {requireConfirmation && (
           <div className="mt-4 border-t border-border-subtle pt-4">
-            <label className="flex cursor-pointer items-start space-x-3">
-              <input
-                type="checkbox"
-                checked={isConfirmed}
-                onChange={(e) => setIsConfirmed(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-border-subtle bg-surface-panel text-action-primary focus-visible:shadow-focus-ring"
-                disabled={isProcessing}
-              />
-              <span className="text-sm text-text-secondary select-none">Ich bestätige diese Aktion</span>
-            </label>
+            <Checkbox
+              checked={isConfirmed}
+              onChange={setIsConfirmed}
+              disabled={isProcessing}
+              label="Ich bestätige diese Aktion"
+              containerClassName="items-start"
+              labelClassName="text-sm text-text-secondary"
+            />
           </div>
         )}
       </Dialog.Body>

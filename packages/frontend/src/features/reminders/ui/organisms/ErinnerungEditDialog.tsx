@@ -12,6 +12,7 @@ import type { ErinnerungResponseDto, UpdateErinnerungDto } from '@/shared';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { cn } from '@/shared/ui/cn';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useForm } from '@tanstack/react-form';
@@ -397,23 +398,16 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                 <label htmlFor="edit-beschreibung" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Beschreibung <span className="text-xs text-text-muted">(optional)</span>
                 </label>
-                <textarea
+                <Textarea
                   id="edit-beschreibung"
                   placeholder="Zusaetzliche Details zur Erinnerung..."
                   value={field.state.value ?? ''}
                   onChange={(e) => field.handleChange(e.target.value || undefined)}
                   disabled={isPending}
+                  variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                   maxLength={500}
                   rows={3}
-                  className={cn(
-                    'block w-full rounded-control border bg-surface-panel px-4 py-2.5 font-medium text-text-primary transition-colors duration-200',
-                    'placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring',
-                    'disabled:cursor-not-allowed disabled:opacity-50',
-                    'resize-none',
-                    field.state.meta.errors.length > 0
-                      ? ['border-status-danger-border hover:border-status-danger-text', 'focus:border-status-danger-text']
-                      : ['border-border-subtle hover:border-border-strong', 'focus:border-action-primary'],
-                  )}
+                  fullWidth
                 />
                 {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>

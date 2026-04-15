@@ -50,7 +50,7 @@ export function FunkverkehrLayout({ einsatzId, tab, onTabChange, className }: Fu
   };
 
   return (
-    <div className={cn('flex h-full min-h-0 flex-col', className)}>
+    <div className={cn('flex h-[calc(100dvh-10rem)] min-h-0 flex-col overflow-hidden', className)}>
       <nav aria-label="Funkverkehr-Ansicht" className="flex gap-1 border-b border-slate-200 bg-white px-3 pt-2 dark:border-slate-800 dark:bg-slate-900">
         <TabButton active={tab === 'kanalplan'} onClick={() => onTabChange('kanalplan')}>
           Kanalplan
@@ -80,14 +80,14 @@ export function FunkverkehrLayout({ einsatzId, tab, onTabChange, className }: Fu
             <KanalplanTable einsatzId={einsatzId} kanaele={kanaele} onEdit={(kanal) => setEditKanal(kanal)} onArchive={handleArchive} onToggleStatus={handleToggleStatus} />
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-row">
+          <div className="flex min-h-0 flex-1 flex-row overflow-hidden">
             <FunkprotokollFilterSidebar einsatzId={einsatzId} />
-            <div className="flex min-h-0 flex-1 flex-col">
-              <FunkprotokollView einsatzId={einsatzId} kanaele={kanaele} />
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <FunkprotokollView einsatzId={einsatzId} kanaele={kanaele} className="min-h-0 flex-1" />
               {etbQuery.data?.id ? (
-                <FunkspruchComposer einsatzId={einsatzId} etbId={etbQuery.data.id} kanaele={kanaele} />
+                <FunkspruchComposer einsatzId={einsatzId} etbId={etbQuery.data.id} kanaele={kanaele} className="shrink-0" />
               ) : (
-                <div className="border-t border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900">
+                <div className="shrink-0 border-t border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900">
                   Einsatztagebuch wird geladen oder existiert noch nicht — Funksprüche können erst nach Anlage gesendet werden.
                 </div>
               )}

@@ -13,6 +13,7 @@ import { useRegistrierePerson } from '@/features/einsatz/api';
 import { useStammPersonenSuche } from '@/features/einsatz/api/use-stamm-personen-suche';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
@@ -165,7 +166,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
   }, [searchQuery, debouncedSearch]);
 
   // Autocomplete Query
-  const { data: stammPersonen, isLoading: isLoadingPersonen, error: stammPersonenError } = useStammPersonenSuche(debouncedQuery, { enabled: isOpen && debouncedQuery.length >= 1 });
+  const { data: stammPersonen, isLoading: isLoadingPersonen, error: stammPersonenError } = useStammPersonenSuche(debouncedQuery, { enabled: isOpen });
 
   /**
    * Zod Schema für Formular-Validierung
@@ -377,7 +378,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                   <form.Field name="vorname">
                     {(field) => (
                       <FormField label="Vorname" required error={getFormErrors(field.state.meta.errors)} helperText="Vorname der Person">
-                        <input
+                        <Input
                           ref={vornameInputRef}
                           type="text"
                           value={field.state.value}
@@ -385,16 +386,8 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                           onBlur={field.handleBlur}
                           disabled={registrierePerson.isPending}
                           placeholder="z.B. Max"
-                          className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
-                            'transition-all duration-200',
-                            'border-border-subtle',
-                            'placeholder:text-text-muted',
-                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
-                            'sm:text-sm',
-                            'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
-                          )}
+                          fullWidth
+                          variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                         />
                       </FormField>
                     )}
@@ -432,9 +425,15 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                               onBlur={field.handleBlur}
                               displayValue={(person: StammPersonDto | null) => person?.nachname || searchQuery}
                               autoComplete="off"
+                              autoCorrect="off"
+                              autoCapitalize="off"
+                              spellCheck={false}
+                              data-1p-ignore="true"
+                              data-lpignore="true"
+                              data-form-type="other"
                             />
                             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center px-3">
-                              {isLoadingPersonen && debouncedQuery.length >= 1 ? <InlineSpinner size="sm" /> : <PiCaretDown className="h-5 w-5 text-text-muted" aria-hidden="true" />}
+                              {isLoadingPersonen ? <InlineSpinner size="sm" /> : <PiCaretDown className="h-5 w-5 text-text-muted" aria-hidden="true" />}
                             </ComboboxButton>
 
                             <ComboboxOptions
@@ -446,8 +445,8 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                                 'sm:text-sm',
                               )}
                             >
-                              {/* Loading State - Only show when actually loading the debounced query */}
-                              {isLoadingPersonen && debouncedQuery.length >= 1 && (
+                              {/* Loading State */}
+                              {isLoadingPersonen && (
                                 <div className="flex items-center justify-center gap-2 px-4 py-8 text-text-secondary">
                                   <InlineSpinner size="sm" />
                                   <span>Suche läuft…</span>
@@ -455,17 +454,12 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                               )}
 
                               {/* Error State */}
-                              {!isLoadingPersonen && stammPersonenError && debouncedQuery.length >= 1 && (
+                              {!isLoadingPersonen && stammPersonenError && (
                                 <div className="px-4 py-4 text-center text-body-sm text-status-danger-text">Fehler beim Laden der Stammdaten. Bitte versuchen Sie es erneut.</div>
                               )}
 
-                              {/* Empty State - Mindestens 1 Zeichen */}
-                              {!isLoadingPersonen && !stammPersonenError && searchQuery.length === 0 && (
-                                <div className="px-4 py-4 text-center text-body-sm text-text-secondary">Bitte mindestens 1 Zeichen eingeben</div>
-                              )}
-
                               {/* No Results */}
-                              {!isLoadingPersonen && !stammPersonenError && debouncedQuery.length >= 1 && (!stammPersonen || stammPersonen.length === 0) && (
+                              {!isLoadingPersonen && !stammPersonenError && (!stammPersonen || stammPersonen.length === 0) && (
                                 <output className="block px-4 py-4 text-center text-body-sm text-text-secondary" aria-live="polite">
                                   Keine Personen gefunden
                                 </output>
@@ -577,23 +571,15 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                   <form.Field name="funkrufname">
                     {(field) => (
                       <FormField label="Funkrufname" error={getFormErrors(field.state.meta.errors)} helperText="Optional: Funkrufname für diese Person">
-                        <input
+                        <Input
                           type="text"
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           disabled={registrierePerson.isPending}
                           placeholder="z.B. GF"
-                          className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
-                            'transition-all duration-200',
-                            'border-border-subtle',
-                            'placeholder:text-text-muted',
-                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
-                            'sm:text-sm',
-                            'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
-                          )}
+                          fullWidth
+                          variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                         />
                       </FormField>
                     )}

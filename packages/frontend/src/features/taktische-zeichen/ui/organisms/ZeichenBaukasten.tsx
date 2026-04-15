@@ -10,6 +10,7 @@ import { useState } from 'react';
 import type { EinheitId, FachaufgabeId, GrundzeichenId, OrganisationId } from 'taktische-zeichen-core';
 import { PiCursorClick, PiArrowCounterClockwise, PiX } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { ZeichenPreview } from '../../rendering/ZeichenPreview';
 import type { ZeichenDefinition } from '../../rendering/renderer';
 import { GrundzeichenPicker } from '../atoms/GrundzeichenPicker';
@@ -179,15 +180,7 @@ export function ZeichenBaukasten({ onErstelleZeichen, isCreating, isPendingPlace
                 <label htmlFor="zeichen-label" className="text-xs font-medium text-text-secondary">
                   Beschriftung (optional)
                 </label>
-                <input
-                  id="zeichen-label"
-                  type="text"
-                  value={label}
-                  onChange={(e) => setLabel(e.target.value)}
-                  placeholder="z.B. ELW-1, 1. Zug..."
-                  maxLength={200}
-                  className="bg-surface-input rounded-md border border-border-subtle px-3 py-1.5 text-sm text-text-primary placeholder-text-muted focus:border-action-primary focus:outline-none"
-                />
+                <Input id="zeichen-label" type="text" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="z.B. ELW-1, 1. Zug..." maxLength={200} fullWidth />
               </div>
             </div>
           </BaukastenSchritt>

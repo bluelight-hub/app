@@ -108,6 +108,12 @@ export function ZuordnungsManager({ einsatzId, kanalId, zuordnungen }: Zuordnung
               placeholder={isLoading ? 'Lade Vorschläge…' : 'Rufname suchen…'}
               className="w-full rounded border border-slate-300 bg-white px-3 py-2 pr-9 text-sm dark:border-slate-700 dark:bg-slate-900"
               autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-1p-ignore="true"
+              data-lpignore="true"
+              data-form-type="other"
             />
             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
               <PiCaretDown className="h-4 w-4 text-slate-500" aria-hidden="true" />

@@ -7,6 +7,8 @@
 
 import { useState } from 'react';
 import { PiRuler } from 'react-icons/pi';
+import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { cn } from '@/shared/ui/cn';
 import type { DrawingStyle, HatchConfig, HatchType } from '../../drawing/types';
 import { DEFAULT_HATCH } from '../../drawing/types';
@@ -191,10 +193,14 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
           {showFill && (
             <div className="mb-3">
               <div className="mb-1.5 flex items-center justify-between">
-                <label className="flex items-center gap-1.5">
-                  <input type="checkbox" checked={style.fillEnabled !== false} onChange={(e) => onStyleChange({ fillEnabled: e.target.checked })} className="h-3 w-3 accent-action-primary" />
-                  <span className="text-xs font-semibold tracking-wide text-text-muted uppercase">Füllung</span>
-                </label>
+                <Checkbox
+                  id="draw-style-fill-enabled"
+                  checked={style.fillEnabled !== false}
+                  onChange={(checked) => onStyleChange({ fillEnabled: checked })}
+                  containerClassName="gap-1.5"
+                  labelClassName="text-xs font-semibold tracking-wide text-text-muted uppercase"
+                  label="Füllung"
+                />
                 {style.fillEnabled !== false && <span className="text-xs text-text-muted tabular-nums">{Math.round(style.fillOpacity * 100)}%</span>}
               </div>
               {style.fillEnabled !== false && (
@@ -286,15 +292,14 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
                       <div>
                         <div className="mb-1 flex items-center justify-between">
                           <span className="text-[10px] font-semibold tracking-wide text-text-muted uppercase">Farbe</span>
-                          <label className="flex items-center gap-1 text-[10px] text-text-muted">
-                            <input
-                              type="checkbox"
-                              checked={hatch.color === ''}
-                              onChange={(e) => updateHatch({ color: e.target.checked ? '' : style.color })}
-                              className="h-3 w-3 accent-action-primary"
-                            />
-                            Auto
-                          </label>
+                          <Checkbox
+                            id="draw-style-hatch-auto"
+                            checked={hatch.color === ''}
+                            onChange={(checked) => updateHatch({ color: checked ? '' : style.color })}
+                            containerClassName="gap-1"
+                            labelClassName="text-[10px] text-text-muted"
+                            label="Auto"
+                          />
                         </div>
                         {hatch.color !== '' && (
                           <div className="flex flex-wrap gap-1">
@@ -327,16 +332,7 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
           {label !== undefined && onLabelChange && (
             <div>
               <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Beschriftung</div>
-              <input
-                type="text"
-                value={label}
-                onChange={(e) => onLabelChange(e.target.value)}
-                className={cn(
-                  'w-full rounded border border-border-subtle bg-surface-panel px-2 py-1 text-sm text-text-primary',
-                  'focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none',
-                )}
-                placeholder="Text eingeben..."
-              />
+              <Input type="text" value={label} onChange={(e) => onLabelChange(e.target.value)} placeholder="Text eingeben..." inputSize="sm" fullWidth />
             </div>
           )}
         </>

@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { cn } from '@/shared/ui/cn';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import type { FeatureGroup } from '../../stores/draw.store';
 
 export interface FeatureGroupPanelProps {
@@ -77,13 +78,14 @@ export function FeatureGroupPanel({ selectionCount, groupsForSelection, allGroup
         {/* Neue Gruppe erstellen */}
         {isCreating ? (
           <div className="mt-2 flex gap-1">
-            <input
+            <Input
               type="text"
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
               placeholder="Gruppenname…"
-              className="bg-surface-secondary min-w-0 flex-1 rounded border border-border-subtle px-2 py-1 text-xs text-text-primary placeholder:text-text-muted focus:border-action-primary focus:outline-none"
+              inputSize="sm"
+              className="min-w-0 flex-1"
               autoFocus
             />
             <button type="button" onClick={handleCreate} className="shrink-0 rounded bg-action-primary px-2 py-1 text-xs text-white hover:bg-action-primary/90">

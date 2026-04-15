@@ -4,7 +4,7 @@
  * Verifiziert:
  * - Query-Key Format stimmt
  * - API wird mit korrekten Parametern aufgerufen
- * - Suche disabled bei weniger als 2 Zeichen
+ * - Suche ist immer aktiv (auch bei leerem Query für Top-20)
  * - Error-Handling
  */
 
@@ -69,14 +69,28 @@ describe('useEmpfaengerSuche', () => {
   });
 
   describe('enabled-Logik', () => {
-    it('fuehrt keine Suche aus bei leerem Suchterm', () => {
-      renderHook(() => useEmpfaengerSuche(EINSATZ_ID, ''), { wrapper: createWrapper() });
-      expect(mockEmpfaengerSuche).not.toHaveBeenCalled();
+    it('fuehrt Suche aus bei leerem Suchterm (Top-20 Empfänger)', async () => {
+      mockEmpfaengerSuche.mockResolvedValue({ data: [] });
+
+      const { result } = renderHook(() => useEmpfaengerSuche(EINSATZ_ID, ''), { wrapper: createWrapper() });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockEmpfaengerSuche).toHaveBeenCalledWith({
+        q: '',
+        einsatzId: EINSATZ_ID,
+      });
     });
 
-    it('fuehrt keine Suche aus bei nur 1 Zeichen', () => {
-      renderHook(() => useEmpfaengerSuche(EINSATZ_ID, 'M'), { wrapper: createWrapper() });
-      expect(mockEmpfaengerSuche).not.toHaveBeenCalled();
+    it('fuehrt Suche auch bei nur 1 Zeichen aus', async () => {
+      mockEmpfaengerSuche.mockResolvedValue({ data: [] });
+
+      const { result } = renderHook(() => useEmpfaengerSuche(EINSATZ_ID, 'M'), { wrapper: createWrapper() });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockEmpfaengerSuche).toHaveBeenCalledWith({
+        q: 'M',
+        einsatzId: EINSATZ_ID,
+      });
     });
 
     it('fuehrt Suche aus ab 2 Zeichen', async () => {

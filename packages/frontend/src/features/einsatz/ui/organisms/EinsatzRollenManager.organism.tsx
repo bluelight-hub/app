@@ -322,6 +322,13 @@ function UserSucheCombobox({
               onChange={(e) => onQueryChange(e.target.value)}
               aria-label="Benutzer suchen"
               autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-1p-ignore="true"
+              data-lpignore="true"
+              data-form-type="other"
             />
             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
               <PiCaretUpDown className="h-4 w-4 text-text-muted" />

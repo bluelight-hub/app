@@ -2,7 +2,7 @@
  * Hook fuer die Empfaenger-Suche in Kraefte-Stammdaten.
  *
  * Durchsucht EinsatzPersonen und StammPersonen fuer die Empfaenger-Auswahl.
- * Suche wird erst ab 2 Zeichen aktiviert (AC8).
+ * Suche ist immer aktiv — bei leerem Query liefert Backend Top-20 Empfänger.
  */
 
 import { api } from '@/shared';
@@ -20,7 +20,7 @@ export function useEmpfaengerSuche(einsatzId: string, searchTerm: string) {
       });
       return response.data;
     },
-    enabled: searchTerm.length >= 2,
+    enabled: true,
     staleTime: 30_000,
     retry: 0,
   });

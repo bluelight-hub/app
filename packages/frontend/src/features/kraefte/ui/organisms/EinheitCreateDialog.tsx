@@ -12,6 +12,8 @@ import { zodValidator } from '@tanstack/zod-form-adapter';
 import { PiPlus } from 'react-icons/pi';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 
 import { useCreateEinheit } from '@/features/kraefte/api/use-create-einheit';
@@ -131,7 +133,7 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                 <label htmlFor="einheit-name" className="block text-sm font-medium text-text-secondary">
                   Name *
                 </label>
-                <input
+                <Input
                   id="einheit-name"
                   type="text"
                   value={field.state.value}
@@ -139,7 +141,8 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                   onBlur={field.handleBlur}
                   disabled={isPending}
                   placeholder="z.B. 1. Sanitätsgruppe"
-                  className="w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none disabled:opacity-50"
+                  fullWidth
+                  variant={field.state.meta.errors?.length ? 'error' : 'default'}
                 />
                 {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
                   <p className="text-xs text-status-danger-text">
@@ -182,7 +185,7 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                 <label htmlFor="einheit-funktion" className="block text-sm font-medium text-text-secondary">
                   Funktion
                 </label>
-                <input
+                <Input
                   id="einheit-funktion"
                   type="text"
                   value={field.state.value}
@@ -190,7 +193,7 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                   onBlur={field.handleBlur}
                   disabled={isPending}
                   placeholder="z.B. Sanitätsdienst, Betreuung"
-                  className="w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none disabled:opacity-50"
+                  fullWidth
                 />
               </div>
             )}
@@ -203,7 +206,7 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                 <label htmlFor="einheit-sollstaerke" className="block text-sm font-medium text-text-secondary">
                   Soll-Stärke *
                 </label>
-                <input
+                <Input
                   id="einheit-sollstaerke"
                   type="number"
                   min={1}
@@ -212,7 +215,8 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                   onChange={(e) => field.handleChange(Number.parseInt(e.target.value, 10) || 1)}
                   onBlur={field.handleBlur}
                   disabled={isPending}
-                  className="w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none disabled:opacity-50"
+                  fullWidth
+                  variant={field.state.meta.errors?.length ? 'error' : 'default'}
                 />
                 {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
                   <p className="text-xs text-status-danger-text">
@@ -230,7 +234,7 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                 <label htmlFor="einheit-auftrag" className="block text-sm font-medium text-text-secondary">
                   Auftrag
                 </label>
-                <textarea
+                <Textarea
                   id="einheit-auftrag"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -238,7 +242,7 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                   disabled={isPending}
                   placeholder="Auftrag der Einheit..."
                   rows={2}
-                  className="w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none disabled:opacity-50"
+                  fullWidth
                 />
               </div>
             )}
@@ -251,7 +255,7 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                 <label htmlFor="einheit-einsatzort" className="block text-sm font-medium text-text-secondary">
                   Einsatzort
                 </label>
-                <input
+                <Input
                   id="einheit-einsatzort"
                   type="text"
                   value={field.state.value}
@@ -259,7 +263,7 @@ export function EinheitCreateDialog({ isOpen, onClose, einsatzId, parentId }: Ei
                   onBlur={field.handleBlur}
                   disabled={isPending}
                   placeholder="z.B. Abschnitt Nord"
-                  className="w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none disabled:opacity-50"
+                  fullWidth
                 />
               </div>
             )}

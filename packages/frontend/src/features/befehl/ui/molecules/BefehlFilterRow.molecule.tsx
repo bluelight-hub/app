@@ -10,6 +10,7 @@ import type { BefehlDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PiCalendar, PiCaretDown, PiCheck, PiFunnel, PiMagnifyingGlass, PiUser, PiUsers, PiX } from 'react-icons/pi';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { cn } from '@/shared/ui/cn';
 import { debounce } from '@tanstack/pacer';
 
@@ -188,6 +189,13 @@ export function BefehlFilterRow({
                 setEmpfaengerQuery(e.target.value);
                 debouncedEmpfaenger(e.target.value);
               }}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-1p-ignore="true"
+              data-lpignore="true"
+              data-form-type="other"
             />
             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
               <PiCaretDown className={cn('h-4 w-4', empfaengerName ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
@@ -270,43 +278,37 @@ export function BefehlFilterRow({
       <div className="flex items-center gap-2">
         <div className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:shadow-focus-ring', von ? activeClasses : inactiveClasses)}>
           <PiCalendar className={cn('ml-3 h-4 w-4 flex-shrink-0', von ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
-          <input
+          <Input
             type="date"
             value={von}
             onChange={(e) => onVonChange(e.target.value)}
             aria-label="Befehle ab Datum"
-            className={cn('border-none bg-transparent py-2 pr-3 pl-2 text-sm font-medium text-text-secondary focus:outline-none', von && 'text-action-primary')}
+            className={cn('border-none bg-transparent py-2 pr-3 pl-2 font-medium text-text-secondary focus:outline-none', von && 'text-action-primary')}
           />
         </div>
         <span className="text-xs text-text-muted">–</span>
         <div className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:shadow-focus-ring', bis ? activeClasses : inactiveClasses)}>
           <PiCalendar className={cn('ml-3 h-4 w-4 flex-shrink-0', bis ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
-          <input
+          <Input
             type="date"
             value={bis}
             onChange={(e) => onBisChange(e.target.value)}
             aria-label="Befehle bis Datum"
-            className={cn('border-none bg-transparent py-2 pr-3 pl-2 text-sm font-medium text-text-secondary focus:outline-none', bis && 'text-action-primary')}
+            className={cn('border-none bg-transparent py-2 pr-3 pl-2 font-medium text-text-secondary focus:outline-none', bis && 'text-action-primary')}
           />
         </div>
       </div>
 
       {/* Freitext-Suche */}
-      <div className="relative min-w-[180px] flex-1">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <PiMagnifyingGlass className="h-4 w-4 text-text-muted" aria-hidden="true" />
-        </div>
-        <input
+      <div className="min-w-[180px] flex-1">
+        <Input
           type="text"
           value={localSearch}
           onChange={handleSearchChange}
           placeholder="Suche in Befehlen..."
           aria-label="Befehle durchsuchen"
-          className={cn(
-            'w-full rounded-lg border border-border-subtle bg-surface-panel py-2 pr-3 pl-9 text-sm text-text-primary',
-            'placeholder:text-text-muted',
-            'focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring',
-          )}
+          leftIcon={<PiMagnifyingGlass className="h-4 w-4" aria-hidden="true" />}
+          fullWidth
         />
       </div>
 

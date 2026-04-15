@@ -9,6 +9,7 @@
 import type { ErinnerungResponseDto } from '@/shared';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useCallback, useState } from 'react';
 import { PiRepeat, PiStopCircle } from 'react-icons/pi';
@@ -106,22 +107,18 @@ export function StopRecurringErinnerungDialog({ isOpen, onClose, erinnerung, ein
           </div>
 
           {/* AC2: Checkbox fuer aktuelle Instanz abbrechen */}
-          <label
-            aria-label="Auch die aktuelle aktive Instanz abbrechen"
-            className="flex cursor-pointer items-start gap-3 rounded-panel border border-border-subtle p-3 transition-colors hover:bg-action-secondary"
-          >
-            <input
-              type="checkbox"
-              checked={cancelCurrent}
-              onChange={(e) => setCancelCurrent(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-border-subtle text-status-warning-text focus-visible:shadow-focus-ring"
-              disabled={isPending}
-            />
-            <div>
-              <span className="text-sm font-medium text-text-primary">Auch die aktuelle aktive Instanz abbrechen</span>
-              <p className="mt-0.5 text-xs text-text-muted">Falls eine Instanz gerade aktiv ist (geplant/ausgeloest), wird sie ebenfalls beendet.</p>
-            </div>
-          </label>
+          <Checkbox
+            checked={cancelCurrent}
+            onChange={setCancelCurrent}
+            disabled={isPending}
+            containerClassName="items-start gap-3 rounded-panel border border-border-subtle p-3 transition-colors hover:bg-action-secondary"
+            label={
+              <div>
+                <span className="text-sm font-medium text-text-primary">Auch die aktuelle aktive Instanz abbrechen</span>
+                <p className="mt-0.5 text-xs text-text-muted">Falls eine Instanz gerade aktiv ist (geplant/ausgeloest), wird sie ebenfalls beendet.</p>
+              </div>
+            }
+          />
         </div>
       </Dialog.Body>
 

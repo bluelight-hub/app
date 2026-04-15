@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { cn } from '@/shared/ui/cn';
 
@@ -159,7 +160,7 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
                 <label htmlFor="fr-template-beschreibung" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Beschreibung <span className="text-xs text-text-muted">(optional)</span>
                 </label>
-                <textarea
+                <Textarea
                   id="fr-template-beschreibung"
                   placeholder="Zusaetzliche Details zum Template..."
                   value={field.state.value ?? ''}
@@ -167,13 +168,7 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
                   disabled={isPending}
                   maxLength={500}
                   rows={2}
-                  className={cn(
-                    'block w-full rounded-control border bg-surface-panel px-4 py-2.5 font-medium text-text-primary transition-colors duration-200',
-                    'placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring',
-                    'disabled:cursor-not-allowed disabled:opacity-50',
-                    'resize-none',
-                    'border-border-subtle hover:border-border-strong focus:border-action-primary',
-                  )}
+                  fullWidth
                 />
               </div>
             )}

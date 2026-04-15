@@ -30,7 +30,7 @@ import { calculateRetryDelay, EINSATZ_QUERY_KEYS } from './queries';
  * - Nachname (case-insensitive)
  * - Personalausweisnummer (exact match)
  *
- * @param query - Suchbegriff (min. 1 Zeichen für aktivierte Query)
+ * @param query - Suchbegriff (optional; leer = alle nicht-archivierten Personen)
  * @param options - Query-Optionen (enabled)
  * @returns TanStack Query Result mit gefiltertem StammPersonDto Array
  *
@@ -87,7 +87,7 @@ export const useStammPersonenSuche = (query: string, options?: { enabled?: boole
         return vornameMatch || nachnameMatch || fullNameMatch || personalausweisnummerMatch;
       });
     },
-    enabled: query?.length >= 1 && (options?.enabled ?? true),
+    enabled: options?.enabled ?? true,
     staleTime: 30_000, // 30 Sekunden - Cache für Autocomplete
     retry: 3,
     retryDelay: calculateRetryDelay,

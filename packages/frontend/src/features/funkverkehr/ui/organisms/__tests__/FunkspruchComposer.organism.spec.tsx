@@ -57,11 +57,13 @@ describe('FunkspruchComposer', () => {
   it('zeigt nur aktive Kanäle im Dropdown', () => {
     const client = makeClient();
     const kanaele = [makeKanal({ id: 'k1', name: 'Aktiv' }), makeKanal({ id: 'k2', name: 'Inaktiv', status: 'inaktiv' as FunkkanalResponseDto['status'] })];
-    render(<FunkspruchComposer einsatzId="e1" etbId="etb1" kanaele={kanaele} />, { wrapper: wrapper(client) });
+    render(<FunkspruchComposer einsatzId="e1" etbId="etb1" kanaele={kanaele} defaultKanalId="k1" />, { wrapper: wrapper(client) });
 
-    const select = screen.getByRole('combobox', { name: /Kanal auswählen/i });
-    expect(select).toHaveTextContent('Aktiv');
-    expect(select).not.toHaveTextContent('Inaktiv');
+    // Kanal-Combobox zeigt den initial gewählten aktiven Kanal an
+    const kanalInput = screen.getByPlaceholderText('Kanal wählen…');
+    expect(kanalInput).toHaveValue('Aktiv');
+    // Inaktiver Kanal darf nicht im Input auftauchen
+    expect(screen.queryByDisplayValue('Inaktiv')).not.toBeInTheDocument();
   });
 
   it('submittet Funkspruch bei Cmd+Enter', async () => {
