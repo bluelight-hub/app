@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phase 4 abgeschlossen)
+## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4 & 5 abgeschlossen)
 
 **Branch:** `407/wave-1-foundation-v2` (Basis: `407/funkverkehr-implementation`, nur Spec-Commits). Frischer Start — die alten Wave-1-Branches (`407/wave-1-foundation`) werden NICHT verwendet.
 
-**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39) **und** Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure). **Alle 15 Tasks sind committed.** Wave-2-Phase-5 (ab Task 14) bleibt für die nächste Session.
+**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure) **und** Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer). **Alle 19 Kern-Tasks sind committed.** Wave-2-Phase-6 (ab Task 18, WebSocket-Gateway) bleibt für die nächste Session.
 
 ### ✅ Fertig (committed auf `407/wave-1-foundation-v2`)
 
@@ -28,6 +28,10 @@
 | Task 11 — Funkkanal-Mapper + Repository | `3b032d376` | `IFunkkanalRepository` in `domain/repositories/` (nicht `application/common/ports/`), `PrismaFunkkanalMapper` (TMO/DMO/Analog Roundtrip), `PrismaFunkkanalRepository` mit Upsert Root + Diff Zuordnungen + `hasFunkspruchReferenz` via raw SQL. PrismaService um `funkkanal`/`funkkanalZuordnung`-Getter erweitert. 11 Mapper-Unit-Tests + 8 Postgres-Integration-Tests grün |
 | Task 12 — Event-Registry + Adapter | `a2b1d20c7` | 7 Funkkanal-Events in `event-serializer.ts` + `event-deserializer.ts` registriert, `FunkkanalEventAdapter` (alle 7 Events) + `EtbFunkspruchBroadcastAdapter` (ETB-Einträge mit Funkspruch-Kontext) in `EventAdaptersModule`. Publisher via `EINSATZ_EVENT_PUBLISHER` @Optional — konkrete Impl kommt mit Task 18; bis dahin Log-only. `event-deserializer.spec` + `architecture-rules.spec` grün (102 registrierte Events). 9 Roundtrip + 13 Adapter-Tests |
 | Task 13 — DI-Tokens + FunkkanalInfrastructureModule | `680e68d45` | `FUNKKANAL_TOKENS` (REPOSITORY, MAPPER, KANALPLAN_PDF_SERVICE, EINSATZ_EVENT_PUBLISHER) in `di-tokens.ts` — `EINSATZ_EVENT_PUBLISHER` wurde bereits in Task 12 eingezogen, da der Adapter sie braucht. `FunkkanalInfrastructureModule` bindet `PrismaFunkkanalRepository` an `FUNKKANAL_REPOSITORY` und wird im `AppModule` nach `TaktischeZeichenModule` importiert. `check:di:imports` + `di-resolution.spec` grün |
+| Task 14 — Funkkanal-Commands (9 Stück: create/rename/changeDetails/setZweck/setSortIndex/archive/deactivate/activate/reorder) | `803cb2d76` · `4c7b366cc` · `db54731c5` · `94049066c` · `830e91bde` · `230044780` · `4ff422ed1` · `54789341b` · `0faf3375c` | Jeder Command in eigenem Ordner unter `application/funkkanal/commands/` mit `*.command.ts`, `*.handler.ts`, `__tests__/`, `index.ts`. Handler erben `TransactionalCommandHandler`, lösen `FUNKKANAL_REPOSITORY` via `@Inject` auf. `ReorderFunkkanaeleHandler` emittiert einen einzigen `FunkkanalReihenfolgeGeaendertEvent` (aggregateId = einsatzId) nach Bulk-`repo.reorder`. Namens-Duplikat-Check (`existsByName`) im create + rename. Zusammen **45 Tests grün** |
+| Task 15 — Funkkanal-Zuordnungs-Commands (zuordne-kraft-zu-kanal / aendere-zuordnung-rolle / entferne-zuordnung) | `c84a25020` | `ZuordneKraftZuKanalHandler` injiziert `KRAEFTE_REPOSITORIES.EINSATZ_{FAHRZEUG,PERSON,EINHEIT}` und zieht `rufnameSnapshot` aus dem jeweiligen Aggregat (Person fallback: `vorname + nachname`). 12 Tests grün |
+| Task 16 — Funkkanal-Queries (get-kanalplan / get-funkkanal-by-id / get-rufnamen-vorschlaege) | `a1a6be96b` | Read-only Handler ohne Transaction/Outbox. `GetRufnamenVorschlaegeQueryHandler` aggregiert Fahrzeuge/Personen/Einheiten parallel via `Promise.all`. 10 Tests grün |
+| Task 17 — NotfallFunkspruchAlertHandler + Adapter-Wiring | `59e60980e` | Application-Handler in `application/funkkanal/event-handlers/notfall-funkspruch-alert.handler.ts`, Infrastructure-Adapter `NotfallFunkspruchAlertEventAdapter` (`@OnEvent` auf `EintragAddedEvent`). `FunkkanalApplicationModule` registriert Handler unter `EVENT_HANDLER.NOTFALL_FUNKSPRUCH_ALERT` und wird im `EventAdaptersModule` importiert. 7 Tests grün |
 
 ### 🔑 Wichtige Abweichungen vom Plan (Wave 1 Gesamt)
 
@@ -47,24 +51,32 @@
 14. **`EINSATZ_EVENT_PUBLISHER`-Token vorgezogen (Task 12 statt 13):** Der `FunkkanalEventAdapter` braucht das Token bereits beim Import, daher wurde es zusammen mit den übrigen `FUNKKANAL_TOKENS` in Task 12/13 eingeführt. Der konkrete `EinsatzEventPublisher` kommt mit Task 18; bis dahin ist der Adapter via `@Optional()` verdrahtet und loggt nur.
 15. **`EtbFunkspruchBroadcastAdapter` mit etbId-Room (Task 12):** `EintragAddedEvent` + `EintragKorrigiertEvent` tragen aktuell keine `einsatzId`. Der Adapter broadcastet mit `etbId` als Room-Schlüssel; die Resolution `etb → einsatz` erfolgt erst im `EinsatzEventsGateway` (Task 18), das einen Einsatz-Index hält. Filter im Adapter: Nur Einträge mit `kontext.type === 'funkspruch'` werden weitergegeben (Korrektur-Events grundsätzlich).
 16. **`einsaetze.status` beim Integration-Test:** Tabelle hat Enum-Werte `ANGELEGT | IN_BEARBEITUNG | ABGESCHLOSSEN | ARCHIVIERT` (nicht `OFFEN`); `EtbStatus` hat `DRAFT | ACTIVE | LOCKED` (nicht `AKTIV`) — Raw-SQL-Fixtures entsprechend anpassen.
+17. **Phase 5 Abweichungen (Task 14–17):**
+    - **Commands separat statt gebündelt (Task 14):** Plan listet 5 Commands (create/update/archive/delete/reorder); tatsächlich umgesetzt als 9 feinere Commands gemäß Aggregat-API (create/rename/changeDetails/setZweck/setSortIndex/archive/deactivate/activate/reorder). Kein `delete`-Command — Aggregat bietet nur `archive` (+ `deactivate`/`activate`). `existsByName` wird vor `create` und `rename` geprüft.
+    - **Auto-sortIndex (Task 14):** `CreateFunkkanalHandler` akzeptiert optionalen `sortIndex`; fehlt er, ermittelt der Handler per `findByEinsatzId({ includeArchived: true })` den höchsten belegten Index + 1 (bzw. 0 bei leerem Plan).
+    - **Reorder cross-aggregate (Task 14):** `ReorderFunkkanaeleHandler` lädt nicht alle Aggregate, sondern validiert Coverage gegen `findByEinsatzId({ includeArchived: false })` und delegiert an den Repository-Bulk-Update `reorder(...)`. Emittiert genau **einen** `FunkkanalReihenfolgeGeaendertEvent` pro Call. Plan-Pseudocode `aggregate.applyOrdering(...)` existiert nicht im Aggregat.
+    - **Rufname-Snapshot (Task 15):** Plan sagt "Rufnamen-Lookup im Handler". Umsetzung: Person-Aggregat hat `funkrufname` optional; Handler fällt deterministisch auf `${vorname} ${nachname}` zurück und lehnt Zuordnung ab, wenn beide leer. Einheit nutzt `name` direkt.
+    - **Queries (Task 16):** Plan sagt, Query gibt DTO zurück. Umsetzung: Queries liefern Domain-`FunkkanalAggregate[]` bzw. `FunkkanalAggregate | null`; die DTO-Projektion erfolgt im Controller (Task 20–22). `GetRufnamenVorschlaegeQuery` liefert ein flaches POJO-Result (kein Aggregat).
+    - **Notfall-Flow (Task 17):** `EintragAddedEvent` trägt `etbId`, nicht `einsatzId`. Der Handler injiziert `IEtbRepository` und resolvt `einsatzId` via `findById(etbId)`. Der Infrastructure-Adapter `NotfallFunkspruchAlertEventAdapter` filtert früh auf `kontext.type === 'funkspruch'`, damit Standard-Einträge keinen Handler-Call verursachen.
+    - **`EVENT_HANDLER.NOTFALL_FUNKSPRUCH_ALERT` Token** (Issue #407) wurde am Ende des `EVENT_HANDLER`-Objekts in `infrastructure/di-tokens.ts` ergänzt. `FunkkanalApplicationModule` registriert Handler und exportiert Token; `EventAdaptersModule` importiert das Modul und hängt den Adapter als Provider ein.
 
-### 🚦 Nächster Agent: Start Wave 2 ab Task 14 (Application-Layer)
+### 🚦 Nächster Agent: Start Wave 2 ab Task 18 (WebSocket-Gateway)
 
-Wave 1 + Phase 4 (Infrastructure) sind vollständig. Weiter geht es mit Phase 5 (Tasks 14–17: Funkkanal-Commands, Queries, `NotfallFunkspruchAlertHandler`).
+Wave 1, Phase 4 (Infrastructure) und Phase 5 (Application-Layer) sind vollständig. Weiter geht es mit Phase 6 (Task 18: `EinsatzEventsGateway` + `EinsatzEventPublisher`), das die in Task 12 als `@Optional()` gesteckten `EINSATZ_EVENT_PUBLISHER`-Slots endlich besetzt und damit alle bisher "Log-only" broadcastenden Adapter (Funkkanal, ETB-Funkspruch, Notfall) scharf schaltet.
 
 ```bash
 cd /Users/rubeen/dev/personal/bluelight-hub
 git switch 407/wave-1-foundation-v2
-git log --oneline -17   # 15 Funkverkehr-Commits + 2 Spec-Commits
+git log --oneline -26   # 24 Funkverkehr-Commits + 2 Spec-Commits
 
-# Baseline verifizieren (Wave 1 + Phase 4):
+# Baseline verifizieren (Phase 5):
 cd packages/backend
 DATABASE_URL="postgresql://bluelight:bluelight@localhost:3092/bluelight-hub?schema=public" \
-  npx jest --testPathPatterns="funkkanal|funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|event-deserializer|event-roundtrip|event-serializer|architecture-rules|di-resolution|etb-funkspruch-broadcast" --no-coverage
-# Erwartet: 446 Tests grün, 20 Suites
+  npx jest --testPathPatterns="funkkanal|funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|event-deserializer|event-roundtrip|event-serializer|architecture-rules|di-resolution|etb-funkspruch-broadcast|notfall-funkspruch-alert" --no-coverage
+# Erwartet: 158 Funkkanal-Tests grün + restliche Wave-1-Tests
 ```
 
-Dann Phase 5 ab Task 14 (`create-funkkanal` Command + weitere CRUD/Reorder). Der `TransactionalCommandHandler`-Pattern ist bereits etabliert (siehe `application/etb/commands/`); `FUNKKANAL_REPOSITORY` kann via `@Inject(FUNKKANAL_REPOSITORY)` aufgelöst werden.
+Dann Phase 6 ab Task 18 (`packages/backend/src/infrastructure/websocket/einsatz-events.gateway.ts` + `EinsatzEventPublisher`). Der Publisher wird unter `EINSATZ_EVENT_PUBLISHER` registriert und vom `FunkkanalEventAdapter`, `EtbFunkspruchBroadcastAdapter` und indirekt vom `NotfallFunkspruchAlertHandler` (über sein Event) konsumiert.
 
 ### 🔑 Wichtige Abweichungen vom Plan
 
