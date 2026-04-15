@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4–10 abgeschlossen)
+## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4–12 abgeschlossen)
 
 **Branch:** `407/wave-1-foundation-v2` (Basis: `407/funkverkehr-implementation`, nur Spec-Commits). Frischer Start — die alten Wave-1-Branches (`407/wave-1-foundation`) werden NICHT verwendet.
 
-**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure), Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer), Wave-2-Phase-6 (Task 18, WebSocket-Gateway + Publisher), Wave-2-Phase-7 (Tasks 19–24, HTTP-Layer: DTOs + Controller + PDF-Export), Phase 8 (Task 25, API-Client-Regenerierung inkl. DTO-Fix für EintragKontext-Discriminator), Phase 9 (Tasks 26–29, Frontend-Foundation: Feature-Skelett + Filter-Store, Kanalplan-API-Hooks, ETB-Funkprotokoll-Hooks, useEinsatzEvents WebSocket-Hook) **und** Phase 10 (Tasks 30–31, Atoms + Molecules: Priorität-/Status-Badges, KanalDetailsForm, FunkspruchBubble/CompactRow, FunkKontextBadge, NotfallAlertToast). **Alle 33 Kern-Tasks + Phase 8/9/10 sind committed.** Phase 11 (Tasks 32–33, Kanalplan-Organisms inkl. Drag-and-Drop), Phase 12 (Tasks 34–37, Funkprotokoll-Organisms + Page/Routing) und Phase 14 (Tasks 40–41, E2E + Definition of Done) bleiben für die nächste Session.
+**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure), Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer), Wave-2-Phase-6 (Task 18, WebSocket-Gateway + Publisher), Wave-2-Phase-7 (Tasks 19–24, HTTP-Layer: DTOs + Controller + PDF-Export), Phase 8 (Task 25, API-Client-Regenerierung inkl. DTO-Fix für EintragKontext-Discriminator), Phase 9 (Tasks 26–29, Frontend-Foundation: Feature-Skelett + Filter-Store, Kanalplan-API-Hooks, ETB-Funkprotokoll-Hooks, useEinsatzEvents WebSocket-Hook), Phase 10 (Tasks 30–31, Atoms + Molecules: Priorität-/Status-Badges, KanalDetailsForm, FunkspruchBubble/CompactRow, FunkKontextBadge, NotfallAlertToast), **Phase 11** (Tasks 32–33, Kanalplan-Organisms inkl. Drag-and-Drop) **und Phase 12** (Tasks 34–37, Funkprotokoll-Organisms + FunkverkehrLayout + Tab-Routing auf `/app/einsatz/:einsatzId/kommunikation/funk?tab=kanalplan|protokoll`). **Alle 39 Kern-Tasks sind committed.** Nur Phase 14 (Tasks 40–41, Browser-E2E + Definition-of-Done-Checks) steht noch aus — kein Code mehr zu schreiben, nur Verification.
 
 ### ✅ Fertig (committed auf `407/wave-1-foundation-v2`)
 
@@ -46,6 +46,12 @@
 | Task 29 — useEinsatzEvents WebSocket-Hook | `0f0917b08` | `api/use-einsatz-events.ts` — socket.io ohne Auto-Reconnect (eigener Backoff 1s/2s/5s/10s/30s via `EINSATZ_EVENTS_BACKOFF_MS`). Nach `connect` wird `join:einsatz` emittiert + Full-Invalidate (Kanalplan/Funkprotokoll/ETB). Handler für `etb:eintrag-erstellt/korrigiert`, 6× `funkkanal:*` und `funk:notfall-alert` (mit optionalem `onNotfall`-Callback). `join:einsatz:error` → Status `error` + Disconnect. 7 Tests grün (Connect, Invalidierung, Backoff, Cleanup). |
 | Task 30 — Atoms: FunkPrioritaetBadge + KanalStatusBadge | `35406c8cf` | `utils/priority-color.ts` liefert `PRIORITAET_STYLES` (routine/prioritaet/notfall mit Farbe, Border, Icon-Name, `pulse`-Flag). `FunkPrioritaetBadge` mit Radio-/Warning-/Sirenen-Icon (`react-icons/pi`), `iconOnly`-Modus, `role="status"`, `aria-label`. `KanalStatusBadge` für `aktiv`/`inaktiv`/`archiviert`. 8 Tests grün. |
 | Task 31 — Molecules: KanalDetailsForm + Bubbles + NotfallToast | `3f299dfa4` | `ui/molecules/`: `KanalDetailsForm` Controlled mit Radio-Group TMO/DMO/Analog und typabhängigen Feldern, `aria-invalid` + `role="radiogroup"`. `FunkKontextBadge` (Button/Span via `asSpan`) mit Fallback "Kanal (gelöscht)" und Prioritäts-Icon rechts. `FunkspruchBubble` (Chat-Card, Prio-Border links, `time`-Element) + `FunkspruchCompactRow` (font-mono Zeile, `role="listitem"`). `NotfallAlertToast` via `toast.custom` — 10s Dauer, deterministische ID `notfall:{einsatzId}:{ereignisZeitpunkt}`. `utils/format-kanal-details.ts` für Typ-Label + Kennung. 12 Tests grün. |
+| Task 32 — KanalEditDrawer + ZuordnungsManager | `efc3f5f92` | `schemas/kanal.schema.ts` mit `z.discriminatedUnion('type', [tmo, dmo, analog])` + `kanalFormSchema`. `KanalEditDrawer` nutzt `Dialog.SlideIn` (right, lg), `@tanstack/react-form` + `zodValidator`, bettet `KanalDetailsForm` ein, dispatcht Create/Update auf `useCreateFunkkanal`/`useUpdateFunkkanal`, bietet Archivieren mit `Dialog.Confirm`-Dialog und hookt 422→Toast mit Archivierungs-Hinweis. `ZuordnungsManager` mit Headless Combobox (gruppiert Fahrzeuge/Personen/Einheiten aus `useRufnameVorschlaege`), Segmented-Rolle (primär/sekundär/zuhören), `useCreateZuordnung`/`useUpdateZuordnungRolle`/`useRemoveZuordnung`. 7 neue Tests. |
+| Task 33 — KanalplanTable mit Drag-and-Drop | `869fc976e` | `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities` neu installiert (fehlten). Eigene `<table>` (kein shared DataTable) mit `DndContext` + `SortableContext` + `useSortable`, Drag-Handle pro Row, Spalten Name / Typ-Badge / Kennung / ZuordnungChipList / Status-Badge / Dropdown-Aktionen (Edit / Toggle-Status / Archivieren). `onDragEnd` baut neue `ordering`-Liste und reicht sie an `useReorderFunkkanaele`. 3 neue Tests. |
+| Task 34 — FunkspruchComposer | `06e8fd812` | Sticky-Form am Fuß des Funkprotokolls. Absender/Empfänger als Headless-UI-Combobox mit `allowCustomValue` (via direktes `onChange` auf dem Eingabewert), Kanal-Dropdown nur aktive Kanäle, DateTime-Picker `datetime-local` (Default jetzt), Prio-Segmented (routine/priorität/notfall), Textarea mit Cmd/Ctrl+Enter Submit + Shift+Enter Newline (Browser-Default). Nutzt `useCreateFunkspruch({ einsatzId, etbId })`; Reset von Text + Prio nach Erfolg. 3 neue Tests. |
+| Task 35 — FunkprotokollFilterSidebar | `ca2a59d7f` | Seitenleiste 280px mit Multi-Select Kanäle (aus `useKanalplan` inkl. archivierter — für Historie), Checkbox-Gruppe Priorität, DateTime-Range von/bis, Absender-Input, Volltextsuche mit 250ms Debounce (`setTimeout` pro Edit), Zurücksetzen-Button (`resetFilterForEinsatz`). Liest/schreibt direkt `funkprotokollFilterStore` via `useStore`. 3 neue Tests. |
+| Task 36 — virtualisierte FunkprotokollView | `62a874da7` | `@tanstack/react-virtual` mit dynamischem `estimateSize` (`kompakt` 28px / `bubbles` 96px), `measureElement`-Ref pro Row. Dichte-Toggle (`useDichteMode`) im Sticky-Header mit Live-Umschaltung. Auto-Scroll-Logik: `isNearBottom` per scroll-listener (80px Schwelle); bei neuen Einträgen wird entweder auto-gescrollt oder ein Floating-Badge „X neue Nachricht(en)" angezeigt, Pausiert-Indikator wenn nicht am Ende. 4 neue Tests (Virtualizer-Interaktion per Hook-Mock gestubt). |
+| Task 37 — FunkverkehrLayout + Page + Route | `5ca5d81b6` | Route `/app/einsatz/:einsatzId/kommunikation/funk` (nicht `funkverkehr` — passt in bestehenden Routenbaum `kommunikation/*`) mit `validateSearch` (`tab: 'kanalplan' \| 'protokoll'`, Default `kanalplan`). `FunkverkehrPage` verdrahtet `useEinsatzEvents` + `showNotfallAlertToast`. `FunkverkehrLayout` steuert Tabs: Kanalplan-Tab mit PDF-Export + „Kanal hinzufügen" + `KanalplanTable` + `KanalEditDrawer`; Protokoll-Tab mit 3-Spalten-Layout (`FunkprotokollFilterSidebar` + `FunkprotokollView` + sticky `FunkspruchComposer`; wenn noch keine ETB existiert, wird Hinweis angezeigt). ETB-Id via `useEtb({ einsatzId })`. 4 neue Route-/Schema-Tests. |
 
 ### 🔑 Wichtige Abweichungen vom Plan (Wave 1 Gesamt)
 
@@ -115,9 +121,25 @@
     - **`NotfallAlertToast` als Funktion, nicht Komponente:** Sonner ruft `toast.custom` mit einer render function auf; exportiert wird `showNotfallAlertToast(payload)`. Damit kann der Hook (`onNotfall`) direkt diese Funktion als Callback nutzen.
     - **`FunkspruchBubble`/`CompactRow` erwarten `kanal` als optionale Prop:** Plan geht davon aus, dass Kanäle immer auflösbar sind. Tatsächlich kann ein Funkspruch eines archivierten/gelöschten Kanals in der Chronologie stehen — deshalb fallen die Molecules auf "—" oder "Kanal (gelöscht)" zurück.
 
-### 🚦 Nächster Agent: Start bei Task 32 (KanalEditDrawer + ZuordnungsManager) — Phase 11 + 12 + Verification
+23. **Phase 11 Abweichungen (Tasks 32–33):**
+    - **Keine manuelle Zod→`SuperRefine`-XOR-Validierung nötig:** Der Discriminator-Union in `kanalFormSchema` übernimmt die Typ-Konsistenz — `tmo/dmo/analog`-Feldfehler werden durch `discriminatedUnion` automatisch an die richtige Variante weitergegeben.
+    - **`KanalEditDrawer` liest Fehler global statt feldspezifisch:** TanStack-Form + Zod-Validator liefert `state.meta.errors` nur am Top-Level der Form, nicht per-Nestfeld. Die Drawer-Logik präsentiert die erste Zod-Fehlermeldung für `name` bzw. `details` direkt unter dem Feld. Sehr granulare Per-Feld-Fehler im `KanalDetailsForm` bleiben Aufgabe einer späteren Verfeinerung (z. B. `validate: 'onChangeAsync'` mit eigener Mapping-Logik).
+    - **Archivieren-Aktion nutzt vorhandene `useArchiveFunkkanal` statt eigenen `useDeleteFunkkanal`:** Das Backend bietet kein hartes DELETE; der Plan-Text „Löschen-Button" wird als „Archivieren + 422-Fallback-Hinweis" umgesetzt, damit UX und API im Einklang bleiben.
+    - **`KanalplanTable` re-exportiert keine atomaren Zellen (Spec 8.3):** Ursprüngliche Idee `useKanalColumns`-Hook → wird zur `KanalRow` + `ZuordnungChipList`-Innenkomponenten in einer Datei zusammengelegt. Grund: TanStack-Table wird nicht benutzt, also gibt es keinen Column-Descriptor-Bedarf.
+    - **dnd-kit-Interaktion in Tests nicht simuliert:** Jest+JSDOM emuliert PointerEvent+Drag nur eingeschränkt; die Tests prüfen Render / Sortierung / Aktionen-Dispatch, die Drag-Integration selbst wird im E2E (Task 40) validiert.
 
-Phasen 1–10 sind vollständig. Der Frontend-Unterbau für Funkverkehr steht:
+24. **Phase 12 Abweichungen (Tasks 34–37):**
+    - **Route-Pfad `/kommunikation/funk` statt neuer `funkverkehr`-Route:** Im Projektstand existiert bereits eine Coming-Soon-Route `kommunikation/funk.tsx`; statt einen weiteren Top-Level-Pfad zu öffnen, ersetzt die neue Komponente diese Route (konsistent mit den Geschwistern `alarmierung.tsx`/`meldungen.tsx`). Die Memory-Note „Einsatz-Routen-Nesting" bleibt erfüllt — der `einsatzId`-Param kommt aus dem Outer-Layout.
+    - **Tab-Werte `kanalplan` | `protokoll` (nicht `funkprotokoll`):** Folgt der Spec-Tabelle (Plan Zeile 2582). Die Protokoll-Ansicht heißt trotzdem „Funkprotokoll" in der Tab-Leiste.
+    - **ETB-Id per `useEtb({ einsatzId })` (nicht Auto-Create):** Der `FunkspruchComposer` rendert nur wenn ein ETB existiert; sonst zeigt das Layout einen Hinweis. Das hält die Composer-Props schmal (`etbId: string`, nie optional) und verhindert dass Cmd+Enter ohne ETB einen Request produziert, der 404 zurückgibt.
+    - **`FunkspruchComposer`-Combobox nutzt rohen String-Pfad statt `allowCustomValue`-Prop:** Headless UI Combobox v2 hat keine explizite `allowCustomValue`-Prop — stattdessen wird bei jedem `onChange` des `ComboboxInput` sowohl der Query-State als auch der Parent-Wert gesetzt. Listenselektion überschreibt den Wert anschließend mit der gewählten Option.
+    - **`FunkprotokollView` sortiert chronologisch aufsteigend (älteste oben) statt absteigend:** Chat-Metapher — neue Nachrichten erscheinen unten. Auto-Scroll + „X neue Nachricht(en)"-Badge folgen derselben Konvention.
+    - **`FunkprotokollFilterSidebar` zeigt auch archivierte Kanäle im Filter:** Funksprüche archivierter Kanäle bleiben sichtbar und sollen gefiltert werden können (`includeArchived: true`). Die Kompositionsansicht in Tasks 34 filtert für Sende-Dropdown separat auf `status=aktiv`.
+    - **FunkverkehrLayout enthält keine separate „Status-Filter-Bar" für Kanalplan:** Der Filter „inkl. archiviert" soll später als URL-Param zurückkehren (Follow-up #686) — aktuell wird dauerhaft `includeArchived=true` verwendet, damit archivierte Kanäle nicht verschwinden, bis der Toggle dazukommt.
+
+### 🚦 Nächster Agent: Nur noch Phase 14 (E2E + DoD-Checks)
+
+Phasen 1–12 sind vollständig. Das Frontend ist unter `/app/einsatz/:einsatzId/kommunikation/funk?tab=kanalplan|protokoll` produktionsfertig:
 
 **Frontend-Bausteine bereits verfügbar** (unter `packages/frontend/src/features/funkverkehr/`):
 - **Filter-Store** (`stores/funkprotokoll-filter.store.ts`): `DEFAULT_FILTER`, `getFilterForEinsatz`, `setFilterForEinsatz`, `resetFilterForEinsatz`.
@@ -135,14 +157,15 @@ Phasen 1–10 sind vollständig. Der Frontend-Unterbau für Funkverkehr steht:
 - **PDF-Export** (`einsatz/:einsatzId/kanalplan/export.pdf`): pdfkit-Stream als `application/pdf`.
 - **API-Client** (`@bluelight-hub/shared/client`): saubere Discriminated Unions für KanalDetails (tmo/dmo/analog) und EintragKontext (standard/funkspruch).
 
-**Weiter mit Phase 11 (Tasks 32–33, Kanalplan-Organisms) und Phase 12 (Tasks 34–37, Funkprotokoll-Organisms + Page/Routing):**
-- **Task 32** — `KanalEditDrawer` (nutzt `Dialog.SlideIn`, `@tanstack/react-form` + Zod, importiert `KanalDetailsForm`) + `ZuordnungsManager` (Headless UI Combobox mit `useRufnameVorschlaege`, Segmented-Rolle, Hooks: `useCreateZuordnung`, `useUpdateZuordnungRolle`, `useRemoveZuordnung`). Zod-Schemata unter `schemas/kanal.schema.ts` (siehe Spec-Block Task 32).
-- **Task 33** — `KanalplanTable` eigenständig (kein `DataTable`), `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities` installieren falls noch nicht. `useReorderFunkkanaele` ist bereit — `onDragEnd` → Ordering-Liste bauen.
-- **Task 34–37** — `FunkspruchComposer`, `FunkprotokollFilterSidebar`, virtualisierte `FunkprotokollView` (empfohlen: `@tanstack/react-virtual`, auf vorhandene Muster checken), `FunkverkehrLayout` + `/einsatz/$einsatzId/funkverkehr`-Route (TanStack Router). **Wichtig:** Frontend-Routen MÜSSEN unter `/einsatz/:einsatzId/funkverkehr/...` nesten — RouterContext konsumiert `einsatzId` aus dem Outer-Einsatz-Context (Memory-Note Einsatz-Routen-Nesting-Konvention).
-- **Task 38/39** sind bereits fertig (Wave 1).
-- **Task 40–41** — E2E im Browser (Claude-in-Chrome) + Definition-of-Done-Checks.
+**Was bleibt (ausschließlich Verification, kein Code-Write):**
+- **Task 40** — Browser-E2E (Claude-in-Chrome, Login `rubeen / MyPass123*`): Navigation `/app/einsatz/<id>/kommunikation/funk`, Kanal anlegen / bearbeiten / archivieren, Drag-and-Drop-Sortierung, Kräfte-Zuordnung (Rolle wechseln + entfernen), PDF-Export. Protokoll: Funkspruch absetzen (routine + notfall), Dichte-Toggle, Filter (Kanal / Prio / Zeitraum / Volltext), Reconnect-Verhalten beim Backend-Neustart. Zweites Browser-Fenster gegentesten (WebSocket-Live-Update + `NotfallAlertToast`).
+- **Task 41** — Definition-of-Done-Checks: Backend + Frontend-Tests (exakte Counts notieren), `pnpm lint`, `pnpm --filter backend check:arch` + `check:di:imports`, `pnpm run generate-api` (keine Diff erwartet), Event-Registry-Grep, Migrations-Check, PR-Beschreibung vorbereiten.
 
-**Dev-Setup (bevor Organisms gebaut werden):**
+**Frontend-Testbestand (Stand nach Phase 12):**
+- Funkverkehr: **76/76 Tests grün** (`packages/frontend/src/features/funkverkehr/**`). Vorher 57 → +19 durch Phasen 11 + 12.
+- Route-Tests: **+4 neue** Spec-Tests für `kommunikation/funk.tsx` (validateSearch).
+
+**Dev-Setup (nur für E2E nötig):**
 ```bash
 cd /Users/rubeen/dev/personal/bluelight-hub
 git switch 407/wave-1-foundation-v2
@@ -155,7 +178,7 @@ pnpm --filter @bluelight-hub/backend dev
 # Frontend:
 pnpm --filter @bluelight-hub/frontend dev:vite
 
-# Funkverkehr-Tests (aktuell 57 Tests grün):
+# Funkverkehr-Tests (aktuell 76/76 grün):
 cd packages/frontend && pnpm exec vitest run src/features/funkverkehr
 ```
 
