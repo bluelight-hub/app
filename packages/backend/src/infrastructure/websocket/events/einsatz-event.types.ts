@@ -22,7 +22,15 @@ export type EinsatzEventName =
   | 'funkkanal:reihenfolge-geaendert'
   | 'funkkanal:zuordnung-erstellt'
   | 'funkkanal:zuordnung-entfernt'
-  | 'funk:notfall-alert';
+  | 'funk:notfall-alert'
+  // Alarmierung (Issue #408)
+  | 'alarmierung:erstellt'
+  | 'alarmierung:empfaenger-hinzugefuegt'
+  | 'alarmierung:empfaenger-entfernt'
+  | 'alarmierung:zeitpunkt-korrigiert'
+  | 'alarmierung:zeitpunkt-fms-gesetzt'
+  | 'alarmierung:abgeschlossen'
+  | 'alarmierung:nachalarmierung-erstellt';
 
 /**
  * Port für den einsatzgebundenen WebSocket-Publisher.

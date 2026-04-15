@@ -45,12 +45,15 @@ import {
   FunkkanalEventAdapter,
   EtbFunkspruchBroadcastAdapter,
   NotfallFunkspruchAlertEventAdapter,
+  AlarmierungEventAdapter,
+  FmsAlarmierungZeitpunktAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
 } from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { FunkkanalApplicationModule } from '@application/funkkanal/funkkanal-application.module';
+import { AlarmierungApplicationModule } from '@application/alarmierung/alarmierung-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
 import { LagekarteEventLoggerHandler } from './handlers/lagekarte-event-logger.handler';
 import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handler';
@@ -117,6 +120,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     EtbApplicationModule,
     LagekarteApplicationModule,
     FunkkanalApplicationModule, // Issue #407: NotfallFunkspruchAlertHandler
+    AlarmierungApplicationModule, // Issue #408: Alarmierung-Event-Handler (FMS-Auto-Population)
     // Erinnerung Module für WebSocket Gateway (Story 1.5 AC4)
     ErinnerungModule,
     // Befehl Module für WebSocket Gateway (Story 1.3 AC5)
@@ -182,6 +186,8 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     FunkkanalEventAdapter, // Issue #407: Funkkanal-Events WebSocket-Broadcast
     EtbFunkspruchBroadcastAdapter, // Issue #407: Funkspruch-ETB-Einträge WebSocket-Broadcast
     NotfallFunkspruchAlertEventAdapter, // Issue #407: Notfall-Funkspruch Alert-Publisher
+    AlarmierungEventAdapter, // Issue #408: Alarmierung-Events WebSocket-Broadcast
+    FmsAlarmierungZeitpunktAdapter, // Issue #408: FMS-Status → Alarmierung Auto-Population
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

@@ -51,6 +51,7 @@ import { EinsatzBeitrittModule } from './modules/einsatz-beitritt/einsatz-beitri
 import { GefahrModule } from './modules/gefahr/gefahr.module';
 import { TaktischeZeichenModule } from './modules/taktische-zeichen/taktische-zeichen.module';
 import { FunkkanalInfrastructureModule } from '@infrastructure/funkkanal/funkkanal-infrastructure.module';
+import { AlarmierungInfrastructureModule } from '@infrastructure/alarmierung/alarmierung-infrastructure.module';
 import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
 
 /**
@@ -145,6 +146,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     TaktischeZeichenModule, // Taktische Zeichen (DV 102) #636
     FunkkanalInfrastructureModule, // Funkkanal Infrastructure (Issue #407, Wave 2)
     FunkkanalModule, // Funkkanal HTTP Layer (Issue #407, Wave 2 / Phase 7)
+    AlarmierungInfrastructureModule, // Alarmierung Infrastructure (Issue #408, Wave 1)
     WebsocketModule, // Einsatz-Events WebSocket-Gateway + Publisher (Issue #407, Task 18)
   ],
   controllers: [AppController],

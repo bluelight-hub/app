@@ -232,6 +232,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get funkkanalZuordnung() {
     return this._client.funkkanalZuordnung;
   }
+  get alarmierung() {
+    return this._client.alarmierung;
+  }
+  get alarmierungEmpfaenger() {
+    return this._client.alarmierungEmpfaenger;
+  }
 
   // Delegate Prisma Client methods
   $connect() {
