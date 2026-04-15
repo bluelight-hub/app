@@ -349,6 +349,9 @@ model Einsatz {
   // Funkkanäle Relation (1:N, Issue #407)
   funkkanaele Funkkanal[]
 
+  // Alarmierungen Relation (1:N, Issue #408)
+  alarmierungen Alarmierung[]
+
   // Indexes
   @@unique([nummer])
   @@index([status, createdAt])
@@ -1179,6 +1182,9 @@ model EinsatzFahrzeug {
   // Funkkanal-Zuordnungen (1:N, Issue #407)
   funkkanalZuordnungen FunkkanalZuordnung[]
 
+  // Alarmierungs-Empfänger (1:N, Issue #408)
+  alarmierungsEmpfaenger AlarmierungEmpfaenger[]
+
   // Constraints
   @@unique([einsatzId, funkrufname], name: "einsatz_fahrzeug_einsatz_funkrufname_unique")
   // Indexes
@@ -1244,6 +1250,9 @@ model EinsatzPerson {
 
   // Funkkanal-Zuordnungen (1:N, Issue #407)
   funkkanalZuordnungen FunkkanalZuordnung[]
+
+  // Alarmierungs-Empfänger (1:N, Issue #408)
+  alarmierungsEmpfaenger AlarmierungEmpfaenger[]
 
   // Constraints
   @@unique([einsatzId, stammId], name: "einsatz_person_einsatz_stamm_unique")
@@ -1402,6 +1411,9 @@ model EinsatzEinheit {
 
   // Funkkanal-Zuordnungen (1:N, Issue #407)
   funkkanalZuordnungen FunkkanalZuordnung[]
+
+  // Alarmierungs-Empfänger (1:N, Issue #408)
+  alarmierungsEmpfaenger AlarmierungEmpfaenger[]
 
   // Constraints
   @@unique([einsatzId, name], name: "einsatz_einheit_einsatz_name_unique")
@@ -2367,4 +2379,92 @@ model FunkkanalZuordnung {
   @@index([personId])
   @@index([einheitId])
   @@map("funkkanal_zuordnung")
+}
+
+// ========================================
+// Alarmierung Models (Issue #408)
+// ========================================
+
+/// Alarmierung: Auslösung eines Alarms für N Empfänger (Fahrzeuge, Personen, Einheiten).
+/// - Nachalarmierung via ursprungAlarmierungId-Selbstreferenz
+/// - Status: 'aktiv' (Empfänger noch im Einsatz-Prozess) | 'abgeschlossen' (manuell geschlossen)
+/// - Cascade-Delete mit Einsatz
+model Alarmierung {
+  id                    String    @id @default(cuid())
+  einsatzId             String    @map("einsatz_id")
+  bezeichnung           String    @db.VarChar(200)
+  beschreibung          String?   @db.Text
+  alarmierungszeit      DateTime  @map("alarmierungszeit")
+  status                String    @default("aktiv") // 'aktiv' | 'abgeschlossen'
+  ursprungAlarmierungId String?   @map("ursprung_alarmierung_id")
+
+  // Audit Trail (PFLICHT)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String   @map("created_by") @db.VarChar(100)
+  updatedBy String?  @map("updated_by") @db.VarChar(100)
+
+  // Relations
+  einsatz           Einsatz                 @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  ursprung          Alarmierung?            @relation("Nachalarmierung", fields: [ursprungAlarmierungId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  nachalarmierungen Alarmierung[]           @relation("Nachalarmierung")
+  empfaenger        AlarmierungEmpfaenger[]
+
+  // Indexes
+  @@index([einsatzId])
+  @@index([einsatzId, status])
+  @@index([einsatzId, alarmierungszeit])
+  @@index([ursprungAlarmierungId])
+  @@map("alarmierung")
+}
+
+/// AlarmierungEmpfaenger: Polymorpher Empfänger (Fahrzeug | Person | Einheit) einer Alarmierung.
+/// - Genau eine der drei FKs ist gesetzt (Check-Constraint via Migration)
+/// - nameSnapshot konserviert den Anzeigenamen zum Zeitpunkt der Alarmierung
+/// - 4 nachtragbare Zeitpunkte (alarmiertAm Pflicht, Rest optional)
+/// - letzterFmsStatus: Verweis auf FMS-Status zur Auto-Population (nur Fahrzeug-Empfänger)
+model AlarmierungEmpfaenger {
+  id            String @id @default(cuid())
+  alarmierungId String @map("alarmierung_id")
+
+  // Polymorphe FK (genau eine gesetzt)
+  fahrzeugId String? @map("fahrzeug_id")
+  personId   String? @map("person_id")
+  einheitId  String? @map("einheit_id")
+
+  // Snapshot (Funkrufname / Vor+Nachname / Einheiten-Name)
+  nameSnapshot String @map("name_snapshot") @db.VarChar(200)
+
+  // Zeitpunkte (alarmiertAm Pflicht, Rest nachtragbar)
+  alarmiertAm     DateTime  @map("alarmiert_am")
+  ausgeruecktAm   DateTime? @map("ausgerueckt_am")
+  vorOrtAm        DateTime? @map("vor_ort_am")
+  wiederFreiAm    DateTime? @map("wieder_frei_am")
+
+  // FMS-Auto-Population-Tracking (nur bei Fahrzeug-Empfängern relevant)
+  letzterFmsStatus Int? @map("letzter_fms_status")
+
+  // Audit Trail
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String   @map("created_by") @db.VarChar(100)
+  updatedBy String?  @map("updated_by") @db.VarChar(100)
+
+  // Relations
+  alarmierung Alarmierung      @relation(fields: [alarmierungId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  fahrzeug    EinsatzFahrzeug? @relation(fields: [fahrzeugId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  person      EinsatzPerson?   @relation(fields: [personId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  einheit     EinsatzEinheit?  @relation(fields: [einheitId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  // Constraints: Ein Empfänger-Referenzziel kann pro Alarmierung nur einmal vorkommen
+  @@unique([alarmierungId, fahrzeugId])
+  @@unique([alarmierungId, personId])
+  @@unique([alarmierungId, einheitId])
+
+  // Indexes
+  @@index([alarmierungId])
+  @@index([fahrzeugId])
+  @@index([personId])
+  @@index([einheitId])
+  @@map("alarmierung_empfaenger")
 }
