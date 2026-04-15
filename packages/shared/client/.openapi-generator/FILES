@@ -25,6 +25,7 @@ apis/ErinnerungApi.ts
 apis/ErinnerungenApi.ts
 apis/ErinnerungsvorlagenApi.ts
 apis/FuehrungsrhythmusTemplatesAdminApi.ts
+apis/FunkkanalApi.ts
 apis/GefahrenmatrixApi.ts
 apis/GeoApi.ts
 apis/GeocodingApi.ts
@@ -52,6 +53,7 @@ models/ActivateFuehrungsrhythmusTemplateDto.ts
 models/ActivateFuehrungsrhythmusTemplateResponseDto.ts
 models/AddBefehlKommentarDto.ts
 models/AddEintragDto.ts
+models/AddEintragDtoKontext.ts
 models/AddKorrekturEintragDto.ts
 models/AddPoiDto.ts
 models/AddressDto.ts
@@ -110,6 +112,7 @@ models/AdminTokenVerificationDto.ts
 models/AdminUserDto.ts
 models/AendereEmpfaengerStatusDto.ts
 models/AktiveTeilnehmerResponseDto.ts
+models/AnalogDetailsDto.ts
 models/ApiMeta.ts
 models/ApiPagination.ts
 models/ApiResponseTimeDto.ts
@@ -182,6 +185,7 @@ models/CreateErinnerungDto.ts
 models/CreateErinnerungsvorlageDto.ts
 models/CreateFahrzeugtypDto.ts
 models/CreateFuehrungsrhythmusTemplateDto.ts
+models/CreateFunkkanalDto.ts
 models/CreateInviteDto.ts
 models/CreateInviteResponseDto.ts
 models/CreateKategorieDto.ts
@@ -194,6 +198,7 @@ models/CreateStammFahrzeugDto.ts
 models/CreateStammPersonDto.ts
 models/CreateTaktischesZeichenDto.ts
 models/CreateUserDto.ts
+models/CreateZuordnungDto.ts
 models/DefaultZeichenResponseDto.ts
 models/DeleteManagedUserResponse.ts
 models/DeleteManagedUserResponseData.ts
@@ -201,6 +206,7 @@ models/DeleteRuntimeConfigResultDto.ts
 models/DeleteUserDto.ts
 models/DetailedHealthDto.ts
 models/DisconnectResponseDto.ts
+models/DmoDetailsDto.ts
 models/DwdWarnungDto.ts
 models/EinheitCreatedResponseDto.ts
 models/EinsatzBeitrittControllerCreateVAlpha201Response.ts
@@ -246,6 +252,7 @@ models/EinsatzTeilnehmerResponseDto.ts
 models/EinsatzVergleichDto.ts
 models/EinsatzVergleichItemDto.ts
 models/EintragDto.ts
+models/EintragDtoKontext.ts
 models/EmpfaengerSucheResultDto.ts
 models/ErfasseFahrzeugAusStammdatenDto.ts
 models/ErfasseTemporalesFahrzeugDto.ts
@@ -296,7 +303,12 @@ models/FuehrungsrhythmusTemplateControllerActivateVAlpha201Response.ts
 models/FuehrungsrhythmusTemplateControllerCreateVAlpha201Response.ts
 models/FuehrungsrhythmusTemplateControllerGetAllVAlpha200Response.ts
 models/FuehrungsrhythmusTemplateResponseDto.ts
+models/FunkKontextDto.ts
 models/FunkStatusConfigDto.ts
+models/FunkkanalControllerCreateVAlpha201Response.ts
+models/FunkkanalControllerListVAlpha200Response.ts
+models/FunkkanalResponseDto.ts
+models/FunkkanalResponseDtoDetails.ts
 models/GefahrenmatrixBewertungDto.ts
 models/GefahrenmatrixControllerGetVAlpha200Response.ts
 models/GefahrenmatrixControllerUpdateBewertungVAlpha200Response.ts
@@ -396,6 +408,8 @@ models/RefreshResponseDto.ts
 models/RefreshTokenResponseDto.ts
 models/RegistrierePersonDto.ts
 models/RegistrierePersonViaQrCodeDto.ts
+models/ReorderFunkkanaeleDto.ts
+models/ReorderFunkkanalEntryDto.ts
 models/ResolveBeitrittsanfrageDto.ts
 models/RevokeInviteResponseDto.ts
 models/RolleFreigegebenResponseDto.ts
@@ -408,6 +422,11 @@ models/RollenDefinitionDto.ts
 models/RollenZuweisungDto.ts
 models/RotateAccessTokenRequestDto.ts
 models/RotateAccessTokenResponseDto.ts
+models/RufnameVorschlaegeControllerListVAlpha200Response.ts
+models/RufnameVorschlaegeResponseDto.ts
+models/RufnameVorschlagEinheitDto.ts
+models/RufnameVorschlagFahrzeugDto.ts
+models/RufnameVorschlagPersonDto.ts
 models/RuntimeConfigEntryDto.ts
 models/RuntimeConfigListDto.ts
 models/SaveLagekarteStateDto.ts
@@ -425,6 +444,7 @@ models/StammFahrzeugDto.ts
 models/StammPersonDto.ts
 models/StammPersonDtoUserAccount.ts
 models/StammPersonQualifikationDto.ts
+models/StandardKontextDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
 models/StopRecurringSeriesDto.ts
@@ -437,6 +457,7 @@ models/TaktischeZeichenControllerSetDefaultFahrzeugtypVAlpha200Response.ts
 models/TaktischesZeichenResponseDto.ts
 models/TextbausteinDto.ts
 models/TimelineUserDto.ts
+models/TmoDetailsDto.ts
 models/TokenListItemDto.ts
 models/TopReceiverDto.ts
 models/TopSourceDto.ts
@@ -452,6 +473,8 @@ models/UpdateFahrzeugtypDto.ts
 models/UpdateFmsStatusDto.ts
 models/UpdateFuehrungsrhythmusTemplateDto.ts
 models/UpdateFunkStatusConfigDto.ts
+models/UpdateFunkkanalDto.ts
+models/UpdateFunkkanalDtoDetails.ts
 models/UpdateGefahrenmatrixDto.ts
 models/UpdateNotizDto.ts
 models/UpdatePoiDto.ts
@@ -463,6 +486,7 @@ models/UpdateStammFahrzeugDto.ts
 models/UpdateStammPersonDto.ts
 models/UpdateTaktischesZeichenDto.ts
 models/UpdateUserDto.ts
+models/UpdateZuordnungRolleDto.ts
 models/UpsertRuntimeConfigRequestDto.ts
 models/UserBasicDto.ts
 models/UserControllerFindAllBasicVAlpha200Response.ts
@@ -483,5 +507,6 @@ models/ZeichenDefinitionRequestDto.ts
 models/ZeichenKatalogEintragResponseDto.ts
 models/ZeitverlaufBucketDto.ts
 models/ZeitverlaufStatistikDto.ts
+models/ZuordnungResponseDto.ts
 models/index.ts
 runtime.ts

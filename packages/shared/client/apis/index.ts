@@ -26,6 +26,7 @@ export * from './ErinnerungApi';
 export * from './ErinnerungenApi';
 export * from './ErinnerungsvorlagenApi';
 export * from './FuehrungsrhythmusTemplatesAdminApi';
+export * from './FunkkanalApi';
 export * from './GefahrenmatrixApi';
 export * from './GeoApi';
 export * from './GeocodingApi';
