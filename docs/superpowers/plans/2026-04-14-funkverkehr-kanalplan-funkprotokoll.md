@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4, 5 & 6 abgeschlossen)
+## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4–7 abgeschlossen)
 
 **Branch:** `407/wave-1-foundation-v2` (Basis: `407/funkverkehr-implementation`, nur Spec-Commits). Frischer Start — die alten Wave-1-Branches (`407/wave-1-foundation`) werden NICHT verwendet.
 
-**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure), Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer) **und** Wave-2-Phase-6 (Task 18, WebSocket-Gateway + Publisher). **Alle 20 Kern-Tasks sind committed.** Wave-2-Phase-7 (ab Task 19, HTTP Layer: DTOs + Controller) bleibt für die nächste Session.
+**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure), Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer), Wave-2-Phase-6 (Task 18, WebSocket-Gateway + Publisher) **und** Wave-2-Phase-7 (Tasks 19–24, HTTP-Layer: DTOs + Controller + PDF-Export). **Alle 26 Kern-Tasks sind committed.** Wave-2-Phase-8 (Task 25, API-Client-Generierung) und die folgenden Frontend-Phasen (9–12) bleiben für die nächste Session.
 
 ### ✅ Fertig (committed auf `407/wave-1-foundation-v2`)
 
@@ -33,6 +33,12 @@
 | Task 16 — Funkkanal-Queries (get-kanalplan / get-funkkanal-by-id / get-rufnamen-vorschlaege) | `a1a6be96b` | Read-only Handler ohne Transaction/Outbox. `GetRufnamenVorschlaegeQueryHandler` aggregiert Fahrzeuge/Personen/Einheiten parallel via `Promise.all`. 10 Tests grün |
 | Task 17 — NotfallFunkspruchAlertHandler + Adapter-Wiring | `59e60980e` | Application-Handler in `application/funkkanal/event-handlers/notfall-funkspruch-alert.handler.ts`, Infrastructure-Adapter `NotfallFunkspruchAlertEventAdapter` (`@OnEvent` auf `EintragAddedEvent`). `FunkkanalApplicationModule` registriert Handler unter `EVENT_HANDLER.NOTFALL_FUNKSPRUCH_ALERT` und wird im `EventAdaptersModule` importiert. 7 Tests grün |
 | Task 18 — EinsatzEventsGateway + EinsatzEventPublisher | `020bfa738` | Infrastructure-Modul `WebsocketModule` unter `packages/backend/src/infrastructure/websocket/` (Gateway + Publisher + `WsJwtAuthGuard` + DTO). Namespace `/ws/einsatz-events`, Room `einsatz:{id}`, `SubscribeMessage('join:einsatz')` mit `IEinsatzTeilnehmerRepository`-Check. Publisher implementiert `broadcast` (direkt) + `broadcastByEtb` (resolved etbId → einsatzId via `IEtbRepository`) und wird unter `EINSATZ_EVENT_PUBLISHER` registriert. `EventAdaptersModule` importiert `WebsocketModule` — damit sind `FunkkanalEventAdapter`, `EtbFunkspruchBroadcastAdapter` + indirekt `NotfallFunkspruchAlertEventAdapter` scharf geschaltet. `IEinsatzEventPublisher`-Port + `EinsatzEventName`-Union leben jetzt in `infrastructure/websocket/events/einsatz-event.types.ts`. 10 neue Tests (6 Gateway + 4 Publisher), 526 Funkverkehr-Tests gesamt grün |
+| Task 19 — Funkkanal-DTOs + EintragKontext-DTOs | `83164b71c` | Discriminated-Union-DTOs für KanalDetails (TmoDetailsDto/DmoDetailsDto/AnalogDetailsDto + `KANAL_DETAILS_SCHEMA` für Swagger oneOf+discriminator), CRUD/Reorder/Zuordnung/Response-DTOs sowie `RufnameVorschlaegeResponseDto` unter `application/funkkanal/dto/` (NICHT `modules/funkkanal/dto/` wie im Plan — entspricht bestehendem Pattern für ETB/Einsatz). EintragKontext-DTOs (`StandardKontextDto`/`FunkKontextDto` + `EINTRAG_KONTEXT_SCHEMA`) liegen in `application/etb/dto/eintrag-kontext.dto.ts`. XOR-Validator `HasExactlyOneKraftReference` mit 7 Tests grün |
+| Task 20 — Funkkanal-Controller (CRUD + Reorder) | `08168b047` | `FunkkanalController` unter `modules/funkkanal/funkkanal.controller.ts`, Prefix `einsatz/:einsatzId/funkkanaele`. PATCH-Endpoint dispatcht gesetzte UpdateFunkkanalDto-Felder auf die 9 feingranularen Aggregat-Commands; `status: 'aktiv' \| 'inaktiv'` triggert Activate/Deactivate, DELETE archiviert. `FunkkanalApplicationModule` registriert + exportiert jetzt alle Command-/Query-Handler. Error-Helper `toHttpError` mappt Domain-Fehler-Strings auf 409/404/422/400. 13 Controller-Tests + DI-Resolution grün |
+| Task 21 — Funkkanal-Zuordnungs-Controller | `a5aaadf6a` | `FunkkanalZuordnungController` unter `einsatz/:einsatzId/funkkanaele/:kanalId/zuordnungen` für Create / UpdateRolle / Delete. Mappt fahrzeugId/personId/einheitId XOR-DTO auf diskriminierten `ZuordneKraftRef`. Error-Helper erkennt jetzt zusätzlich „bereits ... zugeordnet" als 409-Konflikt. 9 Tests grün |
+| Task 22 — Rufname-Vorschlaege-Controller | `344c53002` | `RufnameVorschlaegeController` unter `einsatz/:einsatzId/rufname-vorschlaege` mit Mapping vom flachen Query-Result auf `RufnameVorschlaegeResponseDto`. 3 Tests grün |
+| Task 23 — Kanalplan-PDF-Export (Service + Controller) | `e9700b52b` | `IKanalplanPdfService`-Port unter `application/funkkanal/ports/`, pdfkit-basierter Adapter `KanalplanPdfService` unter `infrastructure/funkkanal/`. Provider-Binding `KANALPLAN_PDF_SERVICE → KanalplanPdfService` ergänzt im `FunkkanalInfrastructureModule`. `KanalplanExportController` (`einsatz/:einsatzId/kanalplan/export.pdf`) löst Einsatz-Name via `EINSATZ_REPOSITORY` auf (Fallback einsatzId), liefert `application/pdf` mit `Content-Disposition: attachment`. 5 Tests (3 Service + 2 Controller) grün |
+| Task 24 — ETB-Controller um Kontext erweitert | `a103a05ab` | `AddEintragDto` + `EintragDto` um `kontext` (StandardKontext\|FunkKontext), `ereignisZeitpunkt` und `erfasstAm` erweitert. `EtbCqrsController.addEintrag` reicht beide Felder an `AddEintragCommand.create` durch. `GET /etb/einsatz/:einsatzId` akzeptiert optionale Query-Filter `kontextType` + `kanalId` — Filterung erfolgt aktuell **in-memory** im `EtbQueryMapper.toEtbDto` (Plan-Abweichung: kein Repository-Filter, um Migrations- und Raw-SQL-Änderungen zu vermeiden). 3 neue Mapper-Tests + bestehende 1100 ETB-Tests grün |
 
 ### 🔑 Wichtige Abweichungen vom Plan (Wave 1 Gesamt)
 
@@ -70,27 +76,47 @@
     - **Room-Schlüssel vereinheitlicht:** Plan zeigt `einsatz:{id}`. ErinnerungGateway nutzt `einsatz:{id}:erinnerungen`. Das neue Gateway behält den breiten Key `einsatz:{id}` (ohne Suffix), weil es alle einsatz-gebundenen Broadcasts (Funkkanal + ETB-Funkspruch + Notfall) in einem Room bündelt.
     - **`broadcastByEtb` als Graceful-Fallback:** Bei ungültiger EtbId oder fehlendem ETB wird geloggt + Event verworfen (kein Throw), damit ein einzelner Broadcast-Fehler keine Event-Kette bricht.
 
-### 🚦 Nächster Agent: Start Wave 2 ab Task 19 (HTTP Layer — DTOs)
+19. **Phase 7 Abweichungen (Task 19–24, HTTP Layer):**
+    - **DTO-Ablageort (Task 19):** Plan sagt `packages/backend/src/modules/funkkanal/dto/` + `packages/backend/src/modules/etb/dto/`. Tatsächlich liegen alle DTOs unter `packages/backend/src/application/<context>/dto/` — konsistent mit ETB- und Einsatz-Pattern (kein Modul hat aktuell ein eigenes `dto/`-Verzeichnis). Die Module importieren die DTOs aus dem Application-Layer.
+    - **Update-DTO + Dispatch-Strategie (Task 20):** Statt eines fehlenden `UpdateFunkkanalHandler` wird ein PATCH-Endpoint mit `UpdateFunkkanalDto` (alle Felder optional) genutzt; der Controller dispatcht jedes gesetzte Feld auf den passenden 9-Command (rename / changeDetails / setZweck / setSortIndex / activate / deactivate). `status` toggled aktiv/inaktiv; Archivieren erfolgt ausschließlich via `DELETE /:kanalId`.
+    - **Application-Modul-Erweiterung (Task 20):** `FunkkanalApplicationModule` registriert + exportiert nun zusätzlich alle 12 Command-/Query-Handler (vorher nur Notfall-Event-Handler). KraefteInfrastructureModule wird importiert, damit `ZuordneKraftZuKanalHandler` die Kräfte-Repositories auflöst.
+    - **Error-Helper (`toHttpError`):** Eigener Helper unter `modules/funkkanal/helpers/funkkanal-error.helper.ts` mappt Domain-Fehler-Strings auf HTTP-Status. Erkennt: „nicht gefunden" → 404, „bereits vergeben/zugeordnet/archiviert/aktiv/inaktiv" → 409, „archiviert/referenziert" → 422, sonst 400.
+    - **Funkkanal-Mapper (Task 20):** Lokal unter `modules/funkkanal/mappers/funkkanal.mapper.ts` (kein eigenes Application-Mapper-Modul nötig — die Funkkanal-DTOs sind reine HTTP-Concern).
+    - **Zuordnungs-DTO XOR (Task 21):** Statt einer expliziten Marker-Property im DTO nutzt der `HasExactlyOneKraftReference`-Decorator ein privates Marker-Feld (`_kraftRef?: never`) als Anker für die Validation. Tests prüfen 0/1/2/3 IDs + leere Strings.
+    - **Kanalplan-PDF-Service (Task 23):** Port `IKanalplanPdfService` unter `application/funkkanal/ports/`, Adapter unter `infrastructure/funkkanal/kanalplan-pdf.service.ts`. Layout: A4 portrait, Header (Titel + Einsatzname), pro Kanal Block (Name, Typ-Label, Zweck, Status, Liste der Zuordnungen), Footer mit Export-Zeitstempel. Provider-Binding `KANALPLAN_PDF_SERVICE → KanalplanPdfService` im `FunkkanalInfrastructureModule` (Token war seit Task 13 reserviert).
+    - **Export-Controller (Task 23):** Eigener Controller `KanalplanExportController` unter `einsatz/:einsatzId/kanalplan/export.pdf`. Importiert `EINSATZ_REPOSITORY` für Name-Lookup (Fallback auf einsatzId). FunkkanalModule importiert dafür zusätzlich `EinsatzInfrastructureModule` + `FunkkanalInfrastructureModule`.
+    - **ETB-Kontext-Filter in-memory (Task 24):** Plan deutet einen Repository-Filter an. Tatsächlich erfolgt die Filterung im `EtbQueryMapper.toEtbDto(aggregate, includeDeleted, kontextFilter?)` — `GetEtbQuery` trägt das neue Feld `kontextFilter?: { kontextType?, kanalId? }`, der bestehende Repository-Pfad bleibt unverändert. Das spart Migrations-/Raw-SQL-Anpassungen; performance-tolerant für übliche ETB-Größen.
+    - **EintragDto-Pflichtfelder:** `EintragDto.ereignisZeitpunkt` / `erfasstAm` / `kontext` sind als Pflichtfelder markiert. Die Domain-Entity garantiert sie via Default-Konstruktor (`kontext ?? EintragKontext.standard()`); zwei bestehende Integration-Test-Mocks wurden entsprechend ergänzt.
 
-Wave 1, Phase 4 (Infrastructure), Phase 5 (Application-Layer) und Phase 6 (WebSocket-Gateway + Publisher) sind vollständig. Alle Broadcast-Adapter (Funkkanal, ETB-Funkspruch, Notfall) sind scharf geschaltet — Events werden jetzt tatsächlich an den Einsatz-Room `einsatz:{id}` gepusht, sobald ein Client per `join:einsatz` beigetreten ist.
+### 🚦 Nächster Agent: Start Wave 2 ab Task 25 (API-Client-Generierung) — danach Frontend (Phasen 9–12)
 
-Weiter geht es mit Phase 7 (HTTP Layer):
-- **Task 19** (`packages/backend/src/modules/funkkanal/dto/` + `packages/backend/src/modules/etb/dto/eintrag-kontext.dto.ts`): Discriminated-Union-DTOs für `KanalDetails` (tmo/dmo/analog) und `EintragKontext` (standard/funkspruch), CRUD-DTOs + XOR-Validator für Zuordnungen.
-- **Task 20–24**: Funkkanal-Controller (CRUD + Reorder), Zuordnungs-Controller, Rufname-Vorschlaege-Controller, PDF-Export-Service + Controller (pdfkit, neuer `KANALPLAN_PDF_SERVICE`-Provider), ETB-Controller für Kontext. Jeder Controller nutzt `@ApiWrappedResponse` / `@ApiWrappedCreatedResponse`, niemals Standard-Swagger-Decorators.
+Wave 1 + Wave 2 (Phasen 4–7) sind vollständig. Backend exponiert jetzt:
+- **Funkkanal-Controller** (`einsatz/:einsatzId/funkkanaele/*`): Listing, GetById, Create, Patch (dispatcht 9 Aggregat-Commands), Delete (=archive), Reorder.
+- **Zuordnungs-Controller** (`einsatz/:einsatzId/funkkanaele/:kanalId/zuordnungen/*`): Create / UpdateRolle / Delete.
+- **Rufnamen-Vorschläge** (`einsatz/:einsatzId/rufname-vorschlaege`): Bündelt Fahrzeuge / Personen / Einheiten.
+- **PDF-Export** (`einsatz/:einsatzId/kanalplan/export.pdf`): pdfkit-Stream als `application/pdf`.
+- **ETB-Erweiterung**: AddEintragDto + EintragDto kennen jetzt `kontext` + `ereignisZeitpunkt`; `GET /etb/einsatz/:einsatzId` akzeptiert `?kontextType=...&kanalId=...`.
+
+Alle Endpoints nutzen `@ApiWrappedResponse` / `@ApiWrappedCreatedResponse`, nie Standard-Swagger-Decorators (sonst bricht die Client-Generation).
+
+Weiter geht es mit Phase 8 (API-Client) und ab Phase 9 dem Frontend:
+- **Task 25** (`pnpm run generate-api`): Backend starten (`pnpm --filter @bluelight-hub/backend dev`), warten bis Port 3091 läuft, dann im Repo-Root `pnpm run generate-api`. Output landet in `packages/shared/client/`. Discriminator-Unions (KanalDetails, EintragKontext) auf saubere TS-Types prüfen.
+- **Task 26–37**: Frontend-Foundation (Feature-Skelett + Store), Hooks (Kanalplan, ETB-Funkprotokoll, WebSocket), Atoms/Molecules (Badges, KanalDetailsForm, FunkKontextBadge, NotfallAlertToast), Organisms (KanalEditDrawer, KanalplanTable mit DnD, FunkspruchComposer, FilterSidebar, virtualisierte FunkprotokollView), Layout + Page + Tab-Routing.
+- **Task 40–41**: E2E-Verification (Browser via Claude-in-Chrome), Definition-of-Done-Checks.
 
 ```bash
 cd /Users/rubeen/dev/personal/bluelight-hub
 git switch 407/wave-1-foundation-v2
-git log --oneline -28   # 25 Funkverkehr-Commits + 3 Spec-Commits
+git log --oneline -34   # 31 Funkverkehr-Commits + 3 Spec-Commits
 
-# Baseline verifizieren (Phase 6):
+# Baseline verifizieren (Phase 7):
 cd packages/backend
 DATABASE_URL="postgresql://bluelight:bluelight@localhost:3092/bluelight-hub?schema=public" \
-  npx jest --testPathPatterns="funkkanal|funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|event-deserializer|event-roundtrip|event-serializer|architecture-rules|di-resolution|etb-funkspruch-broadcast|notfall-funkspruch-alert|einsatz-events.gateway|einsatz-event.publisher" --no-coverage
-# Erwartet: 526 Funkverkehr-Tests grün (inkl. 10 neue Gateway/Publisher-Tests)
+  npx jest --testPathPatterns="funkkanal|funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|event-deserializer|event-roundtrip|event-serializer|architecture-rules|di-resolution|etb-funkspruch-broadcast|notfall-funkspruch-alert|einsatz-events.gateway|einsatz-event.publisher|kanalplan-pdf|kanalplan-export|funkkanal.controller|zuordnung.controller|rufname-vorschlaege.controller|exactly-one-kraft" --no-coverage
+# Erwartet: 526 Wave-2-Phase-6-Tests + ~30 neue Phase-7-Tests grün
 ```
 
-Nach Task 19 werden die Controller die per `FunkkanalApplicationModule` exportierten Commands/Queries konsumieren. Wichtig: `UpdateFunkkanalHandler` aus dem Plan gibt es NICHT als einzelnen Handler — Task 14 hat ihn in neun feingranulare Commands aufgeteilt (rename/changeDetails/setZweck/setSortIndex/archive/deactivate/activate/reorder). Die Controller-Endpoints müssen dem Rechnung tragen (z.B. `PATCH /:kanalId/name`, `PATCH /:kanalId/details` etc. oder ein konsolidierender Use-Case im Controller selbst).
+Hinweis zum Frontend: `RouterContext` für Funkverkehr-Routen muss eine `einsatzId` aus dem Outer-Context konsumieren — nicht selbst lookup-basiert (siehe Memory: Einsatz-Routen-Nesting-Konvention).
 
 ### 🔑 Wichtige Abweichungen vom Plan
 
