@@ -1,6 +1,7 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ETB_KATEGORIE_VALUES, type EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
 import type { EintragKontextPersisted } from '@domain/value-objects/eintrag-kontext';
+import { EINTRAG_KONTEXT_SCHEMA, FunkKontextDto, StandardKontextDto } from './eintrag-kontext.dto';
 
 /**
  * Eintrag Response DTO für ETB-Queries.
@@ -20,6 +21,7 @@ import type { EintragKontextPersisted } from '@domain/value-objects/eintrag-kont
  * - Domain: Kann Events emittieren (EintragCreated, EintragUpdated)
  * - DTO: Stateless Snapshot des Entity-Zustands
  */
+@ApiExtraModels(StandardKontextDto, FunkKontextDto)
 export class EintragDto {
   @ApiProperty({
     description: 'Eindeutige Eintrags-ID (CUID)',
@@ -245,8 +247,8 @@ export class EintragDto {
    * Funkspruch-Einträge tragen Kanal-Referenz und Priorität.
    */
   @ApiProperty({
-    description: 'Eintrag-Kontext (discriminated union)',
-    example: { type: 'standard' },
+    ...EINTRAG_KONTEXT_SCHEMA,
+    description: 'Eintrag-Kontext (discriminated union: standard | funkspruch)',
   })
   kontext!: EintragKontextPersisted;
 }

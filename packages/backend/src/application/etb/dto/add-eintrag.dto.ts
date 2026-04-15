@@ -1,7 +1,7 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ETB_KATEGORIE_VALUES, type EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
 import { IsDateString, IsEnum, IsObject, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-import { type EintragKontextUnionDto } from './eintrag-kontext.dto';
+import { EINTRAG_KONTEXT_SCHEMA, FunkKontextDto, StandardKontextDto, type EintragKontextUnionDto } from './eintrag-kontext.dto';
 
 /**
  * DTO für AddEintrag-Request.
@@ -16,6 +16,7 @@ import { type EintragKontextUnionDto } from './eintrag-kontext.dto';
  * }
  * ```
  */
+@ApiExtraModels(StandardKontextDto, FunkKontextDto)
 export class AddEintragDto {
   /**
    * Textinhalt des neuen Eintrags.
@@ -160,8 +161,9 @@ export class AddEintragDto {
    * Bei `funkspruch` werden `kanalId` + `funkPrioritaet` zusätzlich validiert.
    */
   @ApiPropertyOptional({
+    ...EINTRAG_KONTEXT_SCHEMA,
     description: 'Eintrag-Kontext (default: { type: "standard" })',
-    example: { type: 'funkspruch', kanalId: 'clkanal...', funkPrioritaet: 'routine' },
+    nullable: true,
   })
   @IsOptional()
   @IsObject({ message: 'kontext muss ein Objekt sein' })
