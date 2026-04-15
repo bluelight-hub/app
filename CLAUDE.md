@@ -84,8 +84,8 @@ pnpm --filter @bluelight-hub/backend check:arch  # Circular Dependencies
 
 Default-Ports (Hauptrepo, ohne Worktree):
 
-- Frontend: `localhost:3090` (konfigurierbar via `VITE_PORT`)
-- Backend API + Swagger UI: `localhost:3091/api` (konfigurierbar via `BACKEND_PORT` / `PORT`)
+- Frontend: `https://localhost:3090` (Self-Signed, **HTTPS only** — `http://` liefert `ERR_EMPTY_RESPONSE`, konfigurierbar via `VITE_PORT`)
+- Backend API + Swagger UI: `https://127.0.0.1:3091/api` (Self-Signed, HTTPS only, konfigurierbar via `BACKEND_PORT` / `PORT`)
 - PostgreSQL: Port `3092` (konfigurierbar via `DATABASE_PORT`)
 - Kein `psql` lokal installiert — DB-Zugriff via `docker compose exec postgres psql -U bluelight -d bluelight-hub -c "..."`
 
