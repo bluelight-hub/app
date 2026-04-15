@@ -346,6 +346,9 @@ model Einsatz {
   // Taktische Zeichen Relation (1:N, Issue #636)
   taktischeZeichen TaktischesZeichen[]
 
+  // Funkkanäle Relation (1:N, Issue #407)
+  funkkanaele Funkkanal[]
+
   // Indexes
   @@unique([nummer])
   @@index([status, createdAt])
@@ -1173,6 +1176,9 @@ model EinsatzFahrzeug {
   einheit     EinsatzEinheit?  @relation(fields: [einheitId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   personen    EinsatzPerson[] // Epic 4 Story 4.3: Zugewiesene Personen (Rückwärts-Relation)
 
+  // Funkkanal-Zuordnungen (1:N, Issue #407)
+  funkkanalZuordnungen FunkkanalZuordnung[]
+
   // Constraints
   @@unique([einsatzId, funkrufname], name: "einsatz_fahrzeug_einsatz_funkrufname_unique")
   // Indexes
@@ -1235,6 +1241,9 @@ model EinsatzPerson {
 
   // Inverse Relation: Geführte Einheiten (Issue #411)
   gefuehrteEinheiten EinsatzEinheit[] @relation("EinsatzEinheitFuehrer")
+
+  // Funkkanal-Zuordnungen (1:N, Issue #407)
+  funkkanalZuordnungen FunkkanalZuordnung[]
 
   // Constraints
   @@unique([einsatzId, stammId], name: "einsatz_person_einsatz_stamm_unique")
@@ -1390,6 +1399,9 @@ model EinsatzEinheit {
 
   // Zugewiesene Fahrzeuge (1:N über FK auf EinsatzFahrzeug)
   fahrzeuge EinsatzFahrzeug[]
+
+  // Funkkanal-Zuordnungen (1:N, Issue #407)
+  funkkanalZuordnungen FunkkanalZuordnung[]
 
   // Constraints
   @@unique([einsatzId, name], name: "einsatz_einheit_einsatz_name_unique")
@@ -2283,4 +2295,76 @@ model GefahrenmatrixBewertung {
   @@unique([einsatzId, gefahrentyp, schutzobjekt])
   @@index([einsatzId])
   @@map("gefahrenmatrix_bewertungen")
+}
+
+// ========================================
+// Funkverkehr Models (Issue #407)
+// ========================================
+
+/// Funkkanal: Pro Einsatz verwaltete Sprechgruppen/Kanäle (TMO/DMO/Analog).
+/// - detailsType + detailsData bilden eine Discriminated Union
+/// - Lifecycle: aktiv -> inaktiv (pausiert) <-> aktiv, oder archiviert (terminal)
+/// - Cascade-Delete mit Einsatz
+model Funkkanal {
+  id          String @id @default(cuid())
+  einsatzId   String @map("einsatz_id")
+
+  name        String
+  detailsType String @map("details_type") // 'tmo' | 'dmo' | 'analog'
+  detailsData Json   @map("details_data") @db.JsonB
+  status      String @default("aktiv") // 'aktiv' | 'inaktiv' | 'archiviert'
+  zweck       String?
+  sortIndex   Int    @default(0) @map("sort_index")
+
+  // Audit Trail
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  // Relations
+  einsatz     Einsatz              @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  zuordnungen FunkkanalZuordnung[]
+
+  // Constraints
+  @@unique([einsatzId, name])
+  @@index([einsatzId, status, sortIndex])
+  @@map("funkkanal")
+}
+
+/// FunkkanalZuordnung: Polymorphe Zuordnung einer Kraft (Fahrzeug | Person | Einheit)
+/// zu einem Funkkanal. Genau eine der drei FKs ist gesetzt (Check-Constraint).
+/// - rufnameSnapshot konserviert den Namen zum Zeitpunkt der Zuordnung
+/// - rolle: primaer | sekundaer | zuhoeren
+/// - Cascade-Delete mit Kanal und mit der zugeordneten Kraft
+model FunkkanalZuordnung {
+  id      String @id @default(cuid())
+  kanalId String @map("kanal_id")
+
+  fahrzeugId String? @map("fahrzeug_id")
+  personId   String? @map("person_id")
+  einheitId  String? @map("einheit_id")
+
+  rufnameSnapshot String @map("rufname_snapshot")
+  rolle           String @default("primaer") // 'primaer' | 'sekundaer' | 'zuhoeren'
+
+  // Audit Trail
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?  @map("created_by")
+
+  // Relations
+  kanal    Funkkanal        @relation(fields: [kanalId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  fahrzeug EinsatzFahrzeug? @relation(fields: [fahrzeugId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  person   EinsatzPerson?   @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  einheit  EinsatzEinheit?  @relation(fields: [einheitId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  // Constraints: Eine Kraft kann pro Kanal nur einmal zugeordnet sein
+  @@unique([kanalId, fahrzeugId])
+  @@unique([kanalId, personId])
+  @@unique([kanalId, einheitId])
+  @@index([kanalId])
+  @@index([fahrzeugId])
+  @@index([personId])
+  @@index([einheitId])
+  @@map("funkkanal_zuordnung")
 }
