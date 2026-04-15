@@ -1,3 +1,40 @@
+## Funkverkehr
+
+### Kanalplan
+- Neue Seite zur Verwaltung von Funkkanälen pro Einsatz mit Unterstützung für TMO-Sprechgruppen, DMO-Kanäle und analoge Frequenzen
+- Funkkanäle können per Drag & Drop sortiert werden
+- Kräfte (Fahrzeuge, Personen, Einheiten) lassen sich Kanälen mit Rufnamen zuordnen
+- Status-Verwaltung: Kanäle können aktiviert, deaktiviert oder archiviert werden
+- PDF-Export des Kanalplans für die Einsatzdokumentation
+
+### Funkprotokoll
+- Funksprüche werden im Einsatztagebuch als separate Kategorie "Kommunikation" erfasst
+- Virtualisierte Darstellung für flüssige Performance bei vielen Einträgen
+- Zwei Anzeigemodi: Kompakte Tabellenansicht und Chat-Bubble-Darstellung
+- Filterung nach Kanal, Priorität, Zeitraum, Absender und Volltext
+- Notfall-Funksprüche lösen automatisch visuelle Warnmeldungen für alle Einsatzteilnehmer aus
+
+### Live-Updates
+- Echtzeit-Synchronisation über WebSockets: Änderungen am Kanalplan und neue Funksprüche erscheinen sofort bei allen Teilnehmern
+- Automatische Wiederverbindung bei Netzwerkunterbrechungen
+
+## Einsatztagebuch
+
+- Einträge können jetzt mit einem Ereigniszeitpunkt versehen werden, der vom Erfassungszeitpunkt abweicht
+- Einträge mit Zeitpunkt in der Zukunft (>60s) werden abgelehnt
+- Funksprüche werden als ETB-Einträge mit zusätzlichem Kontext (Kanal, Priorität) gespeichert
+
+## Benutzeroberfläche
+
+- Neue einheitliche Formular-Komponenten mit verbesserter Barrierefreiheit und Fokus-Hervorhebung
+- Empfänger-Suche zeigt jetzt sofort die Top-20 Ergebnisse beim Öffnen, ohne Mindesteingabe
+- Checkbox-, Radio-Button- und Eingabefeld-Komponenten mit konsistentem Design und größerer Klickfläche
+
+## Technische Verbesserungen
+
+- Stabilere automatisierte Tests durch zuverlässigere Zeitpunkt-Validierung
+- Optimierte API-Responses mit korrekter Datenstruktur in Frontend-Abfragen
+
 ## Fahrzeugverwaltung
 
 - **Neue Kartenansicht**: Die Fahrzeuge-Seite wurde komplett überarbeitet und zeigt nun alle Fahrzeuge in einer übersichtlichen Kachelansicht im Statustableau-Stil
