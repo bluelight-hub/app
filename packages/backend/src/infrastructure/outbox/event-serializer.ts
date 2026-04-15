@@ -566,6 +566,11 @@ export class EventSerializer {
       sequenceNumber: event.sequenceNumber, // Already primitive
       text: event.text,
       createdBy: event.createdBy.value,
+      // Issue #407: Kontext + fachlicher Zeitpunkt für Notfall-Detection
+      kontext: event.kontext,
+      ereignisZeitpunkt: event.ereignisZeitpunkt?.toISOString(),
+      absender: event.absender,
+      empfaenger: event.empfaenger,
     };
   }
 

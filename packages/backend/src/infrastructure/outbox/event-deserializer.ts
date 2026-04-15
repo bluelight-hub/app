@@ -17,6 +17,7 @@ import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import { EintragKorrigiertEvent } from '@domain/events/eintrag-korrigiert.event';
 import { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
+import type { EintragKontextPersisted } from '@domain/value-objects/eintrag-kontext';
 import { EtbLockedEvent } from '@domain/events/etb-locked.event';
 
 // Lagekarte Events
@@ -563,7 +564,24 @@ export class EventDeserializer {
       return Result.fail<DomainEvent>(`Invalid createdBy: ${createdByResult.error}`);
     }
 
-    const event = new EintragAddedEvent(etbIdResult.value!, eintragIdResult.value!, payload.sequenceNumber as number, payload.text as string, createdByResult.value!);
+    // Issue #407: Backward-compatible Deserialisierung — fehlende Felder
+    // bekommen defensive Defaults (alte Events bleiben lesbar).
+    const kontextPayload = (payload.kontext as EintragKontextPersisted | undefined) ?? { type: 'standard' };
+    const ereignisZeitpunkt = typeof payload.ereignisZeitpunkt === 'string' ? new Date(payload.ereignisZeitpunkt) : undefined;
+    const absender = typeof payload.absender === 'string' ? payload.absender : undefined;
+    const empfaenger = typeof payload.empfaenger === 'string' ? payload.empfaenger : undefined;
+
+    const event = new EintragAddedEvent(
+      etbIdResult.value!,
+      eintragIdResult.value!,
+      payload.sequenceNumber as number,
+      payload.text as string,
+      createdByResult.value!,
+      kontextPayload,
+      ereignisZeitpunkt,
+      absender,
+      empfaenger,
+    );
 
     return Result.ok<DomainEvent>(event);
   }

@@ -1,5 +1,6 @@
 import { DomainEvent } from '@domain/common/domain-event';
 import type { EintragId } from '@domain/value-objects/eintrag-id';
+import type { EintragKontextPersisted } from '@domain/value-objects/eintrag-kontext';
 import type { EtbId } from '@domain/value-objects/etb-id';
 import type { UserId } from '@domain/value-objects/user-id';
 import { EVENT_NAMES } from './event-names';
@@ -50,6 +51,12 @@ export class EintragAddedEvent extends DomainEvent {
    * @param sequenceNumber - Sequenznummer des Eintrags (primitive für einfache Serialisierung)
    * @param text - Textinhalt des Eintrags
    * @param createdBy - User ID des Erstellers
+   * @param kontext - Typisierter Kontext (Default: { type: 'standard' }). Trägt bei
+   *   Funksprüchen kanalId + funkPrioritaet und triggert den Notfall-Alert-Handler.
+   * @param ereignisZeitpunkt - Optional: Fachlicher Zeitpunkt des Ereignisses
+   *   (unterschiedlich zur Erfassungszeit).
+   * @param absender - Optional: Absender (Funkrufname) — für Notfall-Alert-Routing
+   * @param empfaenger - Optional: Empfänger
    */
   constructor(
     public readonly etbId: EtbId,
@@ -57,6 +64,10 @@ export class EintragAddedEvent extends DomainEvent {
     public readonly sequenceNumber: number,
     public readonly text: string,
     public readonly createdBy: UserId,
+    public readonly kontext: EintragKontextPersisted = { type: 'standard' },
+    public readonly ereignisZeitpunkt?: Date,
+    public readonly absender?: string,
+    public readonly empfaenger?: string,
   ) {
     super();
   }

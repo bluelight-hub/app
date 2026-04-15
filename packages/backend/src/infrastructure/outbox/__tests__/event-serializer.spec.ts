@@ -216,12 +216,37 @@ describe('EventSerializer', () => {
       const serialized = serializer.serialize(event);
 
       expectValidSerializedEvent(serialized, 'etb.eintrag_added');
+      // Issue #407: Zusätzliche Felder kontext, ereignisZeitpunkt, absender, empfaenger
+      // bekommen beim Default-Konstruktor-Aufruf sinnvolle Werte (standard-Kontext, rest undefined).
       expect(serialized.payload).toEqual({
         etbId: etbId.value,
         eintragId: eintragId.value,
         sequenceNumber: 5,
         text: 'Einsatzleiter vor Ort',
         createdBy: userId.value,
+        kontext: { type: 'standard' },
+        ereignisZeitpunkt: undefined,
+        absender: undefined,
+        empfaenger: undefined,
+      });
+    });
+
+    it('should serialize EintragAddedEvent mit FunkKontext (Issue #407)', () => {
+      const ereignis = new Date('2026-04-14T10:00:00Z');
+      const event = new EintragAddedEvent(etbId, eintragId, 7, 'Brand 12', userId, { type: 'funkspruch', kanalId: 'k1', funkPrioritaet: 'notfall' }, ereignis, 'Florian 1', 'LST');
+
+      const serialized = serializer.serialize(event);
+
+      expect(serialized.payload).toEqual({
+        etbId: etbId.value,
+        eintragId: eintragId.value,
+        sequenceNumber: 7,
+        text: 'Brand 12',
+        createdBy: userId.value,
+        kontext: { type: 'funkspruch', kanalId: 'k1', funkPrioritaet: 'notfall' },
+        ereignisZeitpunkt: ereignis.toISOString(),
+        absender: 'Florian 1',
+        empfaenger: 'LST',
       });
     });
 
