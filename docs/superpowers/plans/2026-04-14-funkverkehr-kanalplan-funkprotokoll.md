@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 abgeschlossen)
+## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phase 4 abgeschlossen)
 
 **Branch:** `407/wave-1-foundation-v2` (Basis: `407/funkverkehr-implementation`, nur Spec-Commits). Frischer Start — die alten Wave-1-Branches (`407/wave-1-foundation`) werden NICHT verwendet.
 
-**Scope dieses Handoffs:** Wave 1 = Tasks 0–10 + Tasks 38–39 (Architektur-Dokumentation). **Alle 12 Tasks sind committed.** Wave 2–4 (ab Task 11) bleiben für Folge-Sessions.
+**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39) **und** Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure). **Alle 15 Tasks sind committed.** Wave-2-Phase-5 (ab Task 14) bleibt für die nächste Session.
 
 ### ✅ Fertig (committed auf `407/wave-1-foundation-v2`)
 
@@ -25,6 +25,9 @@
 | Task 10 — 7 Funkkanal Domain-Events + EVENT_NAMES.FUNKKANAL/FUNK | `ed4017716` | 10 Event-Tests grün, `FunkkanalReihenfolgeGeaendert`/`NotfallAlertRequested` haben `aggregateId = einsatzId` (kanal-übergreifend) |
 | Task 38 — 4 ADRs (005–008) | `ac846a34d` | Nummerierung folgt bestehendem Schema `adr-NNN-*.md`, nicht `NNNN-*.md` |
 | Task 39 — Architektur-Doku erweitert | `928c1913c` | Kein `docs/architecture/` im Repo — stattdessen `docs/deep-dive-backend.md` erweitert (Aggregat-Tabelle, Funkkanal-Sektion, Funkspruch-Notfall-Flow) |
+| Task 11 — Funkkanal-Mapper + Repository | `3b032d376` | `IFunkkanalRepository` in `domain/repositories/` (nicht `application/common/ports/`), `PrismaFunkkanalMapper` (TMO/DMO/Analog Roundtrip), `PrismaFunkkanalRepository` mit Upsert Root + Diff Zuordnungen + `hasFunkspruchReferenz` via raw SQL. PrismaService um `funkkanal`/`funkkanalZuordnung`-Getter erweitert. 11 Mapper-Unit-Tests + 8 Postgres-Integration-Tests grün |
+| Task 12 — Event-Registry + Adapter | `a2b1d20c7` | 7 Funkkanal-Events in `event-serializer.ts` + `event-deserializer.ts` registriert, `FunkkanalEventAdapter` (alle 7 Events) + `EtbFunkspruchBroadcastAdapter` (ETB-Einträge mit Funkspruch-Kontext) in `EventAdaptersModule`. Publisher via `EINSATZ_EVENT_PUBLISHER` @Optional — konkrete Impl kommt mit Task 18; bis dahin Log-only. `event-deserializer.spec` + `architecture-rules.spec` grün (102 registrierte Events). 9 Roundtrip + 13 Adapter-Tests |
+| Task 13 — DI-Tokens + FunkkanalInfrastructureModule | `680e68d45` | `FUNKKANAL_TOKENS` (REPOSITORY, MAPPER, KANALPLAN_PDF_SERVICE, EINSATZ_EVENT_PUBLISHER) in `di-tokens.ts` — `EINSATZ_EVENT_PUBLISHER` wurde bereits in Task 12 eingezogen, da der Adapter sie braucht. `FunkkanalInfrastructureModule` bindet `PrismaFunkkanalRepository` an `FUNKKANAL_REPOSITORY` und wird im `AppModule` nach `TaktischeZeichenModule` importiert. `check:di:imports` + `di-resolution.spec` grün |
 
 ### 🔑 Wichtige Abweichungen vom Plan (Wave 1 Gesamt)
 
@@ -40,23 +43,28 @@
 10. **Funkkanal-Events (Task 10):** `FunkkanalReihenfolgeGeaendert` + `NotfallAlertRequested` tragen `aggregateId = einsatzId.value` (nicht `funkkanalId`), weil sie aggregatsübergreifend sind bzw. einen Einsatz-Room-Broadcast triggern sollen. Die Events sind noch NICHT im Serializer/Deserializer/Adapter-Registry eingehängt — das ist Task 12 in Wave 2.
 11. **ADR-Nummerierung (Task 38):** Nächste freie Nummer war 005; bestehendes Schema `adr-NNN-kebab-case.md` wurde übernommen (nicht das im Plan vorgeschlagene 4-stellige `NNNN`). ADR-008 nennt die echten Tabellennamen (`einsatz_fahrzeuge`/`einsatz_personen`/`einsatz_einheiten`) aus der Migration.
 12. **Architektur-Doku (Task 39):** `docs/architecture/` existiert nicht als eigener arc42-Ordner; die Projekt-Doku nutzt statt dessen `docs/deep-dive-*.md`. Erweiterungen wurden dort (Bausteinsicht → Aggregat-Tabelle + Funkkanal-Sektion, Laufzeitsicht → Notfall-Flow) ergänzt.
+13. **Repository-Port-Ort (Task 11):** Plan sagt `application/common/ports/funkkanal.repository.port.ts`. Tatsächlich: `domain/repositories/i-funkkanal.repository.ts` — konsistent mit `IEtbRepository` und den anderen bestehenden Repository-Ports im Projekt.
+14. **`EINSATZ_EVENT_PUBLISHER`-Token vorgezogen (Task 12 statt 13):** Der `FunkkanalEventAdapter` braucht das Token bereits beim Import, daher wurde es zusammen mit den übrigen `FUNKKANAL_TOKENS` in Task 12/13 eingeführt. Der konkrete `EinsatzEventPublisher` kommt mit Task 18; bis dahin ist der Adapter via `@Optional()` verdrahtet und loggt nur.
+15. **`EtbFunkspruchBroadcastAdapter` mit etbId-Room (Task 12):** `EintragAddedEvent` + `EintragKorrigiertEvent` tragen aktuell keine `einsatzId`. Der Adapter broadcastet mit `etbId` als Room-Schlüssel; die Resolution `etb → einsatz` erfolgt erst im `EinsatzEventsGateway` (Task 18), das einen Einsatz-Index hält. Filter im Adapter: Nur Einträge mit `kontext.type === 'funkspruch'` werden weitergegeben (Korrektur-Events grundsätzlich).
+16. **`einsaetze.status` beim Integration-Test:** Tabelle hat Enum-Werte `ANGELEGT | IN_BEARBEITUNG | ABGESCHLOSSEN | ARCHIVIERT` (nicht `OFFEN`); `EtbStatus` hat `DRAFT | ACTIVE | LOCKED` (nicht `AKTIV`) — Raw-SQL-Fixtures entsprechend anpassen.
 
-### 🚦 Nächster Agent: Start Wave 2 ab Task 11
+### 🚦 Nächster Agent: Start Wave 2 ab Task 14 (Application-Layer)
 
-Wave 1 ist vollständig. Für Wave 2 (Tasks 11–20+ gemäß Plan):
+Wave 1 + Phase 4 (Infrastructure) sind vollständig. Weiter geht es mit Phase 5 (Tasks 14–17: Funkkanal-Commands, Queries, `NotfallFunkspruchAlertHandler`).
 
 ```bash
 cd /Users/rubeen/dev/personal/bluelight-hub
-git switch 407/wave-1-foundation-v2   # oder einen neuen Wave-2-Branch davon
-git log --oneline -14   # sollte 12 Funkverkehr-Commits (Tasks 1–10 + 38 + 39) zeigen
+git switch 407/wave-1-foundation-v2
+git log --oneline -17   # 15 Funkverkehr-Commits + 2 Spec-Commits
 
-# Baseline verifizieren (alle Wave-1-Tests):
+# Baseline verifizieren (Wave 1 + Phase 4):
 cd packages/backend
-npx jest --testPathPatterns="funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|funkkanal" --no-coverage
-# Erwartet: 261 Tests grün, 10 Suites
+DATABASE_URL="postgresql://bluelight:bluelight@localhost:3092/bluelight-hub?schema=public" \
+  npx jest --testPathPatterns="funkkanal|funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|event-deserializer|event-roundtrip|event-serializer|architecture-rules|di-resolution|etb-funkspruch-broadcast" --no-coverage
+# Erwartet: 446 Tests grün, 20 Suites
 ```
 
-Dann weiter mit Task 11 (Funkkanal-Mapper + Repository) — dieser Task kippt die Events erstmals durch die Outbox, deshalb gehört Task 12 (Serializer/Deserializer/Adapter-Registrierung) sinnvollerweise in denselben Wave-2-Commit-Strom.
+Dann Phase 5 ab Task 14 (`create-funkkanal` Command + weitere CRUD/Reorder). Der `TransactionalCommandHandler`-Pattern ist bereits etabliert (siehe `application/etb/commands/`); `FUNKKANAL_REPOSITORY` kann via `@Inject(FUNKKANAL_REPOSITORY)` aufgelöst werden.
 
 ### 🔑 Wichtige Abweichungen vom Plan
 
