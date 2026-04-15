@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ETB_KATEGORIE_VALUES, type EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import type { EintragKontextPersisted } from '@domain/value-objects/eintrag-kontext';
 
 /**
  * Eintrag Response DTO für ETB-Queries.
@@ -214,4 +215,38 @@ export class EintragDto {
     id: string;
     titel: string;
   } | null;
+
+  /**
+   * Issue #407 (Funkverkehr Wave 2): Fachlicher Ereignis-Zeitstempel —
+   * wann ist das beschriebene Ereignis aufgetreten.
+   */
+  @ApiProperty({
+    description: 'Fachlicher Ereignis-Zeitstempel (überschreibt timestamp wenn explizit gesetzt)',
+    type: 'string',
+    format: 'date-time',
+    example: '2024-01-15T11:55:00.000Z',
+  })
+  ereignisZeitpunkt!: Date;
+
+  /**
+   * Issue #407 (Funkverkehr Wave 2): Technischer Erfassungs-Zeitstempel —
+   * wann wurde der Eintrag im System erfasst.
+   */
+  @ApiProperty({
+    description: 'Technischer Erfassungszeitstempel (entspricht meist createdAt)',
+    type: 'string',
+    format: 'date-time',
+    example: '2024-01-15T12:00:00.000Z',
+  })
+  erfasstAm!: Date;
+
+  /**
+   * Issue #407 (Funkverkehr Wave 2): Eintrag-Kontext (standard / funkspruch).
+   * Funkspruch-Einträge tragen Kanal-Referenz und Priorität.
+   */
+  @ApiProperty({
+    description: 'Eintrag-Kontext (discriminated union)',
+    example: { type: 'standard' },
+  })
+  kontext!: EintragKontextPersisted;
 }

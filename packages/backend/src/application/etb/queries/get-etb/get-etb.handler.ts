@@ -101,8 +101,8 @@ export class GetEtbQueryHandler {
         return Result.ok(null);
       }
 
-      // Step 4: Map Aggregate to DTO (with includeDeleted filtering)
-      const dto = EtbQueryMapper.toEtbDto(aggregate, query.includeDeleted);
+      // Step 4: Map Aggregate to DTO (with includeDeleted + kontext filtering)
+      const dto = EtbQueryMapper.toEtbDto(aggregate, query.includeDeleted, query.kontextFilter);
 
       // Step 5: Story 5.4 - Load linked Erinnerungen (query-based)
       const entryIds = dto.eintraege.map((e) => e.id);
