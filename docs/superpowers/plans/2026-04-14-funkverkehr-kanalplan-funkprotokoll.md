@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4 & 5 abgeschlossen)
+## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4, 5 & 6 abgeschlossen)
 
 **Branch:** `407/wave-1-foundation-v2` (Basis: `407/funkverkehr-implementation`, nur Spec-Commits). Frischer Start — die alten Wave-1-Branches (`407/wave-1-foundation`) werden NICHT verwendet.
 
-**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure) **und** Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer). **Alle 19 Kern-Tasks sind committed.** Wave-2-Phase-6 (ab Task 18, WebSocket-Gateway) bleibt für die nächste Session.
+**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure), Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer) **und** Wave-2-Phase-6 (Task 18, WebSocket-Gateway + Publisher). **Alle 20 Kern-Tasks sind committed.** Wave-2-Phase-7 (ab Task 19, HTTP Layer: DTOs + Controller) bleibt für die nächste Session.
 
 ### ✅ Fertig (committed auf `407/wave-1-foundation-v2`)
 
@@ -32,6 +32,7 @@
 | Task 15 — Funkkanal-Zuordnungs-Commands (zuordne-kraft-zu-kanal / aendere-zuordnung-rolle / entferne-zuordnung) | `c84a25020` | `ZuordneKraftZuKanalHandler` injiziert `KRAEFTE_REPOSITORIES.EINSATZ_{FAHRZEUG,PERSON,EINHEIT}` und zieht `rufnameSnapshot` aus dem jeweiligen Aggregat (Person fallback: `vorname + nachname`). 12 Tests grün |
 | Task 16 — Funkkanal-Queries (get-kanalplan / get-funkkanal-by-id / get-rufnamen-vorschlaege) | `a1a6be96b` | Read-only Handler ohne Transaction/Outbox. `GetRufnamenVorschlaegeQueryHandler` aggregiert Fahrzeuge/Personen/Einheiten parallel via `Promise.all`. 10 Tests grün |
 | Task 17 — NotfallFunkspruchAlertHandler + Adapter-Wiring | `59e60980e` | Application-Handler in `application/funkkanal/event-handlers/notfall-funkspruch-alert.handler.ts`, Infrastructure-Adapter `NotfallFunkspruchAlertEventAdapter` (`@OnEvent` auf `EintragAddedEvent`). `FunkkanalApplicationModule` registriert Handler unter `EVENT_HANDLER.NOTFALL_FUNKSPRUCH_ALERT` und wird im `EventAdaptersModule` importiert. 7 Tests grün |
+| Task 18 — EinsatzEventsGateway + EinsatzEventPublisher | `020bfa738` | Infrastructure-Modul `WebsocketModule` unter `packages/backend/src/infrastructure/websocket/` (Gateway + Publisher + `WsJwtAuthGuard` + DTO). Namespace `/ws/einsatz-events`, Room `einsatz:{id}`, `SubscribeMessage('join:einsatz')` mit `IEinsatzTeilnehmerRepository`-Check. Publisher implementiert `broadcast` (direkt) + `broadcastByEtb` (resolved etbId → einsatzId via `IEtbRepository`) und wird unter `EINSATZ_EVENT_PUBLISHER` registriert. `EventAdaptersModule` importiert `WebsocketModule` — damit sind `FunkkanalEventAdapter`, `EtbFunkspruchBroadcastAdapter` + indirekt `NotfallFunkspruchAlertEventAdapter` scharf geschaltet. `IEinsatzEventPublisher`-Port + `EinsatzEventName`-Union leben jetzt in `infrastructure/websocket/events/einsatz-event.types.ts`. 10 neue Tests (6 Gateway + 4 Publisher), 526 Funkverkehr-Tests gesamt grün |
 
 ### 🔑 Wichtige Abweichungen vom Plan (Wave 1 Gesamt)
 
@@ -59,24 +60,37 @@
     - **Queries (Task 16):** Plan sagt, Query gibt DTO zurück. Umsetzung: Queries liefern Domain-`FunkkanalAggregate[]` bzw. `FunkkanalAggregate | null`; die DTO-Projektion erfolgt im Controller (Task 20–22). `GetRufnamenVorschlaegeQuery` liefert ein flaches POJO-Result (kein Aggregat).
     - **Notfall-Flow (Task 17):** `EintragAddedEvent` trägt `etbId`, nicht `einsatzId`. Der Handler injiziert `IEtbRepository` und resolvt `einsatzId` via `findById(etbId)`. Der Infrastructure-Adapter `NotfallFunkspruchAlertEventAdapter` filtert früh auf `kontext.type === 'funkspruch'`, damit Standard-Einträge keinen Handler-Call verursachen.
     - **`EVENT_HANDLER.NOTFALL_FUNKSPRUCH_ALERT` Token** (Issue #407) wurde am Ende des `EVENT_HANDLER`-Objekts in `infrastructure/di-tokens.ts` ergänzt. `FunkkanalApplicationModule` registriert Handler und exportiert Token; `EventAdaptersModule` importiert das Modul und hängt den Adapter als Provider ein.
+18. **Phase 6 Abweichungen (Task 18):**
+    - **Namespace:** Plan sagt `/ws/einsatz-events` — umgesetzt wie im Plan.
+    - **`IEinsatzEventPublisher` um `broadcastByEtb` erweitert:** Plan-Pseudocode zeigt nur `broadcast(einsatzId, event, payload)`. Tatsächlich: `EtbFunkspruchBroadcastAdapter` verfügt nur über `etbId` (EintragAdded/Korrigiert-Events tragen keine `einsatzId`), daher ist eine zusätzliche `broadcastByEtb(etbId, channel, payload)`-Methode nötig. Publisher resolvt via `IEtbRepository.findById(EtbId)` zur `einsatzId` und delegiert dann an `gateway.broadcastToEinsatz`.
+    - **Ordner:** `infrastructure/websocket/` (nicht `modules/einsatz/websocket/`), damit `IEinsatzEventPublisher`-Port + `EinsatzEventName`-Union ohne Layer-Bruch von `infrastructure/events/adapters/*` importiert werden können.
+    - **`WsJwtAuthGuard` kopiert:** Der Guard in `modules/erinnerung/guards/` ist modul-spezifisch platziert; das Infrastructure-Gateway braucht einen eigenen (identische Logik, neue Datei unter `infrastructure/websocket/guards/ws-jwt-auth.guard.ts`). Vermeidet `infrastructure → modules`-Import.
+    - **Einsatz-Zugehörigkeit direkt via `EINSATZ_TEILNEHMER_REPOSITORY`** (wie `ErinnerungGateway`), nicht über ein separates `EINSATZ_ZUGEHOERIGKEIT_CHECKER`-Token — reduziert Token-Proliferation.
+    - **`IEinsatzEventPublisher`-Port verschoben:** Lag ursprünglich in `infrastructure/events/adapters/funkkanal-event.adapter.ts` (Task 12, als `@Optional()`-Slot). Jetzt zentral in `infrastructure/websocket/events/einsatz-event.types.ts`; die alte Datei re-exportiert den Typ für Rückwärtskompatibilität.
+    - **Room-Schlüssel vereinheitlicht:** Plan zeigt `einsatz:{id}`. ErinnerungGateway nutzt `einsatz:{id}:erinnerungen`. Das neue Gateway behält den breiten Key `einsatz:{id}` (ohne Suffix), weil es alle einsatz-gebundenen Broadcasts (Funkkanal + ETB-Funkspruch + Notfall) in einem Room bündelt.
+    - **`broadcastByEtb` als Graceful-Fallback:** Bei ungültiger EtbId oder fehlendem ETB wird geloggt + Event verworfen (kein Throw), damit ein einzelner Broadcast-Fehler keine Event-Kette bricht.
 
-### 🚦 Nächster Agent: Start Wave 2 ab Task 18 (WebSocket-Gateway)
+### 🚦 Nächster Agent: Start Wave 2 ab Task 19 (HTTP Layer — DTOs)
 
-Wave 1, Phase 4 (Infrastructure) und Phase 5 (Application-Layer) sind vollständig. Weiter geht es mit Phase 6 (Task 18: `EinsatzEventsGateway` + `EinsatzEventPublisher`), das die in Task 12 als `@Optional()` gesteckten `EINSATZ_EVENT_PUBLISHER`-Slots endlich besetzt und damit alle bisher "Log-only" broadcastenden Adapter (Funkkanal, ETB-Funkspruch, Notfall) scharf schaltet.
+Wave 1, Phase 4 (Infrastructure), Phase 5 (Application-Layer) und Phase 6 (WebSocket-Gateway + Publisher) sind vollständig. Alle Broadcast-Adapter (Funkkanal, ETB-Funkspruch, Notfall) sind scharf geschaltet — Events werden jetzt tatsächlich an den Einsatz-Room `einsatz:{id}` gepusht, sobald ein Client per `join:einsatz` beigetreten ist.
+
+Weiter geht es mit Phase 7 (HTTP Layer):
+- **Task 19** (`packages/backend/src/modules/funkkanal/dto/` + `packages/backend/src/modules/etb/dto/eintrag-kontext.dto.ts`): Discriminated-Union-DTOs für `KanalDetails` (tmo/dmo/analog) und `EintragKontext` (standard/funkspruch), CRUD-DTOs + XOR-Validator für Zuordnungen.
+- **Task 20–24**: Funkkanal-Controller (CRUD + Reorder), Zuordnungs-Controller, Rufname-Vorschlaege-Controller, PDF-Export-Service + Controller (pdfkit, neuer `KANALPLAN_PDF_SERVICE`-Provider), ETB-Controller für Kontext. Jeder Controller nutzt `@ApiWrappedResponse` / `@ApiWrappedCreatedResponse`, niemals Standard-Swagger-Decorators.
 
 ```bash
 cd /Users/rubeen/dev/personal/bluelight-hub
 git switch 407/wave-1-foundation-v2
-git log --oneline -26   # 24 Funkverkehr-Commits + 2 Spec-Commits
+git log --oneline -28   # 25 Funkverkehr-Commits + 3 Spec-Commits
 
-# Baseline verifizieren (Phase 5):
+# Baseline verifizieren (Phase 6):
 cd packages/backend
 DATABASE_URL="postgresql://bluelight:bluelight@localhost:3092/bluelight-hub?schema=public" \
-  npx jest --testPathPatterns="funkkanal|funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|event-deserializer|event-roundtrip|event-serializer|architecture-rules|di-resolution|etb-funkspruch-broadcast|notfall-funkspruch-alert" --no-coverage
-# Erwartet: 158 Funkkanal-Tests grün + restliche Wave-1-Tests
+  npx jest --testPathPatterns="funkkanal|funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|event-deserializer|event-roundtrip|event-serializer|architecture-rules|di-resolution|etb-funkspruch-broadcast|notfall-funkspruch-alert|einsatz-events.gateway|einsatz-event.publisher" --no-coverage
+# Erwartet: 526 Funkverkehr-Tests grün (inkl. 10 neue Gateway/Publisher-Tests)
 ```
 
-Dann Phase 6 ab Task 18 (`packages/backend/src/infrastructure/websocket/einsatz-events.gateway.ts` + `EinsatzEventPublisher`). Der Publisher wird unter `EINSATZ_EVENT_PUBLISHER` registriert und vom `FunkkanalEventAdapter`, `EtbFunkspruchBroadcastAdapter` und indirekt vom `NotfallFunkspruchAlertHandler` (über sein Event) konsumiert.
+Nach Task 19 werden die Controller die per `FunkkanalApplicationModule` exportierten Commands/Queries konsumieren. Wichtig: `UpdateFunkkanalHandler` aus dem Plan gibt es NICHT als einzelnen Handler — Task 14 hat ihn in neun feingranulare Commands aufgeteilt (rename/changeDetails/setZweck/setSortIndex/archive/deactivate/activate/reorder). Die Controller-Endpoints müssen dem Rechnung tragen (z.B. `PATCH /:kanalId/name`, `PATCH /:kanalId/details` etc. oder ein konsolidierender Use-Case im Controller selbst).
 
 ### 🔑 Wichtige Abweichungen vom Plan
 
