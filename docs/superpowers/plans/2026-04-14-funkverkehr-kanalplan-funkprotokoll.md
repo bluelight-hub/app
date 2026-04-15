@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4–7 abgeschlossen)
+## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 + Phasen 4–10 abgeschlossen)
 
 **Branch:** `407/wave-1-foundation-v2` (Basis: `407/funkverkehr-implementation`, nur Spec-Commits). Frischer Start — die alten Wave-1-Branches (`407/wave-1-foundation`) werden NICHT verwendet.
 
-**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure), Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer), Wave-2-Phase-6 (Task 18, WebSocket-Gateway + Publisher) **und** Wave-2-Phase-7 (Tasks 19–24, HTTP-Layer: DTOs + Controller + PDF-Export). **Alle 26 Kern-Tasks sind committed.** Wave-2-Phase-8 (Task 25, API-Client-Generierung) und die folgenden Frontend-Phasen (9–12) bleiben für die nächste Session.
+**Scope dieses Handoffs:** Wave 1 (Tasks 0–10 + 38–39), Wave-2-Phase-4 (Tasks 11–13, Funkkanal Infrastructure), Wave-2-Phase-5 (Tasks 14–17, Funkkanal Application-Layer), Wave-2-Phase-6 (Task 18, WebSocket-Gateway + Publisher), Wave-2-Phase-7 (Tasks 19–24, HTTP-Layer: DTOs + Controller + PDF-Export), Phase 8 (Task 25, API-Client-Regenerierung inkl. DTO-Fix für EintragKontext-Discriminator), Phase 9 (Tasks 26–29, Frontend-Foundation: Feature-Skelett + Filter-Store, Kanalplan-API-Hooks, ETB-Funkprotokoll-Hooks, useEinsatzEvents WebSocket-Hook) **und** Phase 10 (Tasks 30–31, Atoms + Molecules: Priorität-/Status-Badges, KanalDetailsForm, FunkspruchBubble/CompactRow, FunkKontextBadge, NotfallAlertToast). **Alle 33 Kern-Tasks + Phase 8/9/10 sind committed.** Phase 11 (Tasks 32–33, Kanalplan-Organisms inkl. Drag-and-Drop), Phase 12 (Tasks 34–37, Funkprotokoll-Organisms + Page/Routing) und Phase 14 (Tasks 40–41, E2E + Definition of Done) bleiben für die nächste Session.
 
 ### ✅ Fertig (committed auf `407/wave-1-foundation-v2`)
 
@@ -39,6 +39,13 @@
 | Task 22 — Rufname-Vorschlaege-Controller | `344c53002` | `RufnameVorschlaegeController` unter `einsatz/:einsatzId/rufname-vorschlaege` mit Mapping vom flachen Query-Result auf `RufnameVorschlaegeResponseDto`. 3 Tests grün |
 | Task 23 — Kanalplan-PDF-Export (Service + Controller) | `e9700b52b` | `IKanalplanPdfService`-Port unter `application/funkkanal/ports/`, pdfkit-basierter Adapter `KanalplanPdfService` unter `infrastructure/funkkanal/`. Provider-Binding `KANALPLAN_PDF_SERVICE → KanalplanPdfService` ergänzt im `FunkkanalInfrastructureModule`. `KanalplanExportController` (`einsatz/:einsatzId/kanalplan/export.pdf`) löst Einsatz-Name via `EINSATZ_REPOSITORY` auf (Fallback einsatzId), liefert `application/pdf` mit `Content-Disposition: attachment`. 5 Tests (3 Service + 2 Controller) grün |
 | Task 24 — ETB-Controller um Kontext erweitert | `a103a05ab` | `AddEintragDto` + `EintragDto` um `kontext` (StandardKontext\|FunkKontext), `ereignisZeitpunkt` und `erfasstAm` erweitert. `EtbCqrsController.addEintrag` reicht beide Felder an `AddEintragCommand.create` durch. `GET /etb/einsatz/:einsatzId` akzeptiert optionale Query-Filter `kontextType` + `kanalId` — Filterung erfolgt aktuell **in-memory** im `EtbQueryMapper.toEtbDto` (Plan-Abweichung: kein Repository-Filter, um Migrations- und Raw-SQL-Änderungen zu vermeiden). 3 neue Mapper-Tests + bestehende 1100 ETB-Tests grün |
+| Task 25 — API-Client + DTO-Fix + Lint-Staged-Fix | `7a4f3ffad` · `429eb652a` · `1abee3581` | Zuerst `oneOf/discriminator` an `AddEintragDto.kontext` und `EintragDto.kontext` ergänzt (Swagger-Annotation fehlte → Client generierte `object`). Dann `lint-staged` angepasst (`oxlint --no-error-on-unmatched-pattern`), weil `packages/shared/client/**` in `.oxlintrc.json` ignoriert ist und Commits mit ausschließlich generiertem Code sonst fehlschlugen. `pnpm run generate-api` liefert saubere Unions: `FunkkanalResponseDtoDetails = {type:'analog'} & AnalogDetailsDto \| ...`, `AddEintragDtoKontext`/`EintragDtoKontext = {type:'funkspruch'} & FunkKontextDto \| {type:'standard'} & StandardKontextDto`. Frontend-Typecheck sauber. |
+| Task 26 — Feature-Skelett + Filter-Store | `2f1fedec7` | `packages/frontend/src/features/funkverkehr/` mit Verzeichnissen `api/`, `hooks/`, `schemas/`, `stores/`, `ui/{atoms,molecules,organisms,pages}`, `utils/`, `__tests__/`. `funkprotokoll-filter.store.ts` via `createStore` (kein `new Store()`) — persistiert Filter pro Einsatz-ID (kanalIds / prioritaeten / vonDate / bisDate / absender / volltext / dichteMode). 4 Store-Tests grün. |
+| Task 27 — Kanalplan-API-Hooks (TanStack Query) | `b4ee1600b` | `FunkkanalApi` in `shared/api/api.ts`-Proxy registriert. `api/queries.ts` (`FUNKVERKEHR_QUERY_KEYS` + `useKanalplan`/`useFunkkanal`/`useRufnameVorschlaege`) und `api/mutations.ts` (Create/Update/Archive/Reorder + Zuordnungs-Hooks + `useExportKanalplanPdf` via `*Raw`-Variante → `response.raw.blob()`). `useReorderFunkkanaele` mit optimistic Cache-Update + Rollback. 12 Tests grün. |
+| Task 28 — ETB-basierte Funkprotokoll-Hooks | `45ea7bacd` | `hooks/use-funkprotokoll-eintraege.ts` nutzt `etbCqrsControllerGetEtbByEinsatzIdVAlpha` mit `kontextType=funkspruch`; `kanalId` nur bei **genau einem** gewählten Kanal serverseitig, alle weiteren Filter (Priorität, Zeitraum, Absender-Query, Volltext, Multi-Kanal) in `applyClientFilters`. 404 → leere Liste (ETB noch nicht angelegt). `use-create-funkspruch.ts` kapselt AddEintrag mit Default-`kategorie=KOMMUNIKATION` + `einsatzId` im Body (Auto-ETB-Creation-Flag). `use-dichte-mode.ts` dünner Wrapper um Filter-Store. 8 Tests grün. |
+| Task 29 — useEinsatzEvents WebSocket-Hook | `0f0917b08` | `api/use-einsatz-events.ts` — socket.io ohne Auto-Reconnect (eigener Backoff 1s/2s/5s/10s/30s via `EINSATZ_EVENTS_BACKOFF_MS`). Nach `connect` wird `join:einsatz` emittiert + Full-Invalidate (Kanalplan/Funkprotokoll/ETB). Handler für `etb:eintrag-erstellt/korrigiert`, 6× `funkkanal:*` und `funk:notfall-alert` (mit optionalem `onNotfall`-Callback). `join:einsatz:error` → Status `error` + Disconnect. 7 Tests grün (Connect, Invalidierung, Backoff, Cleanup). |
+| Task 30 — Atoms: FunkPrioritaetBadge + KanalStatusBadge | `35406c8cf` | `utils/priority-color.ts` liefert `PRIORITAET_STYLES` (routine/prioritaet/notfall mit Farbe, Border, Icon-Name, `pulse`-Flag). `FunkPrioritaetBadge` mit Radio-/Warning-/Sirenen-Icon (`react-icons/pi`), `iconOnly`-Modus, `role="status"`, `aria-label`. `KanalStatusBadge` für `aktiv`/`inaktiv`/`archiviert`. 8 Tests grün. |
+| Task 31 — Molecules: KanalDetailsForm + Bubbles + NotfallToast | `3f299dfa4` | `ui/molecules/`: `KanalDetailsForm` Controlled mit Radio-Group TMO/DMO/Analog und typabhängigen Feldern, `aria-invalid` + `role="radiogroup"`. `FunkKontextBadge` (Button/Span via `asSpan`) mit Fallback "Kanal (gelöscht)" und Prioritäts-Icon rechts. `FunkspruchBubble` (Chat-Card, Prio-Border links, `time`-Element) + `FunkspruchCompactRow` (font-mono Zeile, `role="listitem"`). `NotfallAlertToast` via `toast.custom` — 10s Dauer, deterministische ID `notfall:{einsatzId}:{ereignisZeitpunkt}`. `utils/format-kanal-details.ts` für Typ-Label + Kennung. 12 Tests grün. |
 
 ### 🔑 Wichtige Abweichungen vom Plan (Wave 1 Gesamt)
 
@@ -88,50 +95,77 @@
     - **ETB-Kontext-Filter in-memory (Task 24):** Plan deutet einen Repository-Filter an. Tatsächlich erfolgt die Filterung im `EtbQueryMapper.toEtbDto(aggregate, includeDeleted, kontextFilter?)` — `GetEtbQuery` trägt das neue Feld `kontextFilter?: { kontextType?, kanalId? }`, der bestehende Repository-Pfad bleibt unverändert. Das spart Migrations-/Raw-SQL-Anpassungen; performance-tolerant für übliche ETB-Größen.
     - **EintragDto-Pflichtfelder:** `EintragDto.ereignisZeitpunkt` / `erfasstAm` / `kontext` sind als Pflichtfelder markiert. Die Domain-Entity garantiert sie via Default-Konstruktor (`kontext ?? EintragKontext.standard()`); zwei bestehende Integration-Test-Mocks wurden entsprechend ergänzt.
 
-### 🚦 Nächster Agent: Start Wave 2 ab Task 25 (API-Client-Generierung) — danach Frontend (Phasen 9–12)
+20. **Phase 8 Abweichungen (Task 25, API-Client):**
+    - **DTO-Nachbesserung vorgezogen:** Der erste `pnpm run generate-api`-Lauf hat aus `AddEintragDto.kontext` / `EintragDto.kontext` ein `object` gemacht, weil den DTOs `@ApiExtraModels` + das `...EINTRAG_KONTEXT_SCHEMA`-Spread auf `@ApiProperty(Optional)` fehlten. Im ersten Schritt Backend-DTO gefixt (Commit `7a4f3ffad`), dann Client regeneriert → saubere `AddEintragDtoKontext` / `EintragDtoKontext`-Unions.
+    - **Lint-Staged-Fix als Voraussetzung:** Commits mit ausschließlich generiertem Code (`packages/shared/client/**`) brachen den Pre-Commit, weil `.oxlintrc.json` diese Pfade ignoriert und `oxlint` ohne `--no-error-on-unmatched-pattern` auf "Keine Dateien" mit Fehler bricht. Flag in `package.json`/`lint-staged` ergänzt (Commit `429eb652a`).
+    - **Backend-HTTPS:** Backend lauscht lokal unter `https://127.0.0.1:3091` mit Self-Signed-Cert — `generate-api`-Skript wurde mit `NODE_TLS_REJECT_UNAUTHORIZED=0` ausgeführt (akzeptiert das Cert). OpenAPI-Endpoint ist `/api/alpha-json` (nicht `/api/docs-json`).
+    - **PDF-Export-Hook nutzt `*Raw`:** Der Generator schreibt für den PDF-Endpoint `Promise<void>`; der Hook greift via `kanalplanExportControllerExportPdfVAlphaRaw` auf `response.raw.blob()` zurück und ruft dann `downloadExport(blob, filename)`.
 
-Wave 1 + Wave 2 (Phasen 4–7) sind vollständig. Backend exponiert jetzt:
-- **Funkkanal-Controller** (`einsatz/:einsatzId/funkkanaele/*`): Listing, GetById, Create, Patch (dispatcht 9 Aggregat-Commands), Delete (=archive), Reorder.
+21. **Phase 9 Abweichungen (Tasks 26–29, Frontend-Foundation):**
+    - **`createStore` statt `new Store`:** Das Projekt verwendet `createStore<T>(initial)` aus `@tanstack/react-store` (siehe `lagekarte/stores/draw.store.ts`); Plan-Pseudocode `new Store()` würde fehlschlagen.
+    - **API-Proxy erweitert:** `FunkkanalApi` musste in `shared/api/api.ts` sowohl als Import, als private Property, im Constructor und als `funkkanal()`-Getter eingehängt werden — der Plan vergisst diesen Schritt.
+    - **`gcTime: Infinity` in Hook-Tests:** `QueryClient({ gcTime: 0 })` sammelt Cache-Einträge direkt ein, sobald keine Observer da sind — führt dazu, dass `setQueryData` in `onMutate` sofort verschwindet. Tests nutzen `Infinity`, damit optimistische Updates verifizierbar bleiben.
+    - **`useFunkprotokollEintraege` kontextType nur bei 1 Kanal:** Der Plan suggeriert, `kontextType` und `kanalId` immer mitzugeben. Bei Multi-Kanal-Filter würde das serverseitig zu breit schneiden. Implementiert: `kanalId` nur wenn **genau einer** gewählt ist, sonst Client-Filter.
+    - **Socket.io Backoff in eigener Hand:** Plan suggeriert, `reconnection: false` + eigene setTimeout-Chain. Umgesetzt: Ein einzelner `reconnectTimerRef`, `retryIdxRef` zählt nur fortlaufend hoch (Kappung auf letztes Element des Schedules). Das unterscheidet sich vom `useErinnerungWebSocket`-Pattern, das socket.io-eigene Reconnection nutzt.
+    - **`useEinsatzEvents` ohne `@/features/auth` Dependency:** Der Erinnerung-Hook holt Current-User + JWT-Auth; der neue Hook überlässt die Auth dem `WsJwtAuthGuard` via Cookie (`withCredentials: true`).
+
+22. **Phase 10 Abweichungen (Tasks 30–31, Atoms + Molecules):**
+    - **Icon-Mapping statt direktem Icon-Import im Style-Objekt:** `PRIORITAET_STYLES` trägt nur den Icon-Namen (`'radio' \| 'warning' \| 'siren'`); das Badge-Atom mappt das auf die konkreten `react-icons/pi`-Komponenten (`PiBroadcast` statt `PiRadio`, weil `PiRadio` eher eine UI-Radio-Antenne ist).
+    - **`KanalDetailsForm` ist Controlled, nicht Form-gebunden:** Plan sagt "TanStack-Form verdrahtet". Um die Molecule unabhängig testbar zu halten, bleibt das Form-Binding Aufgabe von Task 32 (`KanalEditDrawer`). Die Molecule akzeptiert `value`/`onChange`/`errors` und macht keinen Use-von-`useForm`.
+    - **`NotfallAlertToast` als Funktion, nicht Komponente:** Sonner ruft `toast.custom` mit einer render function auf; exportiert wird `showNotfallAlertToast(payload)`. Damit kann der Hook (`onNotfall`) direkt diese Funktion als Callback nutzen.
+    - **`FunkspruchBubble`/`CompactRow` erwarten `kanal` als optionale Prop:** Plan geht davon aus, dass Kanäle immer auflösbar sind. Tatsächlich kann ein Funkspruch eines archivierten/gelöschten Kanals in der Chronologie stehen — deshalb fallen die Molecules auf "—" oder "Kanal (gelöscht)" zurück.
+
+### 🚦 Nächster Agent: Start bei Task 32 (KanalEditDrawer + ZuordnungsManager) — Phase 11 + 12 + Verification
+
+Phasen 1–10 sind vollständig. Der Frontend-Unterbau für Funkverkehr steht:
+
+**Frontend-Bausteine bereits verfügbar** (unter `packages/frontend/src/features/funkverkehr/`):
+- **Filter-Store** (`stores/funkprotokoll-filter.store.ts`): `DEFAULT_FILTER`, `getFilterForEinsatz`, `setFilterForEinsatz`, `resetFilterForEinsatz`.
+- **API-Hooks** (`api/`): `useKanalplan`, `useFunkkanal`, `useRufnameVorschlaege`, `useCreateFunkkanal`, `useUpdateFunkkanal`, `useArchiveFunkkanal`, `useReorderFunkkanaele` (mit optimistic update + rollback), `useCreateZuordnung`, `useUpdateZuordnungRolle`, `useRemoveZuordnung`, `useExportKanalplanPdf`, `FUNKVERKEHR_QUERY_KEYS`.
+- **Hooks** (`hooks/`): `useFunkprotokollEintraege`, `useCreateFunkspruch`, `useDichteMode`, plus `applyClientFilters`-Export.
+- **WebSocket**: `useEinsatzEvents({ einsatzId, onNotfall })` mit Backoff 1s→2s→5s→10s→30s, bei `connect` wird `join:einsatz` emittiert und ein Full-Invalidate ausgelöst.
+- **Atoms**: `FunkPrioritaetBadge` (iconOnly + Pulse), `KanalStatusBadge`.
+- **Molecules**: `KanalDetailsForm` (Controlled, TMO/DMO/Analog typabhängig), `FunkKontextBadge` (Button/Span, Fallback "Kanal (gelöscht)"), `FunkspruchBubble`, `FunkspruchCompactRow`, `showNotfallAlertToast(payload)`.
+- **Utilities**: `utils/priority-color.ts` (`PRIORITAET_STYLES`), `utils/format-kanal-details.ts` (`getKanalTypLabel`, `formatKanalKennung`).
+
+**Backend-Endpoints** (unverändert seit Phase 7):
+- **Funkkanal-Controller** (`einsatz/:einsatzId/funkkanaele/*`): Listing, GetById, Create, Patch, Delete (=archive), Reorder.
 - **Zuordnungs-Controller** (`einsatz/:einsatzId/funkkanaele/:kanalId/zuordnungen/*`): Create / UpdateRolle / Delete.
 - **Rufnamen-Vorschläge** (`einsatz/:einsatzId/rufname-vorschlaege`): Bündelt Fahrzeuge / Personen / Einheiten.
 - **PDF-Export** (`einsatz/:einsatzId/kanalplan/export.pdf`): pdfkit-Stream als `application/pdf`.
-- **ETB-Erweiterung**: AddEintragDto + EintragDto kennen jetzt `kontext` + `ereignisZeitpunkt`; `GET /etb/einsatz/:einsatzId` akzeptiert `?kontextType=...&kanalId=...`.
+- **API-Client** (`@bluelight-hub/shared/client`): saubere Discriminated Unions für KanalDetails (tmo/dmo/analog) und EintragKontext (standard/funkspruch).
 
-Alle Endpoints nutzen `@ApiWrappedResponse` / `@ApiWrappedCreatedResponse`, nie Standard-Swagger-Decorators (sonst bricht die Client-Generation).
+**Weiter mit Phase 11 (Tasks 32–33, Kanalplan-Organisms) und Phase 12 (Tasks 34–37, Funkprotokoll-Organisms + Page/Routing):**
+- **Task 32** — `KanalEditDrawer` (nutzt `Dialog.SlideIn`, `@tanstack/react-form` + Zod, importiert `KanalDetailsForm`) + `ZuordnungsManager` (Headless UI Combobox mit `useRufnameVorschlaege`, Segmented-Rolle, Hooks: `useCreateZuordnung`, `useUpdateZuordnungRolle`, `useRemoveZuordnung`). Zod-Schemata unter `schemas/kanal.schema.ts` (siehe Spec-Block Task 32).
+- **Task 33** — `KanalplanTable` eigenständig (kein `DataTable`), `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities` installieren falls noch nicht. `useReorderFunkkanaele` ist bereit — `onDragEnd` → Ordering-Liste bauen.
+- **Task 34–37** — `FunkspruchComposer`, `FunkprotokollFilterSidebar`, virtualisierte `FunkprotokollView` (empfohlen: `@tanstack/react-virtual`, auf vorhandene Muster checken), `FunkverkehrLayout` + `/einsatz/$einsatzId/funkverkehr`-Route (TanStack Router). **Wichtig:** Frontend-Routen MÜSSEN unter `/einsatz/:einsatzId/funkverkehr/...` nesten — RouterContext konsumiert `einsatzId` aus dem Outer-Einsatz-Context (Memory-Note Einsatz-Routen-Nesting-Konvention).
+- **Task 38/39** sind bereits fertig (Wave 1).
+- **Task 40–41** — E2E im Browser (Claude-in-Chrome) + Definition-of-Done-Checks.
 
-Weiter geht es mit Phase 8 (API-Client) und ab Phase 9 dem Frontend:
-- **Task 25** (`pnpm run generate-api`): Backend starten (`pnpm --filter @bluelight-hub/backend dev`), warten bis Port 3091 läuft, dann im Repo-Root `pnpm run generate-api`. Output landet in `packages/shared/client/`. Discriminator-Unions (KanalDetails, EintragKontext) auf saubere TS-Types prüfen.
-- **Task 26–37**: Frontend-Foundation (Feature-Skelett + Store), Hooks (Kanalplan, ETB-Funkprotokoll, WebSocket), Atoms/Molecules (Badges, KanalDetailsForm, FunkKontextBadge, NotfallAlertToast), Organisms (KanalEditDrawer, KanalplanTable mit DnD, FunkspruchComposer, FilterSidebar, virtualisierte FunkprotokollView), Layout + Page + Tab-Routing.
-- **Task 40–41**: E2E-Verification (Browser via Claude-in-Chrome), Definition-of-Done-Checks.
-
+**Dev-Setup (bevor Organisms gebaut werden):**
 ```bash
 cd /Users/rubeen/dev/personal/bluelight-hub
 git switch 407/wave-1-foundation-v2
-git log --oneline -34   # 31 Funkverkehr-Commits + 3 Spec-Commits
 
-# Baseline verifizieren (Phase 7):
-cd packages/backend
-DATABASE_URL="postgresql://bluelight:bluelight@localhost:3092/bluelight-hub?schema=public" \
-  npx jest --testPathPatterns="funkkanal|funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|event-deserializer|event-roundtrip|event-serializer|architecture-rules|di-resolution|etb-funkspruch-broadcast|notfall-funkspruch-alert|einsatz-events.gateway|einsatz-event.publisher|kanalplan-pdf|kanalplan-export|funkkanal.controller|zuordnung.controller|rufname-vorschlaege.controller|exactly-one-kraft" --no-coverage
-# Erwartet: 526 Wave-2-Phase-6-Tests + ~30 neue Phase-7-Tests grün
+# Backend (inkl. Postgres auf Port 3092):
+docker compose up -d postgres
+pnpm --filter @bluelight-hub/backend dev
+# Backend lauscht auf https://127.0.0.1:3091 (self-signed)
+
+# Frontend:
+pnpm --filter @bluelight-hub/frontend dev:vite
+
+# Funkverkehr-Tests (aktuell 57 Tests grün):
+cd packages/frontend && pnpm exec vitest run src/features/funkverkehr
 ```
 
-Hinweis zum Frontend: `RouterContext` für Funkverkehr-Routen muss eine `einsatzId` aus dem Outer-Context konsumieren — nicht selbst lookup-basiert (siehe Memory: Einsatz-Routen-Nesting-Konvention).
+Hinweis zum API-Client: Falls Backend-DTOs erweitert werden, vorher prüfen ob Swagger-Annotationen die Discriminator-Unions korrekt setzen (siehe Abweichung 20) — sonst generiert der Client wieder `object`.
 
-### 🔑 Wichtige Abweichungen vom Plan
+Alle Endpoints nutzen `@ApiWrappedResponse` / `@ApiWrappedCreatedResponse`, nie Standard-Swagger-Decorators (sonst bricht die Client-Generation).
 
-1. **Ordner-Struktur:** Plan suggeriert `domain/aggregates/etb/eintrag-kontext.ts`. Tatsächlich: das Repo hat flache Struktur unter `domain/value-objects/` — `EintragKontext` und `FunkPrioritaet` liegen dort. Nur `KanalDetails` wurde in `domain/aggregates/funkkanal/` gelegt (neuer Unterordner), passend für das nächste Aggregat.
-2. **Leere Migration aufgeräumt:** Der lokale Ordner `prisma/migrations/20260413090000_reorder_zeichen_katalog/` war leer (nicht in git). Gelöscht, damit Prisma neue Migrationen erzeugen konnte.
-3. **EtbEintrag-Konstruktor:** Die Entity hat 13 bestehende positional args. Neue Felder additiv an Pos 14/15/16 angehängt (statt Options-Refactor), um bestehende Call-Sites nicht zu brechen.
-4. **Aggregat-`addEintrag`:** Bekam `options?: AddEintragOptions` als 8. Parameter — positional bleibt kompatibel, neue Felder via Options-Objekt.
-5. **Validierung `ereignisZeitpunkt`:** Max 60s in Zukunft erlaubt (Plan sagt „> 1 min" → als `> 60_000 ms` umgesetzt).
-6. **Event-Serializer:** `EintragAddedEvent` trägt jetzt kontext/ereignisZeitpunkt/absender/empfaenger im Payload. Deserializer ist backward-compatible (Legacy-Events ohne diese Felder bekommen `{ type: 'standard' }` als Default). Der ursprüngliche Serializer-Test erwartet nun das erweiterte Payload + es wurde ein FunkKontext-Test ergänzt.
-7. **Repository-SQL:** `prisma-etb.repository.ts:200` — Raw-INSERT wurde um `kontext_type`, `kontext_data`, `erfasst_am`, `ereignis_zeitpunkt` erweitert (inkl. `ON CONFLICT DO UPDATE`). `JSON.stringify(kontextData)` wird via `::jsonb` cast geschrieben; für `standard` wird `NULL` geschrieben (nicht `Prisma.JsonNull`-Sentinel).
-8. **Commit-Konvention:** Hooks erzwingen Erste-Zeile ≤ 72 Zeichen. Commit-Messages entsprechend kurz halten.
+---
 
-
-
-**Goal:** BOS-Digitalfunk im Einsatz dokumentierbar machen: zwei Tabs unter `/app/einsatz/$einsatzId/kommunikation/funk` — **Kanalplan** (Sprechgruppen/Kanäle pro Einsatz, Kräfte-Zuordnung, PDF-Export) und **Funkprotokoll** (chat-artiges, live-aktualisierendes Protokoll mit Filter).
+**Goal:** BOS-Digitalfunk im Einsatz dokumentierbar machen: zwei Tabs unter `/einsatz/:einsatzId/funkverkehr` — **Kanalplan** (Sprechgruppen/Kanäle pro Einsatz, Kräfte-Zuordnung, PDF-Export) und **Funkprotokoll** (chat-artiges, live-aktualisierendes Protokoll mit Filter).
 
 **Architektur:** ETB wird zum **Protokoll-Backbone**. Funksprüche sind ETB-Einträge mit typisiertem `EintragKontext` (Discriminated Union: `standard | funkspruch`). Funkkanäle werden als eigenes Aggregat modelliert. Live-Updates via neuem einsatz-gebundenem WebSocket-Gateway (Room `einsatz:{id}`). PDF-Export über eigenen Service (pdfkit).
 
