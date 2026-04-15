@@ -304,6 +304,8 @@ export const EVENT_HANDLER = {
   PERSON_VON_EINHEIT_ENTFERNT_ETB: Symbol('IEventHandler<PersonVonEinheitEntferntEvent>:EtbEintrag'),
   /** FahrzeugEinheitZugewiesen ETB-Eintrag Handler Token (Issue #411) */
   FAHRZEUG_EINHEIT_ZUGEWIESEN_ETB: Symbol('IEventHandler<FahrzeugEinheitZugewiesenEvent>:EtbEintrag'),
+  /** NotfallFunkspruchAlert Handler Token (Issue #407) */
+  NOTFALL_FUNKSPRUCH_ALERT: Symbol('IEventHandler<EintragAddedEvent>:NotfallFunkspruchAlert'),
 } as const;
 
 /**

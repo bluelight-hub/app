@@ -44,11 +44,13 @@ import {
   ZeichenEventAdapter,
   FunkkanalEventAdapter,
   EtbFunkspruchBroadcastAdapter,
+  NotfallFunkspruchAlertEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
 } from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
+import { FunkkanalApplicationModule } from '@application/funkkanal/funkkanal-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
 import { LagekarteEventLoggerHandler } from './handlers/lagekarte-event-logger.handler';
 import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handler';
@@ -113,6 +115,7 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     // Application Modules für Event Handler DI Tokens (einseitige Abhängigkeit!)
     EtbApplicationModule,
     LagekarteApplicationModule,
+    FunkkanalApplicationModule, // Issue #407: NotfallFunkspruchAlertHandler
     // Erinnerung Module für WebSocket Gateway (Story 1.5 AC4)
     ErinnerungModule,
     // Befehl Module für WebSocket Gateway (Story 1.3 AC5)
@@ -175,6 +178,7 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     ZeichenEventAdapter, // Issue #636: Taktische Zeichen WebSocket-Broadcast
     FunkkanalEventAdapter, // Issue #407: Funkkanal-Events WebSocket-Broadcast
     EtbFunkspruchBroadcastAdapter, // Issue #407: Funkspruch-ETB-Einträge WebSocket-Broadcast
+    NotfallFunkspruchAlertEventAdapter, // Issue #407: Notfall-Funkspruch Alert-Publisher
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag
