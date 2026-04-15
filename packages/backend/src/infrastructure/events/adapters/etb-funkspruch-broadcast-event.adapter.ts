@@ -18,7 +18,7 @@ import { EINSATZ_EVENT_PUBLISHER } from '@infrastructure/di-tokens';
 import { EVENT_NAMES } from '@domain/events/event-names';
 import type { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import type { EintragKorrigiertEvent } from '@domain/events/eintrag-korrigiert.event';
-import type { IEinsatzEventPublisher } from './funkkanal-event.adapter';
+import type { EinsatzEventName, IEinsatzEventPublisher } from '@infrastructure/websocket/events/einsatz-event.types';
 
 @Injectable()
 export class EtbFunkspruchBroadcastAdapter {
@@ -58,18 +58,13 @@ export class EtbFunkspruchBroadcastAdapter {
     });
   }
 
-  private async emit(etbId: string, channel: string, payload: Record<string, unknown>): Promise<void> {
+  private async emit(etbId: string, channel: EinsatzEventName, payload: Record<string, unknown>): Promise<void> {
     if (!this.publisher) {
       this.logger.log(`EtbFunkspruchBroadcastAdapter: kein Publisher verfügbar — Event "${channel}" (ETB ${etbId}) wird nur geloggt.`, 'EtbFunkspruchBroadcastAdapter');
       return;
     }
-    // HINWEIS: Der Publisher broadcastet pro Einsatz-Room; die Resolution
-    // etbId → einsatzId erfolgt im Einsatz-Event-Gateway (Task 18). Hier
-    // übergeben wir die etbId als Room-Schlüssel und verlassen uns darauf,
-    // dass der Publisher das richtig routet (alternativ mapped das Gateway
-    // etb:* → einsatz:* intern auf Basis seines Einsatz-Index).
     try {
-      await this.publisher.broadcast(etbId, channel, payload);
+      await this.publisher.broadcastByEtb(etbId, channel, payload);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       this.logger.error(`EtbFunkspruchBroadcastAdapter.broadcast(${channel}) fehlgeschlagen: ${msg}`, 'EtbFunkspruchBroadcastAdapter');

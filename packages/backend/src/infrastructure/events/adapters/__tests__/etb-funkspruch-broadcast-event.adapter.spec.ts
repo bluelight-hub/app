@@ -13,13 +13,16 @@ import { UserId } from '@domain/value-objects/user-id';
 const loggerMock = () => ({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() });
 
 describe('EtbFunkspruchBroadcastAdapter', () => {
-  let publisher: { broadcast: jest.Mock };
+  let publisher: { broadcast: jest.Mock; broadcastByEtb: jest.Mock };
   let etbId: EtbId;
   let eintragId: EintragId;
   let userId: UserId;
 
   beforeEach(() => {
-    publisher = { broadcast: jest.fn().mockResolvedValue(undefined) };
+    publisher = {
+      broadcast: jest.fn().mockResolvedValue(undefined),
+      broadcastByEtb: jest.fn().mockResolvedValue(undefined),
+    };
     etbId = EtbId.create().value as EtbId;
     eintragId = EintragId.create().value as EintragId;
     userId = UserId.create().value as UserId;
@@ -29,7 +32,7 @@ describe('EtbFunkspruchBroadcastAdapter', () => {
     const adapter = new EtbFunkspruchBroadcastAdapter(loggerMock(), publisher);
     const event = new EintragAddedEvent(etbId, eintragId, 1, 'text', userId, { type: 'standard' });
     await adapter.onEintragAdded(event);
-    expect(publisher.broadcast).not.toHaveBeenCalled();
+    expect(publisher.broadcastByEtb).not.toHaveBeenCalled();
   });
 
   it('broadcastet Funksprüche mit kanalId + funkPrioritaet', async () => {
@@ -46,7 +49,7 @@ describe('EtbFunkspruchBroadcastAdapter', () => {
       'Leitstelle',
     );
     await adapter.onEintragAdded(event);
-    expect(publisher.broadcast).toHaveBeenCalledWith(
+    expect(publisher.broadcastByEtb).toHaveBeenCalledWith(
       etbId.value,
       'etb:eintrag-erstellt',
       expect.objectContaining({
@@ -62,7 +65,11 @@ describe('EtbFunkspruchBroadcastAdapter', () => {
     const korrekturId = EintragId.create().value as EintragId;
     const event = new EintragKorrigiertEvent(etbId, korrekturId, eintragId, 2, 'Korrektur', userId);
     await adapter.onEintragKorrigiert(event);
-    expect(publisher.broadcast).toHaveBeenCalledWith(etbId.value, 'etb:eintrag-korrigiert', expect.objectContaining({ korrekturEintragId: korrekturId.value, originalEintragId: eintragId.value }));
+    expect(publisher.broadcastByEtb).toHaveBeenCalledWith(
+      etbId.value,
+      'etb:eintrag-korrigiert',
+      expect.objectContaining({ korrekturEintragId: korrekturId.value, originalEintragId: eintragId.value }),
+    );
   });
 
   it('loggt nur, wenn kein Publisher verfügbar', async () => {

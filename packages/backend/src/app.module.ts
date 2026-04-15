@@ -50,6 +50,7 @@ import { EinsatzBeitrittModule } from './modules/einsatz-beitritt/einsatz-beitri
 import { GefahrModule } from './modules/gefahr/gefahr.module';
 import { TaktischeZeichenModule } from './modules/taktische-zeichen/taktische-zeichen.module';
 import { FunkkanalInfrastructureModule } from '@infrastructure/funkkanal/funkkanal-infrastructure.module';
+import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -142,6 +143,7 @@ import { FunkkanalInfrastructureModule } from '@infrastructure/funkkanal/funkkan
     GefahrModule, // Gefahrenmatrix (Issue #414)
     TaktischeZeichenModule, // Taktische Zeichen (DV 102) #636
     FunkkanalInfrastructureModule, // Funkkanal Infrastructure (Issue #407, Wave 2)
+    WebsocketModule, // Einsatz-Events WebSocket-Gateway + Publisher (Issue #407, Task 18)
   ],
   controllers: [AppController],
   providers: [
