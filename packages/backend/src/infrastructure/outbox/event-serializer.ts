@@ -93,6 +93,15 @@ import type { ZeichenPlatziertEvent } from '@domain/taktische-zeichen/events/zei
 import type { ZeichenVerschobenEvent } from '@domain/taktische-zeichen/events/zeichen-verschoben.event';
 import type { ZeichenEntferntEvent } from '@domain/taktische-zeichen/events/zeichen-entfernt.event';
 
+// Funkkanal Events (Issue #407)
+import type { FunkkanalErstelltEvent } from '@domain/events/funkkanal-erstellt.event';
+import type { FunkkanalGeaendertEvent } from '@domain/events/funkkanal-geaendert.event';
+import type { FunkkanalArchiviertEvent } from '@domain/events/funkkanal-archiviert.event';
+import type { FunkkanalReihenfolgeGeaendertEvent } from '@domain/events/funkkanal-reihenfolge-geaendert.event';
+import type { FunkkanalZuordnungErstelltEvent } from '@domain/events/funkkanal-zuordnung-erstellt.event';
+import type { FunkkanalZuordnungEntferntEvent } from '@domain/events/funkkanal-zuordnung-entfernt.event';
+import type { NotfallAlertRequestedEvent } from '@domain/events/notfall-alert-requested.event';
+
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
  *
@@ -437,6 +446,22 @@ export class EventSerializer {
         return this.serializeZeichenErstellt(event as unknown as ZeichenErstelltEvent);
       case 'taktisches_zeichen.entfernt':
         return this.serializeZeichenEntfernt(event as unknown as ZeichenEntferntEvent);
+
+      // ===== FUNKKANAL EVENTS (Issue #407) =====
+      case 'funkkanal.erstellt':
+        return this.serializeFunkkanalErstellt(event as unknown as FunkkanalErstelltEvent);
+      case 'funkkanal.geaendert':
+        return this.serializeFunkkanalGeaendert(event as unknown as FunkkanalGeaendertEvent);
+      case 'funkkanal.archiviert':
+        return this.serializeFunkkanalArchiviert(event as unknown as FunkkanalArchiviertEvent);
+      case 'funkkanal.reihenfolge_geaendert':
+        return this.serializeFunkkanalReihenfolgeGeaendert(event as unknown as FunkkanalReihenfolgeGeaendertEvent);
+      case 'funkkanal.zuordnung_erstellt':
+        return this.serializeFunkkanalZuordnungErstellt(event as unknown as FunkkanalZuordnungErstelltEvent);
+      case 'funkkanal.zuordnung_entfernt':
+        return this.serializeFunkkanalZuordnungEntfernt(event as unknown as FunkkanalZuordnungEntferntEvent);
+      case 'funk.notfall_alert_requested':
+        return this.serializeNotfallAlertRequested(event as unknown as NotfallAlertRequestedEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1478,6 +1503,73 @@ export class EventSerializer {
     return {
       zeichenId: event.zeichenId,
       einsatzId: event.einsatzId,
+    };
+  }
+
+  // ===== FUNKKANAL SERIALIZERS (Issue #407) =====
+
+  private serializeFunkkanalErstellt(event: FunkkanalErstelltEvent): Record<string, unknown> {
+    return {
+      funkkanalId: event.funkkanalId.value,
+      einsatzId: event.einsatzId.value,
+      data: {
+        name: event.data.name,
+        details: event.data.details,
+        status: event.data.status,
+        sortIndex: event.data.sortIndex,
+        zweck: event.data.zweck ?? null,
+      },
+    };
+  }
+
+  private serializeFunkkanalGeaendert(event: FunkkanalGeaendertEvent): Record<string, unknown> {
+    return {
+      funkkanalId: event.funkkanalId.value,
+      einsatzId: event.einsatzId.value,
+      changedFields: event.changedFields,
+    };
+  }
+
+  private serializeFunkkanalArchiviert(event: FunkkanalArchiviertEvent): Record<string, unknown> {
+    return {
+      funkkanalId: event.funkkanalId.value,
+      einsatzId: event.einsatzId.value,
+    };
+  }
+
+  private serializeFunkkanalReihenfolgeGeaendert(event: FunkkanalReihenfolgeGeaendertEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId.value,
+      ordering: event.ordering.map((e) => ({ kanalId: e.kanalId, sortIndex: e.sortIndex })),
+    };
+  }
+
+  private serializeFunkkanalZuordnungErstellt(event: FunkkanalZuordnungErstelltEvent): Record<string, unknown> {
+    return {
+      funkkanalId: event.funkkanalId.value,
+      einsatzId: event.einsatzId.value,
+      zuordnungId: event.zuordnungId.value,
+      kraftRef: event.kraftRef,
+      rufnameSnapshot: event.rufnameSnapshot,
+      rolle: event.rolle,
+    };
+  }
+
+  private serializeFunkkanalZuordnungEntfernt(event: FunkkanalZuordnungEntferntEvent): Record<string, unknown> {
+    return {
+      funkkanalId: event.funkkanalId.value,
+      einsatzId: event.einsatzId.value,
+      zuordnungId: event.zuordnungId.value,
+    };
+  }
+
+  private serializeNotfallAlertRequested(event: NotfallAlertRequestedEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId.value,
+      funkkanalId: event.funkkanalId.value,
+      funkspruchEintragId: event.funkspruchEintragId.value,
+      text: event.text,
+      absender: event.absender ?? null,
     };
   }
 }
