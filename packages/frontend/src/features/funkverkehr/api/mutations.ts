@@ -101,7 +101,7 @@ export function useReorderFunkkanaele(einsatzId: string) {
         queryKey: FUNKVERKEHR_QUERY_KEYS.kanalplan(einsatzId),
       });
 
-      const indexByKanalId = new Map(dto.ordering.map((o) => [o.kanalId, o.sortIndex]));
+      const indexByKanalId = new Map(dto.ordering.map((o) => [o.id, o.sortIndex]));
 
       for (const [queryKey, snapshot] of prev) {
         if (!snapshot) continue;

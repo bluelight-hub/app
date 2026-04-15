@@ -147,8 +147,8 @@ describe('useReorderFunkkanaele', () => {
 
     const mutationPromise = result.current.mutateAsync({
       ordering: [
-        { kanalId: 'k1', sortIndex: 1 },
-        { kanalId: 'k2', sortIndex: 0 },
+        { id: 'k1', sortIndex: 1 },
+        { id: 'k2', sortIndex: 0 },
       ],
     });
 

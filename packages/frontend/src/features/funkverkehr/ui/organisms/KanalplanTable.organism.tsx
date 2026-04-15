@@ -47,7 +47,7 @@ export function KanalplanTable({ einsatzId, kanaele, onEdit, onArchive, onToggle
       const reordered = [...ids];
       reordered.splice(oldIndex, 1);
       reordered.splice(newIndex, 0, active.id as string);
-      const ordering = reordered.map((kanalId, index) => ({ kanalId, sortIndex: index }));
+      const ordering = reordered.map((id, index) => ({ id, sortIndex: index }));
       reorderMutation.mutate({ ordering });
     },
     [ids, reorderMutation],
