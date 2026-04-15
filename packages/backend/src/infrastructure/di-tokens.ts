@@ -306,6 +306,21 @@ export const EVENT_HANDLER = {
   FAHRZEUG_EINHEIT_ZUGEWIESEN_ETB: Symbol('IEventHandler<FahrzeugEinheitZugewiesenEvent>:EtbEintrag'),
   /** NotfallFunkspruchAlert Handler Token (Issue #407) */
   NOTFALL_FUNKSPRUCH_ALERT: Symbol('IEventHandler<EintragAddedEvent>:NotfallFunkspruchAlert'),
+
+  /** FmsStatus → Alarmierung Auto-Population Handler Token (Issue #408) */
+  FMS_STATUS_ZU_ALARMIERUNG: Symbol('IEventHandler<FmsStatusGeaendertEvent>:Alarmierung'),
+
+  /** Alarmierung-Erstellt → ETB-Eintrag Handler Token (Issue #408) */
+  ALARMIERUNG_ERSTELLT_ZU_ETB: Symbol('IEventHandler<AlarmierungErstelltEvent>:EtbEintrag'),
+
+  /** Alarmierung-Empfaenger-Hinzugefuegt → ETB-Eintrag Handler Token (Issue #408) */
+  ALARMIERUNG_EMPFAENGER_HINZUGEFUEGT_ZU_ETB: Symbol('IEventHandler<AlarmierungEmpfaengerHinzugefuegtEvent>:EtbEintrag'),
+
+  /** Alarmierung-Zeitpunkt-Korrigiert → ETB-Eintrag Handler Token (Issue #408) */
+  ALARMIERUNG_ZEITPUNKT_KORRIGIERT_ZU_ETB: Symbol('IEventHandler<AlarmierungZeitpunktKorrigiertEvent>:EtbEintrag'),
+
+  /** Alarmierung-Abgeschlossen → ETB-Eintrag Handler Token (Issue #408) */
+  ALARMIERUNG_ABGESCHLOSSEN_ZU_ETB: Symbol('IEventHandler<AlarmierungAbgeschlossenEvent>:EtbEintrag'),
 } as const;
 
 /**
@@ -422,6 +437,18 @@ export const FUNKKANAL_TOKENS = {
   KANALPLAN_PDF_SERVICE: Symbol('KanalplanPdfService'),
   EINSATZ_EVENT_PUBLISHER: Symbol('IEinsatzEventPublisher'),
 } as const;
+
+/**
+ * Alarmierung Tokens (Issue #408).
+ *
+ * REPOSITORY — IAlarmierungRepository Port
+ */
+export const ALARMIERUNG_TOKENS = {
+  REPOSITORY: Symbol('IAlarmierungRepository'),
+} as const;
+
+/** Flache Re-Exports analog zum bestehenden Muster (z.B. ETB_REPOSITORY). */
+export const ALARMIERUNG_REPOSITORY = ALARMIERUNG_TOKENS.REPOSITORY;
 
 /** Flache Re-Exports analog zum bestehenden Muster (z.B. ETB_REPOSITORY). */
 export const FUNKKANAL_REPOSITORY = FUNKKANAL_TOKENS.REPOSITORY;
