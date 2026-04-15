@@ -1,37 +1,41 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 
 /**
  * Polymorphe Empfänger-Referenz am API-Rand.
  *
  * Genau eine der drei IDs darf gesetzt sein — Discriminator ist `kind`.
- * Die XOR-Validierung passiert auf höherer Ebene (Aggregat / Validator
- * im konkreten Command-DTO).
+ *
+ * **Validierung:** Die Sub-DTO-Klassen tragen bewusst KEINE
+ * `class-validator`-Decorators. Grund: `class-transformer` kann eine
+ * diskriminierte Union ohne `@Type({ discriminator: …, subTypes: … })`
+ * nicht in den richtigen Subtyp materialisieren — Sub-Decorators wären
+ * also wirkungslos und vermitteln eine falsche Sicherheit. Stattdessen
+ * validieren Command-/Aggregat-Layer (`ErstelleAlarmierungCommand`,
+ * `validateEmpfaengerRef`, `AlarmierungAggregate.fuegeEmpfaengerHinzu`)
+ * Pflichtfelder und XOR-Invariante autoritativ. Die DTO-Klassen
+ * existieren ausschließlich, damit Swagger / OpenAPI-Generator
+ * `oneOf` + `discriminator` korrekt aufbauen können.
  */
 export const ALARMIERUNG_EMPFAENGER_KIND_VALUES = ['fahrzeug', 'person', 'einheit'] as const;
 export type AlarmierungEmpfaengerKindValue = (typeof ALARMIERUNG_EMPFAENGER_KIND_VALUES)[number];
 
 /**
  * Diskriminierte Union-Variante: Fahrzeug-Empfänger.
+ *
+ * Siehe Hinweis am Header-Kommentar dieses Moduls — keine
+ * `class-validator`-Decorators, Validierung erfolgt in Command/Aggregat.
  */
 export class AlarmierungEmpfaengerFahrzeugDto {
   @ApiProperty({ enum: ['fahrzeug'], example: 'fahrzeug' })
-  @IsIn(['fahrzeug'])
   kind!: 'fahrzeug';
 
   @ApiProperty({ description: 'ID eines Einsatz-Fahrzeugs (CUID2)', example: 'clx1234567890' })
-  @IsString()
-  @MaxLength(64)
   fahrzeugId!: string;
 
   @ApiPropertyOptional({ description: 'Optionaler Name-Snapshot. Wenn leer, ermittelt der Handler den Funkrufnamen.', nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
   nameSnapshot?: string;
 
   @ApiPropertyOptional({ description: 'Optionaler eigener Alarmiert-Zeitpunkt (Default: alarmierungszeit)', type: 'string', format: 'date-time', nullable: true })
-  @IsOptional()
   alarmiertAm?: Date | string;
 }
 
@@ -40,22 +44,15 @@ export class AlarmierungEmpfaengerFahrzeugDto {
  */
 export class AlarmierungEmpfaengerPersonDto {
   @ApiProperty({ enum: ['person'], example: 'person' })
-  @IsIn(['person'])
   kind!: 'person';
 
   @ApiProperty({ description: 'ID einer Einsatz-Person (CUID2)', example: 'clx1234567890' })
-  @IsString()
-  @MaxLength(64)
   personId!: string;
 
   @ApiPropertyOptional({ description: 'Optionaler Name-Snapshot. Wenn leer, ermittelt der Handler den Namen.', nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
   nameSnapshot?: string;
 
   @ApiPropertyOptional({ description: 'Optionaler eigener Alarmiert-Zeitpunkt', type: 'string', format: 'date-time', nullable: true })
-  @IsOptional()
   alarmiertAm?: Date | string;
 }
 
@@ -64,22 +61,15 @@ export class AlarmierungEmpfaengerPersonDto {
  */
 export class AlarmierungEmpfaengerEinheitDto {
   @ApiProperty({ enum: ['einheit'], example: 'einheit' })
-  @IsIn(['einheit'])
   kind!: 'einheit';
 
   @ApiProperty({ description: 'ID einer Einsatz-Einheit', example: 'clx1234567890' })
-  @IsString()
-  @MaxLength(64)
   einheitId!: string;
 
   @ApiPropertyOptional({ description: 'Optionaler Name-Snapshot. Wenn leer, ermittelt der Handler den Namen.', nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
   nameSnapshot?: string;
 
   @ApiPropertyOptional({ description: 'Optionaler eigener Alarmiert-Zeitpunkt', type: 'string', format: 'date-time', nullable: true })
-  @IsOptional()
   alarmiertAm?: Date | string;
 }
 

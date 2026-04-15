@@ -1,43 +1,55 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
-import { ALARMIERUNG_EMPFAENGER_KIND_VALUES, type AlarmierungEmpfaengerKindValue } from './alarmierung-empfaenger.dto';
+import { ApiExtraModels, getSchemaPath } from '@nestjs/swagger';
+import { AlarmierungEmpfaengerEinheitDto, AlarmierungEmpfaengerFahrzeugDto, AlarmierungEmpfaengerPersonDto } from './alarmierung-empfaenger.dto';
 
 /**
- * Request-DTO zum nachträglichen Hinzufügen eines einzelnen Empfängers.
+ * Request-Body zum nachträglichen Hinzufügen eines einzelnen Empfängers.
  *
- * Genau eine der ID-Felder (fahrzeugId / personId / einheitId) muss gesetzt sein —
- * konsistent zum `kind`-Diskriminator.
+ * Strukturell identisch zu einem einzelnen Element der `empfaenger`-Liste in
+ * {@link CreateAlarmierungDto} — wir verwenden dieselben Sub-DTO-Klassen
+ * ({@link AlarmierungEmpfaengerFahrzeugDto}, …Person…, …Einheit…), damit
+ * Diskriminator + OpenAPI-Schema konsistent zur Listen-Variante sind.
+ *
+ * **Validierung:** Die Sub-DTO-Klassen tragen keine `class-validator`-
+ * Decorators (siehe Header-Kommentar in `alarmierung-empfaenger.dto.ts`).
+ * Pflichtfelder + XOR + Diskriminator werden vom
+ * `FuegeEmpfaengerHinzuCommand` und vom Aggregat validiert.
+ *
+ * **Controller-Verwendung:**
+ * ```typescript
+ * @Post(':alarmierungId/empfaenger')
+ * @ApiBody({ schema: FUEGE_EMPFAENGER_HINZU_BODY_SCHEMA })
+ * @ApiAlarmierungEmpfaengerExtraModels()
+ * fuegeHinzu(@Body() body: FuegeEmpfaengerHinzuDto) { … }
+ * ```
  */
-export class FuegeEmpfaengerHinzuDto {
-  @ApiProperty({ enum: ALARMIERUNG_EMPFAENGER_KIND_VALUES, example: 'fahrzeug' })
-  @IsIn(ALARMIERUNG_EMPFAENGER_KIND_VALUES)
-  kind!: AlarmierungEmpfaengerKindValue;
+export type FuegeEmpfaengerHinzuDto = AlarmierungEmpfaengerFahrzeugDto | AlarmierungEmpfaengerPersonDto | AlarmierungEmpfaengerEinheitDto;
 
-  @ApiPropertyOptional({ description: 'ID eines Einsatz-Fahrzeugs (nur bei kind=fahrzeug)', nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(64)
-  fahrzeugId?: string;
+/**
+ * Swagger-Schema-Options für den FuegeEmpfaengerHinzu-Body. In Controllern
+ * via `@ApiBody({ schema: FUEGE_EMPFAENGER_HINZU_BODY_SCHEMA })` referenzierbar.
+ *
+ * Der Single-Empfänger-Body ist eine Discriminator-Union — exakt dieselbe
+ * Struktur wie die Listen-Elemente in {@link CreateAlarmierungDto}.
+ */
+export const FUEGE_EMPFAENGER_HINZU_BODY_SCHEMA = {
+  description: 'Polymorpher Empfänger (Discriminator: kind)',
+  oneOf: [{ $ref: getSchemaPath(AlarmierungEmpfaengerFahrzeugDto) }, { $ref: getSchemaPath(AlarmierungEmpfaengerPersonDto) }, { $ref: getSchemaPath(AlarmierungEmpfaengerEinheitDto) }],
+  discriminator: {
+    propertyName: 'kind',
+    mapping: {
+      fahrzeug: getSchemaPath(AlarmierungEmpfaengerFahrzeugDto),
+      person: getSchemaPath(AlarmierungEmpfaengerPersonDto),
+      einheit: getSchemaPath(AlarmierungEmpfaengerEinheitDto),
+    },
+  },
+};
 
-  @ApiPropertyOptional({ description: 'ID einer Einsatz-Person (nur bei kind=person)', nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(64)
-  personId?: string;
-
-  @ApiPropertyOptional({ description: 'ID einer Einsatz-Einheit (nur bei kind=einheit)', nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(64)
-  einheitId?: string;
-
-  @ApiPropertyOptional({ description: 'Optionaler Name-Snapshot. Wenn leer, ermittelt der Handler den Namen.', nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  nameSnapshot?: string;
-
-  @ApiPropertyOptional({ type: 'string', format: 'date-time', nullable: true, description: 'Optionaler eigener Alarmiert-Zeitpunkt' })
-  @IsOptional()
-  alarmiertAm?: Date | string;
-}
+/**
+ * Marker-Decorator für Controller, die den FuegeEmpfaengerHinzu-Body
+ * verwenden. Registriert die Sub-DTOs für die OpenAPI-Generierung.
+ *
+ * Hinweis: Wenn der Controller bereits {@link ApiAlarmierungEmpfaengerExtraModels}
+ * verwendet (z.B. weil derselbe Controller auch `CreateAlarmierungDto` annimmt),
+ * ist diese zusätzliche Registrierung redundant und kann entfallen.
+ */
+export const ApiFuegeEmpfaengerHinzuExtraModels = () => ApiExtraModels(AlarmierungEmpfaengerFahrzeugDto, AlarmierungEmpfaengerPersonDto, AlarmierungEmpfaengerEinheitDto);

@@ -7,7 +7,7 @@ import type { IEtbRepository } from '@domain/repositories/i-etb.repository';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { ALARMIERUNG_REPOSITORY, ETB_REPOSITORY } from '@infrastructure/di-tokens';
-import { ALARMIERUNG_TIMELINE_EVENT_TYPES, type AlarmierungTimelineEventType } from '../../dto/alarmierung-timeline-event.dto';
+import type { AlarmierungTimelineEventType } from '../../dto/alarmierung-timeline-event.dto';
 import type { GetAlarmierungTimelineQuery } from './get-alarmierung-timeline.query';
 
 /**
@@ -89,7 +89,9 @@ export class GetAlarmierungTimelineQueryHandler {
       }
     }
 
-    // ETB-Einträge mit Kategorie ALARMIERUNG ergänzen
+    // ETB-Einträge mit Kategorie ALARMIERUNG ergänzen.
+    // TODO(#408-wave2): ETB-Abfrage auf gefilterte Query (kategorie=ALARMIERUNG) umstellen,
+    // statt das komplette Aggregat zu laden — relevant sobald ETBs viele Einträge tragen.
     const etb = await this.etbRepository.findByEinsatzId(einsatzId);
     if (etb) {
       for (const eintrag of etb.eintraege) {
@@ -130,13 +132,6 @@ function buildEmpfaengerItems(alarmierungId: string, empfaenger: AlarmierungEmpf
   }
   if (empfaenger.wiederFreiAm) {
     items.push({ type: 'empfaenger_wieder_frei', occurredAt: empfaenger.wiederFreiAm, data: baseData });
-  }
-
-  // Defensive: Validate emitted types match the enum (purely runtime safety)
-  for (const item of items) {
-    if (!ALARMIERUNG_TIMELINE_EVENT_TYPES.includes(item.type)) {
-      throw new Error(`Invalid timeline event type produced: ${item.type}`);
-    }
   }
 
   return items;

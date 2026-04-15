@@ -1,50 +1,57 @@
-// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { KorrigiereZeitpunktHandler } from '../korrigiere-zeitpunkt.handler';
 import { KorrigiereZeitpunktCommand } from '../korrigiere-zeitpunkt.command';
 import { AlarmierungAggregate } from '@domain/aggregates/alarmierung/alarmierung.aggregate';
+import type { AlarmierungEmpfaenger, ZeitpunktFeld } from '@domain/aggregates/alarmierung/alarmierung-empfaenger.entity';
 import { AlarmierungZeitpunktKorrigiertEvent } from '@domain/events/alarmierung-zeitpunkt-korrigiert.event';
+import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
+import type { DomainEvent } from '@domain/common/domain-event';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ALARMIERUNG_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import {
+  asPrismaService,
+  createAlarmierungRepoMock,
+  createOutboxRepoMock,
+  createPrismaMock,
+  type AlarmierungRepoMock,
+  type OutboxRepoMock,
+  type PrismaServiceMock,
+} from '../../../__tests__/test-doubles';
 
-function makeAggregateWithEmpfaenger() {
+function makeAggregateWithEmpfaenger(): { aggregate: AlarmierungAggregate; empfaengerId: AlarmierungEmpfaengerId } {
   const aggregate = AlarmierungAggregate.create({
-    einsatzId: EinsatzId.create().value!,
+    einsatzId: EinsatzId.create().value as EinsatzId,
     bezeichnung: 'Brand',
     alarmierungszeit: new Date('2026-04-15T10:00:00Z'),
     createdBy: 'system',
-  }).value!;
+  }).value as AlarmierungAggregate;
   const addResult = aggregate.fuegeEmpfaengerHinzu({
     ref: { kind: 'fahrzeug', fahrzeugId: 'fz1' },
     nameSnapshot: 'Florian Mainz 12-1',
     createdBy: 'system',
   });
   aggregate.clearDomainEvents();
-  return { aggregate, empfaengerId: addResult.value!.id };
+  const empfaenger = addResult.value as AlarmierungEmpfaenger;
+  return { aggregate, empfaengerId: empfaenger.id };
 }
 
 describe('KorrigiereZeitpunktHandler', () => {
   let handler: KorrigiereZeitpunktHandler;
-  let mockRepo: any;
-  let mockOutbox: any;
-  let mockPrisma: any;
+  let mockRepo: AlarmierungRepoMock;
+  let mockOutbox: OutboxRepoMock;
+  let mockPrisma: PrismaServiceMock;
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    mockRepo = {
-      save: jest.fn().mockResolvedValue(undefined),
-      findById: jest.fn(),
-      findByEinsatzId: jest.fn().mockResolvedValue([]),
-      findAktiveByFahrzeugId: jest.fn().mockResolvedValue([]),
-    };
-    mockOutbox = { save: jest.fn().mockResolvedValue(undefined) };
-    mockPrisma = { $transaction: jest.fn().mockImplementation(async (cb: any) => cb({})) };
+    mockRepo = createAlarmierungRepoMock();
+    mockOutbox = createOutboxRepoMock();
+    mockPrisma = createPrismaMock();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         KorrigiereZeitpunktHandler,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: PrismaService, useValue: asPrismaService(mockPrisma) },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutbox },
         { provide: ALARMIERUNG_REPOSITORY, useValue: mockRepo },
       ],
@@ -63,12 +70,13 @@ describe('KorrigiereZeitpunktHandler', () => {
       feld: 'vorOrtAm',
       wert: new Date('2026-04-15T10:05:00Z'),
       updatedBy: 'user-1',
-    }).value!;
+    }).value as KorrigiereZeitpunktCommand;
 
     const result = await handler.execute(cmd);
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.empfaenger[0]!.vorOrtAm).toEqual(new Date('2026-04-15T10:05:00Z'));
-    const events = mockOutbox.save.mock.calls[0]?.[0] as unknown[];
+    const updated = result.value as AlarmierungAggregate;
+    expect(updated.empfaenger[0]?.vorOrtAm).toEqual(new Date('2026-04-15T10:05:00Z'));
+    const events = mockOutbox.save.mock.calls[0]?.[0] as DomainEvent[];
     expect(events.some((e) => e instanceof AlarmierungZeitpunktKorrigiertEvent)).toBe(true);
   });
 
@@ -82,7 +90,7 @@ describe('KorrigiereZeitpunktHandler', () => {
       feld: 'vorOrtAm',
       wert: new Date('2026-04-15T09:00:00Z'),
       updatedBy: 'user-1',
-    }).value!;
+    }).value as KorrigiereZeitpunktCommand;
 
     const result = await handler.execute(cmd);
     expect(result.isFailure).toBe(true);
@@ -94,7 +102,7 @@ describe('KorrigiereZeitpunktHandler', () => {
     const r = KorrigiereZeitpunktCommand.create({
       alarmierungId: 'a'.repeat(24),
       empfaengerId: 'b'.repeat(24),
-      feld: 'irgendwas' as any,
+      feld: 'irgendwas' as ZeitpunktFeld,
       wert: new Date(),
       updatedBy: 'u',
     });

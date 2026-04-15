@@ -1,23 +1,26 @@
-// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { GetAlarmierungTimelineQueryHandler } from '../get-alarmierung-timeline.handler';
 import { GetAlarmierungTimelineQuery } from '../get-alarmierung-timeline.query';
 import { AlarmierungAggregate } from '@domain/aggregates/alarmierung/alarmierung.aggregate';
+import type { AlarmierungEmpfaenger } from '@domain/aggregates/alarmierung/alarmierung-empfaenger.entity';
+import type { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
+import type { IEtbRepository } from '@domain/repositories/i-etb.repository';
 import { ALARMIERUNG_REPOSITORY, ETB_REPOSITORY } from '@infrastructure/di-tokens';
+import { createAlarmierungRepoMock, type AlarmierungRepoMock } from '../../../__tests__/test-doubles';
+
+/** Minimal-Mock für `IEtbRepository` — wir benutzen nur findByEinsatzId. */
+type EtbRepoMock = Pick<jest.Mocked<IEtbRepository>, 'findByEinsatzId'>;
 
 describe('GetAlarmierungTimelineQueryHandler', () => {
   let handler: GetAlarmierungTimelineQueryHandler;
-  let mockAlarmierungRepo: any;
-  let mockEtbRepo: any;
+  let mockAlarmierungRepo: AlarmierungRepoMock;
+  let mockEtbRepo: EtbRepoMock;
   let einsatzId: EinsatzId;
 
   beforeEach(async () => {
-    einsatzId = EinsatzId.create().value!;
-    mockAlarmierungRepo = {
-      findByEinsatzId: jest.fn().mockResolvedValue([]),
-      findById: jest.fn(),
-    };
+    einsatzId = EinsatzId.create().value as EinsatzId;
+    mockAlarmierungRepo = createAlarmierungRepoMock();
     mockEtbRepo = { findByEinsatzId: jest.fn().mockResolvedValue(null) };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -32,28 +35,29 @@ describe('GetAlarmierungTimelineQueryHandler', () => {
       bezeichnung: 'Brand',
       alarmierungszeit: new Date('2026-04-15T10:00:00Z'),
       createdBy: 'system',
-    }).value!;
+    }).value as AlarmierungAggregate;
     const addResult = aggregate.fuegeEmpfaengerHinzu({
       ref: { kind: 'fahrzeug', fahrzeugId: 'fz1' },
       nameSnapshot: 'Florian Mainz 12-1',
       createdBy: 'system',
     });
-    aggregate.korrigiereZeitpunkt(addResult.value!.id, 'ausgeruecktAm', new Date('2026-04-15T10:02:00Z'), 'user');
-    aggregate.korrigiereZeitpunkt(addResult.value!.id, 'vorOrtAm', new Date('2026-04-15T10:05:00Z'), 'user');
+    const empfaenger = addResult.value as AlarmierungEmpfaenger;
+    aggregate.korrigiereZeitpunkt(empfaenger.id, 'ausgeruecktAm', new Date('2026-04-15T10:02:00Z'), 'user');
+    aggregate.korrigiereZeitpunkt(empfaenger.id, 'vorOrtAm', new Date('2026-04-15T10:05:00Z'), 'user');
 
     mockAlarmierungRepo.findByEinsatzId.mockResolvedValue([aggregate]);
 
-    const q = GetAlarmierungTimelineQuery.create({ einsatzId: einsatzId.value }).value!;
+    const q = GetAlarmierungTimelineQuery.create({ einsatzId: einsatzId.value }).value as GetAlarmierungTimelineQuery;
     const result = await handler.execute(q);
 
     expect(result.isSuccess).toBe(true);
-    const items = result.value!;
+    const items = result.value ?? [];
     // 1 alarmierung_ausgeloest + 1 empfaenger_alarmiert + 1 empfaenger_ausgerueckt + 1 empfaenger_vor_ort
     expect(items).toHaveLength(4);
     // Chronologisch ASC
     const times = items.map((i) => i.occurredAt.getTime());
     expect(times).toEqual([...times].sort((a, b) => a - b));
-    expect(items[0]!.type).toBe('alarmierung_ausgeloest');
+    expect(items[0]?.type).toBe('alarmierung_ausgeloest');
   });
 
   it('integriert ETB-Einträge mit Kategorie ALARMIERUNG', async () => {
@@ -62,7 +66,7 @@ describe('GetAlarmierungTimelineQueryHandler', () => {
       bezeichnung: 'Brand',
       alarmierungszeit: new Date('2026-04-15T10:00:00Z'),
       createdBy: 'system',
-    }).value!;
+    }).value as AlarmierungAggregate;
     mockAlarmierungRepo.findByEinsatzId.mockResolvedValue([aggregate]);
 
     const fakeEtb = {
@@ -92,32 +96,32 @@ describe('GetAlarmierungTimelineQueryHandler', () => {
           absender: 'system',
         },
       ],
-    };
+    } as unknown as EinsatztagebuchAggregate;
     mockEtbRepo.findByEinsatzId.mockResolvedValue(fakeEtb);
 
-    const q = GetAlarmierungTimelineQuery.create({ einsatzId: einsatzId.value }).value!;
+    const q = GetAlarmierungTimelineQuery.create({ einsatzId: einsatzId.value }).value as GetAlarmierungTimelineQuery;
     const result = await handler.execute(q);
 
     expect(result.isSuccess).toBe(true);
-    const etbItems = result.value!.filter((i) => i.type === 'etb_eintrag');
+    const etbItems = (result.value ?? []).filter((i) => i.type === 'etb_eintrag');
     expect(etbItems).toHaveLength(1);
-    expect(etbItems[0]!.data.eintragId).toBe('eintrag-1');
-    expect(etbItems[0]!.data.text).toBe('Alarmierung ausgelöst: Brand');
+    expect(etbItems[0]?.data.eintragId).toBe('eintrag-1');
+    expect(etbItems[0]?.data.text).toBe('Alarmierung ausgelöst: Brand');
   });
 
   it('schlägt fehl, wenn alarmierungId-Filter zu fremdem Einsatz gehört', async () => {
-    const fremderEinsatz = EinsatzId.create().value!;
+    const fremderEinsatz = EinsatzId.create().value as EinsatzId;
     const aggregate = AlarmierungAggregate.create({
       einsatzId: fremderEinsatz,
       bezeichnung: 'Fremd',
       createdBy: 'system',
-    }).value!;
+    }).value as AlarmierungAggregate;
     mockAlarmierungRepo.findById.mockResolvedValue(aggregate);
 
     const q = GetAlarmierungTimelineQuery.create({
       einsatzId: einsatzId.value,
       alarmierungId: aggregate.id.value,
-    }).value!;
+    }).value as GetAlarmierungTimelineQuery;
     const result = await handler.execute(q);
 
     expect(result.isFailure).toBe(true);

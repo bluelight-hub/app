@@ -1,19 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import {
-  ALARMIERUNG_EMPFAENGER_INPUT_SCHEMA,
-  AlarmierungEmpfaengerEinheitDto,
-  AlarmierungEmpfaengerFahrzeugDto,
-  AlarmierungEmpfaengerPersonDto,
-  type AlarmierungEmpfaengerInputDto,
-} from './alarmierung-empfaenger.dto';
+import { IsArray, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { ALARMIERUNG_EMPFAENGER_INPUT_SCHEMA, type AlarmierungEmpfaengerInputDto } from './alarmierung-empfaenger.dto';
 
 /**
  * Request-DTO zum Auslösen einer neuen Alarmierung.
  *
  * Empfänger sind eine diskriminierte Union — siehe
  * {@link ALARMIERUNG_EMPFAENGER_INPUT_SCHEMA} für das OpenAPI-Schema.
+ *
+ * **Empfänger-Validierung:** Die Sub-DTO-Klassen tragen keine
+ * `class-validator`-Decorators (siehe Header-Kommentar in
+ * `alarmierung-empfaenger.dto.ts`); Pflichtfelder + Diskriminator + XOR
+ * werden vom `ErstelleAlarmierungCommand` und vom Aggregat selbst
+ * validiert. Hier auf der Liste prüfen wir lediglich, dass das Feld ein
+ * Array ist — Inhaltsstruktur und Mindestanzahl prüft das Command.
  */
 export class CreateAlarmierungDto {
   @ApiProperty({ example: 'Brandschutzgruppe Süd', description: 'Bezeichnung der Alarmierung', minLength: 1, maxLength: 200 })
@@ -37,9 +37,5 @@ export class CreateAlarmierungDto {
     ...ALARMIERUNG_EMPFAENGER_INPUT_SCHEMA,
   })
   @IsArray()
-  @ValidateNested({ each: true })
-  // class-transformer cannot infer subtype from a discriminated union without a hint;
-  // we accept any of the three variants, the handler enforces shape via the domain model.
-  @Type(() => Object as unknown as new () => AlarmierungEmpfaengerFahrzeugDto | AlarmierungEmpfaengerPersonDto | AlarmierungEmpfaengerEinheitDto)
   empfaenger!: AlarmierungEmpfaengerInputDto[];
 }
