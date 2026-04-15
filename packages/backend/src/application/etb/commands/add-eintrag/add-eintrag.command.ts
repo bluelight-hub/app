@@ -1,5 +1,15 @@
 import { Result } from '@domain/common/result';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import { FunkPrioritaet } from '@domain/value-objects/funk-prioritaet';
+import type { FunkPrioritaetValue } from '@domain/value-objects/funk-prioritaet';
+
+/**
+ * Eingabeform eines EintragKontext am Command-API-Rand.
+ *
+ * Das Value Object wird erst im Handler erzeugt, damit das Command
+ * serialisierbar (POJO) bleibt.
+ */
+export type AddEintragCommandKontext = { type: 'standard' } | { type: 'funkspruch'; kanalId: string; funkPrioritaet: FunkPrioritaetValue };
 
 /**
  * Command zum Hinzufügen eines neuen Eintrags zum Einsatztagebuch.
@@ -49,6 +59,8 @@ export class AddEintragCommand {
     public readonly empfaenger?: string,
     public readonly metadata: Record<string, unknown> = {},
     public readonly occurredAt?: Date,
+    public readonly ereignisZeitpunkt?: Date,
+    public readonly kontext?: AddEintragCommandKontext,
   ) {}
 
   /**
@@ -78,6 +90,8 @@ export class AddEintragCommand {
     empfaenger?: string,
     metadata: Record<string, unknown> = {},
     occurredAt?: Date,
+    ereignisZeitpunkt?: Date,
+    kontext?: AddEintragCommandKontext,
   ): Result<AddEintragCommand> {
     // Validation: etbId required
     if (!etbId || etbId.trim().length === 0) {
@@ -109,6 +123,17 @@ export class AddEintragCommand {
       return Result.fail('empfaenger cannot exceed 100 characters');
     }
 
-    return Result.ok(new AddEintragCommand(etbId, text, userId, kategorie ?? 'LAGE', einsatzId, absender, empfaenger, metadata, occurredAt));
+    // Validation: Kontext (Issue #407)
+    if (kontext?.type === 'funkspruch') {
+      if (!kontext.kanalId || kontext.kanalId.trim().length === 0) {
+        return Result.fail('kontext.kanalId ist erforderlich bei type=funkspruch');
+      }
+      const prioResult = FunkPrioritaet.create(kontext.funkPrioritaet);
+      if (prioResult.isFailure) {
+        return Result.fail(prioResult.error ?? 'Ungültige FunkPrioritaet');
+      }
+    }
+
+    return Result.ok(new AddEintragCommand(etbId, text, userId, kategorie ?? 'LAGE', einsatzId, absender, empfaenger, metadata, occurredAt, ereignisZeitpunkt, kontext));
   }
 }

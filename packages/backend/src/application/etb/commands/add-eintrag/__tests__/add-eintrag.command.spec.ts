@@ -488,5 +488,54 @@ describe('AddEintragCommand', () => {
         expect(result.error).toContain('empfaenger');
       });
     });
+
+    describe('Kontext und ereignisZeitpunkt (Issue #407)', () => {
+      it('akzeptiert standard-Kontext', () => {
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, 'KOMMUNIKATION', undefined, undefined, undefined, undefined, undefined, undefined, { type: 'standard' });
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.kontext).toEqual({ type: 'standard' });
+      });
+
+      it('akzeptiert funkspruch-Kontext mit allen Pflichtfeldern', () => {
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, 'KOMMUNIKATION', undefined, undefined, undefined, undefined, undefined, undefined, {
+          type: 'funkspruch',
+          kanalId: 'k1',
+          funkPrioritaet: 'notfall',
+        });
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.kontext).toEqual({
+          type: 'funkspruch',
+          kanalId: 'k1',
+          funkPrioritaet: 'notfall',
+        });
+      });
+
+      it('lehnt funkspruch ohne kanalId ab', () => {
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, 'KOMMUNIKATION', undefined, undefined, undefined, undefined, undefined, undefined, {
+          type: 'funkspruch',
+          kanalId: '',
+          funkPrioritaet: 'routine',
+        });
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('kanalId');
+      });
+
+      it('lehnt funkspruch mit ungültiger Priorität ab', () => {
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, 'KOMMUNIKATION', undefined, undefined, undefined, undefined, undefined, undefined, {
+          type: 'funkspruch',
+          kanalId: 'k1',
+          funkPrioritaet: 'dringend' as never,
+        });
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('FunkPrioritaet');
+      });
+
+      it('akzeptiert ereignisZeitpunkt separat vom occurredAt', () => {
+        const ereignis = new Date('2026-04-14T08:00:00Z');
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined, undefined, undefined, undefined, ereignis);
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.ereignisZeitpunkt).toEqual(ereignis);
+      });
+    });
   });
 });
