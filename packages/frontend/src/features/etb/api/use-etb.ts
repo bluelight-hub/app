@@ -60,10 +60,11 @@ export const useEtb = ({ einsatzId, includeDeleted = false, enabled = true }: Us
       }
 
       try {
-        return await api.etb().etbCqrsControllerGetEtbByEinsatzIdVAlpha({
+        const response = await api.etb().etbCqrsControllerGetEtbByEinsatzIdVAlpha({
           einsatzId,
           includeDeleted,
         });
+        return response.data;
       } catch (error) {
         // 404 ist kein Fehler - ETB existiert einfach noch nicht
         // Kein Toast, kein Error - return undefined

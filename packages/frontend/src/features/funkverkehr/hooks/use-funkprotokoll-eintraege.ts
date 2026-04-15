@@ -99,11 +99,12 @@ export function useFunkprotokollEintraege({ einsatzId, enabled = true }: UseFunk
     queryKey: FUNKVERKEHR_QUERY_KEYS.funkprotokoll(einsatzId, { kanalId: singleKanalId, filter }),
     queryFn: async () => {
       try {
-        return await api.etb().etbCqrsControllerGetEtbByEinsatzIdVAlpha({
+        const response = await api.etb().etbCqrsControllerGetEtbByEinsatzIdVAlpha({
           einsatzId,
           kontextType: EtbCqrsControllerGetEtbByEinsatzIdVAlphaKontextTypeEnum.Funkspruch,
           kanalId: singleKanalId,
         });
+        return response.data;
       } catch (error) {
         const statusCode = (error as { status?: number })?.status ?? (error as { response?: { status?: number } })?.response?.status;
         if (statusCode === 404) return undefined;
