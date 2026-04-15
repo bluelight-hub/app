@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-## 📌 Handoff-Status (Stand 2026-04-15)
+## 📌 Handoff-Status (Stand 2026-04-15, Wave 1 abgeschlossen)
 
 **Branch:** `407/wave-1-foundation-v2` (Basis: `407/funkverkehr-implementation`, nur Spec-Commits). Frischer Start — die alten Wave-1-Branches (`407/wave-1-foundation`) werden NICHT verwendet.
 
-**Scope dieses Handoffs:** Wave 1 = Tasks 0–10 + Tasks 38–39 (Architektur-Dokumentation). Wave 2–4 (ab Task 11) bleiben für Folge-Sessions.
+**Scope dieses Handoffs:** Wave 1 = Tasks 0–10 + Tasks 38–39 (Architektur-Dokumentation). **Alle 12 Tasks sind committed.** Wave 2–4 (ab Task 11) bleiben für Folge-Sessions.
 
 ### ✅ Fertig (committed auf `407/wave-1-foundation-v2`)
 
@@ -21,13 +21,42 @@
 | Task 6 — ETB-Prisma-Mapper + Repository | `4b734ca15` | Raw-SQL-INSERT in `prisma-etb.repository.ts` um 4 neue Spalten erweitert, Roundtrip-Tests grün |
 | Task 7 — AddEintragCommand + Handler | `f63847918` | `AddEintragCommandKontext` POJO am API-Rand, Handler konvertiert zu Domain-VO. 60/60 Tests |
 | Task 8 — KanalDetails VO | `7309da047` | 19 Tests grün, liegt in `domain/aggregates/funkkanal/kanal-details.vo.ts` |
+| Task 9 — Funkkanal-Entity + Aggregat + Zuordnung + IDs | `ae21aa232` | 22 Aggregat-Tests grün, `FunkkanalId`/`FunkkanalZuordnungId` in `domain/value-objects/`, Aggregat mit `reconstitute()` für Repository-Hook |
+| Task 10 — 7 Funkkanal Domain-Events + EVENT_NAMES.FUNKKANAL/FUNK | `ed4017716` | 10 Event-Tests grün, `FunkkanalReihenfolgeGeaendert`/`NotfallAlertRequested` haben `aggregateId = einsatzId` (kanal-übergreifend) |
+| Task 38 — 4 ADRs (005–008) | `ac846a34d` | Nummerierung folgt bestehendem Schema `adr-NNN-*.md`, nicht `NNNN-*.md` |
+| Task 39 — Architektur-Doku erweitert | `928c1913c` | Kein `docs/architecture/` im Repo — stattdessen `docs/deep-dive-backend.md` erweitert (Aggregat-Tabelle, Funkkanal-Sektion, Funkspruch-Notfall-Flow) |
 
-### 🟡 Offen für diesen Wave 1
+### 🔑 Wichtige Abweichungen vom Plan (Wave 1 Gesamt)
 
-- **Task 9** — Funkkanal-Entity + Aggregat + FunkkanalZuordnung-Entity (nächster Schritt!)
-- **Task 10** — 7 Funkkanal Domain-Events
-- **Task 38** — 4 ADRs (ETB-Kontext, WebSocket-Bus, Funkkanal-Aggregat, Polymorphe Zuordnung)
-- **Task 39** — arc42-Architektur-Update
+1. **Ordner-Struktur:** Plan suggeriert `domain/aggregates/etb/eintrag-kontext.ts`. Tatsächlich: flache Struktur unter `domain/value-objects/` — `EintragKontext`, `FunkPrioritaet`, `FunkkanalId`, `FunkkanalZuordnungId` liegen dort. `KanalDetails` + Funkkanal-Aggregat liegen in `domain/aggregates/funkkanal/`.
+2. **Leere Migration aufgeräumt:** Der lokale Ordner `prisma/migrations/20260413090000_reorder_zeichen_katalog/` war leer (nicht in git). Gelöscht, damit Prisma neue Migrationen erzeugen konnte.
+3. **EtbEintrag-Konstruktor:** Neue Felder additiv an Pos 14/15/16 angehängt (statt Options-Refactor), um bestehende Call-Sites nicht zu brechen.
+4. **Aggregat-`addEintrag`:** `options?: AddEintragOptions` als 8. Parameter — positional bleibt kompatibel.
+5. **Validierung `ereignisZeitpunkt`:** Max 60s in Zukunft erlaubt (Plan sagt „> 1 min" → als `> 60_000 ms` umgesetzt).
+6. **Event-Serializer:** `EintragAddedEvent` trägt jetzt kontext/ereignisZeitpunkt/absender/empfaenger im Payload. Deserializer ist backward-compatible (Legacy-Events bekommen `{ type: 'standard' }` als Default).
+7. **Repository-SQL (Task 6):** Raw-INSERT um `kontext_type`, `kontext_data`, `erfasst_am`, `ereignis_zeitpunkt` erweitert (inkl. `ON CONFLICT DO UPDATE`). `JSON.stringify(kontextData)` wird via `::jsonb` cast geschrieben; für `standard` wird `NULL` geschrieben.
+8. **Commit-Konvention:** Hooks erzwingen Erste-Zeile ≤ 72 Zeichen. Commit-Messages entsprechend kurz halten.
+9. **Funkkanal-Aggregat (Task 9):** Mutable Entity-Felder (analog Einsatztagebuch-Pattern); Aggregat hält die Root-Entity als readonly Referenz und mutiert ihre Felder direkt via Setter-Methoden. `reconstitute(kanal, zuordnungen)` für Repository-Hydration ohne Event-Emission. Archivierter Kanal lehnt alle mutierenden Methoden mit `Result.fail` ab (statt Soft-Lock wie ETB).
+10. **Funkkanal-Events (Task 10):** `FunkkanalReihenfolgeGeaendert` + `NotfallAlertRequested` tragen `aggregateId = einsatzId.value` (nicht `funkkanalId`), weil sie aggregatsübergreifend sind bzw. einen Einsatz-Room-Broadcast triggern sollen. Die Events sind noch NICHT im Serializer/Deserializer/Adapter-Registry eingehängt — das ist Task 12 in Wave 2.
+11. **ADR-Nummerierung (Task 38):** Nächste freie Nummer war 005; bestehendes Schema `adr-NNN-kebab-case.md` wurde übernommen (nicht das im Plan vorgeschlagene 4-stellige `NNNN`). ADR-008 nennt die echten Tabellennamen (`einsatz_fahrzeuge`/`einsatz_personen`/`einsatz_einheiten`) aus der Migration.
+12. **Architektur-Doku (Task 39):** `docs/architecture/` existiert nicht als eigener arc42-Ordner; die Projekt-Doku nutzt statt dessen `docs/deep-dive-*.md`. Erweiterungen wurden dort (Bausteinsicht → Aggregat-Tabelle + Funkkanal-Sektion, Laufzeitsicht → Notfall-Flow) ergänzt.
+
+### 🚦 Nächster Agent: Start Wave 2 ab Task 11
+
+Wave 1 ist vollständig. Für Wave 2 (Tasks 11–20+ gemäß Plan):
+
+```bash
+cd /Users/rubeen/dev/personal/bluelight-hub
+git switch 407/wave-1-foundation-v2   # oder einen neuen Wave-2-Branch davon
+git log --oneline -14   # sollte 12 Funkverkehr-Commits (Tasks 1–10 + 38 + 39) zeigen
+
+# Baseline verifizieren (alle Wave-1-Tests):
+cd packages/backend
+npx jest --testPathPatterns="funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details|funkkanal" --no-coverage
+# Erwartet: 261 Tests grün, 10 Suites
+```
+
+Dann weiter mit Task 11 (Funkkanal-Mapper + Repository) — dieser Task kippt die Events erstmals durch die Outbox, deshalb gehört Task 12 (Serializer/Deserializer/Adapter-Registrierung) sinnvollerweise in denselben Wave-2-Commit-Strom.
 
 ### 🔑 Wichtige Abweichungen vom Plan
 
@@ -39,23 +68,6 @@
 6. **Event-Serializer:** `EintragAddedEvent` trägt jetzt kontext/ereignisZeitpunkt/absender/empfaenger im Payload. Deserializer ist backward-compatible (Legacy-Events ohne diese Felder bekommen `{ type: 'standard' }` als Default). Der ursprüngliche Serializer-Test erwartet nun das erweiterte Payload + es wurde ein FunkKontext-Test ergänzt.
 7. **Repository-SQL:** `prisma-etb.repository.ts:200` — Raw-INSERT wurde um `kontext_type`, `kontext_data`, `erfasst_am`, `ereignis_zeitpunkt` erweitert (inkl. `ON CONFLICT DO UPDATE`). `JSON.stringify(kontextData)` wird via `::jsonb` cast geschrieben; für `standard` wird `NULL` geschrieben (nicht `Prisma.JsonNull`-Sentinel).
 8. **Commit-Konvention:** Hooks erzwingen Erste-Zeile ≤ 72 Zeichen. Commit-Messages entsprechend kurz halten.
-
-### 🚀 Befehl zum Fortfahren für den nächsten Agent
-
-```bash
-cd /Users/rubeen/dev/personal/bluelight-hub
-git switch 407/wave-1-foundation-v2
-git log --oneline -10   # sollte 8 Funkverkehr-Commits zeigen (Tasks 1–8)
-
-# Optional: Baseline verifizieren
-pnpm --filter @bluelight-hub/backend exec prisma migrate status
-cd packages/backend && npx jest --testPathPatterns="funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details" --no-coverage
-# Erwartet: alle grün (~230 Tests)
-```
-
-Dann weiter mit der folgenden Prompt an Claude Code:
-
-> Setze die Ausführung des Plans `docs/superpowers/plans/2026-04-14-funkverkehr-kanalplan-funkprotokoll.md` auf Branch `407/wave-1-foundation-v2` fort. Tasks 0–8 sind bereits committed (siehe Handoff-Status im Plan). Starte bei **Task 9 (Funkkanal-Entity + Aggregat + FunkkanalZuordnung-Entity)** und arbeite Tasks 9, 10, 38, 39 sequentiell ab (Wave 1 abschließen). Nutze die Skill `superpowers:executing-plans`. Committe jeden Task einzeln mit eingehaltener 72-Zeichen-Subject-Grenze. Wave 2+ (ab Task 11) ist NICHT Teil dieses Scopes — bei Fertigstellung von Task 39 stoppen und den Handoff-Status im Plan aktualisieren.
 
 
 
