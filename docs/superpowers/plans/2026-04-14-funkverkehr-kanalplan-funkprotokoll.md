@@ -2,6 +2,63 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+## 📌 Handoff-Status (Stand 2026-04-15)
+
+**Branch:** `407/wave-1-foundation-v2` (Basis: `407/funkverkehr-implementation`, nur Spec-Commits). Frischer Start — die alten Wave-1-Branches (`407/wave-1-foundation`) werden NICHT verwendet.
+
+**Scope dieses Handoffs:** Wave 1 = Tasks 0–10 + Tasks 38–39 (Architektur-Dokumentation). Wave 2–4 (ab Task 11) bleiben für Folge-Sessions.
+
+### ✅ Fertig (committed auf `407/wave-1-foundation-v2`)
+
+| Task | Commit (short SHA) | Stand |
+|------|-------------------|-------|
+| Task 0 — Baseline-Tests | (keine Code-Änderung) | Baseline: Backend 8558 passing / 62 pre-existing fails / 60 skipped · Frontend 4236 passing / 21 skipped |
+| Task 1 — Migration `add_etb_eintrag_kontext_and_zeitstempel` | `1c6cf49af` | Migration applied, Backfill aus `timestamp`, 4 neue Spalten verifiziert |
+| Task 2 — Migration `add_funkkanal_and_zuordnung` | `eb2b83ec1` | Check-Constraint `funkkanal_zuordnung_genau_eine_kraft` getestet |
+| Task 3 — FunkPrioritaet + EintragKontext VOs | `63d807a89` | 18 Tests grün (VOs liegen in `domain/value-objects/`, nicht `aggregates/etb/`) |
+| Task 4 — EtbEintrag-Entity erweitert | `41f586d32` | Felder an Positionen 14 (ereignisZeitpunkt), 15 (erfasstAm), 16 (kontext). 39/39 Entity-Tests |
+| Task 5 — Aggregat `addEintrag` + EintragAddedEvent | `93d55e2fa` | Options-Objekt `AddEintragOptions`, Event trägt kontext/ereignisZeitpunkt/absender/empfaenger, Serializer+Deserializer angepasst |
+| Task 6 — ETB-Prisma-Mapper + Repository | `4b734ca15` | Raw-SQL-INSERT in `prisma-etb.repository.ts` um 4 neue Spalten erweitert, Roundtrip-Tests grün |
+| Task 7 — AddEintragCommand + Handler | `f63847918` | `AddEintragCommandKontext` POJO am API-Rand, Handler konvertiert zu Domain-VO. 60/60 Tests |
+| Task 8 — KanalDetails VO | `7309da047` | 19 Tests grün, liegt in `domain/aggregates/funkkanal/kanal-details.vo.ts` |
+
+### 🟡 Offen für diesen Wave 1
+
+- **Task 9** — Funkkanal-Entity + Aggregat + FunkkanalZuordnung-Entity (nächster Schritt!)
+- **Task 10** — 7 Funkkanal Domain-Events
+- **Task 38** — 4 ADRs (ETB-Kontext, WebSocket-Bus, Funkkanal-Aggregat, Polymorphe Zuordnung)
+- **Task 39** — arc42-Architektur-Update
+
+### 🔑 Wichtige Abweichungen vom Plan
+
+1. **Ordner-Struktur:** Plan suggeriert `domain/aggregates/etb/eintrag-kontext.ts`. Tatsächlich: das Repo hat flache Struktur unter `domain/value-objects/` — `EintragKontext` und `FunkPrioritaet` liegen dort. Nur `KanalDetails` wurde in `domain/aggregates/funkkanal/` gelegt (neuer Unterordner), passend für das nächste Aggregat.
+2. **Leere Migration aufgeräumt:** Der lokale Ordner `prisma/migrations/20260413090000_reorder_zeichen_katalog/` war leer (nicht in git). Gelöscht, damit Prisma neue Migrationen erzeugen konnte.
+3. **EtbEintrag-Konstruktor:** Die Entity hat 13 bestehende positional args. Neue Felder additiv an Pos 14/15/16 angehängt (statt Options-Refactor), um bestehende Call-Sites nicht zu brechen.
+4. **Aggregat-`addEintrag`:** Bekam `options?: AddEintragOptions` als 8. Parameter — positional bleibt kompatibel, neue Felder via Options-Objekt.
+5. **Validierung `ereignisZeitpunkt`:** Max 60s in Zukunft erlaubt (Plan sagt „> 1 min" → als `> 60_000 ms` umgesetzt).
+6. **Event-Serializer:** `EintragAddedEvent` trägt jetzt kontext/ereignisZeitpunkt/absender/empfaenger im Payload. Deserializer ist backward-compatible (Legacy-Events ohne diese Felder bekommen `{ type: 'standard' }` als Default). Der ursprüngliche Serializer-Test erwartet nun das erweiterte Payload + es wurde ein FunkKontext-Test ergänzt.
+7. **Repository-SQL:** `prisma-etb.repository.ts:200` — Raw-INSERT wurde um `kontext_type`, `kontext_data`, `erfasst_am`, `ereignis_zeitpunkt` erweitert (inkl. `ON CONFLICT DO UPDATE`). `JSON.stringify(kontextData)` wird via `::jsonb` cast geschrieben; für `standard` wird `NULL` geschrieben (nicht `Prisma.JsonNull`-Sentinel).
+8. **Commit-Konvention:** Hooks erzwingen Erste-Zeile ≤ 72 Zeichen. Commit-Messages entsprechend kurz halten.
+
+### 🚀 Befehl zum Fortfahren für den nächsten Agent
+
+```bash
+cd /Users/rubeen/dev/personal/bluelight-hub
+git switch 407/wave-1-foundation-v2
+git log --oneline -10   # sollte 8 Funkverkehr-Commits zeigen (Tasks 1–8)
+
+# Optional: Baseline verifizieren
+pnpm --filter @bluelight-hub/backend exec prisma migrate status
+cd packages/backend && npx jest --testPathPatterns="funk-prioritaet|eintrag-kontext|etb-eintrag.entity|einsatztagebuch.aggregate|prisma-etb.mapper|add-eintrag|kanal-details" --no-coverage
+# Erwartet: alle grün (~230 Tests)
+```
+
+Dann weiter mit der folgenden Prompt an Claude Code:
+
+> Setze die Ausführung des Plans `docs/superpowers/plans/2026-04-14-funkverkehr-kanalplan-funkprotokoll.md` auf Branch `407/wave-1-foundation-v2` fort. Tasks 0–8 sind bereits committed (siehe Handoff-Status im Plan). Starte bei **Task 9 (Funkkanal-Entity + Aggregat + FunkkanalZuordnung-Entity)** und arbeite Tasks 9, 10, 38, 39 sequentiell ab (Wave 1 abschließen). Nutze die Skill `superpowers:executing-plans`. Committe jeden Task einzeln mit eingehaltener 72-Zeichen-Subject-Grenze. Wave 2+ (ab Task 11) ist NICHT Teil dieses Scopes — bei Fertigstellung von Task 39 stoppen und den Handoff-Status im Plan aktualisieren.
+
+
+
 **Goal:** BOS-Digitalfunk im Einsatz dokumentierbar machen: zwei Tabs unter `/app/einsatz/$einsatzId/kommunikation/funk` — **Kanalplan** (Sprechgruppen/Kanäle pro Einsatz, Kräfte-Zuordnung, PDF-Export) und **Funkprotokoll** (chat-artiges, live-aktualisierendes Protokoll mit Filter).
 
 **Architektur:** ETB wird zum **Protokoll-Backbone**. Funksprüche sind ETB-Einträge mit typisiertem `EintragKontext` (Discriminated Union: `standard | funkspruch`). Funkkanäle werden als eigenes Aggregat modelliert. Live-Updates via neuem einsatz-gebundenem WebSocket-Gateway (Room `einsatz:{id}`). PDF-Export über eigenen Service (pdfkit).
