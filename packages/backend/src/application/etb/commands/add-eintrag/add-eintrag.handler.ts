@@ -3,6 +3,8 @@ import { Result } from '@domain/common/result';
 import type { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
 import type { IEtbRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
+import type { EintragKontextShape } from '@domain/value-objects/eintrag-kontext';
+import { EintragKontext } from '@domain/value-objects/eintrag-kontext';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
 import { UserId } from '@domain/value-objects/user-id';
@@ -183,15 +185,30 @@ export class AddEintragHandler {
       kategorieVo = kategorieResult.value as EtbKategorie;
     }
 
-    // Step 5: Delegate to domain method (validates business rules, creates snapshot)
+    // Step 5: Konvertiere Command-Kontext → Domain-VO (Issue #407)
+    let kontext: EintragKontextShape | undefined;
+    if (command.kontext?.type === 'funkspruch') {
+      kontext = EintragKontext.funkspruch({
+        kanalId: command.kontext.kanalId,
+        funkPrioritaet: command.kontext.funkPrioritaet,
+      });
+    } else if (command.kontext?.type === 'standard') {
+      kontext = EintragKontext.standard();
+    }
+
+    // Step 6: Delegate to domain method (validates business rules, creates snapshot)
     // Business rules checked by aggregate:
     // - ETB must not be locked (status !== LOCKED)
     // - Text must not be empty
+    // - ereignisZeitpunkt max 60s in Zukunft
     // Aggregate also:
     // - Creates snapshot BEFORE mutation (DRK-Compliance)
     // - Auto-increments sequence number
-    // - Creates EintragAddedEvent
-    const addResult = aggregate.addEintrag(command.text, userId, kategorieVo, command.absender, command.empfaenger, command.metadata, command.occurredAt);
+    // - Creates EintragAddedEvent mit Kontext für Notfall-Detection
+    const addResult = aggregate.addEintrag(command.text, userId, kategorieVo, command.absender, command.empfaenger, command.metadata, command.occurredAt, {
+      kontext,
+      ereignisZeitpunkt: command.ereignisZeitpunkt,
+    });
     if (addResult.isFailure) {
       // Domain-level validation failure
       return Result.fail<EtbEintrag>(addResult.error ?? 'Eintrag konnte nicht hinzugefügt werden');
