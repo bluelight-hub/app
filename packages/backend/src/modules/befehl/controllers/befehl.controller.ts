@@ -164,15 +164,12 @@ export class BefehlController {
     summary: 'Empfaenger fuer Befehlsadressierung suchen',
     description: 'Durchsucht EinsatzPersonen und StammPersonen fuer die Empfaenger-Auswahl bei Befehlserstellung.',
   })
-  @ApiQuery({ name: 'q', description: 'Suchbegriff (min. 2 Zeichen)', type: String, required: true })
+  @ApiQuery({ name: 'q', description: 'Suchbegriff (optional, leer = Top-20 Empfänger)', type: String, required: false })
   @ApiQuery({ name: 'einsatzId', description: 'Einsatz-ID', type: String, required: true })
   @ApiWrappedResponse(EmpfaengerSucheResultDto, { isArray: true, description: 'Suchergebnisse' })
-  @ApiBadRequestResponse({ description: 'Suchbegriff zu kurz oder einsatzId fehlt' })
-  async empfaengerSuche(@Query('q') q: string, @Query('einsatzId') einsatzId: string): Promise<EmpfaengerSucheResultDto[]> {
-    const trimmedQ = q?.trim();
-    if (!trimmedQ || trimmedQ.length < 2) {
-      throw new BadRequestException('Suchbegriff muss mindestens 2 Zeichen lang sein');
-    }
+  @ApiBadRequestResponse({ description: 'Suchbegriff zu lang oder einsatzId fehlt' })
+  async empfaengerSuche(@Query('q') q: string | undefined, @Query('einsatzId') einsatzId: string): Promise<EmpfaengerSucheResultDto[]> {
+    const trimmedQ = q?.trim() ?? '';
     if (trimmedQ.length > 100) {
       throw new BadRequestException('Suchbegriff darf maximal 100 Zeichen lang sein');
     }
