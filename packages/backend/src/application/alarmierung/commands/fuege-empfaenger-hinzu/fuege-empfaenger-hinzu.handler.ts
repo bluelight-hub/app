@@ -34,13 +34,13 @@ export class FuegeEmpfaengerHinzuHandler extends TransactionalCommandHandler<Fue
     super(prisma, outboxRepository);
   }
 
-  protected async executeInTransaction(command: FuegeEmpfaengerHinzuCommand, _tx: TransactionContext): Promise<Result<AlarmierungAggregate> | { result: AlarmierungAggregate; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: FuegeEmpfaengerHinzuCommand, tx: TransactionContext): Promise<Result<AlarmierungAggregate> | { result: AlarmierungAggregate; events: DomainEvent[] }> {
     const idResult = AlarmierungId.create(command.alarmierungId);
     if (idResult.isFailure || !idResult.value) {
       return Result.fail<AlarmierungAggregate>(idResult.error ?? 'Ungültige AlarmierungId');
     }
 
-    const aggregate = await this.alarmierungRepository.findById(idResult.value);
+    const aggregate = await this.alarmierungRepository.findById(idResult.value, tx);
     if (!aggregate) {
       return Result.fail<AlarmierungAggregate>('Alarmierung nicht gefunden');
     }
@@ -61,7 +61,7 @@ export class FuegeEmpfaengerHinzuHandler extends TransactionalCommandHandler<Fue
       return Result.fail<AlarmierungAggregate>(addResult.error ?? 'Empfänger konnte nicht hinzugefügt werden');
     }
 
-    await this.alarmierungRepository.save(aggregate);
+    await this.alarmierungRepository.save(aggregate, tx);
 
     const events = aggregate.getDomainEvents();
     aggregate.clearDomainEvents();

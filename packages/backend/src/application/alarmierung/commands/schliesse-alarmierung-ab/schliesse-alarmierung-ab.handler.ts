@@ -27,14 +27,14 @@ export class SchliesseAlarmierungAbHandler extends TransactionalCommandHandler<S
 
   protected async executeInTransaction(
     command: SchliesseAlarmierungAbCommand,
-    _tx: TransactionContext,
+    tx: TransactionContext,
   ): Promise<Result<AlarmierungAggregate> | { result: AlarmierungAggregate; events: DomainEvent[] }> {
     const idResult = AlarmierungId.create(command.alarmierungId);
     if (idResult.isFailure || !idResult.value) {
       return Result.fail<AlarmierungAggregate>(idResult.error ?? 'Ungültige AlarmierungId');
     }
 
-    const aggregate = await this.alarmierungRepository.findById(idResult.value);
+    const aggregate = await this.alarmierungRepository.findById(idResult.value, tx);
     if (!aggregate) {
       return Result.fail<AlarmierungAggregate>('Alarmierung nicht gefunden');
     }
@@ -44,7 +44,7 @@ export class SchliesseAlarmierungAbHandler extends TransactionalCommandHandler<S
       return Result.fail<AlarmierungAggregate>(closeResult.error ?? 'Alarmierung konnte nicht abgeschlossen werden');
     }
 
-    await this.alarmierungRepository.save(aggregate);
+    await this.alarmierungRepository.save(aggregate, tx);
 
     const events = aggregate.getDomainEvents();
     aggregate.clearDomainEvents();

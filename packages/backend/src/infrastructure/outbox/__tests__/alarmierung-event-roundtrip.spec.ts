@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Roundtrip-Tests für Alarmierung-Events durch Serializer → JSON → Deserializer.
  *
@@ -6,6 +5,7 @@
  * Daten-Verlust durch die Outbox gehen (inkl. Null-Zeitpunkte bei
  * `ZeitpunktKorrigiert` und Top-Level `abgeschlossenVon` bei `Abgeschlossen`).
  */
+import type { DomainEvent } from '@domain/common/domain-event';
 
 import { EventSerializer } from '../event-serializer';
 import { EventDeserializer } from '../event-deserializer';
@@ -42,8 +42,8 @@ describe('Alarmierung Events Round-Trip', () => {
     deserializer = new EventDeserializer(noopLogger);
   });
 
-  function roundtrip<T>(event: T): T {
-    const s = serializer.serialize(event as never);
+  function roundtrip<T extends DomainEvent>(event: T): T {
+    const s = serializer.serialize(event);
     const json = JSON.parse(JSON.stringify(s));
     const r = deserializer.deserialize(json);
     expect(r.isSuccess).toBe(true);

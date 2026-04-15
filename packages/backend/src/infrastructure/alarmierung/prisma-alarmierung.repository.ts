@@ -3,6 +3,7 @@ import { Prisma } from '@/generated/prisma/client';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { AlarmierungAggregate } from '@domain/aggregates/alarmierung/alarmierung.aggregate';
 import type { AlarmierungStatus } from '@domain/aggregates/alarmierung/alarmierung.entity';
+import type { TransactionContext } from '@domain/common/transaction';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import type { FindAlarmierungenOptions, IAlarmierungRepository } from '@domain/repositories/i-alarmierung.repository';
@@ -13,9 +14,11 @@ type PrismaTx = Prisma.TransactionClient;
 /**
  * Prisma-Adapter für `IAlarmierungRepository` (Issue #408).
  *
- * Persistiert das Alarmierung-Aggregat (Root + Empfänger) atomar per
- * `$transaction`. Empfänger werden via ID-Diff inkrementell angeglichen
- * (analog `PrismaFunkkanalRepository`).
+ * Persistiert das Alarmierung-Aggregat (Root + Empfänger) atomar:
+ * - Wird ein `tx` vom Aufrufer durchgereicht (TransactionalCommandHandler),
+ *   läuft das Upsert + Empfänger-Diff in **derselben** Transaktion wie die
+ *   Outbox-Events — atomare Konsistenz zwischen Aggregat und Events.
+ * - Ohne `tx` öffnet das Repository selbst eine `$transaction`.
  *
  * Event-Ablage erfolgt in der Outbox durch den aufrufenden
  * `TransactionalCommandHandler` — das Repository ruft `clearDomainEvents()`
@@ -25,10 +28,10 @@ type PrismaTx = Prisma.TransactionClient;
 export class PrismaAlarmierungRepository implements IAlarmierungRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(aggregate: AlarmierungAggregate): Promise<void> {
+  async save(aggregate: AlarmierungAggregate, tx?: TransactionContext): Promise<void> {
     const { alarmierung, empfaenger } = PrismaAlarmierungMapper.toPersistence(aggregate);
 
-    await this.prisma.$transaction(async (client: PrismaTx) => {
+    const operation = async (client: PrismaTx): Promise<void> => {
       await client.alarmierung.upsert({
         where: { id: alarmierung.id },
         create: {
@@ -101,11 +104,18 @@ export class PrismaAlarmierungRepository implements IAlarmierungRepository {
           });
         }
       }
-    });
+    };
+
+    if (tx) {
+      await operation(tx as PrismaTx);
+    } else {
+      await this.prisma.$transaction(operation);
+    }
   }
 
-  async findById(id: AlarmierungId): Promise<AlarmierungAggregate | null> {
-    const row = await this.prisma.alarmierung.findUnique({
+  async findById(id: AlarmierungId, tx?: TransactionContext): Promise<AlarmierungAggregate | null> {
+    const client = (tx as PrismaTx | undefined) ?? this.prisma;
+    const row = await client.alarmierung.findUnique({
       where: { id: id.value },
       include: { empfaenger: true },
     });
@@ -115,12 +125,13 @@ export class PrismaAlarmierungRepository implements IAlarmierungRepository {
     return PrismaAlarmierungMapper.toAggregate(row as AlarmierungWithEmpfaenger);
   }
 
-  async findByEinsatzId(einsatzId: EinsatzId, options?: FindAlarmierungenOptions): Promise<AlarmierungAggregate[]> {
+  async findByEinsatzId(einsatzId: EinsatzId, options?: FindAlarmierungenOptions, tx?: TransactionContext): Promise<AlarmierungAggregate[]> {
+    const client = (tx as PrismaTx | undefined) ?? this.prisma;
     const where: Prisma.AlarmierungWhereInput = { einsatzId: einsatzId.value };
     if (options?.status) {
       where.status = options.status as AlarmierungStatus;
     }
-    const rows = await this.prisma.alarmierung.findMany({
+    const rows = await client.alarmierung.findMany({
       where,
       include: { empfaenger: true },
       orderBy: [{ alarmierungszeit: 'desc' }, { createdAt: 'desc' }],
@@ -130,8 +141,9 @@ export class PrismaAlarmierungRepository implements IAlarmierungRepository {
     return rows.map((row) => PrismaAlarmierungMapper.toAggregate(row as AlarmierungWithEmpfaenger));
   }
 
-  async findAktiveByFahrzeugId(einsatzId: EinsatzId, fahrzeugId: string): Promise<AlarmierungAggregate[]> {
-    const rows = await this.prisma.alarmierung.findMany({
+  async findAktiveByFahrzeugId(einsatzId: EinsatzId, fahrzeugId: string, tx?: TransactionContext): Promise<AlarmierungAggregate[]> {
+    const client = (tx as PrismaTx | undefined) ?? this.prisma;
+    const rows = await client.alarmierung.findMany({
       where: {
         einsatzId: einsatzId.value,
         status: 'aktiv',
