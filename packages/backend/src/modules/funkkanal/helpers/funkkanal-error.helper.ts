@@ -17,11 +17,11 @@ export function toHttpError(message: string | undefined): HttpException {
   }
   if (
     text.includes('bereits vergeben') ||
-    text.includes('bereits zugeordnet') ||
     text.includes('existiert bereits') ||
     text.includes('bereits archiviert') ||
     text.includes('bereits aktiv') ||
-    text.includes('bereits inaktiv')
+    text.includes('bereits inaktiv') ||
+    (text.includes('bereits') && text.includes('zugeordnet'))
   ) {
     return new ConflictException(message);
   }
