@@ -13,3 +13,17 @@ export { EtbSnapshotDto } from './etb-snapshot.dto';
 export { TextbausteinDto } from './textbaustein.dto';
 export { TextbausteinListResponse } from './textbaustein-list-response.dto';
 export { ErinnerungTimelineDto, ErinnerungTimelineEventDto, TimelineUserDto } from './erinnerung-timeline.dto';
+
+// EintragKontext DTOs (Funkverkehr Wave 2, Task 19)
+export {
+  ApiEintragKontextExtraModels,
+  ApiEintragKontextOptional,
+  ApiEintragKontextRequired,
+  EINTRAG_KONTEXT_SCHEMA,
+  FUNK_PRIORITAET_VALUES,
+  FunkKontextDto,
+  IsEintragKontext,
+  StandardKontextDto,
+  type EintragKontextUnionDto,
+  type FunkPrioritaetValue,
+} from './eintrag-kontext.dto';
