@@ -7,7 +7,7 @@
  */
 
 import { useEtb } from '@/features/etb/api/use-etb';
-import { useExportKanalplanPdf, useKanalplan } from '@/features/funkverkehr/api';
+import { useArchiveFunkkanal, useExportKanalplanPdf, useKanalplan, useUpdateFunkkanal } from '@/features/funkverkehr/api';
 import { FunkprotokollFilterSidebar } from '@/features/funkverkehr/ui/organisms/FunkprotokollFilterSidebar.organism';
 import { FunkprotokollView } from '@/features/funkverkehr/ui/organisms/FunkprotokollView.organism';
 import { FunkspruchComposer } from '@/features/funkverkehr/ui/organisms/FunkspruchComposer.organism';
@@ -33,9 +33,21 @@ export function FunkverkehrLayout({ einsatzId, tab, onTabChange, className }: Fu
   const kanaele = useMemo(() => kanalplan?.data ?? [], [kanalplan]);
   const etbQuery = useEtb({ einsatzId });
   const exportPdf = useExportKanalplanPdf(einsatzId);
+  const archiveMutation = useArchiveFunkkanal(einsatzId);
+  const updateMutation = useUpdateFunkkanal(einsatzId);
 
   const [editKanal, setEditKanal] = useState<FunkkanalResponseDto | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const handleArchive = (kanal: FunkkanalResponseDto) => {
+    if (!window.confirm(`Kanal „${kanal.name}" wirklich archivieren?`)) return;
+    archiveMutation.mutate({ kanalId: kanal.id });
+  };
+
+  const handleToggleStatus = (kanal: FunkkanalResponseDto) => {
+    const nextStatus = kanal.status === 'aktiv' ? 'inaktiv' : 'aktiv';
+    updateMutation.mutate({ kanalId: kanal.id, dto: { status: nextStatus } });
+  };
 
   return (
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
@@ -65,7 +77,7 @@ export function FunkverkehrLayout({ einsatzId, tab, onTabChange, className }: Fu
               </div>
             </div>
 
-            <KanalplanTable einsatzId={einsatzId} kanaele={kanaele} onEdit={(kanal) => setEditKanal(kanal)} />
+            <KanalplanTable einsatzId={einsatzId} kanaele={kanaele} onEdit={(kanal) => setEditKanal(kanal)} onArchive={handleArchive} onToggleStatus={handleToggleStatus} />
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-row">
