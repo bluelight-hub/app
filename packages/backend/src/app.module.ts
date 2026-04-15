@@ -49,6 +49,7 @@ import { GeoModule } from './modules/geo/geo.module';
 import { EinsatzBeitrittModule } from './modules/einsatz-beitritt/einsatz-beitritt.module';
 import { GefahrModule } from './modules/gefahr/gefahr.module';
 import { TaktischeZeichenModule } from './modules/taktische-zeichen/taktische-zeichen.module';
+import { FunkkanalInfrastructureModule } from '@infrastructure/funkkanal/funkkanal-infrastructure.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -140,6 +141,7 @@ import { TaktischeZeichenModule } from './modules/taktische-zeichen/taktische-ze
     EinsatzBeitrittModule, // Einsatz-Beitrittsanfragen (Issue #98)
     GefahrModule, // Gefahrenmatrix (Issue #414)
     TaktischeZeichenModule, // Taktische Zeichen (DV 102) #636
+    FunkkanalInfrastructureModule, // Funkkanal Infrastructure (Issue #407, Wave 2)
   ],
   controllers: [AppController],
   providers: [
