@@ -2281,7 +2281,8 @@ describe('EventDeserializer', () => {
       // + LagekarteStateUpdated (#638)
       // + TaktischesZeichen: Erstellt, Platziert, Verschoben, Aktualisiert, Entfernt (Issue #636)
       // + Funkkanal: Erstellt, Geaendert, Archiviert, Reihenfolge_Geaendert, Zuordnung_Erstellt, Zuordnung_Entfernt + NotfallAlertRequested (Issue #407)
-      expect(supportedTypes).toHaveLength(102);
+      // + Alarmierung: Erstellt, EmpfaengerHinzugefuegt, EmpfaengerEntfernt, ZeitpunktKorrigiert, ZeitpunktFmsGesetzt, Abgeschlossen, NachalarmierungErstellt (Issue #408)
+      expect(supportedTypes).toHaveLength(109);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');

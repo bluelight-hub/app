@@ -102,6 +102,15 @@ import type { FunkkanalZuordnungErstelltEvent } from '@domain/events/funkkanal-z
 import type { FunkkanalZuordnungEntferntEvent } from '@domain/events/funkkanal-zuordnung-entfernt.event';
 import type { NotfallAlertRequestedEvent } from '@domain/events/notfall-alert-requested.event';
 
+// Alarmierung Events (Issue #408)
+import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
+import type { AlarmierungEmpfaengerEntferntEvent } from '@domain/events/alarmierung-empfaenger-entfernt.event';
+import type { AlarmierungEmpfaengerHinzugefuegtEvent } from '@domain/events/alarmierung-empfaenger-hinzugefuegt.event';
+import type { AlarmierungErstelltEvent } from '@domain/events/alarmierung-erstellt.event';
+import type { AlarmierungZeitpunktFmsGesetztEvent } from '@domain/events/alarmierung-zeitpunkt-fms-gesetzt.event';
+import type { AlarmierungZeitpunktKorrigiertEvent } from '@domain/events/alarmierung-zeitpunkt-korrigiert.event';
+import type { NachalarmierungErstelltEvent } from '@domain/events/nachalarmierung-erstellt.event';
+
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
  *
@@ -462,6 +471,22 @@ export class EventSerializer {
         return this.serializeFunkkanalZuordnungEntfernt(event as unknown as FunkkanalZuordnungEntferntEvent);
       case 'funk.notfall_alert_requested':
         return this.serializeNotfallAlertRequested(event as unknown as NotfallAlertRequestedEvent);
+
+      // ===== ALARMIERUNG EVENTS (Issue #408) =====
+      case 'alarmierung.erstellt':
+        return this.serializeAlarmierungErstellt(event as unknown as AlarmierungErstelltEvent);
+      case 'alarmierung.empfaenger_hinzugefuegt':
+        return this.serializeAlarmierungEmpfaengerHinzugefuegt(event as unknown as AlarmierungEmpfaengerHinzugefuegtEvent);
+      case 'alarmierung.empfaenger_entfernt':
+        return this.serializeAlarmierungEmpfaengerEntfernt(event as unknown as AlarmierungEmpfaengerEntferntEvent);
+      case 'alarmierung.zeitpunkt_korrigiert':
+        return this.serializeAlarmierungZeitpunktKorrigiert(event as unknown as AlarmierungZeitpunktKorrigiertEvent);
+      case 'alarmierung.zeitpunkt_fms_gesetzt':
+        return this.serializeAlarmierungZeitpunktFmsGesetzt(event as unknown as AlarmierungZeitpunktFmsGesetztEvent);
+      case 'alarmierung.abgeschlossen':
+        return this.serializeAlarmierungAbgeschlossen(event as unknown as AlarmierungAbgeschlossenEvent);
+      case 'alarmierung.nachalarmierung_erstellt':
+        return this.serializeNachalarmierungErstellt(event as unknown as NachalarmierungErstelltEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1570,6 +1595,97 @@ export class EventSerializer {
       funkspruchEintragId: event.funkspruchEintragId.value,
       text: event.text,
       absender: event.absender ?? null,
+    };
+  }
+
+  // ===== ALARMIERUNG SERIALIZERS (Issue #408) =====
+
+  private serializeAlarmierungErstellt(event: AlarmierungErstelltEvent): Record<string, unknown> {
+    return {
+      alarmierungId: event.alarmierungId.value,
+      einsatzId: event.einsatzId.value,
+      data: {
+        bezeichnung: event.data.bezeichnung,
+        beschreibung: event.data.beschreibung ?? null,
+        alarmierungszeit: event.data.alarmierungszeit.toISOString(),
+        ursprungAlarmierungId: event.data.ursprungAlarmierungId ?? null,
+        empfaengerCount: event.data.empfaengerCount,
+      },
+    };
+  }
+
+  private serializeAlarmierungEmpfaengerHinzugefuegt(event: AlarmierungEmpfaengerHinzugefuegtEvent): Record<string, unknown> {
+    return {
+      alarmierungId: event.alarmierungId.value,
+      einsatzId: event.einsatzId.value,
+      data: {
+        empfaengerId: event.data.empfaengerId.value,
+        ref: event.data.ref,
+        nameSnapshot: event.data.nameSnapshot,
+        alarmiertAm: event.data.alarmiertAm.toISOString(),
+      },
+    };
+  }
+
+  private serializeAlarmierungEmpfaengerEntfernt(event: AlarmierungEmpfaengerEntferntEvent): Record<string, unknown> {
+    return {
+      alarmierungId: event.alarmierungId.value,
+      einsatzId: event.einsatzId.value,
+      data: {
+        empfaengerId: event.data.empfaengerId.value,
+        nameSnapshot: event.data.nameSnapshot,
+      },
+    };
+  }
+
+  private serializeAlarmierungZeitpunktKorrigiert(event: AlarmierungZeitpunktKorrigiertEvent): Record<string, unknown> {
+    return {
+      alarmierungId: event.alarmierungId.value,
+      einsatzId: event.einsatzId.value,
+      data: {
+        empfaengerId: event.data.empfaengerId.value,
+        nameSnapshot: event.data.nameSnapshot,
+        feld: event.data.feld,
+        alterWert: event.data.alterWert?.toISOString() ?? null,
+        neuerWert: event.data.neuerWert?.toISOString() ?? null,
+        korrigiertVon: event.data.korrigiertVon,
+      },
+    };
+  }
+
+  private serializeAlarmierungZeitpunktFmsGesetzt(event: AlarmierungZeitpunktFmsGesetztEvent): Record<string, unknown> {
+    return {
+      alarmierungId: event.alarmierungId.value,
+      einsatzId: event.einsatzId.value,
+      data: {
+        empfaengerId: event.data.empfaengerId.value,
+        nameSnapshot: event.data.nameSnapshot,
+        feld: event.data.feld,
+        wert: event.data.wert.toISOString(),
+        fmsStatus: event.data.fmsStatus,
+      },
+    };
+  }
+
+  /**
+   * **M1:** `abgeschlossenVon` ist eine Top-Level-Property (kein `data`-Wrapper).
+   */
+  private serializeAlarmierungAbgeschlossen(event: AlarmierungAbgeschlossenEvent): Record<string, unknown> {
+    return {
+      alarmierungId: event.alarmierungId.value,
+      einsatzId: event.einsatzId.value,
+      abgeschlossenVon: event.abgeschlossenVon,
+    };
+  }
+
+  private serializeNachalarmierungErstellt(event: NachalarmierungErstelltEvent): Record<string, unknown> {
+    return {
+      alarmierungId: event.alarmierungId.value,
+      einsatzId: event.einsatzId.value,
+      data: {
+        bezeichnung: event.data.bezeichnung,
+        ursprungAlarmierungId: event.data.ursprungAlarmierungId.value,
+      },
     };
   }
 }

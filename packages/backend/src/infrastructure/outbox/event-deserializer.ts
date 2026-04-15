@@ -144,6 +144,19 @@ import { ZeichenVerschobenEvent } from '@domain/taktische-zeichen/events/zeichen
 import { ZeichenEntferntEvent } from '@domain/taktische-zeichen/events/zeichen-entfernt.event';
 import type { ZeichenDefinitionProps } from '@domain/taktische-zeichen/value-objects/zeichen-definition.vo';
 
+// Alarmierung Events (Issue #408)
+import { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
+import { AlarmierungEmpfaengerEntferntEvent } from '@domain/events/alarmierung-empfaenger-entfernt.event';
+import { AlarmierungEmpfaengerHinzugefuegtEvent } from '@domain/events/alarmierung-empfaenger-hinzugefuegt.event';
+import { AlarmierungErstelltEvent } from '@domain/events/alarmierung-erstellt.event';
+import { AlarmierungZeitpunktFmsGesetztEvent } from '@domain/events/alarmierung-zeitpunkt-fms-gesetzt.event';
+import { AlarmierungZeitpunktKorrigiertEvent } from '@domain/events/alarmierung-zeitpunkt-korrigiert.event';
+import { NachalarmierungErstelltEvent } from '@domain/events/nachalarmierung-erstellt.event';
+import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
+import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
+import type { AlarmierungEmpfaengerRef } from '@domain/aggregates/alarmierung/alarmierung-empfaenger-ref';
+import type { ZeitpunktFeld } from '@domain/aggregates/alarmierung/alarmierung-empfaenger.entity';
+
 // Funkkanal Events (Issue #407)
 import { FunkkanalErstelltEvent, type FunkkanalErstelltPayload } from '@domain/events/funkkanal-erstellt.event';
 import { FunkkanalGeaendertEvent, type FunkkanalChangedFields } from '@domain/events/funkkanal-geaendert.event';
@@ -394,6 +407,15 @@ export class EventDeserializer {
       ['funkkanal.zuordnung_erstellt', deserializeFunkkanalZuordnungErstellt],
       ['funkkanal.zuordnung_entfernt', deserializeFunkkanalZuordnungEntfernt],
       ['funk.notfall_alert_requested', deserializeNotfallAlertRequested],
+
+      // ===== ALARMIERUNG EVENTS (Issue #408) =====
+      ['alarmierung.erstellt', deserializeAlarmierungErstellt],
+      ['alarmierung.empfaenger_hinzugefuegt', deserializeAlarmierungEmpfaengerHinzugefuegt],
+      ['alarmierung.empfaenger_entfernt', deserializeAlarmierungEmpfaengerEntfernt],
+      ['alarmierung.zeitpunkt_korrigiert', deserializeAlarmierungZeitpunktKorrigiert],
+      ['alarmierung.zeitpunkt_fms_gesetzt', deserializeAlarmierungZeitpunktFmsGesetzt],
+      ['alarmierung.abgeschlossen', deserializeAlarmierungAbgeschlossen],
+      ['alarmierung.nachalarmierung_erstellt', deserializeNachalarmierungErstellt],
     ]);
   }
 
@@ -2391,5 +2413,121 @@ function deserializeNotfallAlertRequested(payload: Record<string, unknown>): Res
     payload.text as string,
     (payload.absender as string | null) ?? undefined,
   );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== ALARMIERUNG DESERIALIZERS (Issue #408) =====
+
+function makeAlarmierungId(raw: unknown): AlarmierungId {
+  const r = AlarmierungId.create(raw as string);
+  if (r.isFailure) {
+    throw new Error(`Invalid alarmierungId: ${r.error}`);
+  }
+  return r.value as AlarmierungId;
+}
+
+function makeAlarmierungEmpfaengerId(raw: unknown): AlarmierungEmpfaengerId {
+  const r = AlarmierungEmpfaengerId.create(raw as string);
+  if (r.isFailure) {
+    throw new Error(`Invalid alarmierungEmpfaengerId: ${r.error}`);
+  }
+  return r.value as AlarmierungEmpfaengerId;
+}
+
+function deserializeAlarmierungErstellt(payload: Record<string, unknown>): Result<DomainEvent> {
+  const data = (payload.data ?? {}) as {
+    bezeichnung: string;
+    beschreibung?: string | null;
+    alarmierungszeit: string;
+    ursprungAlarmierungId?: string | null;
+    empfaengerCount: number;
+  };
+  const event = new AlarmierungErstelltEvent(makeAlarmierungId(payload.alarmierungId), makeEinsatzIdDeser(payload.einsatzId), {
+    bezeichnung: data.bezeichnung,
+    beschreibung: data.beschreibung ?? undefined,
+    alarmierungszeit: new Date(data.alarmierungszeit),
+    ursprungAlarmierungId: data.ursprungAlarmierungId ?? undefined,
+    empfaengerCount: data.empfaengerCount,
+  });
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeAlarmierungEmpfaengerHinzugefuegt(payload: Record<string, unknown>): Result<DomainEvent> {
+  const data = (payload.data ?? {}) as {
+    empfaengerId: string;
+    ref: AlarmierungEmpfaengerRef;
+    nameSnapshot: string;
+    alarmiertAm: string;
+  };
+  const event = new AlarmierungEmpfaengerHinzugefuegtEvent(makeAlarmierungId(payload.alarmierungId), makeEinsatzIdDeser(payload.einsatzId), {
+    empfaengerId: makeAlarmierungEmpfaengerId(data.empfaengerId),
+    ref: data.ref,
+    nameSnapshot: data.nameSnapshot,
+    alarmiertAm: new Date(data.alarmiertAm),
+  });
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeAlarmierungEmpfaengerEntfernt(payload: Record<string, unknown>): Result<DomainEvent> {
+  const data = (payload.data ?? {}) as { empfaengerId: string; nameSnapshot: string };
+  const event = new AlarmierungEmpfaengerEntferntEvent(makeAlarmierungId(payload.alarmierungId), makeEinsatzIdDeser(payload.einsatzId), {
+    empfaengerId: makeAlarmierungEmpfaengerId(data.empfaengerId),
+    nameSnapshot: data.nameSnapshot,
+  });
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeAlarmierungZeitpunktKorrigiert(payload: Record<string, unknown>): Result<DomainEvent> {
+  const data = (payload.data ?? {}) as {
+    empfaengerId: string;
+    nameSnapshot: string;
+    feld: ZeitpunktFeld;
+    alterWert: string | null;
+    neuerWert: string | null;
+    korrigiertVon: string;
+  };
+  const event = new AlarmierungZeitpunktKorrigiertEvent(makeAlarmierungId(payload.alarmierungId), makeEinsatzIdDeser(payload.einsatzId), {
+    empfaengerId: makeAlarmierungEmpfaengerId(data.empfaengerId),
+    nameSnapshot: data.nameSnapshot,
+    feld: data.feld,
+    alterWert: data.alterWert ? new Date(data.alterWert) : null,
+    neuerWert: data.neuerWert ? new Date(data.neuerWert) : null,
+    korrigiertVon: data.korrigiertVon,
+  });
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeAlarmierungZeitpunktFmsGesetzt(payload: Record<string, unknown>): Result<DomainEvent> {
+  const data = (payload.data ?? {}) as {
+    empfaengerId: string;
+    nameSnapshot: string;
+    feld: ZeitpunktFeld;
+    wert: string;
+    fmsStatus: number;
+  };
+  const event = new AlarmierungZeitpunktFmsGesetztEvent(makeAlarmierungId(payload.alarmierungId), makeEinsatzIdDeser(payload.einsatzId), {
+    empfaengerId: makeAlarmierungEmpfaengerId(data.empfaengerId),
+    nameSnapshot: data.nameSnapshot,
+    feld: data.feld,
+    wert: new Date(data.wert),
+    fmsStatus: data.fmsStatus,
+  });
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * **M1:** `abgeschlossenVon` liegt als Top-Level-Property (nicht in `data`).
+ */
+function deserializeAlarmierungAbgeschlossen(payload: Record<string, unknown>): Result<DomainEvent> {
+  const event = new AlarmierungAbgeschlossenEvent(makeAlarmierungId(payload.alarmierungId), makeEinsatzIdDeser(payload.einsatzId), payload.abgeschlossenVon as string);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeNachalarmierungErstellt(payload: Record<string, unknown>): Result<DomainEvent> {
+  const data = (payload.data ?? {}) as { bezeichnung: string; ursprungAlarmierungId: string };
+  const event = new NachalarmierungErstelltEvent(makeAlarmierungId(payload.alarmierungId), makeEinsatzIdDeser(payload.einsatzId), {
+    bezeichnung: data.bezeichnung,
+    ursprungAlarmierungId: makeAlarmierungId(data.ursprungAlarmierungId),
+  });
   return Result.ok<DomainEvent>(event);
 }
