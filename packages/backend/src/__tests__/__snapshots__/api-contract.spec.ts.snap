@@ -3123,19 +3123,19 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         "operationId": "BefehlController_empfaengerSuche_v-1",
         "parameters": [
           {
-            "description": "Suchbegriff (min. 2 Zeichen)",
+            "description": "Einsatz-ID",
             "in": "query",
-            "name": "q",
+            "name": "einsatzId",
             "required": true,
             "schema": {
               "type": "string",
             },
           },
           {
-            "description": "Einsatz-ID",
+            "description": "Suchbegriff (optional, leer = Top-20 Empfänger)",
             "in": "query",
-            "name": "einsatzId",
-            "required": true,
+            "name": "q",
+            "required": false,
             "schema": {
               "type": "string",
             },
@@ -3209,7 +3209,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "description": "Suchergebnisse",
           },
           "400": {
-            "description": "Suchbegriff zu kurz oder einsatzId fehlt",
+            "description": "Suchbegriff zu lang oder einsatzId fehlt",
           },
           "401": {
             "description": "Nicht authentifiziert - JWT Token fehlt oder ungültig",
@@ -5737,19 +5737,19 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         "operationId": "BefehlController_empfaengerSuche_v-alpha",
         "parameters": [
           {
-            "description": "Suchbegriff (min. 2 Zeichen)",
+            "description": "Einsatz-ID",
             "in": "query",
-            "name": "q",
+            "name": "einsatzId",
             "required": true,
             "schema": {
               "type": "string",
             },
           },
           {
-            "description": "Einsatz-ID",
+            "description": "Suchbegriff (optional, leer = Top-20 Empfänger)",
             "in": "query",
-            "name": "einsatzId",
-            "required": true,
+            "name": "q",
+            "required": false,
             "schema": {
               "type": "string",
             },
@@ -5823,7 +5823,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "description": "Suchergebnisse",
           },
           "400": {
-            "description": "Suchbegriff zu kurz oder einsatzId fehlt",
+            "description": "Suchbegriff zu lang oder einsatzId fehlt",
           },
           "401": {
             "description": "Nicht authentifiziert - JWT Token fehlt oder ungültig",
