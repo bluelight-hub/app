@@ -127,6 +127,22 @@ describe('ServerAccessGuard - Multi-Token-Validierung Integration Tests (Story 4
     return prisma.serverAccessToken.findUnique({ where: { id } });
   };
 
+  /**
+   * Pollt die Datenbank, bis das Token die übergebene Bedingung erfüllt
+   * oder der Timeout erreicht ist. Ersetzt fixe `setTimeout`-Waits für
+   * asynchrone `lastUsedAt`-Updates (via `setImmediate`) und vermeidet
+   * Flakyness auf langsamen CI-Runnern.
+   */
+  const pollForTokenCondition = async (tokenId: string, condition: (token: Awaited<ReturnType<typeof getTokenFromDb>>) => boolean, timeoutMs = 2000, intervalMs = 50) => {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const token = await getTokenFromDb(tokenId);
+      if (token && condition(token)) return token;
+      await new Promise((r) => setTimeout(r, intervalMs));
+    }
+    return getTokenFromDb(tokenId);
+  };
+
   beforeAll(async () => {
     databaseAvailable = await skipIfNoDatabase();
     if (!databaseAvailable) {
@@ -377,11 +393,10 @@ describe('ServerAccessGuard - Multi-Token-Validierung Integration Tests (Story 4
 
       expect(response.body).toHaveProperty('data');
 
-      // Then: Kurz warten (asynchrones Update via setImmediate)
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      // Then: Auf asynchrones Update via setImmediate pollen (statt fixem Wait)
+      dbToken = await pollForTokenCondition(token.id, (t) => t.lastUsedAt !== null);
 
       // Verify lastUsedAt wurde aktualisiert
-      dbToken = await getTokenFromDb(token.id);
       expect(dbToken?.lastUsedAt).not.toBeNull();
       expect(dbToken?.lastUsedAt).toBeInstanceOf(Date);
 
@@ -404,13 +419,13 @@ describe('ServerAccessGuard - Multi-Token-Validierung Integration Tests (Story 4
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
-      // Warten auf asynchrones Update
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      const firstUsedAt = (await getTokenFromDb(token.id))?.lastUsedAt;
+      // Auf asynchrones Update pollen (statt fixem Wait)
+      const firstToken = await pollForTokenCondition(token.id, (t) => t.lastUsedAt !== null);
+      const firstUsedAt = firstToken?.lastUsedAt;
       expect(firstUsedAt).not.toBeNull();
 
-      // Kurz warten
+      // Bewusste Pause zwischen den beiden Token-Nutzungen,
+      // damit der zweite Timestamp messbar später liegt.
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Zweite Nutzung
@@ -420,10 +435,9 @@ describe('ServerAccessGuard - Multi-Token-Validierung Integration Tests (Story 4
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
-      // Warten auf asynchrones Update
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      const secondUsedAt = (await getTokenFromDb(token.id))?.lastUsedAt;
+      // Auf zweites asynchrones Update pollen: lastUsedAt > firstUsedAt
+      const secondToken = await pollForTokenCondition(token.id, (t) => t.lastUsedAt !== null && t.lastUsedAt.getTime() >= (firstUsedAt?.getTime() ?? 0));
+      const secondUsedAt = secondToken?.lastUsedAt;
       expect(secondUsedAt).not.toBeNull();
 
       // Then: secondUsedAt sollte >= firstUsedAt sein
