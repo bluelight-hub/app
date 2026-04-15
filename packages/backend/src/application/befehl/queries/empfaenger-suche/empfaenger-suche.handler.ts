@@ -39,22 +39,22 @@ export class EmpfaengerSucheQueryHandler {
   async execute(query: EmpfaengerSucheQuery): Promise<Result<EmpfaengerSucheResultDto[]>> {
     const { searchTerm, einsatzId } = query;
 
-    // Defense-in-Depth: Controller validiert bereits, Handler als Fallback fuer direkte Aufrufe
+    // Leerer Query → Top-20 Empfaenger ohne Text-Filter (für Combobox-Initial-Liste)
     const trimmedTerm = searchTerm.trim();
-    if (trimmedTerm.length < 2) {
-      return Result.ok([]);
-    }
+    const hasSearchTerm = trimmedTerm.length > 0;
 
     try {
       // 1. EinsatzPerson mit einsatzId suchen
       const einsatzPersonen = await this.prisma.einsatzPerson.findMany({
         where: {
           einsatzId,
-          OR: [
-            { vorname: { contains: trimmedTerm, mode: 'insensitive' } },
-            { nachname: { contains: trimmedTerm, mode: 'insensitive' } },
-            { funkrufname: { contains: trimmedTerm, mode: 'insensitive' } },
-          ],
+          ...(hasSearchTerm && {
+            OR: [
+              { vorname: { contains: trimmedTerm, mode: 'insensitive' } },
+              { nachname: { contains: trimmedTerm, mode: 'insensitive' } },
+              { funkrufname: { contains: trimmedTerm, mode: 'insensitive' } },
+            ],
+          }),
         },
         include: {
           qualifikationen: {
@@ -103,7 +103,9 @@ export class EmpfaengerSucheQueryHandler {
       const einsatzFahrzeuge = await this.prisma.einsatzFahrzeug.findMany({
         where: {
           einsatzId,
-          funkrufname: { contains: trimmedTerm, mode: 'insensitive' },
+          ...(hasSearchTerm && {
+            funkrufname: { contains: trimmedTerm, mode: 'insensitive' },
+          }),
         },
         select: {
           id: true,
@@ -138,7 +140,9 @@ export class EmpfaengerSucheQueryHandler {
         where: {
           id: mappedStammIds.length > 0 ? { notIn: mappedStammIds } : undefined,
           archivedAt: null,
-          OR: [{ vorname: { contains: trimmedTerm, mode: 'insensitive' } }, { nachname: { contains: trimmedTerm, mode: 'insensitive' } }],
+          ...(hasSearchTerm && {
+            OR: [{ vorname: { contains: trimmedTerm, mode: 'insensitive' } }, { nachname: { contains: trimmedTerm, mode: 'insensitive' } }],
+          }),
         },
         include: {
           qualifikationen: {

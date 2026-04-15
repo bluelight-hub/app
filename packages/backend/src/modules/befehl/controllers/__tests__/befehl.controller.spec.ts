@@ -1223,14 +1223,38 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       expect(calledQuery.einsatzId).toBe('cm5einsatzid123');
     });
 
-    it('sollte BadRequestException werfen wenn Suchbegriff zu kurz (weniger als 2 Zeichen)', async () => {
-      await expect(controller.empfaengerSuche('M', 'cm5einsatzid123')).rejects.toThrow(BadRequestException);
-      expect(mockEmpfaengerSucheQueryHandler.execute).not.toHaveBeenCalled();
+    it('sollte mit einzelnem Zeichen Handler aufrufen (keine Min-Length-Limit mehr)', async () => {
+      mockEmpfaengerSucheQueryHandler.execute.mockResolvedValue(Result.ok([]));
+
+      const result = await controller.empfaengerSuche('M', 'cm5einsatzid123');
+
+      expect(result).toEqual([]);
+      expect(mockEmpfaengerSucheQueryHandler.execute).toHaveBeenCalledTimes(1);
+      const calledQuery = mockEmpfaengerSucheQueryHandler.execute.mock.calls[0]?.[0]!;
+      expect(calledQuery.searchTerm).toBe('M');
     });
 
-    it('sollte BadRequestException werfen wenn Suchbegriff leer ist', async () => {
-      await expect(controller.empfaengerSuche('', 'cm5einsatzid123')).rejects.toThrow(BadRequestException);
-      expect(mockEmpfaengerSucheQueryHandler.execute).not.toHaveBeenCalled();
+    it('sollte bei leerem Suchbegriff Top-Empfänger laden (leerer String an Handler)', async () => {
+      mockEmpfaengerSucheQueryHandler.execute.mockResolvedValue(Result.ok([]));
+
+      const result = await controller.empfaengerSuche('', 'cm5einsatzid123');
+
+      expect(result).toEqual([]);
+      expect(mockEmpfaengerSucheQueryHandler.execute).toHaveBeenCalledTimes(1);
+      const calledQuery = mockEmpfaengerSucheQueryHandler.execute.mock.calls[0]?.[0]!;
+      expect(calledQuery.searchTerm).toBe('');
+      expect(calledQuery.einsatzId).toBe('cm5einsatzid123');
+    });
+
+    it('sollte bei undefined Suchbegriff Top-Empfänger laden', async () => {
+      mockEmpfaengerSucheQueryHandler.execute.mockResolvedValue(Result.ok([]));
+
+      // eslint-disable-next-line typescript/no-explicit-any -- bewusster undefined-Test
+      const result = await controller.empfaengerSuche(undefined as any, 'cm5einsatzid123');
+
+      expect(result).toEqual([]);
+      const calledQuery = mockEmpfaengerSucheQueryHandler.execute.mock.calls[0]?.[0]!;
+      expect(calledQuery.searchTerm).toBe('');
     });
 
     it('sollte BadRequestException werfen wenn einsatzId fehlt', async () => {
@@ -1266,9 +1290,13 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       expect(mockEmpfaengerSucheQueryHandler.execute).not.toHaveBeenCalled();
     });
 
-    it('sollte BadRequestException werfen bei Whitespace-only Suchbegriff (F7)', async () => {
-      await expect(controller.empfaengerSuche('  ', 'cm5einsatzid123')).rejects.toThrow(BadRequestException);
-      expect(mockEmpfaengerSucheQueryHandler.execute).not.toHaveBeenCalled();
+    it('sollte Whitespace-only Suchbegriff als leer behandeln (Top-Empfänger)', async () => {
+      mockEmpfaengerSucheQueryHandler.execute.mockResolvedValue(Result.ok([]));
+
+      await controller.empfaengerSuche('  ', 'cm5einsatzid123');
+
+      const calledQuery = mockEmpfaengerSucheQueryHandler.execute.mock.calls[0]?.[0]!;
+      expect(calledQuery.searchTerm).toBe('');
     });
 
     it('sollte Suchbegriff trimmen und an Handler weitergeben', async () => {

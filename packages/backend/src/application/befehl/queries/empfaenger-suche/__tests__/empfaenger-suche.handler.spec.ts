@@ -207,13 +207,42 @@ describe('EmpfaengerSucheQueryHandler', () => {
     });
   });
 
-  describe('Min-Laenge', () => {
-    it('sollte leeres Array zurueckgeben bei zu kurzem Suchbegriff', async () => {
-      const result = await handler.execute(new EmpfaengerSucheQuery('M', 'einsatz-1'));
+  describe('Leerer Suchbegriff (Top-20 ohne Filter)', () => {
+    it('sollte bei leerem Suchbegriff alle EinsatzPersonen ohne OR-Filter zurueckgeben', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([{ id: 'ep-1', vorname: 'Max', nachname: 'Meier', funkrufname: null, funktion: 'Helfer', stammId: null, qualifikationen: [] }]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([]);
+
+      const result = await handler.execute(new EmpfaengerSucheQuery('', 'einsatz-1'));
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toEqual([]);
-      expect(mockPrisma.einsatzPerson.findMany).not.toHaveBeenCalled();
+      expect(result.value).toHaveLength(1);
+
+      const epCall = mockPrisma.einsatzPerson.findMany.mock.calls[0]?.[0]!;
+      expect(epCall.where.einsatzId).toBe('einsatz-1');
+      expect(epCall.where.OR).toBeUndefined();
+    });
+
+    it('sollte bei leerem Suchbegriff Fahrzeuge ohne funkrufname-Filter laden', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([]);
+      mockPrisma.einsatzFahrzeug.findMany.mockResolvedValue([{ id: 'ef-1', funkrufname: 'Rotkreuz 83/1' }]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([]);
+
+      await handler.execute(new EmpfaengerSucheQuery('', 'einsatz-1'));
+
+      const fahrzeugCall = mockPrisma.einsatzFahrzeug.findMany.mock.calls[0]?.[0]!;
+      expect(fahrzeugCall.where.einsatzId).toBe('einsatz-1');
+      expect(fahrzeugCall.where.funkrufname).toBeUndefined();
+    });
+
+    it('sollte bei leerem Suchbegriff StammPersonen ohne OR-Filter laden', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([{ id: 'sp-1', vorname: 'Hans', nachname: 'Meier', qualifikationen: [] }]);
+
+      await handler.execute(new EmpfaengerSucheQuery('', 'einsatz-1'));
+
+      const stammCall = mockPrisma.stammPerson.findMany.mock.calls[0]?.[0]!;
+      expect(stammCall.where.archivedAt).toBeNull();
+      expect(stammCall.where.OR).toBeUndefined();
     });
   });
 
@@ -328,12 +357,16 @@ describe('EmpfaengerSucheQueryHandler', () => {
   });
 
   describe('Whitespace-Handling', () => {
-    it('sollte leeres Array zurueckgeben bei nur-Whitespace Suchbegriff', async () => {
+    it('sollte nur-Whitespace Suchbegriff als leer behandeln und alle Empfaenger laden', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([]);
+
       const result = await handler.execute(new EmpfaengerSucheQuery('  ', 'einsatz-1'));
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toEqual([]);
-      expect(mockPrisma.einsatzPerson.findMany).not.toHaveBeenCalled();
+      expect(mockPrisma.einsatzPerson.findMany).toHaveBeenCalled();
+      const epCall = mockPrisma.einsatzPerson.findMany.mock.calls[0]?.[0]!;
+      expect(epCall.where.OR).toBeUndefined();
     });
 
     it('sollte Suchbegriff trimmen vor Suche', async () => {

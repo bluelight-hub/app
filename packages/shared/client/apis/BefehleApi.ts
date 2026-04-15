@@ -90,13 +90,13 @@ export interface BefehlControllerCreateVAlphaRequest {
 }
 
 export interface BefehlControllerEmpfaengerSucheV1Request {
-    q: string;
     einsatzId: string;
+    q?: string;
 }
 
 export interface BefehlControllerEmpfaengerSucheVAlphaRequest {
-    q: string;
     einsatzId: string;
+    q?: string;
 }
 
 export interface BefehlControllerExportBefehleV1Request {
@@ -527,13 +527,6 @@ export class BefehleApi extends runtime.BaseAPI {
      * Empfaenger fuer Befehlsadressierung suchen
      */
     async befehlControllerEmpfaengerSucheV1Raw(requestParameters: BefehlControllerEmpfaengerSucheV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerEmpfaengerSucheVAlpha200Response>> {
-        if (requestParameters['q'] == null) {
-            throw new runtime.RequiredError(
-                'q',
-                'Required parameter "q" was null or undefined when calling befehlControllerEmpfaengerSucheV1().'
-            );
-        }
-
         if (requestParameters['einsatzId'] == null) {
             throw new runtime.RequiredError(
                 'einsatzId',
@@ -543,12 +536,12 @@ export class BefehleApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
-        if (requestParameters['q'] != null) {
-            queryParameters['q'] = requestParameters['q'];
-        }
-
         if (requestParameters['einsatzId'] != null) {
             queryParameters['einsatzId'] = requestParameters['einsatzId'];
+        }
+
+        if (requestParameters['q'] != null) {
+            queryParameters['q'] = requestParameters['q'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -577,13 +570,6 @@ export class BefehleApi extends runtime.BaseAPI {
      * Empfaenger fuer Befehlsadressierung suchen
      */
     async befehlControllerEmpfaengerSucheVAlphaRaw(requestParameters: BefehlControllerEmpfaengerSucheVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerEmpfaengerSucheVAlpha200Response>> {
-        if (requestParameters['q'] == null) {
-            throw new runtime.RequiredError(
-                'q',
-                'Required parameter "q" was null or undefined when calling befehlControllerEmpfaengerSucheVAlpha().'
-            );
-        }
-
         if (requestParameters['einsatzId'] == null) {
             throw new runtime.RequiredError(
                 'einsatzId',
@@ -593,12 +579,12 @@ export class BefehleApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
-        if (requestParameters['q'] != null) {
-            queryParameters['q'] = requestParameters['q'];
-        }
-
         if (requestParameters['einsatzId'] != null) {
             queryParameters['einsatzId'] = requestParameters['einsatzId'];
+        }
+
+        if (requestParameters['q'] != null) {
+            queryParameters['q'] = requestParameters['q'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
