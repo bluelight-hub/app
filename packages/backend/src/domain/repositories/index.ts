@@ -38,6 +38,9 @@ export { IEinsatzRepository } from './ieinsatz.repository';
 // Einsatztagebuch (ETB) Repository Interface
 export { IEtbRepository } from './i-etb.repository';
 
+// Funkkanal Repository Interface (Issue #407)
+export { IFunkkanalRepository, type FunkkanalReorderEntry } from './i-funkkanal.repository';
+
 // Lagekarte Repository Interface
 export { ILagekarteRepository } from './i-lagekarte.repository';
 
