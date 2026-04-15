@@ -15,6 +15,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { InfrastructureCommonModule } from '@infrastructure/common.module';
 import { EinsatzModule } from './modules/einsatz/einsatz.module';
 import { EtbModule } from './modules/etb/etb.module';
+import { FunkkanalModule } from './modules/funkkanal/funkkanal.module';
 import { HealthModule } from '@infrastructure/health/health.module';
 import { PrismaModule } from '@infrastructure/database';
 import { UserManagementModule } from './modules/user-management';
@@ -143,6 +144,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     GefahrModule, // Gefahrenmatrix (Issue #414)
     TaktischeZeichenModule, // Taktische Zeichen (DV 102) #636
     FunkkanalInfrastructureModule, // Funkkanal Infrastructure (Issue #407, Wave 2)
+    FunkkanalModule, // Funkkanal HTTP Layer (Issue #407, Wave 2 / Phase 7)
     WebsocketModule, // Einsatz-Events WebSocket-Gateway + Publisher (Issue #407, Task 18)
   ],
   controllers: [AppController],
