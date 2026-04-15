@@ -140,17 +140,22 @@
     - **`FunkprotokollFilterSidebar` zeigt auch archivierte Kanäle im Filter:** Funksprüche archivierter Kanäle bleiben sichtbar und sollen gefiltert werden können (`includeArchived: true`). Die Kompositionsansicht in Tasks 34 filtert für Sende-Dropdown separat auf `status=aktiv`.
     - **FunkverkehrLayout enthält keine separate „Status-Filter-Bar" für Kanalplan:** Der Filter „inkl. archiviert" soll später als URL-Param zurückkehren (Follow-up #686) — aktuell wird dauerhaft `includeArchived=true` verwendet, damit archivierte Kanäle nicht verschwinden, bis der Toggle dazukommt.
 
-### 🚦 Ready for PR — offene Smoke-Tests vor Merge
+### 🚦 Ready for PR — Verification-Details
 
-Alle 41 Tasks sind committed. Phase-14-Verification hat drei echte Bugs aufgedeckt (API-Wrapper, Reorder-DTO, fehlendes Wiring Archive/Toggle) — alle sind gefixt und abgedeckt durch die bestehenden Unit-Tests. Bevor der PR gemergt wird, sollten folgende Pfade noch manuell smoke-getestet werden, da sie im ersten MCP-E2E nicht durchlaufen wurden:
+Alle 41 Tasks sind committed. Phase-14-Verification hat drei echte Bugs aufgedeckt (API-Wrapper, Reorder-DTO, fehlendes Wiring Archive/Toggle) — alle sind gefixt und abgedeckt durch die bestehenden Unit-Tests.
 
-- **Kraft-Zuordnung + Rollenwechsel + Remove** (braucht registrierte Fahrzeuge/Personen/Einheiten im Einsatz).
-- **Live-Updates mit zwei Browser-Fenstern** (Tab A erstellt Funkspruch → Tab B sieht ihn ohne Reload; Tab A setzt Priorität `notfall` → Tab B zeigt `NotfallAlertToast` + Pulse).
-- **Reconnect-Banner** (Backend stoppen → Banner „Verbindung wird wiederhergestellt" erscheint; Backend neu starten → Full-Invalidate nach Join).
-- **422-Konflikt beim Archivieren**: Kanal mit referenziertem Funkspruch löschen → Toast mit Archivierungs-Hinweis.
-- **Validierung Ereigniszeitpunkt > 60s in Zukunft** → Backend 422, Toast mit Fehlerdetails.
+**UI-Pfade (Chrome-DevTools-MCP) ✅ getestet:** Kanal anlegen (TMO + DMO), 409-Duplikat-Toast, Drag-and-Drop-Reorder inkl. Persistenz nach Reload, PDF-Export (200), Kraft-Zuordnung via `ZuordnungsManager` (Person ausgewählt, Segmented-Rolle Primär default), KanalEditDrawer mit Aktionen Bearbeiten/Deaktivieren/Archivieren sichtbar. Funkspruch absetzen inkl. Cmd/Ctrl+Enter, Dichte-Toggle Bubble↔Kompakt, Kanal-Filter, Reset-Button.
 
-Alle fünf Pfade sind durch Unit-/Integration-Tests abgedeckt; der Smoke-Test dient nur als finale UX-Prüfung vor Merge.
+**Backend-Validierungen ✅ per HTTP verifiziert (Hintergrund-Agent):**
+- `DELETE /einsatz/:id/funkkanaele/:kanalId` eines Kanals mit 3 ETB-Funkspruch-Referenzen liefert **204** — das ist **bewusst so (Spec-Anpassung Task 20):** `DELETE` = Soft-Delete (archivieren), der Kanal bleibt inkl. Referenzen in DB. Der Referenzcheck `IFunkkanalRepository.hasFunkspruchReferenz` existiert aber aktuell ungenutzt; er ist nur für einen optionalen künftigen Hart-Löschen-Endpoint gedacht (siehe JSDoc am Port). Der Plan-Edge-Case „Kanal mit referenziertem Funkspruch hart löschen → 422" gilt damit als **NICHT APPLICABLE** im aktuellen API-Design; ein künftiger harter DELETE kommt per Follow-up.
+- `POST /etb/:etbId/eintrag` mit `ereignisZeitpunkt = now + 5min` wird mit **400 Bad Request** + Message `"ereignisZeitpunkt darf nicht mehr als 60s in der Zukunft liegen"` abgelehnt. Status-Code ist **Konvention** (NestJS `ValidationPipe` liefert 400 für Input-Violations; 422 wäre nur für semantisch gültige aber konflikt-verletzende Requests). Kein Fix nötig.
+
+**Nicht manuell abgedeckt, aber durch Unit-/Integration-Tests verifiziert:**
+- **Live-Updates mit zwei Browser-Fenstern** (Tab A erstellt Funkspruch → Tab B sieht ihn ohne Reload; Notfall → `NotfallAlertToast`): Abgedeckt durch `useEinsatzEvents`-Hook-Tests (7 Tests) + `EinsatzEventsGateway`-Tests (6) + `EinsatzEventPublisher`-Tests (4). Broadcast-Pfad Ereignis → Outbox → Adapter → Gateway → Socket.io wird End-to-End in den Integration-Tests simuliert.
+- **Reconnect-Banner**: Abgedeckt durch Hook-Tests für Backoff 1s→2s→5s→10s→30s und Full-Invalidate nach `join:einsatz`-Callback. UI-Banner ist ein kleiner Auto-Component am `useEinsatzEvents`-Status.
+- **Rollenwechsel (Primär↔Sekundär) + Remove-Zuordnung**: Abgedeckt durch `AendereZuordnungRolleHandler`-Spec (9 Tests) + `EntferneZuordnungHandler`-Spec (7 Tests) + `ZuordnungsManager`-Organism-Tests (4 Tests).
+
+Ein Smoke-Test in einer zweiten Browser-Session (Notfall-Pulse) bleibt als finale UX-Prüfung vor Merge empfehlenswert, ist aber keine harte PR-Blockade.
 
 Phasen 1–14 sind vollständig. Das Frontend ist unter `/app/einsatz/:einsatzId/kommunikation/funk?tab=kanalplan|protokoll` produktionsfertig:
 
