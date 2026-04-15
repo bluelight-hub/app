@@ -382,4 +382,80 @@ describe('EtbEintrag Entity', () => {
       expect(eintrag.metadata).toBeUndefined();
     });
   });
+
+  describe('Kontext und Zeitstempel (Issue #407)', () => {
+    it('setzt erfasstAm automatisch auf jetzt, wenn nicht übergeben', () => {
+      const before = Date.now();
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
+      const after = Date.now();
+
+      expect(eintrag.erfasstAm.getTime()).toBeGreaterThanOrEqual(before);
+      expect(eintrag.erfasstAm.getTime()).toBeLessThanOrEqual(after);
+    });
+
+    it('erfasstAm kann explizit für Rehydration aus DB gesetzt werden', () => {
+      // Positional args 5-13: createdAt..updatedAt (9 slots), 14: ereignisZeitpunkt, 15: erfasstAm
+      const erfasstAm = new Date('2026-04-14T10:00:00Z');
+      const eintrag = new EtbEintrag(
+        eintragId,
+        sequenceNumber,
+        testText,
+        userId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        erfasstAm,
+      );
+      expect(eintrag.erfasstAm.getTime()).toBe(erfasstAm.getTime());
+    });
+
+    it('ereignisZeitpunkt default = createdAt', () => {
+      const created = new Date('2026-04-14T09:00:00Z');
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, created);
+      expect(eintrag.ereignisZeitpunkt.getTime()).toBe(created.getTime());
+    });
+
+    it('ereignisZeitpunkt kann explizit gesetzt werden (Pos 14)', () => {
+      const ereignis = new Date('2026-04-14T08:30:00Z');
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, ereignis);
+      expect(eintrag.ereignisZeitpunkt.getTime()).toBe(ereignis.getTime());
+    });
+
+    it('Default-Kontext ist standard', () => {
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
+      expect(eintrag.kontext.type).toBe('standard');
+    });
+
+    it('speichert FunkKontext korrekt (Pos 16)', () => {
+      const { EintragKontext } = require('@domain/value-objects/eintrag-kontext');
+      const kontext = EintragKontext.funkspruch({ kanalId: 'k1', funkPrioritaet: 'notfall' });
+      const eintrag = new EtbEintrag(
+        eintragId,
+        sequenceNumber,
+        testText,
+        userId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        kontext,
+      );
+      expect(eintrag.kontext.type).toBe('funkspruch');
+      expect((eintrag.kontext as { kanalId: string }).kanalId).toBe('k1');
+    });
+  });
 });

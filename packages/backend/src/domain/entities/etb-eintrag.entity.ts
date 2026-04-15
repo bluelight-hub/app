@@ -1,4 +1,6 @@
 import type { EintragId } from '@domain/value-objects/eintrag-id';
+import type { EintragKontextShape } from '@domain/value-objects/eintrag-kontext';
+import { EintragKontext } from '@domain/value-objects/eintrag-kontext';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
 import type { EtbSequenceNumber } from '@domain/value-objects/etb-sequence-number';
 import type { UserId } from '@domain/value-objects/user-id';
@@ -37,6 +39,9 @@ export class EtbEintrag {
   private _metadata?: Record<string, unknown>;
   private readonly _korrigiertEintragId?: EintragId;
   private _korrigiertDurchId?: EintragId;
+  private readonly _ereignisZeitpunkt: Date;
+  private readonly _erfasstAm: Date;
+  private readonly _kontext: EintragKontextShape;
 
   public constructor(
     id: EintragId,
@@ -52,6 +57,9 @@ export class EtbEintrag {
     korrigiertDurchId?: EintragId,
     isDeleted?: boolean,
     updatedAt?: Date,
+    ereignisZeitpunkt?: Date,
+    erfasstAm?: Date,
+    kontext?: EintragKontextShape,
   ) {
     this._id = id;
     this._sequenceNumber = sequenceNumber;
@@ -66,6 +74,9 @@ export class EtbEintrag {
     this._korrigiertEintragId = korrigiertEintragId;
     this._korrigiertDurchId = korrigiertDurchId;
     this._updatedAt = updatedAt;
+    this._ereignisZeitpunkt = ereignisZeitpunkt ?? this._createdAt;
+    this._erfasstAm = erfasstAm ?? new Date();
+    this._kontext = kontext ?? EintragKontext.standard();
   }
 
   get id(): EintragId {
@@ -110,6 +121,21 @@ export class EtbEintrag {
 
   get metadata(): Record<string, unknown> | undefined {
     return this._metadata;
+  }
+
+  /** Fachlicher Zeitpunkt des Ereignisses (user-editierbar). Default = createdAt. */
+  get ereignisZeitpunkt(): Date {
+    return this._ereignisZeitpunkt;
+  }
+
+  /** Immutabler Zeitpunkt der Erfassung im System (wird nie verändert). */
+  get erfasstAm(): Date {
+    return this._erfasstAm;
+  }
+
+  /** Typisierter Kontext: `standard` oder `funkspruch` (Discriminated Union). */
+  get kontext(): EintragKontextShape {
+    return this._kontext;
   }
 
   /** ID des Original-Eintrags den dieser Korrektur-Eintrag korrigiert */
