@@ -1,4 +1,9 @@
 // @ts-nocheck
+// Rationale: `$queryRaw`-Return-Typen (generische Tupel) und der
+// `PrismaClient as unknown as PrismaService`-Cast am Repository-Konstruktor
+// lassen sich mit dem von Prisma generierten Client nicht vollständig typisieren.
+// Vorbild: `prisma-funkkanal.repository.integration.spec.ts` (selbes Muster,
+// Issue #407) — siehe dort identisches `@ts-nocheck`-Pragma.
 /**
  * Integration Tests für PrismaAlarmierungRepository gegen die echte PostgreSQL-DB.
  *

@@ -43,7 +43,7 @@ export class ErstelleAlarmierungHandler extends TransactionalCommandHandler<Erst
     super(prisma, outboxRepository);
   }
 
-  protected async executeInTransaction(command: ErstelleAlarmierungCommand, _tx: TransactionContext): Promise<Result<AlarmierungAggregate> | { result: AlarmierungAggregate; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: ErstelleAlarmierungCommand, tx: TransactionContext): Promise<Result<AlarmierungAggregate> | { result: AlarmierungAggregate; events: DomainEvent[] }> {
     const einsatzIdResult = EinsatzId.create(command.einsatzId);
     if (einsatzIdResult.isFailure || !einsatzIdResult.value) {
       return Result.fail<AlarmierungAggregate>(einsatzIdResult.error ?? 'Ungültige EinsatzId');
@@ -90,7 +90,7 @@ export class ErstelleAlarmierungHandler extends TransactionalCommandHandler<Erst
       }
     }
 
-    await this.alarmierungRepository.save(aggregate);
+    await this.alarmierungRepository.save(aggregate, tx);
 
     const events = aggregate.getDomainEvents();
     aggregate.clearDomainEvents();

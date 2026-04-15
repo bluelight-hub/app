@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { AlarmierungAggregate } from '@domain/aggregates/alarmierung/alarmierung.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { Alarmierung as PrismaAlarmierung, AlarmierungEmpfaenger as PrismaAlarmierungEmpfaenger } from '@/generated/prisma/client';
