@@ -407,6 +407,26 @@ export const DEFAULT_ZEICHEN_REPOSITORY = Symbol('IDefaultZeichenRepository');
 export const ZEICHEN_KATALOG_REPOSITORY = Symbol('IZeichenKatalogRepository');
 
 /**
+ * Funkkanal Tokens (Issue #407).
+ *
+ * REPOSITORY — IFunkkanalRepository Port
+ * MAPPER — PrismaFunkkanalMapper (stateless, wird i.d.R. nicht via DI gelöst)
+ * KANALPLAN_PDF_SERVICE — Task 23 (PDF-Export)
+ * EINSATZ_EVENT_PUBLISHER — WebSocket-Broadcast für den Einsatz-Room (Task 18)
+ */
+export const FUNKKANAL_TOKENS = {
+  REPOSITORY: Symbol('IFunkkanalRepository'),
+  MAPPER: Symbol('FunkkanalPrismaMapper'),
+  KANALPLAN_PDF_SERVICE: Symbol('KanalplanPdfService'),
+  EINSATZ_EVENT_PUBLISHER: Symbol('IEinsatzEventPublisher'),
+} as const;
+
+/** Flache Re-Exports analog zum bestehenden Muster (z.B. ETB_REPOSITORY). */
+export const FUNKKANAL_REPOSITORY = FUNKKANAL_TOKENS.REPOSITORY;
+export const KANALPLAN_PDF_SERVICE = FUNKKANAL_TOKENS.KANALPLAN_PDF_SERVICE;
+export const EINSATZ_EVENT_PUBLISHER = FUNKKANAL_TOKENS.EINSATZ_EVENT_PUBLISHER;
+
+/**
  * Alias für konsistente Verwendung in Application Layer.
  *
  * **Verwendung:**

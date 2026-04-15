@@ -42,6 +42,8 @@ import {
   FahrzeugEinheitZugewiesenEtbEventAdapter,
   LagekarteStateGeaendertWebsocketEventAdapter,
   ZeichenEventAdapter,
+  FunkkanalEventAdapter,
+  EtbFunkspruchBroadcastAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -171,6 +173,8 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     FahrzeugEinheitZugewiesenEtbEventAdapter, // Issue #411: FahrzeugEinheitZugewiesen ETB-Eintrag
     LagekarteStateGeaendertWebsocketEventAdapter, // Issue #638: LagekarteStateGeaendert WebSocket-Broadcast
     ZeichenEventAdapter, // Issue #636: Taktische Zeichen WebSocket-Broadcast
+    FunkkanalEventAdapter, // Issue #407: Funkkanal-Events WebSocket-Broadcast
+    EtbFunkspruchBroadcastAdapter, // Issue #407: Funkspruch-ETB-Einträge WebSocket-Broadcast
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

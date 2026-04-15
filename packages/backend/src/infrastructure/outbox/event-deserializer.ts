@@ -144,6 +144,18 @@ import { ZeichenVerschobenEvent } from '@domain/taktische-zeichen/events/zeichen
 import { ZeichenEntferntEvent } from '@domain/taktische-zeichen/events/zeichen-entfernt.event';
 import type { ZeichenDefinitionProps } from '@domain/taktische-zeichen/value-objects/zeichen-definition.vo';
 
+// Funkkanal Events (Issue #407)
+import { FunkkanalErstelltEvent, type FunkkanalErstelltPayload } from '@domain/events/funkkanal-erstellt.event';
+import { FunkkanalGeaendertEvent, type FunkkanalChangedFields } from '@domain/events/funkkanal-geaendert.event';
+import { FunkkanalArchiviertEvent } from '@domain/events/funkkanal-archiviert.event';
+import { FunkkanalReihenfolgeGeaendertEvent, type FunkkanalOrderingEntry } from '@domain/events/funkkanal-reihenfolge-geaendert.event';
+import { FunkkanalZuordnungErstelltEvent } from '@domain/events/funkkanal-zuordnung-erstellt.event';
+import { FunkkanalZuordnungEntferntEvent } from '@domain/events/funkkanal-zuordnung-entfernt.event';
+import { NotfallAlertRequestedEvent } from '@domain/events/notfall-alert-requested.event';
+import { FunkkanalId } from '@domain/value-objects/funkkanal-id';
+import { FunkkanalZuordnungId } from '@domain/value-objects/funkkanal-zuordnung-id';
+import type { FunkkanalZuordnungKraftRef, FunkkanalRolle } from '@domain/aggregates/funkkanal/funkkanal-zuordnung.entity';
+
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
 import { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
@@ -373,6 +385,15 @@ export class EventDeserializer {
       ['taktisches_zeichen.verschoben', deserializeZeichenVerschoben],
       ['taktisches_zeichen.aktualisiert', deserializeZeichenErstellt],
       ['taktisches_zeichen.entfernt', deserializeZeichenEntfernt],
+
+      // ===== FUNKKANAL EVENTS (Issue #407) =====
+      ['funkkanal.erstellt', deserializeFunkkanalErstellt],
+      ['funkkanal.geaendert', deserializeFunkkanalGeaendert],
+      ['funkkanal.archiviert', deserializeFunkkanalArchiviert],
+      ['funkkanal.reihenfolge_geaendert', deserializeFunkkanalReihenfolgeGeaendert],
+      ['funkkanal.zuordnung_erstellt', deserializeFunkkanalZuordnungErstellt],
+      ['funkkanal.zuordnung_entfernt', deserializeFunkkanalZuordnungEntfernt],
+      ['funk.notfall_alert_requested', deserializeNotfallAlertRequested],
     ]);
   }
 
@@ -2291,5 +2312,84 @@ function deserializeZeichenVerschoben(payload: Record<string, unknown>, aggregat
  */
 function deserializeZeichenEntfernt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
   const event = new ZeichenEntferntEvent(payload.zeichenId as string, payload.einsatzId as string, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== FUNKKANAL DESERIALIZERS (Issue #407) =====
+
+function makeFunkkanalId(raw: unknown): FunkkanalId {
+  const r = FunkkanalId.create(raw as string);
+  if (r.isFailure) {
+    throw new Error(`Invalid funkkanalId: ${r.error}`);
+  }
+  return r.value as FunkkanalId;
+}
+
+function makeEinsatzIdDeser(raw: unknown): EinsatzId {
+  const r = EinsatzId.create(raw as string);
+  if (r.isFailure) {
+    throw new Error(`Invalid einsatzId: ${r.error}`);
+  }
+  return r.value as EinsatzId;
+}
+
+function deserializeFunkkanalErstellt(payload: Record<string, unknown>): Result<DomainEvent> {
+  const event = new FunkkanalErstelltEvent(makeFunkkanalId(payload.funkkanalId), makeEinsatzIdDeser(payload.einsatzId), payload.data as FunkkanalErstelltPayload);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeFunkkanalGeaendert(payload: Record<string, unknown>): Result<DomainEvent> {
+  const event = new FunkkanalGeaendertEvent(makeFunkkanalId(payload.funkkanalId), makeEinsatzIdDeser(payload.einsatzId), (payload.changedFields ?? {}) as FunkkanalChangedFields);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeFunkkanalArchiviert(payload: Record<string, unknown>): Result<DomainEvent> {
+  const event = new FunkkanalArchiviertEvent(makeFunkkanalId(payload.funkkanalId), makeEinsatzIdDeser(payload.einsatzId));
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeFunkkanalReihenfolgeGeaendert(payload: Record<string, unknown>): Result<DomainEvent> {
+  const ordering = (payload.ordering ?? []) as FunkkanalOrderingEntry[];
+  const event = new FunkkanalReihenfolgeGeaendertEvent(makeEinsatzIdDeser(payload.einsatzId), ordering);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeFunkkanalZuordnungErstellt(payload: Record<string, unknown>): Result<DomainEvent> {
+  const zuordnungIdR = FunkkanalZuordnungId.create(payload.zuordnungId as string);
+  if (zuordnungIdR.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid zuordnungId: ${zuordnungIdR.error}`);
+  }
+  const event = new FunkkanalZuordnungErstelltEvent(
+    makeFunkkanalId(payload.funkkanalId),
+    makeEinsatzIdDeser(payload.einsatzId),
+    zuordnungIdR.value as FunkkanalZuordnungId,
+    payload.kraftRef as FunkkanalZuordnungKraftRef,
+    payload.rufnameSnapshot as string,
+    payload.rolle as FunkkanalRolle,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeFunkkanalZuordnungEntfernt(payload: Record<string, unknown>): Result<DomainEvent> {
+  const zuordnungIdR = FunkkanalZuordnungId.create(payload.zuordnungId as string);
+  if (zuordnungIdR.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid zuordnungId: ${zuordnungIdR.error}`);
+  }
+  const event = new FunkkanalZuordnungEntferntEvent(makeFunkkanalId(payload.funkkanalId), makeEinsatzIdDeser(payload.einsatzId), zuordnungIdR.value as FunkkanalZuordnungId);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeNotfallAlertRequested(payload: Record<string, unknown>): Result<DomainEvent> {
+  const eintragIdR = EintragId.create(payload.funkspruchEintragId as string);
+  if (eintragIdR.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid funkspruchEintragId: ${eintragIdR.error}`);
+  }
+  const event = new NotfallAlertRequestedEvent(
+    makeEinsatzIdDeser(payload.einsatzId),
+    makeFunkkanalId(payload.funkkanalId),
+    eintragIdR.value as EintragId,
+    payload.text as string,
+    (payload.absender as string | null) ?? undefined,
+  );
   return Result.ok<DomainEvent>(event);
 }

@@ -2280,7 +2280,8 @@ describe('EventDeserializer', () => {
       // + GefahrenmatrixAktualisiert (Issue #414)
       // + LagekarteStateUpdated (#638)
       // + TaktischesZeichen: Erstellt, Platziert, Verschoben, Aktualisiert, Entfernt (Issue #636)
-      expect(supportedTypes).toHaveLength(95);
+      // + Funkkanal: Erstellt, Geaendert, Archiviert, Reihenfolge_Geaendert, Zuordnung_Erstellt, Zuordnung_Entfernt + NotfallAlertRequested (Issue #407)
+      expect(supportedTypes).toHaveLength(102);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
@@ -2311,6 +2312,14 @@ describe('EventDeserializer', () => {
       expect(supportedTypes).toContain('einsatz_einheit.person_zugewiesen');
       expect(supportedTypes).toContain('einsatz_einheit.person_entfernt');
       expect(supportedTypes).toContain('einsatz_fahrzeug.einheit_zugewiesen');
+      // Funkkanal Events (Issue #407)
+      expect(supportedTypes).toContain('funkkanal.erstellt');
+      expect(supportedTypes).toContain('funkkanal.geaendert');
+      expect(supportedTypes).toContain('funkkanal.archiviert');
+      expect(supportedTypes).toContain('funkkanal.reihenfolge_geaendert');
+      expect(supportedTypes).toContain('funkkanal.zuordnung_erstellt');
+      expect(supportedTypes).toContain('funkkanal.zuordnung_entfernt');
+      expect(supportedTypes).toContain('funk.notfall_alert_requested');
     });
   });
 
