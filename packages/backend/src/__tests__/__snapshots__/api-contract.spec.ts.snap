@@ -1265,6 +1265,18 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "nullable": true,
             "type": "string",
           },
+          "ereignisZeitpunkt": {
+            "description": "Fachlicher Ereignis-Zeitstempel (überschreibt timestamp wenn explizit gesetzt)",
+            "example": "2024-01-15T11:55:00.000Z",
+            "format": "date-time",
+            "type": "string",
+          },
+          "erfasstAm": {
+            "description": "Technischer Erfassungszeitstempel (entspricht meist createdAt)",
+            "example": "2024-01-15T12:00:00.000Z",
+            "format": "date-time",
+            "type": "string",
+          },
           "id": {
             "description": "Eindeutige Eintrags-ID (CUID)",
             "example": "clw3h8x9y0000qwertyuiopas",
@@ -1310,6 +1322,24 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             ],
             "example": "LAGE",
             "type": "string",
+          },
+          "kontext": {
+            "description": "Eintrag-Kontext (discriminated union: standard | funkspruch)",
+            "discriminator": {
+              "mapping": {
+                "funkspruch": "#/components/schemas/FunkKontextDto",
+                "standard": "#/components/schemas/StandardKontextDto",
+              },
+              "propertyName": "type",
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/StandardKontextDto",
+              },
+              {
+                "$ref": "#/components/schemas/FunkKontextDto",
+              },
+            ],
           },
           "korrigiertDurchId": {
             "description": "ID des Korrektur-Eintrags der diesen Eintrag ersetzt",
@@ -1401,6 +1431,9 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "isDeleted",
           "isKorrektur",
           "isKorrigiert",
+          "ereignisZeitpunkt",
+          "erfasstAm",
+          "kontext",
         ],
         "type": "object",
       },
@@ -1533,6 +1566,38 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         "required": [
           "versionNumber",
           "timestamp",
+        ],
+        "type": "object",
+      },
+      "FunkKontextDto": {
+        "properties": {
+          "funkPrioritaet": {
+            "description": "Priorität des Funkspruchs",
+            "enum": [
+              "routine",
+              "prioritaet",
+              "notfall",
+            ],
+            "example": "routine",
+            "type": "string",
+          },
+          "kanalId": {
+            "description": "Referenzierter Funkkanal",
+            "example": "clkanal...",
+            "type": "string",
+          },
+          "type": {
+            "enum": [
+              "funkspruch",
+            ],
+            "example": "funkspruch",
+            "type": "string",
+          },
+        },
+        "required": [
+          "type",
+          "kanalId",
+          "funkPrioritaet",
         ],
         "type": "object",
       },
@@ -1831,6 +1896,21 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         "required": [
           "userId",
           "rolle",
+        ],
+        "type": "object",
+      },
+      "StandardKontextDto": {
+        "properties": {
+          "type": {
+            "enum": [
+              "standard",
+            ],
+            "example": "standard",
+            "type": "string",
+          },
+        },
+        "required": [
+          "type",
         ],
         "type": "object",
       },
