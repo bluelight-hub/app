@@ -92,6 +92,7 @@ Das Backend implementiert eine **Hexagonale Architektur** (Ports & Adapters) mit
 | **LagekarteAggregate** | Active (kein Lifecycle) | Unique POI-Namen pro Lagekarte, MGRS primary | LagekarteCreatedEvent, PoiAddedEvent, PoiRemovedEvent |
 | **UserAggregate** | Active/Locked/Deleted | Min-1-SUPER_ADMIN, RBAC, Soft-delete | UserCreatedEvent, UserDeletedEvent, UserRoleChangedEvent |
 | **Befehl** | ERTEILT -> ZUGESTELLT -> QUITTIERT / KORRIGIERT | Append-Only (GoBD-Compliance), Alle Empfaenger muessen zustellen/quittieren fuer Status-Transition, QUITTIERT/KORRIGIERT = final | BefehlErstelltEvent, BefehlZugestelltEvent, BefehlStatusGeaendertEvent, BefehlKommentarHinzugefuegtEvent, BefehlQuittiertEvent |
+| **FunkkanalAggregate** (Neu, Issue #407) | aktiv <-> inaktiv, aktiv -> archiviert | Genau eine Kraft pro Zuordnung (Check-Constraint), keine doppelte Kraft je Kanal, archiviert = Mutation gesperrt | FunkkanalErstelltEvent, FunkkanalGeaendertEvent, FunkkanalArchiviertEvent, FunkkanalReihenfolgeGeaendertEvent, FunkkanalZuordnungErstelltEvent, FunkkanalZuordnungEntferntEvent |
 
 #### Befehl Aggregate (Neu: Fuehrungsbefehle im Einsatz)
 
@@ -139,6 +140,45 @@ KORRIGIERT ◄─────┘
 - Korrigierter Befehl kann nicht mehr zugestellt oder quittiert werden
 - Befehle koennen NIEMALS geloescht werden (Append-Only, GoBD-Compliance)
 - Kommentare unterstuetzen Thread-Antworten via parentId (Parent muss existieren)
+
+#### Funkkanal Aggregate (Neu: Issue #407 Funkverkehr)
+
+Das **Funkkanal Aggregate** (`domain/aggregates/funkkanal/funkkanal.aggregate.ts`) modelliert die Sprechgruppen und Kanäle eines Einsatzes (Kanalplan) und ihre Kraft-Zuordnungen (Fahrzeug, Person, EinsatzEinheit).
+
+**Lifecycle:**
+
+```
+aktiv  ◀────▶  inaktiv
+  │
+  ▼
+archiviert  (Mutationen gesperrt; Hard-Delete nur wenn keine
+             Funkspruch-ETB-Einträge den Kanal referenzieren)
+```
+
+**Child Entities:**
+
+| Entity | Zweck | Persistierung |
+|--------|-------|---------------|
+| `FunkkanalZuordnung` | Verbindung Kanal ↔ Kraft (Fahrzeug / Person / Einheit) + Rolle + Rufname-Snapshot | Via Aggregat (eigene Tabelle `funkkanal_zuordnung` mit 3 nullable FKs + Check-Constraint) |
+
+**KanalDetails (Discriminated Union VO):** `tmo` (Sprechgruppe + optional GSSI) · `dmo` (DMO-Kanal + optional Repeater) · `analog` (Band 4m/2m + Frequenz + optional Kanalnummer). Serialisierung über `detailsType` (String) + `detailsData` (JSONB).
+
+**FunkkanalZuordnungKraftRef:** Discriminated Union `fahrzeug | person | einheit` — der Mapper schreibt exakt einen der drei FKs, der DB-Check-Constraint `funkkanal_zuordnung_genau_eine_kraft` erzwingt die Exklusivität.
+
+**Business Rules:**
+
+- Kanalname ist erforderlich und pro Einsatz eindeutig (Repository-seitig validiert, siehe Task 11)
+- `sortIndex ≥ 0`, Reihenfolge wird pro Einsatz via `FunkkanalReihenfolgeGeaendertEvent` neu gesetzt
+- Eine Kraft darf innerhalb eines Kanals nur einmal zugeordnet sein
+- Archivierter Kanal lehnt alle mutierenden Methoden mit `Result.fail` ab
+- Notfall-Funksprüche (Priorität `notfall`) lösen via `NotfallAlertRequestedEvent` einen WebSocket-Broadcast aus — triggert sich aus `EintragAddedEvent` mit `FunkKontext` (kein eigenes Command)
+
+**Referenzen:**
+
+- [ADR-005: ETB-Kontext Discriminated Union](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-005-etb-eintrag-kontext-discriminated-union.md)
+- [ADR-006: WebSocket-Bus einsatz-scoped](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-006-websocket-event-bus-einsatz-scoped.md)
+- [ADR-007: Funkkanal als Aggregat](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-007-funkkanal-als-aggregat.md)
+- [ADR-008: Polymorphe Zuordnung via nullable FKs](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-008-polymorphe-zuordnung-nullable-fks.md)
 
 #### Kraefte-Subdomain Aggregates
 
@@ -977,6 +1017,57 @@ POST /befehle/:id/quittieren
 │          quittierungArt, nummer,    │
 │          quittiertAm               │
 └─────────────────────────────────────┘
+```
+
+### Funkspruch mit Notfall-Prioritaet Flow (Neu: Issue #407)
+
+```
+POST /einsatz/:einsatzId/etb/eintraege
+     body: { text, kontext: { type: 'funkspruch', kanalId,
+             funkPrioritaet: 'notfall', ... }, ereignisZeitpunkt }
+            │
+            ▼
+┌─────────────────────────────────────┐
+│ AddEintragCommand (Handler + TX)    │
+│ - Load EinsatztagebuchAggregate     │
+│ - etb.addEintrag(text, user, ...,   │
+│   { ereignisZeitpunkt, kontext })   │
+│ - Erzeugt EintragAddedEvent mit     │
+│   kontext.type='funkspruch'         │
+│ - Atomar: Save + Outbox             │
+└─────────────────────────────────────┘
+            │
+            ▼ (via Outbox → EventBus)
+┌─────────────────────────────────────┐
+│ FunkNotfallHandler                  │
+│ @OnEvent(etb.eintrag_added)         │
+│ - Nur wenn kontext.funkPrioritaet   │
+│   === 'notfall'                     │
+│ - Emittiert                         │
+│   NotfallAlertRequestedEvent        │
+│   (einsatzId, kanalId, eintragId,   │
+│   text, absender)                   │
+└─────────────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────────────┐
+│ EinsatzEventAdapter                 │
+│ @OnEvent(funk.notfall_alert_        │
+│           requested)                │
+│ - broadcast('funk:notfall-alert',   │
+│   payload) an Room einsatz:{id}     │
+└─────────────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────────────┐
+│ WebSocket-Clients                   │
+│ NotfallAlertToast + Puls-Animation  │
+└─────────────────────────────────────┘
+
+Parallel: EtbFunkspruchBroadcastAdapter hört auf EintragAddedEvent
+und sendet generischen 'etb:eintrag-erstellt'-Broadcast, damit das
+Funkprotokoll sofort aktualisiert wird (Cache-Invalidation via TanStack
+Query).
 ```
 
 ### FMS Status Update Flow
