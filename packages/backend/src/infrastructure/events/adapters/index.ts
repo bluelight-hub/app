@@ -59,3 +59,4 @@ export * from './lagekarte-state-geaendert-websocket-event.adapter';
 export * from './zeichen-event.adapter';
 export * from './funkkanal-event.adapter';
 export * from './etb-funkspruch-broadcast-event.adapter';
+export * from './notfall-funkspruch-alert-event.adapter';
