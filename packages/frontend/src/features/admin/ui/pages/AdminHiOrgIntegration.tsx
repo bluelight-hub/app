@@ -14,6 +14,7 @@ import { Skeleton } from '@/shared/ui/atoms/skeleton';
 import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { InlineConfirmation } from '@/shared/ui/atoms/InlineConfirmation.atom';
+import { RadioGroup } from '@/shared/ui/atoms/radio-group.atom';
 import { useInlineConfirmation } from '@/shared/ui/hooks/use-inline-confirmation';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { QualifikationMappingDialog } from '../organisms/QualifikationMappingDialog';
@@ -570,34 +571,30 @@ export function AdminHiOrgIntegration() {
                   </Text>
                   <div className="mt-3 space-y-2">
                     <Text className="text-sm text-amber-700 dark:text-amber-300">Wie soll mit Duplikaten umgegangen werden?</Text>
-                    <div className="space-y-2">
-                      <label className="flex cursor-pointer items-center gap-3">
-                        <input
-                          type="radio"
-                          name="duplicateStrategy"
-                          value="skip"
-                          checked={duplicateStrategy === 'skip'}
-                          onChange={() => setDuplicateStrategy('skip')}
-                          className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm">
-                          <strong>Überspringen</strong> - Nur neue Personen importieren
-                        </span>
-                      </label>
-                      <label className="flex cursor-pointer items-center gap-3">
-                        <input
-                          type="radio"
-                          name="duplicateStrategy"
-                          value="update"
-                          checked={duplicateStrategy === 'update'}
-                          onChange={() => setDuplicateStrategy('update')}
-                          className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm">
-                          <strong>Aktualisieren</strong> - Daten überschreiben
-                        </span>
-                      </label>
-                    </div>
+                    <RadioGroup
+                      orientation="vertical"
+                      value={duplicateStrategy}
+                      onChange={setDuplicateStrategy}
+                      aria-label="Duplikat-Strategie"
+                      options={[
+                        {
+                          value: 'skip',
+                          label: (
+                            <span>
+                              <strong>Überspringen</strong> - Nur neue Personen importieren
+                            </span>
+                          ),
+                        },
+                        {
+                          value: 'update',
+                          label: (
+                            <span>
+                              <strong>Aktualisieren</strong> - Daten überschreiben
+                            </span>
+                          ),
+                        },
+                      ]}
+                    />
                   </div>
                 </div>
               )}

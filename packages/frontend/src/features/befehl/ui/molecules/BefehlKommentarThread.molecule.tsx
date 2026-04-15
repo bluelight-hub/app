@@ -10,6 +10,7 @@ import { useCurrentUser } from '@/features/auth/api';
 import { useAddBefehlKommentar } from '../../api/use-add-befehl-kommentar';
 import { addBefehlKommentarSchema } from '../../schemas/add-befehl-kommentar.schema';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { cn } from '@/shared/ui/cn';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
@@ -103,7 +104,7 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
           <form.Field name="text">
             {(field) => (
               <div className="flex-1">
-                <textarea
+                <Textarea
                   ref={textareaRef}
                   value={field.state.value}
                   onChange={(e) => {
@@ -122,12 +123,8 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
                   placeholder="Kommentar schreiben..."
                   aria-label="Kommentar schreiben"
                   rows={1}
-                  className={cn(
-                    'w-full resize-none rounded-md border bg-surface-panel px-3 py-1.5 text-sm text-text-primary transition-colors',
-                    'placeholder:text-text-muted',
-                    'border-border-subtle hover:border-border-strong focus:border-action-primary focus-visible:shadow-focus-ring',
-                    'focus:outline-none',
-                  )}
+                  fullWidth
+                  className="min-h-0"
                 />
                 {field.state.meta.errors?.length > 0 && <p className="mt-1 text-xs text-status-danger-text">{field.state.meta.errors[0]}</p>}
               </div>

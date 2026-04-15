@@ -87,14 +87,14 @@ describe('EmpfaengerCombobox', () => {
   });
 
   describe('Typeahead / Suche', () => {
-    it('zeigt Hinweis bei weniger als 2 Zeichen', async () => {
-      const user = userEvent.setup();
+    it('laedt Top-Empfänger direkt ohne Eingabe (leerer Query)', async () => {
       renderWithQuery(<EmpfaengerCombobox einsatzId={EINSATZ_ID} value={[]} onChange={onChange} />);
 
-      await user.type(screen.getByPlaceholderText('Empfänger suchen...'), 'M');
-
       await waitFor(() => {
-        expect(screen.getByText('Mind. 2 Zeichen für Vorschläge')).toBeInTheDocument();
+        expect(mockEmpfaengerSuche).toHaveBeenCalledWith({
+          q: '',
+          einsatzId: EINSATZ_ID,
+        });
       });
     });
 

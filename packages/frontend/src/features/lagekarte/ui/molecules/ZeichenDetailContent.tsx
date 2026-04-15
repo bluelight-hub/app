@@ -13,6 +13,8 @@ import { ZeichenPreview } from '@/features/taktische-zeichen';
 import type { ZeichenDefinition } from '@/features/taktische-zeichen';
 import { useEinsatzEinheiten, useEinsatzFahrzeuge } from '@/features/kraefte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { useUserNames } from '@/features/auth/api/use-users';
 
 /** Labels für die Kompositions-Felder */
@@ -116,28 +118,22 @@ export function ZeichenDetailContent({ zeichen, einsatzId, onUpdateLabel, onUpda
               <label htmlFor="zeichen-label" className="text-xs text-text-muted">
                 Label
               </label>
-              <input
+              <Input
                 id="zeichen-label"
                 type="text"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="Bezeichnung eingeben..."
                 disabled={!!zeichen.referenzTyp}
-                className="mt-0.5 w-full rounded-md border border-border-subtle bg-surface-raised px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                fullWidth
+                className="mt-0.5"
               />
             </div>
             <div>
               <label htmlFor="zeichen-notiz" className="text-xs text-text-muted">
                 Notiz
               </label>
-              <textarea
-                id="zeichen-notiz"
-                value={notiz}
-                onChange={(e) => setNotiz(e.target.value)}
-                placeholder="Notiz hinzufügen..."
-                rows={3}
-                className="mt-0.5 w-full resize-y rounded-md border border-border-subtle bg-surface-raised px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none"
-              />
+              <Textarea id="zeichen-notiz" value={notiz} onChange={(e) => setNotiz(e.target.value)} placeholder="Notiz hinzufügen..." rows={3} fullWidth className="mt-0.5 resize-y" />
             </div>
           </div>
         </div>

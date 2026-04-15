@@ -15,7 +15,7 @@ import { useMemo } from 'react';
  * Diese Vorschläge werden für BEIDE Felder (Absender und Empfänger) verwendet,
  * da sowohl Absender als auch Empfänger typische Rollen sein können.
  */
-const DEFAULT_ROLE_SUGGESTIONS: ComboboxItem[] = [
+export const DEFAULT_ROLE_SUGGESTIONS: ComboboxItem[] = [
   { value: 'Leitstelle', label: 'Leitstelle' },
   { value: 'EL', label: 'EL (Einsatzleiter)' },
   { value: 'ZF', label: 'ZF (Zugführer)' },

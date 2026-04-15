@@ -1,4 +1,5 @@
 import { Badge } from '@/shared/ui/atoms/badge.atom';
+import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
 import { DataTable } from '@/shared/ui/organisms/data-table.organism';
 import type { ManagedUserResponseDto } from '@/shared';
@@ -177,10 +178,13 @@ export const UsersTable = ({
           <option value="EXTERNE">Externe</option>
         </select>
       </div>
-      <label className="mt-4 flex items-center gap-2 text-sm text-text-secondary">
-        <input type="checkbox" checked={showOnlyWithoutStammperson} onChange={(e) => onShowOnlyWithoutStammpersonChange(e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
-        Nur ohne Stammperson
-      </label>
+      <Checkbox
+        checked={showOnlyWithoutStammperson}
+        onChange={onShowOnlyWithoutStammpersonChange}
+        label="Nur ohne Stammperson"
+        containerClassName="mt-4 gap-2"
+        labelClassName="text-sm text-text-secondary"
+      />
     </div>
   );
 

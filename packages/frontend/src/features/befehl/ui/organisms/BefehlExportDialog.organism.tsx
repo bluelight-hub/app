@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { PiTable, PiFileText, PiExport } from 'react-icons/pi';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { RadioGroup } from '@/shared/ui/atoms/radio-group.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { cn } from '@/shared/ui/cn';
 import { useExportBefehle } from '../../api/use-export-befehle';
 
 type ExportFormat = 'csv' | 'json';
@@ -74,41 +74,19 @@ export function BefehlExportDialog({ isOpen, onClose, einsatzId }: BefehlExportD
       <Dialog.Body>
         <p className="mb-4 text-sm text-text-secondary">Wählen Sie das gewünschte Exportformat:</p>
 
-        <div className="space-y-2" role="radiogroup" aria-label="Exportformat wählen">
-          {FORMAT_OPTIONS.map((option) => {
-            const isSelected = selectedFormat === option.value;
-            const Icon = option.icon;
-
-            return (
-              <label
-                key={option.value}
-                aria-label={option.label}
-                className={cn(
-                  'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
-                  isSelected ? 'border-action-primary bg-action-secondary' : 'border-border-subtle bg-surface-panel hover:border-border-strong hover:bg-action-secondary',
-                  isExporting && 'pointer-events-none opacity-50',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="export-format"
-                  value={option.value}
-                  checked={isSelected}
-                  onChange={() => setSelectedFormat(option.value)}
-                  disabled={isExporting}
-                  className="mt-1 h-4 w-4 border-border-subtle text-action-primary focus-visible:shadow-focus-ring"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <Icon className={cn('h-4 w-4', isSelected ? 'text-action-primary' : 'text-text-muted')} />
-                    <span className={cn('text-sm font-medium', isSelected ? 'text-action-primary' : 'text-text-primary')}>{option.label}</span>
-                  </div>
-                  <p className="mt-0.5 text-xs text-text-muted">{option.description}</p>
-                </div>
-              </label>
-            );
-          })}
-        </div>
+        <RadioGroup
+          variant="card"
+          value={selectedFormat}
+          onChange={setSelectedFormat}
+          disabled={isExporting}
+          aria-label="Exportformat wählen"
+          options={FORMAT_OPTIONS.map((option) => ({
+            value: option.value,
+            label: option.label,
+            description: option.description,
+            icon: <option.icon className="h-4 w-4" />,
+          }))}
+        />
       </Dialog.Body>
 
       <Dialog.Footer loading={isExporting}>

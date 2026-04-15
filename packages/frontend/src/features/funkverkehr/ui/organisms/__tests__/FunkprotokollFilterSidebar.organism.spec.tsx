@@ -40,7 +40,7 @@ describe('FunkprotokollFilterSidebar', () => {
     const client = makeClient();
     render(<FunkprotokollFilterSidebar einsatzId="e1" />, { wrapper: wrapper(client) });
 
-    const checkbox = await screen.findByRole('checkbox', { name: /Kanal Kanal Alpha/i });
+    const checkbox = await screen.findByRole('checkbox', { name: 'Kanal Alpha' });
     fireEvent.click(checkbox);
 
     expect(getFilterForEinsatz('e1').kanalIds).toEqual(['k1']);

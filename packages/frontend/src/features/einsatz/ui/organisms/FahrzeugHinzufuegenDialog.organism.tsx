@@ -12,6 +12,7 @@
 import { useEinsatzFahrzeuge, useErfasseFahrzeugAusStammdaten, useErfasseTemporalesFahrzeug, useFahrzeugtypen, useStammFahrzeuge } from '@/features/einsatz/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
@@ -333,6 +334,12 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                       onChange={(e) => debouncedSetQuery(e.target.value)}
                       displayValue={(fz: StammFahrzeugDto | null) => (fz ? fz.funkrufname : '')}
                       autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      data-1p-ignore="true"
+                      data-lpignore="true"
+                      data-form-type="other"
                     />
                     <ComboboxButton className="absolute inset-y-0 right-0 flex items-center px-3">
                       {isLoadingStamm ? <InlineSpinner size="sm" /> : <PiCaretDown className="h-5 w-5 text-text-muted" aria-hidden="true" />}
@@ -434,23 +441,15 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   <temporalForm.Field name="funkrufname">
                     {(field) => (
                       <FormField label="Funkrufname" required error={getFormErrors(field.state.meta.errors)} helperText="Eindeutiger Funkrufname für diesen Einsatz">
-                        <input
+                        <Input
                           type="text"
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           disabled={erfasseTemporales.isPending}
                           placeholder="z.B. Florian Stuttgart 44-1"
-                          className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
-                            'transition-all duration-200',
-                            'border-border-subtle',
-                            'placeholder:text-text-muted',
-                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
-                            'sm:text-sm',
-                            'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
-                          )}
+                          fullWidth
+                          variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                         />
                       </FormField>
                     )}
@@ -490,23 +489,15 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   <temporalForm.Field name="kennzeichen">
                     {(field) => (
                       <FormField label="Kennzeichen" error={getFormErrors(field.state.meta.errors)} helperText="Optional: Amtliches Kennzeichen">
-                        <input
+                        <Input
                           type="text"
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
                           disabled={erfasseTemporales.isPending}
                           placeholder="z.B. S-FW 1234"
-                          className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
-                            'transition-all duration-200',
-                            'border-border-subtle',
-                            'placeholder:text-text-muted',
-                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
-                            'sm:text-sm',
-                            'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
-                          )}
+                          fullWidth
+                          variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                         />
                       </FormField>
                     )}

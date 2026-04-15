@@ -14,6 +14,7 @@ export * from './label.atom';
 export * from './form-field.atom';
 export * from './switch.atom';
 export * from './checkbox.atom';
+export * from './radio-group.atom';
 
 // Navigation
 export * from './DynamicLink';

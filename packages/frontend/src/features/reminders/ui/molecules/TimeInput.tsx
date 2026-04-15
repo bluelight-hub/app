@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { cn } from '@/shared/ui/cn';
 import type { CustomTime } from '@/features/reminders';
 
@@ -47,12 +48,8 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
   const [hoursInput, setHoursInput] = useState<string | null>(null);
   const [minutesInput, setMinutesInput] = useState<string | null>(null);
 
-  const baseInputStyles = cn(
-    'w-14 rounded-control border bg-surface-panel px-2 py-2.5 text-center font-medium text-text-primary transition-colors duration-200',
-    'focus:outline-none focus-visible:shadow-focus-ring',
-    'disabled:cursor-not-allowed disabled:opacity-50',
-    error ? 'border-status-danger-border hover:border-status-danger-text focus:border-status-danger-text' : 'border-border-subtle hover:border-border-strong focus:border-action-primary',
-  );
+  const baseInputStyles = 'w-14 px-2 py-2.5 text-center';
+  const inputVariant = error ? 'error' : 'default';
 
   const handleHoursChange = useCallback(
     (inputValue: string) => {
@@ -127,7 +124,7 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
 
   return (
     <div className={cn('flex items-center gap-1', className)}>
-      <input
+      <Input
         id={id}
         type="text"
         inputMode="numeric"
@@ -135,6 +132,7 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
         maxLength={2}
         aria-label="Stunden"
         placeholder="HH"
+        variant={inputVariant}
         className={baseInputStyles}
         value={displayHours}
         onChange={(e) => handleHoursChange(e.target.value)}
@@ -143,7 +141,7 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
         disabled={disabled}
       />
       <span className="text-lg font-medium text-text-muted">:</span>
-      <input
+      <Input
         ref={minutesRef}
         type="text"
         inputMode="numeric"
@@ -151,6 +149,7 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
         maxLength={2}
         aria-label="Minuten"
         placeholder="MM"
+        variant={inputVariant}
         className={baseInputStyles}
         value={displayMinutes}
         onChange={(e) => handleMinutesChange(e.target.value)}

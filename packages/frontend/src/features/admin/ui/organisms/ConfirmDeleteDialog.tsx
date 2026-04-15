@@ -2,6 +2,7 @@ import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { Label } from '@/shared/ui/atoms/label.atom';
+import { RadioGroup, type RadioOption } from '@/shared/ui/atoms/radio-group.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { ManagedUserResponseDtoRoleEnum } from '@/shared';
 import { useState } from 'react';
@@ -67,69 +68,38 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
             <div className="space-y-3">
               {' '}
               <Label>Aktion auswählen:</Label>{' '}
-              <div className="space-y-2">
-                {' '}
-                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised">
-                  {' '}
-                  <input
-                    type="radio"
-                    name="action"
-                    value="delete"
-                    checked={selectedAction === 'delete'}
-                    onChange={(e) => setSelectedAction(e.target.value as UserActionType)}
-                    className="h-4 w-4 text-status-danger-text"
-                  />{' '}
-                  <div className="flex flex-1 items-center space-x-2">
-                    {' '}
-                    <PiUserMinus className="h-5 w-5 text-status-danger-text" />{' '}
-                    <div>
-                      {' '}
-                      <p className="text-sm font-medium">Löschen (Soft Delete)</p>{' '}
-                      <p className="text-xs text-text-muted">{isAdmin ? 'Deaktivieren + zu User herabstufen (reaktivierbar)' : 'Benutzer deaktivieren (reaktivierbar)'}</p>{' '}
-                    </div>{' '}
-                  </div>{' '}
-                </label>{' '}
-                {isAdmin && (
-                  <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised">
-                    {' '}
-                    <input
-                      type="radio"
-                      name="action"
-                      value="downgrade"
-                      checked={selectedAction === 'downgrade'}
-                      onChange={(e) => setSelectedAction(e.target.value as UserActionType)}
-                      className="h-4 w-4 text-status-warning-text"
-                    />{' '}
-                    <div className="flex flex-1 items-center space-x-2">
-                      {' '}
-                      <PiShieldWarning className="h-5 w-5 text-status-warning-text" />{' '}
-                      <div>
-                        {' '}
-                        <p className="text-sm font-medium">Zu User herabstufen (aktiv)</p> <p className="text-xs text-text-muted">Admin-Rechte entfernen, als User aktiv bleiben</p>{' '}
-                      </div>{' '}
-                    </div>{' '}
-                  </label>
-                )}{' '}
-                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised">
-                  {' '}
-                  <input
-                    type="radio"
-                    name="action"
-                    value="lock"
-                    checked={selectedAction === 'lock'}
-                    onChange={(e) => setSelectedAction(e.target.value as UserActionType)}
-                    className="h-4 w-4 text-status-warning-text"
-                  />{' '}
-                  <div className="flex flex-1 items-center space-x-2">
-                    {' '}
-                    <PiLockKey className="h-5 w-5 text-status-warning-text" />{' '}
-                    <div>
-                      {' '}
-                      <p className="text-sm font-medium">Sperren</p> <p className="text-xs text-text-muted">Temporär sperren (reversibel)</p>{' '}
-                    </div>{' '}
-                  </div>{' '}
-                </label>{' '}
-              </div>{' '}
+              <RadioGroup
+                variant="card"
+                value={selectedAction}
+                onChange={setSelectedAction}
+                aria-label="Benutzer-Aktion wählen"
+                options={
+                  [
+                    {
+                      value: 'delete',
+                      label: 'Löschen (Soft Delete)',
+                      description: isAdmin ? 'Deaktivieren + zu User herabstufen (reaktivierbar)' : 'Benutzer deaktivieren (reaktivierbar)',
+                      icon: <PiUserMinus className="h-5 w-5 text-status-danger-text" />,
+                    },
+                    ...(isAdmin
+                      ? [
+                          {
+                            value: 'downgrade' as const,
+                            label: 'Zu User herabstufen (aktiv)',
+                            description: 'Admin-Rechte entfernen, als User aktiv bleiben',
+                            icon: <PiShieldWarning className="h-5 w-5 text-status-warning-text" />,
+                          },
+                        ]
+                      : []),
+                    {
+                      value: 'lock',
+                      label: 'Sperren',
+                      description: 'Temporär sperren (reversibel)',
+                      icon: <PiLockKey className="h-5 w-5 text-status-warning-text" />,
+                    },
+                  ] satisfies RadioOption<UserActionType>[]
+                }
+              />
               {selectedAction === 'lock' && (
                 <div className="mt-3">
                   {' '}

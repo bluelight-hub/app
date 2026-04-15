@@ -52,7 +52,7 @@ export function Combobox({
   leadingIcon,
   className,
   error,
-  openOnFocus = false,
+  openOnFocus = true,
   autoFocus = false,
 }: ComboboxProps) {
   const [query, setQuery] = useState('');
@@ -145,25 +145,26 @@ export function Combobox({
   return (
     <div className={cn('w-full', className)}>
       <HeadlessCombobox as="div" value={selectedItem} onChange={handleSelectionChange} disabled={disabled} immediate={openOnFocus}>
-        {label && <Label className="block text-sm/6 font-medium text-text-primary">{label}</Label>}
-        <div className="relative mt-2">
+        {label && <Label className="block text-sm font-medium text-text-secondary">{label}</Label>}
+        <div className={cn('relative', label && 'mt-2')}>
           {leadingIcon && <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-text-muted">{leadingIcon}</div>}
           <ComboboxInput
             ref={inputRef}
             className={cn(
-              'block w-full rounded-control border bg-surface-panel px-3 py-1.5 pr-12 text-base font-medium text-text-primary',
+              'block w-full rounded-control border bg-surface-panel px-3 py-1.5 pr-12 text-sm font-medium text-text-primary',
               'transition-all duration-200',
               'border-border-subtle hover:border-border-strong',
               'placeholder:text-text-muted',
               'focus:border-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none',
-              'sm:text-sm/6',
               'disabled:cursor-not-allowed disabled:opacity-50',
               leadingIcon && 'pl-12',
               showClearButton && 'pr-20',
               error && 'border-status-danger-border focus:border-status-danger-text',
             )}
-            autoCorrect={'off'}
-            autoComplete={'off'}
+            autoCorrect="off"
+            autoComplete="off"
+            autoCapitalize="off"
+            spellCheck={false}
             autoFocus={autoFocus}
             data-1p-ignore="true"
             data-lpignore="true"
@@ -225,8 +226,10 @@ export function Combobox({
 
           <ComboboxOptions
             transition
+            anchor={{ to: 'bottom start', gap: 4 }}
             className={cn(
-              'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-panel border border-border-subtle bg-surface-panel py-1 text-base shadow-panel',
+              'z-50 w-[var(--input-width)] overflow-auto rounded-panel border border-border-subtle bg-surface-panel py-1 text-base shadow-panel',
+              '[max-height:min(var(--anchor-max-height,15rem),24rem)]',
               'data-[closed]:pointer-events-none data-[closed]:hidden',
               'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0',
               'sm:text-sm',

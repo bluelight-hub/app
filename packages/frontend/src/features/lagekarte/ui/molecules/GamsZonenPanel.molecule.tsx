@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { GAMS_DEFAULT_RADIEN, GAMS_ZONEN_FARBEN, GAMS_ZONEN_NAMEN } from '../../drawing/types';
 
 interface GamsZonenPanelProps {
@@ -35,14 +36,7 @@ export function GamsZonenPanel({ onConfirm, onCancel }: GamsZonenPanelProps) {
           <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: GAMS_ZONEN_FARBEN[i] }} />
           <span className="min-w-0 flex-1 truncate text-xs text-text-secondary">{name}</span>
           <div className="flex items-center gap-1">
-            <input
-              type="number"
-              min={0}
-              step={10}
-              value={radien[i]}
-              onChange={(e) => updateRadius(i, Number(e.target.value))}
-              className="bg-surface-secondary w-16 rounded border border-border-subtle px-1.5 py-0.5 text-right text-xs text-text-primary tabular-nums focus:border-action-primary focus:outline-none"
-            />
+            <Input type="number" min={0} step={10} value={radien[i]} onChange={(e) => updateRadius(i, Number(e.target.value))} inputSize="sm" className="w-16 text-right tabular-nums" />
             <span className="text-xs text-text-muted">m</span>
           </div>
         </label>

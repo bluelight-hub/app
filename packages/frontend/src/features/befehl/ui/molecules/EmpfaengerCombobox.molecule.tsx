@@ -181,6 +181,8 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
             )}
             autoCorrect="off"
             autoComplete="off"
+            autoCapitalize="off"
+            spellCheck={false}
             data-1p-ignore="true"
             data-lpignore="true"
             data-form-type="other"
@@ -201,11 +203,8 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
           <ComboboxOptions
             className={cn('absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-lg', 'border border-border-subtle', 'empty:hidden', 'sm:text-sm')}
           >
-            {/* Hinweis: Mind. 2 Zeichen */}
-            {query.length > 0 && query.length < 2 && <div className="px-3 py-2 text-sm text-text-muted">Mind. 2 Zeichen für Vorschläge</div>}
-
             {/* Ladeanzeige */}
-            {isFetching && debouncedQuery.length >= 2 && <div className="px-3 py-2 text-sm text-text-muted">Suche läuft...</div>}
+            {isFetching && <div className="px-3 py-2 text-sm text-text-muted">Suche läuft...</div>}
 
             {/* API-Ergebnisse */}
             {filteredResults.map((result) => (
@@ -227,12 +226,10 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
             ))}
 
             {/* Alle bereits ausgewaehlt */}
-            {debouncedQuery.length >= 2 && !isFetching && results && results.length > 0 && filteredResults.length === 0 && (
-              <div className="px-3 py-2 text-sm text-text-muted">Alle Treffer bereits ausgewählt</div>
-            )}
+            {!isFetching && results && results.length > 0 && filteredResults.length === 0 && <div className="px-3 py-2 text-sm text-text-muted">Alle Treffer bereits ausgewählt</div>}
 
-            {/* Keine Treffer Hinweis */}
-            {debouncedQuery.length >= 2 && !isFetching && results && results.length === 0 && <div className="px-3 py-2 text-sm text-text-muted">Keine Treffer gefunden</div>}
+            {/* Keine Treffer Hinweis (nur bei aktivem Query) */}
+            {!isFetching && results && results.length === 0 && debouncedQuery.length > 0 && <div className="px-3 py-2 text-sm text-text-muted">Keine Treffer gefunden</div>}
 
             {/* Freitext-Option - immer verfuegbar wenn Query vorhanden */}
             {showFreetextOption && (

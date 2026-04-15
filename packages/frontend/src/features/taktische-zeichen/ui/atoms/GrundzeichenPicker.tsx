@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { grundzeichen } from 'taktische-zeichen-core';
 import { cn } from '@/shared/ui/cn';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { ZeichenPreview } from '../../rendering/ZeichenPreview';
 import type { ZeichenDefinition } from '../../rendering/renderer';
 import type { GrundzeichenId } from 'taktische-zeichen-core';
@@ -56,15 +57,7 @@ export function GrundzeichenPicker({ value, onChange }: GrundzeichenPickerProps)
 
   return (
     <div className="flex flex-col gap-2">
-      <input
-        type="text"
-        value={suche}
-        onChange={(e) => setSuche(e.target.value)}
-        placeholder="Grundzeichen suchen..."
-        autoComplete="off"
-        autoCorrect="off"
-        className="mb-2 w-full rounded-md border border-border-subtle bg-surface-raised px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none"
-      />
+      <Input type="text" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder="Grundzeichen suchen..." autoComplete="off" fullWidth className="mb-2" />
       <div className="grid grid-cols-4 gap-1.5">
         {gefilterteGrundzeichen.map((gz) => {
           const definition: ZeichenDefinition = { grundzeichen: gz.id as GrundzeichenId };

@@ -24,7 +24,10 @@ import { PiAlarm, PiClock, PiNotepad, PiArrowUUpLeft, PiBookOpen, PiRepeat } fro
 import { toast } from 'sonner';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
+import { RadioGroup } from '@/shared/ui/atoms/radio-group.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { cn } from '@/shared/ui/cn';
 
@@ -420,9 +423,11 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                               isPending && 'cursor-not-allowed opacity-50',
                             )}
                           >
-                            <input
+                            <Input
                               id="custom-duration-input"
                               type="number"
+                              variant="inline"
+                              inputSize="sm"
                               placeholder="__"
                               aria-label="Eigene Dauer"
                               aria-invalid={minutenField.state.meta.errors.length > 0}
@@ -441,7 +446,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                               min={1}
                               max={1440}
                               className={cn(
-                                'w-12 bg-transparent text-center text-sm font-medium focus:outline-none',
+                                'w-12 text-center',
                                 '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
                                 timeModeField.state.value === 'preset' && minutenField.state.value !== undefined && !TIME_PRESETS.some((p) => p.value === minutenField.state.value)
                                   ? 'text-text-inverse placeholder:text-text-inverse/60'
@@ -541,36 +546,28 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
               assignedToId && (
                 <form.Field name="eskalationNurAnErsteller">
                   {(field) => (
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-6 items-center">
-                        <input
-                          id="eskalationNurAnErsteller"
-                          type="checkbox"
-                          checked={field.state.value ?? false}
-                          onChange={(e) => {
-                            field.handleChange(e.target.checked);
-                            // Story 4.10: Reset eskalationsPersonId wenn Haken aktiviert wird
-                            if (e.target.checked) {
-                              form.setFieldValue('eskalationsPersonId', null);
-                            }
-                          }}
-                          disabled={isPending}
-                          className={cn(
-                            'h-5 w-5 rounded border-2 text-status-warning-text',
-                            'focus-visible:shadow-focus-ring',
-                            'disabled:cursor-not-allowed disabled:opacity-50',
-                            'border-border-subtle bg-surface-panel',
-                          )}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label htmlFor="eskalationNurAnErsteller" className="flex cursor-pointer items-center gap-2 text-sm font-medium text-text-secondary">
-                          <PiArrowUUpLeft className="h-4 w-4 text-status-warning-text" />
-                          Eskalation nur an mich (Rückläufer)
-                        </label>
-                        <p className="mt-0.5 text-xs text-text-muted">Wenn aktiviert, geht jede Eskalation zurück an dich, statt an eine andere Person.</p>
-                      </div>
-                    </div>
+                    <Checkbox
+                      id="eskalationNurAnErsteller"
+                      checked={field.state.value ?? false}
+                      onChange={(checked) => {
+                        field.handleChange(checked);
+                        // Story 4.10: Reset eskalationsPersonId wenn Haken aktiviert wird
+                        if (checked) {
+                          form.setFieldValue('eskalationsPersonId', null);
+                        }
+                      }}
+                      disabled={isPending}
+                      containerClassName="items-start gap-3"
+                      label={
+                        <div className="flex-1">
+                          <span className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                            <PiArrowUUpLeft className="h-4 w-4 text-status-warning-text" />
+                            Eskalation nur an mich (Rückläufer)
+                          </span>
+                          <p className="mt-0.5 text-xs font-normal text-text-muted">Wenn aktiviert, geht jede Eskalation zurück an dich, statt an eine andere Person.</p>
+                        </div>
+                      }
+                    />
                   )}
                 </form.Field>
               )
@@ -611,24 +608,16 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                 <label htmlFor="beschreibung" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Beschreibung <span className="text-xs text-text-muted">(optional)</span>
                 </label>
-                <textarea
+                <Textarea
                   id="beschreibung"
                   placeholder="Zusaetzliche Details zur Erinnerung..."
                   value={field.state.value ?? ''}
                   onChange={(e) => field.handleChange(e.target.value || undefined)}
                   disabled={isPending}
+                  variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                   maxLength={500}
                   rows={3}
-                  className={cn(
-                    'block w-full rounded-control border bg-surface-panel px-4 py-2.5 font-medium text-text-primary transition-colors duration-200',
-                    'placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring',
-                    'disabled:cursor-not-allowed disabled:opacity-50',
-                    'resize-none',
-                    // Error state styling (consistent with Input component)
-                    field.state.meta.errors.length > 0
-                      ? ['border-status-danger-border hover:border-status-danger-text', 'focus:border-status-danger-text']
-                      : ['border-border-subtle hover:border-border-strong', 'focus:border-action-primary'],
-                  )}
+                  fullWidth
                 />
                 {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
@@ -658,30 +647,22 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           {/* Story 2.6: Pflicht-Notiz Checkbox */}
           <form.Field name="requiresNote">
             {(field) => (
-              <div className="flex items-start gap-3">
-                <div className="flex h-6 items-center">
-                  <input
-                    id="requiresNote"
-                    type="checkbox"
-                    checked={field.state.value ?? false}
-                    onChange={(e) => field.handleChange(e.target.checked)}
-                    disabled={isPending}
-                    className={cn(
-                      'h-5 w-5 rounded border-2 text-status-warning-text',
-                      'focus-visible:shadow-focus-ring',
-                      'disabled:cursor-not-allowed disabled:opacity-50',
-                      'border-border-subtle bg-surface-panel',
-                    )}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label htmlFor="requiresNote" className="flex cursor-pointer items-center gap-2 text-sm font-medium text-text-secondary">
-                    <PiNotepad className="h-4 w-4 text-status-warning-text" />
-                    Pflicht-Notiz bei Erledigung
-                  </label>
-                  <p className="mt-0.5 text-xs text-text-muted">Wenn aktiviert, muss bei Erledigung eine Dokumentations-Notiz eingegeben werden.</p>
-                </div>
-              </div>
+              <Checkbox
+                id="requiresNote"
+                checked={field.state.value ?? false}
+                onChange={(checked) => field.handleChange(checked)}
+                disabled={isPending}
+                containerClassName="items-start gap-3"
+                label={
+                  <div className="flex-1">
+                    <span className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                      <PiNotepad className="h-4 w-4 text-status-warning-text" />
+                      Pflicht-Notiz bei Erledigung
+                    </span>
+                    <p className="mt-0.5 text-xs font-normal text-text-muted">Wenn aktiviert, muss bei Erledigung eine Dokumentations-Notiz eingegeben werden.</p>
+                  </div>
+                }
+              />
             )}
           </form.Field>
 
@@ -689,30 +670,22 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="isRecurring">
             {(recurringField) => (
               <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-6 items-center">
-                    <input
-                      id="isRecurring"
-                      type="checkbox"
-                      checked={recurringField.state.value ?? false}
-                      onChange={(e) => recurringField.handleChange(e.target.checked)}
-                      disabled={isPending}
-                      className={cn(
-                        'h-5 w-5 rounded border-2 text-status-warning-text',
-                        'focus-visible:shadow-focus-ring',
-                        'disabled:cursor-not-allowed disabled:opacity-50',
-                        'border-border-subtle bg-surface-panel',
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label htmlFor="isRecurring" className="flex cursor-pointer items-center gap-2 text-sm font-medium text-text-secondary">
-                      <PiRepeat className="h-4 w-4 text-status-warning-text" />
-                      Wiederkehrend
-                    </label>
-                    <p className="mt-0.5 text-xs text-text-muted">Erstellt automatisch eine neue Erinnerung nach Erledigung.</p>
-                  </div>
-                </div>
+                <Checkbox
+                  id="isRecurring"
+                  checked={recurringField.state.value ?? false}
+                  onChange={(checked) => recurringField.handleChange(checked)}
+                  disabled={isPending}
+                  containerClassName="items-start gap-3"
+                  label={
+                    <div className="flex-1">
+                      <span className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                        <PiRepeat className="h-4 w-4 text-status-warning-text" />
+                        Wiederkehrend
+                      </span>
+                      <p className="mt-0.5 text-xs font-normal text-text-muted">Erstellt automatisch eine neue Erinnerung nach Erledigung.</p>
+                    </div>
+                  }
+                />
 
                 {/* Conditional Recurring Options */}
                 {recurringField.state.value && (
@@ -757,8 +730,10 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 isPending && 'cursor-not-allowed opacity-50',
                               )}
                             >
-                              <input
+                              <Input
                                 type="number"
+                                variant="inline"
+                                inputSize="sm"
                                 placeholder="__"
                                 aria-label="Eigenes Intervall"
                                 value={intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value) ? intervalField.state.value : ''}
@@ -771,7 +746,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 min={1}
                                 max={1440}
                                 className={cn(
-                                  'w-12 bg-transparent text-center text-sm font-medium focus:outline-none',
+                                  'w-12 text-center',
                                   '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
                                   intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value)
                                     ? 'text-text-inverse placeholder:text-text-inverse/60'
@@ -792,82 +767,54 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                         <div>
                           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Label fuer Radio-Button-Gruppe */}
                           <label className="mb-2 block text-sm font-medium text-text-secondary">Ende</label>
-                          <div className="space-y-2">
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name="recurringEndMode"
-                                value="none"
-                                checked={endModeField.state.value === 'none'}
-                                onChange={() => endModeField.handleChange('none')}
-                                disabled={isPending}
-                                className="h-4 w-4 text-status-warning-text focus-visible:shadow-focus-ring"
-                              />
-                              <span className="text-sm text-text-secondary">Kein Ende</span>
-                            </label>
-
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name="recurringEndMode"
-                                value="count"
-                                checked={endModeField.state.value === 'count'}
-                                onChange={() => endModeField.handleChange('count')}
-                                disabled={isPending}
-                                className="h-4 w-4 text-status-warning-text focus-visible:shadow-focus-ring"
-                              />
-                              <span className="text-sm text-text-secondary">Nach</span>
-                              {endModeField.state.value === 'count' && (
-                                <form.Field name="recurringMaxCount">
-                                  {(maxCountField) => (
-                                    <>
-                                      <Input
-                                        type="number"
-                                        value={maxCountField.state.value ?? ''}
-                                        onChange={(e) => maxCountField.handleChange(e.target.value ? Number.parseInt(e.target.value, 10) : undefined)}
-                                        disabled={isPending}
-                                        className="w-20"
-                                        min={1}
-                                        max={100}
-                                        placeholder="5"
-                                      />
-                                      <span className="text-sm text-text-secondary">Wiederholungen</span>
-                                      {maxCountField.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{formatErrors(maxCountField.state.meta.errors)}</p>}
-                                    </>
-                                  )}
-                                </form.Field>
+                          <RadioGroup
+                            orientation="vertical"
+                            value={endModeField.state.value}
+                            onChange={(next) => endModeField.handleChange(next)}
+                            disabled={isPending}
+                            aria-label="Ende der Wiederholung"
+                            options={[
+                              { value: 'none', label: 'Kein Ende' },
+                              { value: 'count', label: 'Nach' },
+                              { value: 'date', label: 'Bis' },
+                            ]}
+                          />
+                          {endModeField.state.value === 'count' && (
+                            <form.Field name="recurringMaxCount">
+                              {(maxCountField) => (
+                                <div className="mt-2 ml-6 flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    value={maxCountField.state.value ?? ''}
+                                    onChange={(e) => maxCountField.handleChange(e.target.value ? Number.parseInt(e.target.value, 10) : undefined)}
+                                    disabled={isPending}
+                                    className="w-20"
+                                    min={1}
+                                    max={100}
+                                    placeholder="5"
+                                  />
+                                  <span className="text-sm text-text-secondary">Wiederholungen</span>
+                                  {maxCountField.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{formatErrors(maxCountField.state.meta.errors)}</p>}
+                                </div>
                               )}
-                            </label>
-
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name="recurringEndMode"
-                                value="date"
-                                checked={endModeField.state.value === 'date'}
-                                onChange={() => endModeField.handleChange('date')}
-                                disabled={isPending}
-                                className="h-4 w-4 text-status-warning-text focus-visible:shadow-focus-ring"
-                              />
-                              <span className="text-sm text-text-secondary">Bis</span>
-                              {endModeField.state.value === 'date' && (
-                                <form.Field name="recurringEndDate">
-                                  {(endDateField) => (
-                                    <>
-                                      <Input
-                                        type="datetime-local"
-                                        value={endDateField.state.value ?? ''}
-                                        onChange={(e) => endDateField.handleChange(e.target.value || undefined)}
-                                        disabled={isPending}
-                                        className="w-56"
-                                      />
-                                      {endDateField.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{formatErrors(endDateField.state.meta.errors)}</p>}
-                                    </>
-                                  )}
-                                </form.Field>
+                            </form.Field>
+                          )}
+                          {endModeField.state.value === 'date' && (
+                            <form.Field name="recurringEndDate">
+                              {(endDateField) => (
+                                <div className="mt-2 ml-6 flex items-center gap-2">
+                                  <Input
+                                    type="datetime-local"
+                                    value={endDateField.state.value ?? ''}
+                                    onChange={(e) => endDateField.handleChange(e.target.value || undefined)}
+                                    disabled={isPending}
+                                    className="w-56"
+                                  />
+                                  {endDateField.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{formatErrors(endDateField.state.meta.errors)}</p>}
+                                </div>
                               )}
-                            </label>
-                          </div>
+                            </form.Field>
+                          )}
                         </div>
                       )}
                     </form.Field>

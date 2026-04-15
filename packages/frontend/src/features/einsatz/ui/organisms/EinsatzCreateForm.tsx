@@ -276,7 +276,6 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
                   onBlur={field.handleBlur}
                   placeholder="z.B. Hauptstraße 42"
                   allowCustomValue
-                  openOnFocus={false}
                   leadingIcon={isAddressLoading ? <InlineSpinner size="xs" label="Straßen werden gesucht…" /> : undefined}
                 />
               </div>

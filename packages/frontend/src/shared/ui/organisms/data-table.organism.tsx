@@ -8,6 +8,7 @@ import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
 
 export interface BulkAction {
   label: string;
@@ -140,16 +141,7 @@ export function DataTable<TData>({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {searchable && (
-              <div className="relative">
-                <PiMagnifyingGlass className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                <input
-                  type="text"
-                  value={globalFilter}
-                  onChange={(e) => setGlobalFilter(e.target.value)}
-                  placeholder={searchable.placeholder}
-                  className="border-border-primary bg-surface-primary h-9 rounded-control border py-1.5 pr-3 pl-9 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:outline-none"
-                />
-              </div>
+              <Input type="text" value={globalFilter} onChange={(e) => setGlobalFilter(e.target.value)} placeholder={searchable.placeholder} leftIcon={<PiMagnifyingGlass className="h-4 w-4" />} />
             )}
             {toolbar}
           </div>

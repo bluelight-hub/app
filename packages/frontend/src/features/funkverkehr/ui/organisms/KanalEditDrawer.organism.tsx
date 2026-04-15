@@ -13,7 +13,8 @@ import { useCreateFunkkanal, useUpdateFunkkanal, useArchiveFunkkanal } from '@/f
 import { KanalDetailsForm, type KanalDetailsShape } from '@/features/funkverkehr/ui/molecules/KanalDetailsForm.molecule';
 import { kanalFormSchema, type KanalFormValues } from '@/features/funkverkehr/schemas/kanal.schema';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { cn } from '@/shared/ui/cn';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import type { CreateFunkkanalDto, FunkkanalResponseDto, UpdateFunkkanalDto } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';
@@ -151,7 +152,7 @@ export function KanalEditDrawer({ isOpen, onClose, einsatzId, kanal }: KanalEdit
                     <span className="block font-medium text-slate-700 dark:text-slate-200">
                       Name <span className="text-red-500">*</span>
                     </span>
-                    <input
+                    <Input
                       id="kanal-name"
                       type="text"
                       value={field.state.value}
@@ -161,7 +162,9 @@ export function KanalEditDrawer({ isOpen, onClose, einsatzId, kanal }: KanalEdit
                       aria-describedby={error ? 'kanal-name-error' : undefined}
                       placeholder="z. B. TMO SG Feuer 1"
                       disabled={isPending}
-                      className={cn('mt-1 w-full rounded border px-3 py-2 text-sm dark:bg-slate-900', error ? 'border-red-500' : 'border-slate-300 dark:border-slate-700')}
+                      variant={error ? 'error' : 'default'}
+                      fullWidth
+                      className="mt-1"
                     />
                     {error && (
                       <span id="kanal-name-error" className="mt-1 block text-xs text-red-600">
@@ -190,7 +193,7 @@ export function KanalEditDrawer({ isOpen, onClose, einsatzId, kanal }: KanalEdit
               {(field) => (
                 <label htmlFor="kanal-zweck" className="block text-sm">
                   <span className="block font-medium text-slate-700 dark:text-slate-200">Zweck (optional)</span>
-                  <textarea
+                  <Textarea
                     id="kanal-zweck"
                     rows={2}
                     value={field.state.value ?? ''}
@@ -198,7 +201,8 @@ export function KanalEditDrawer({ isOpen, onClose, einsatzId, kanal }: KanalEdit
                     onBlur={field.handleBlur}
                     placeholder="z. B. Einsatzabschnitt Nord — Löschangriff"
                     disabled={isPending}
-                    className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                    fullWidth
+                    className="mt-1 min-h-0"
                   />
                 </label>
               )}

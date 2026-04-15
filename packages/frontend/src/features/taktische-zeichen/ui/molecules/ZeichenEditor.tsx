@@ -13,6 +13,7 @@ import type * as React from 'react';
 import { useState } from 'react';
 import type { EinheitId, FachaufgabeId, GrundzeichenId, OrganisationId } from 'taktische-zeichen-core';
 import { cn } from '@/shared/ui/cn';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { ZeichenPreview } from '../../rendering/ZeichenPreview';
 import type { ZeichenDefinition } from '../../rendering/renderer';
 import { GrundzeichenPicker } from '../atoms/GrundzeichenPicker';
@@ -90,13 +91,7 @@ export function ZeichenEditor({ initialDefinition, initialLabel = '', onSave, is
       {/* Beschriftung */}
       <div>
         <SectionTitle>Beschriftung</SectionTitle>
-        <input
-          type="text"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="Optionale Beschriftung (z.B. ELW-1)"
-          className="bg-surface-base w-full rounded-md border border-border-subtle px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-action-primary focus:ring-1 focus:ring-action-primary focus:outline-none"
-        />
+        <Input type="text" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Optionale Beschriftung (z.B. ELW-1)" fullWidth />
       </div>
 
       {/* Grundzeichen-Picker */}

@@ -27,11 +27,26 @@ const SIZES = {
  * Optimized with static config and React.memo to prevent unnecessary re-renders.
  */
 export const Textarea = memo(
-  forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, variant = 'default', textareaSize = 'md', fullWidth = false, ...props }, ref) => {
-    const textareaClasses = cn(BASE_STYLES, VARIANTS[variant], SIZES[textareaSize], fullWidth && 'w-full', className);
+  forwardRef<HTMLTextAreaElement, TextareaProps>(
+    ({ className, variant = 'default', textareaSize = 'md', fullWidth = false, autoCorrect = 'off', autoComplete = 'off', autoCapitalize = 'off', spellCheck = false, ...props }, ref) => {
+      const textareaClasses = cn(BASE_STYLES, VARIANTS[variant], SIZES[textareaSize], fullWidth && 'w-full', className);
 
-    return <textarea ref={ref} className={textareaClasses} {...props} />;
-  }),
+      return (
+        <textarea
+          ref={ref}
+          className={textareaClasses}
+          autoCorrect={autoCorrect}
+          autoComplete={autoComplete}
+          autoCapitalize={autoCapitalize}
+          spellCheck={spellCheck}
+          data-lpignore="true"
+          data-1p-ignore="true"
+          data-form-type="other"
+          {...props}
+        />
+      );
+    },
+  ),
 );
 
 Textarea.displayName = 'Textarea';

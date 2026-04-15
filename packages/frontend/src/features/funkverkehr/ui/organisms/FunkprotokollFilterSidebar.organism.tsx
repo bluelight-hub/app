@@ -16,6 +16,9 @@ import {
 } from '@/features/funkverkehr/stores/funkprotokoll-filter.store';
 import { useKanalplan } from '@/features/funkverkehr/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
+import { FormField } from '@/shared/ui/atoms/form-field.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { cn } from '@/shared/ui/cn';
 import { useStore } from '@tanstack/react-store';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -90,12 +93,10 @@ export function FunkprotokollFilterSidebar({ einsatzId, className }: Funkprotoko
           <ul role="list" className="max-h-48 overflow-auto">
             {kanaele.map((kanal) => {
               const checked = filter.kanalIds.includes(kanal.id);
+              const id = `funkprotokoll-filter-kanal-${kanal.id}`;
               return (
                 <li key={kanal.id}>
-                  <label className="flex items-center gap-2 py-1">
-                    <input type="checkbox" checked={checked} onChange={() => toggleKanal(kanal.id)} aria-label={`Kanal ${kanal.name}`} />
-                    <span className="truncate">{kanal.name}</span>
-                  </label>
+                  <Checkbox id={id} checked={checked} onChange={() => toggleKanal(kanal.id)} containerClassName="flex py-1" labelClassName="truncate" label={kanal.name} />
                 </li>
               );
             })}
@@ -110,12 +111,10 @@ export function FunkprotokollFilterSidebar({ einsatzId, className }: Funkprotoko
         <ul role="list">
           {PRIO_OPTIONS.map((option) => {
             const checked = filter.prioritaeten.includes(option.value);
+            const id = `funkprotokoll-filter-prio-${option.value}`;
             return (
               <li key={option.value}>
-                <label className="flex items-center gap-2 py-1">
-                  <input type="checkbox" checked={checked} onChange={() => togglePrio(option.value)} aria-label={option.label} />
-                  <span>{option.label}</span>
-                </label>
+                <Checkbox id={id} checked={checked} onChange={() => togglePrio(option.value)} containerClassName="flex py-1" label={option.label} />
               </li>
             );
           })}
@@ -126,36 +125,23 @@ export function FunkprotokollFilterSidebar({ einsatzId, className }: Funkprotoko
         <h3 id="filter-zeit" className="text-xs font-semibold text-slate-600 uppercase dark:text-slate-300">
           Zeitraum
         </h3>
-        <label className="block text-xs">
-          <span>Von</span>
-          <input
-            type="datetime-local"
-            value={filter.vonDate ?? ''}
-            onChange={(event) => setFilterForEinsatz(einsatzId, { vonDate: event.target.value || undefined })}
-            className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
-          />
-        </label>
-        <label className="block text-xs">
-          <span>Bis</span>
-          <input
-            type="datetime-local"
-            value={filter.bisDate ?? ''}
-            onChange={(event) => setFilterForEinsatz(einsatzId, { bisDate: event.target.value || undefined })}
-            className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
-          />
-        </label>
+        <FormField label="Von" htmlFor="funkprotokoll-filter-von" className="space-y-1">
+          <Input id="funkprotokoll-filter-von" type="datetime-local" value={filter.vonDate ?? ''} onChange={(event) => setFilterForEinsatz(einsatzId, { vonDate: event.target.value || undefined })} />
+        </FormField>
+        <FormField label="Bis" htmlFor="funkprotokoll-filter-bis" className="space-y-1">
+          <Input id="funkprotokoll-filter-bis" type="datetime-local" value={filter.bisDate ?? ''} onChange={(event) => setFilterForEinsatz(einsatzId, { bisDate: event.target.value || undefined })} />
+        </FormField>
       </section>
 
       <section aria-labelledby="filter-absender" className="space-y-2">
         <h3 id="filter-absender" className="text-xs font-semibold text-slate-600 uppercase dark:text-slate-300">
           Absender
         </h3>
-        <input
+        <Input
           type="text"
           value={filter.absenderQuery ?? ''}
           onChange={(event) => setFilterForEinsatz(einsatzId, { absenderQuery: event.target.value || undefined })}
           placeholder="Rufname eingeben…"
-          className="w-full rounded border border-slate-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
           aria-label="Absender-Filter"
         />
       </section>
@@ -164,14 +150,7 @@ export function FunkprotokollFilterSidebar({ einsatzId, className }: Funkprotoko
         <h3 id="filter-volltext" className="text-xs font-semibold text-slate-600 uppercase dark:text-slate-300">
           Volltextsuche
         </h3>
-        <input
-          type="search"
-          value={volltextInput}
-          onChange={(event) => setVolltextInput(event.target.value)}
-          placeholder="Nachricht suchen…"
-          className="w-full rounded border border-slate-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
-          aria-label="Volltext-Filter"
-        />
+        <Input type="search" value={volltextInput} onChange={(event) => setVolltextInput(event.target.value)} placeholder="Nachricht suchen…" aria-label="Volltext-Filter" />
       </section>
     </aside>
   );

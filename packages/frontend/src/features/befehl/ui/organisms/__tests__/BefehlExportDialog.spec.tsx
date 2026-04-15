@@ -130,7 +130,7 @@ describe('BefehlExportDialog', () => {
 
     const radios = screen.getAllByRole('radio');
     for (const radio of radios) {
-      expect(radio).toBeDisabled();
+      expect(radio).toHaveAttribute('aria-disabled', 'true');
     }
   });
 

@@ -20,6 +20,7 @@ import { PiCheckCircle, PiNotepad, PiWarning } from 'react-icons/pi';
 import { z } from 'zod';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { cn } from '@/shared/ui/cn';
 
@@ -179,7 +180,7 @@ export function ErinnerungMarkErledigtDialog({ isOpen, onClose, erinnerung, eins
                       'Optionale Notiz zur Erledigung'
                     )}
                   </label>
-                  <textarea
+                  <Textarea
                     id="erledigungsNotiz"
                     aria-describedby="erledigungsNotiz-hint"
                     aria-required={requiresNote}
@@ -190,12 +191,10 @@ export function ErinnerungMarkErledigtDialog({ isOpen, onClose, erinnerung, eins
                     maxLength={MAX_NOTIZ_LENGTH}
                     rows={3}
                     disabled={isPending}
+                    variant={hasError ? 'error' : 'default'}
                     // Story 2.6 Issue 4: Auto-Focus auf Textarea wenn Pflicht-Notiz
                     autoFocus={requiresNote}
-                    className={cn(
-                      'w-full rounded-control border bg-surface-panel px-3 py-2 text-sm placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring disabled:opacity-50',
-                      hasError ? 'border-status-danger-border focus:border-status-danger-text' : 'border-border-subtle focus:border-status-success-text',
-                    )}
+                    fullWidth
                   />
                   {/* Validation Error Message */}
                   {hasError && <p className="text-xs text-status-danger-text">{field.state.meta.errors[0]}</p>}
