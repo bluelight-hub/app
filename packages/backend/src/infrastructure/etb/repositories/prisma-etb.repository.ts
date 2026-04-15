@@ -198,12 +198,17 @@ export class PrismaEtbRepository implements IEtbRepository {
         });
 
         for (const eintrag of sortedEintraege) {
+          // Issue #407: kontextData wird als JSON-String (oder NULL) übergeben, damit $executeRaw
+          // die JSONB-Serialisierung sauber verarbeitet.
+          const kontextDataJson = eintrag.kontextType === 'standard' ? null : JSON.stringify(eintrag.kontextData);
+
           await prismaClient.$executeRaw`
             INSERT INTO etb_eintraege (
               "id", "etbId", "sequenceNumber", "text", "createdBy", "createdAt",
               "updatedAt", "deletedAt", "deletedBy", "kategorie", "timestamp",
               "version", "isAutomatic", "absender", "empfaenger", "metadata",
-              "korrigiert_eintrag_id", "korrigiert_durch_id"
+              "korrigiert_eintrag_id", "korrigiert_durch_id",
+              "kontext_type", "kontext_data", "erfasst_am", "ereignis_zeitpunkt"
             ) VALUES (
               ${eintrag.id}, ${etbId}, ${eintrag.sequenceNumber}, ${eintrag.text},
               ${eintrag.createdBy}, ${eintrag.createdAt}, ${eintrag.updatedAt},
@@ -211,7 +216,9 @@ export class PrismaEtbRepository implements IEtbRepository {
               ${eintrag.timestamp}, ${eintrag.version}, ${eintrag.isAutomatic},
               ${eintrag.absender}, ${eintrag.empfaenger},
               ${eintrag.metadata ?? null}::jsonb,
-              ${eintrag.korrigiertEintragId}, ${null}
+              ${eintrag.korrigiertEintragId}, ${null},
+              ${eintrag.kontextType}, ${kontextDataJson}::jsonb,
+              ${eintrag.erfasstAm}, ${eintrag.ereignisZeitpunkt}
             )
             ON CONFLICT ("etbId", "sequenceNumber") DO UPDATE SET
               "text" = EXCLUDED."text",
@@ -221,7 +228,11 @@ export class PrismaEtbRepository implements IEtbRepository {
               "version" = EXCLUDED."version",
               "absender" = EXCLUDED."absender",
               "empfaenger" = EXCLUDED."empfaenger",
-              "korrigiert_eintrag_id" = EXCLUDED."korrigiert_eintrag_id"
+              "korrigiert_eintrag_id" = EXCLUDED."korrigiert_eintrag_id",
+              "kontext_type" = EXCLUDED."kontext_type",
+              "kontext_data" = EXCLUDED."kontext_data",
+              "erfasst_am" = EXCLUDED."erfasst_am",
+              "ereignis_zeitpunkt" = EXCLUDED."ereignis_zeitpunkt"
           `;
         }
 
