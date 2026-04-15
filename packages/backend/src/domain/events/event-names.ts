@@ -293,6 +293,32 @@ export const EVENT_NAMES = {
   },
 
   /**
+   * Funkkanal Bounded Context Events (Issue #407)
+   */
+  FUNKKANAL: {
+    /** Event: Neuer Funkkanal wurde erstellt */
+    ERSTELLT: 'funkkanal.erstellt',
+    /** Event: Funkkanal-Stammdaten wurden geändert (Name, Details, Zweck, Status, sortIndex) */
+    GEAENDERT: 'funkkanal.geaendert',
+    /** Event: Funkkanal wurde archiviert */
+    ARCHIVIERT: 'funkkanal.archiviert',
+    /** Event: Reihenfolge mehrerer Funkkanäle eines Einsatzes wurde geändert */
+    REIHENFOLGE_GEAENDERT: 'funkkanal.reihenfolge_geaendert',
+    /** Event: Kraft wurde einem Funkkanal zugeordnet */
+    ZUORDNUNG_ERSTELLT: 'funkkanal.zuordnung_erstellt',
+    /** Event: Zuordnung wurde von einem Funkkanal entfernt */
+    ZUORDNUNG_ENTFERNT: 'funkkanal.zuordnung_entfernt',
+  },
+
+  /**
+   * Funk-bezogene, aggregatsübergreifende Events (Issue #407)
+   */
+  FUNK: {
+    /** Event: Funkspruch mit Priorität `notfall` — triggert Notfall-Alert-Broadcast */
+    NOTFALL_ALERT_REQUESTED: 'funk.notfall_alert_requested',
+  },
+
+  /**
    * Taktische Zeichen Bounded Context Events (Issue #636)
    */
   TAKTISCHES_ZEICHEN: {
@@ -342,4 +368,6 @@ export type EventName =
   | (typeof EVENT_NAMES.OPERATIVE_ROLLE)[keyof typeof EVENT_NAMES.OPERATIVE_ROLLE]
   | (typeof EVENT_NAMES.BEITRITTSANFRAGE)[keyof typeof EVENT_NAMES.BEITRITTSANFRAGE]
   | (typeof EVENT_NAMES.GEFAHRENMATRIX)[keyof typeof EVENT_NAMES.GEFAHRENMATRIX]
+  | (typeof EVENT_NAMES.FUNKKANAL)[keyof typeof EVENT_NAMES.FUNKKANAL]
+  | (typeof EVENT_NAMES.FUNK)[keyof typeof EVENT_NAMES.FUNK]
   | (typeof EVENT_NAMES.TAKTISCHES_ZEICHEN)[keyof typeof EVENT_NAMES.TAKTISCHES_ZEICHEN];
