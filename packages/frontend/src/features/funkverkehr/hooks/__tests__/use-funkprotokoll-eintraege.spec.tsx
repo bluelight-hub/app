@@ -53,7 +53,7 @@ describe('useFunkprotokollEintraege', () => {
 
   it('schickt kontextType=funkspruch + kanalId, wenn genau EIN Kanal gewählt ist', async () => {
     setFilterForEinsatz('e1', { kanalIds: ['k1'] });
-    etbCqrsControllerGetEtbByEinsatzIdVAlpha.mockResolvedValue({ eintraege: [] });
+    etbCqrsControllerGetEtbByEinsatzIdVAlpha.mockResolvedValue({ data: { eintraege: [] }, meta: {} });
 
     const client = makeClient();
     const { result } = renderHook(() => useFunkprotokollEintraege({ einsatzId: 'e1' }), { wrapper: wrapper(client) });
@@ -68,7 +68,7 @@ describe('useFunkprotokollEintraege', () => {
 
   it('lässt kanalId weg, wenn mehrere Kanäle gewählt sind (Client-Filter)', async () => {
     setFilterForEinsatz('e1', { kanalIds: ['k1', 'k2'] });
-    etbCqrsControllerGetEtbByEinsatzIdVAlpha.mockResolvedValue({ eintraege: [] });
+    etbCqrsControllerGetEtbByEinsatzIdVAlpha.mockResolvedValue({ data: { eintraege: [] }, meta: {} });
 
     const client = makeClient();
     renderHook(() => useFunkprotokollEintraege({ einsatzId: 'e1' }), { wrapper: wrapper(client) });
