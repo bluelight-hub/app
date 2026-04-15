@@ -6,4 +6,5 @@
  * - Funkprotokoll: Live-Chat-artiges Protokoll (ETB-Einträge mit FunkKontext).
  */
 
+export * from './api';
 export * from './stores';

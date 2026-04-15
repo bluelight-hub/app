@@ -22,6 +22,7 @@ import {
   EinsatzPersonenApi,
   EinsatzTeilnehmerApi,
   ErinnerungApi,
+  FunkkanalApi,
   ErinnerungenApi,
   ErinnerungsvorlagenApi,
   FuehrungsrhythmusTemplatesAdminApi,
@@ -162,6 +163,7 @@ class BackendApi {
   private readonly permissionsApi: PermissionsApi;
   private readonly warnungenApi: WarnungenApi;
   private readonly taktischeZeichenApi: TaktischeZeichenApi;
+  private readonly funkkanalApi: FunkkanalApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -222,6 +224,7 @@ class BackendApi {
     this.permissionsApi = new PermissionsApi(this.configuration);
     this.warnungenApi = new WarnungenApi(this.configuration);
     this.taktischeZeichenApi = new TaktischeZeichenApi(this.configuration);
+    this.funkkanalApi = new FunkkanalApi(this.configuration);
   }
 
   /**
@@ -613,6 +616,19 @@ class BackendApi {
    */
   taktischeZeichen(): TaktischeZeichenApi {
     return this.taktischeZeichenApi;
+  }
+
+  /**
+   * Gibt die gecachte Funkkanal-API-Instanz zurück (Issue #407)
+   *
+   * Deckt Funkkanal-CRUD + Reorder, Zuordnungs-Management, Rufnamen-Vorschläge
+   * und PDF-Export ab — alle Routes unter `einsatz/:einsatzId/funkkanaele`
+   * bzw. `einsatz/:einsatzId/kanalplan/export.pdf`.
+   *
+   * @returns Die Funkkanal-API-Instanz für Funkverkehr (Kanalplan)
+   */
+  funkkanal(): FunkkanalApi {
+    return this.funkkanalApi;
   }
 }
 
