@@ -1,15 +1,16 @@
 import { Module } from '@nestjs/common';
 import { FunkkanalApplicationModule } from '@/application/funkkanal/funkkanal-application.module';
 import { FunkkanalController } from './funkkanal.controller';
+import { FunkkanalZuordnungController } from './zuordnung.controller';
 
 /**
  * HTTP-Modul für den Funkkanal-Bounded-Context.
  *
- * Stellt CRUD- und Reorder-Endpoints für Funkkanäle eines Einsatzes bereit.
- * Zuordnungs- und Rufnamen-Vorschlags-Controller folgen in den nächsten Tasks.
+ * Stellt CRUD-, Reorder- und Zuordnungs-Endpoints bereit. Rufnamen-Vorschläge
+ * und PDF-Export folgen in den nächsten Tasks.
  */
 @Module({
   imports: [FunkkanalApplicationModule],
-  controllers: [FunkkanalController],
+  controllers: [FunkkanalController, FunkkanalZuordnungController],
 })
 export class FunkkanalModule {}
