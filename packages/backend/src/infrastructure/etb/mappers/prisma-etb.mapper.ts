@@ -2,6 +2,8 @@ import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.agg
 import { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EintragId } from '@domain/value-objects/eintrag-id';
+import type { EintragKontextShape } from '@domain/value-objects/eintrag-kontext';
+import { EintragKontext } from '@domain/value-objects/eintrag-kontext';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
 import { EtbSequenceNumber } from '@domain/value-objects/etb-sequence-number';
@@ -55,6 +57,11 @@ export interface EtbEintragPersistenceData {
   // Korrektur-Verkettung (Issue #554)
   korrigiertEintragId: string | null;
   korrigiertDurchId: string | null;
+  // Issue #407: Fachliche Zeitstempel + typisierter Kontext
+  erfasstAm: Date;
+  ereignisZeitpunkt: Date;
+  kontextType: string;
+  kontextData: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }
 
 /**
@@ -187,7 +194,18 @@ export class PrismaEintragMapper {
     // Soft-Delete Mapping: deletedAt !== null -> isDeleted = true
     const isDeleted = prismaEintrag.deletedAt !== null;
 
-    // Create EtbEintrag via Public Constructor (inkl. Korrektur-Felder)
+    // Issue #407: Kontext + Zeitstempel Reconstruction
+    const prismaExtended = prismaEintrag as PrismaEtbEintrag & {
+      kontextType?: string;
+      kontextData?: unknown;
+      ereignisZeitpunkt?: Date;
+      erfasstAm?: Date;
+    };
+    const kontext: EintragKontextShape = EintragKontext.fromPersistence(prismaExtended.kontextType ?? 'standard', prismaExtended.kontextData ?? null);
+    const ereignisZeitpunkt = prismaExtended.ereignisZeitpunkt ?? prismaEintrag.createdAt;
+    const erfasstAm = prismaExtended.erfasstAm ?? prismaEintrag.createdAt;
+
+    // Create EtbEintrag via Public Constructor (inkl. Korrektur-Felder und Kontext/Zeitstempel)
     const eintrag = new EtbEintrag(
       eintragId,
       sequenceNumber,
@@ -202,6 +220,9 @@ export class PrismaEintragMapper {
       korrigiertDurchId,
       isDeleted,
       prismaEintrag.updatedAt,
+      ereignisZeitpunkt,
+      erfasstAm,
+      kontext,
     );
 
     return eintrag;
@@ -237,6 +258,11 @@ export class PrismaEintragMapper {
    * ```
    */
   static toPersistence(eintrag: EtbEintrag, etbId: string): EtbEintragPersistenceData {
+    // Issue #407: Kontext-Serialisierung (Discriminated Union → kontextType + kontextData)
+    const kontextPersisted = eintrag.kontext.toPersistence();
+    const kontextData: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput =
+      kontextPersisted.type === 'funkspruch' ? ({ kanalId: kontextPersisted.kanalId, funkPrioritaet: kontextPersisted.funkPrioritaet } as Prisma.InputJsonValue) : Prisma.JsonNull;
+
     return {
       id: eintrag.id.value,
       etbId,
@@ -261,6 +287,11 @@ export class PrismaEintragMapper {
       // Korrektur-Verkettung (Issue #554)
       korrigiertEintragId: eintrag.korrigiertEintragId?.value ?? null,
       korrigiertDurchId: eintrag.korrigiertDurchId?.value ?? null,
+      // Issue #407: Kontext + Zeitstempel
+      erfasstAm: eintrag.erfasstAm,
+      ereignisZeitpunkt: eintrag.ereignisZeitpunkt,
+      kontextType: kontextPersisted.type,
+      kontextData,
     };
   }
 }

@@ -713,4 +713,126 @@ describe('PrismaEtbMapper', () => {
       }
     });
   });
+
+  describe('Kontext + Zeitstempel Mapping (Issue #407)', () => {
+    const { EintragKontext } = require('@domain/value-objects/eintrag-kontext');
+
+    it('toPersistence: Standard-Kontext ohne Funkfelder', () => {
+      const eintrag = createDomainEintrag({ text: 'Standard' });
+      const persist = PrismaEintragMapper.toPersistence(eintrag, createValidTestId('etb01'));
+
+      expect(persist.kontextType).toBe('standard');
+      expect(persist.kontextData).toEqual(require('@/generated/prisma/client').Prisma.JsonNull);
+      expect(persist.ereignisZeitpunkt).toEqual(eintrag.ereignisZeitpunkt);
+      expect(persist.erfasstAm).toEqual(eintrag.erfasstAm);
+    });
+
+    it('toPersistence: FunkKontext serialisiert kanalId und funkPrioritaet', () => {
+      const idResult = EintragId.create(createValidTestId('ein02'));
+      const seqResult = EtbSequenceNumber.create(1);
+      const userResult = UserId.create(createValidTestId('user1'));
+      const kontext = EintragKontext.funkspruch({ kanalId: 'k42', funkPrioritaet: 'notfall' });
+
+      const eintrag = new EtbEintrag(
+        idResult.value as EintragId,
+        seqResult.value as EtbSequenceNumber,
+        'Brand 12',
+        userResult.value as UserId,
+        new Date('2024-01-01T10:00:00Z'),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        kontext,
+      );
+
+      const persist = PrismaEintragMapper.toPersistence(eintrag, createValidTestId('etb01'));
+
+      expect(persist.kontextType).toBe('funkspruch');
+      expect(persist.kontextData).toEqual({ kanalId: 'k42', funkPrioritaet: 'notfall' });
+    });
+
+    it('toEntity: dekodiert FunkKontext aus kontextData', () => {
+      const prismaEintrag = createMockPrismaEintrag({
+        kontextType: 'funkspruch' as any,
+        kontextData: { kanalId: 'k1', funkPrioritaet: 'prioritaet' } as any,
+        ereignisZeitpunkt: new Date('2024-02-02T12:00:00Z') as any,
+        erfasstAm: new Date('2024-02-02T12:05:00Z') as any,
+      });
+
+      const entity = PrismaEintragMapper.toEntity(prismaEintrag);
+
+      expect(entity.kontext.type).toBe('funkspruch');
+      expect((entity.kontext as any).kanalId).toBe('k1');
+      expect((entity.kontext as any).funkPrioritaet).toBe('prioritaet');
+      expect(entity.ereignisZeitpunkt).toEqual(new Date('2024-02-02T12:00:00Z'));
+      expect(entity.erfasstAm).toEqual(new Date('2024-02-02T12:05:00Z'));
+    });
+
+    it('toEntity: fällt auf standard zurück wenn kontextType fehlt (Legacy-Daten)', () => {
+      const prismaEintrag = createMockPrismaEintrag({});
+      // Simuliere Legacy-Row ohne Kontext-Felder
+      delete (prismaEintrag as any).kontextType;
+      delete (prismaEintrag as any).kontextData;
+
+      const entity = PrismaEintragMapper.toEntity(prismaEintrag);
+      expect(entity.kontext.type).toBe('standard');
+    });
+
+    it('Roundtrip: Domain → Prisma-Shape → Domain erhält FunkKontext', () => {
+      const idResult = EintragId.create(createValidTestId('ein03'));
+      const seqResult = EtbSequenceNumber.create(7);
+      const userResult = UserId.create(createValidTestId('user1'));
+      const kontext = EintragKontext.funkspruch({ kanalId: 'ch-9', funkPrioritaet: 'routine' });
+      const createdAt = new Date('2024-03-03T08:00:00Z');
+
+      const original = new EtbEintrag(
+        idResult.value as EintragId,
+        seqResult.value as EtbSequenceNumber,
+        'Funkspruch Test',
+        userResult.value as UserId,
+        createdAt,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        new Date('2024-03-03T07:45:00Z'),
+        new Date('2024-03-03T08:01:00Z'),
+        kontext,
+      );
+
+      const persist = PrismaEintragMapper.toPersistence(original, createValidTestId('etb01'));
+      // Prisma-Shape zurück in Mock-Form bringen
+      const prismaMock = createMockPrismaEintrag({
+        id: persist.id as any,
+        sequenceNumber: persist.sequenceNumber,
+        text: persist.text,
+        createdBy: persist.createdBy,
+        createdAt: persist.createdAt,
+        updatedAt: persist.updatedAt,
+        kategorie: persist.kategorie,
+        kontextType: persist.kontextType as any,
+        kontextData: persist.kontextData as any,
+        ereignisZeitpunkt: persist.ereignisZeitpunkt as any,
+        erfasstAm: persist.erfasstAm as any,
+      });
+
+      const restored = PrismaEintragMapper.toEntity(prismaMock);
+
+      expect(restored.kontext.type).toBe('funkspruch');
+      expect((restored.kontext as any).kanalId).toBe('ch-9');
+      expect((restored.kontext as any).funkPrioritaet).toBe('routine');
+      expect(restored.ereignisZeitpunkt).toEqual(new Date('2024-03-03T07:45:00Z'));
+    });
+  });
 });
