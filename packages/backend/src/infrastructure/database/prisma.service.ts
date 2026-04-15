@@ -226,6 +226,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get zeichenKatalogEintrag() {
     return this._client.zeichenKatalogEintrag;
   }
+  get funkkanal() {
+    return this._client.funkkanal;
+  }
+  get funkkanalZuordnung() {
+    return this._client.funkkanalZuordnung;
+  }
 
   // Delegate Prisma Client methods
   $connect() {
