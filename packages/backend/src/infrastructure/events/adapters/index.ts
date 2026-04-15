@@ -57,6 +57,7 @@ export * from './person-von-einheit-entfernt-etb-event.adapter';
 export * from './fahrzeug-einheit-zugewiesen-etb-event.adapter';
 export * from './lagekarte-state-geaendert-websocket-event.adapter';
 export * from './zeichen-event.adapter';
+export * from './hazard-zone-websocket-event.adapter';
 export * from './funkkanal-event.adapter';
 export * from './etb-funkspruch-broadcast-event.adapter';
 export * from './notfall-funkspruch-alert-event.adapter';

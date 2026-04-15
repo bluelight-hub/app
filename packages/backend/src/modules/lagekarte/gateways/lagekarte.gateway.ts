@@ -66,6 +66,28 @@ export interface ZeichenEntferntPayload {
 }
 
 /**
+ * WebSocket Payload für hazardzone.* Events (Issue #627).
+ */
+export interface HazardZoneEventPayload {
+  hazardZoneId: string;
+  einsatzId: string;
+  gefahrentyp: string;
+  timestamp: string; // ISO 8601
+}
+
+/**
+ * WebSocket Payload für hazardzone.warnstufe-aktualisiert (Issue #627, AC5).
+ *
+ * Wird gefeuert, wenn sich die Gefahrenmatrix-Bewertung eines Gefahrentyps ändert —
+ * Clients aktualisieren die Farbcodierung aller Zonen dieses Gefahrentyps.
+ */
+export interface HazardZoneWarnstufeChangedPayload {
+  einsatzId: string;
+  gefahrentyp: string;
+  timestamp: string; // ISO 8601
+}
+
+/**
  * WebSocket Gateway für Lagekarte Echtzeit-Kollaboration.
  *
  * **Issue #638: Lagekarte Echtzeit-Feature**
@@ -293,6 +315,45 @@ export class LagekarteGateway implements OnGatewayConnection, OnGatewayDisconnec
     const roomName = this.getRoomName(payload.einsatzId);
     this.server.to(roomName).emit('zeichen:entfernt', payload);
     this.logger.log(`Emitted zeichen:entfernt to room ${roomName}: zeichenId=${payload.zeichenId}`, 'LagekarteGateway');
+  }
+
+  /**
+   * Emittiert `hazardzone:erstellt` an alle Clients im Einsatz-Room (Issue #627).
+   */
+  emitHazardZoneCreated(payload: HazardZoneEventPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('hazardzone:erstellt', payload);
+    this.logger.log(`Emitted hazardzone:erstellt to room ${roomName}: hazardZoneId=${payload.hazardZoneId}`, 'LagekarteGateway');
+  }
+
+  /**
+   * Emittiert `hazardzone:aktualisiert` an alle Clients im Einsatz-Room (Issue #627).
+   */
+  emitHazardZoneUpdated(payload: HazardZoneEventPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('hazardzone:aktualisiert', payload);
+    this.logger.log(`Emitted hazardzone:aktualisiert to room ${roomName}: hazardZoneId=${payload.hazardZoneId}`, 'LagekarteGateway');
+  }
+
+  /**
+   * Emittiert `hazardzone:geloescht` an alle Clients im Einsatz-Room (Issue #627).
+   */
+  emitHazardZoneDeleted(payload: HazardZoneEventPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('hazardzone:geloescht', payload);
+    this.logger.log(`Emitted hazardzone:geloescht to room ${roomName}: hazardZoneId=${payload.hazardZoneId}`, 'LagekarteGateway');
+  }
+
+  /**
+   * Emittiert `hazardzone:warnstufe-aktualisiert` (Issue #627, AC5).
+   *
+   * Getriggert durch GefahrenmatrixAktualisiertEvent — Clients rerendern alle
+   * Zonen desselben Gefahrentyps mit der neuen Farbcodierung.
+   */
+  emitHazardZoneWarnstufeChanged(payload: HazardZoneWarnstufeChangedPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('hazardzone:warnstufe-aktualisiert', payload);
+    this.logger.log(`Emitted hazardzone:warnstufe-aktualisiert to room ${roomName}: gefahrentyp=${payload.gefahrentyp}`, 'LagekarteGateway');
   }
 
   /**

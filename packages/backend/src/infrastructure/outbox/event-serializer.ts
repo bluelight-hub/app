@@ -88,6 +88,9 @@ import type { EinheitAufgeloestEvent } from '@domain/kraefte/events/einheit-aufg
 import type { PersonZuEinheitZugewiesenEvent } from '@domain/kraefte/events/person-zu-einheit-zugewiesen.event';
 import type { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von-einheit-entfernt.event';
 import type { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
+import type { HazardZoneCreatedEvent } from '@domain/hazard-zone/events/hazard-zone-created.event';
+import type { HazardZoneUpdatedEvent } from '@domain/hazard-zone/events/hazard-zone-updated.event';
+import type { HazardZoneDeletedEvent } from '@domain/hazard-zone/events/hazard-zone-deleted.event';
 import type { ZeichenErstelltEvent } from '@domain/taktische-zeichen/events/zeichen-erstellt.event';
 import type { ZeichenPlatziertEvent } from '@domain/taktische-zeichen/events/zeichen-platziert.event';
 import type { ZeichenVerschobenEvent } from '@domain/taktische-zeichen/events/zeichen-verschoben.event';
@@ -434,6 +437,14 @@ export class EventSerializer {
       // ===== GEFAHRENMATRIX EVENTS (Issue #414) =====
       case 'gefahrenmatrix.aktualisiert':
         return this.serializeGefahrenmatrixAktualisiert(event as unknown as GefahrenmatrixAktualisiertEvent);
+
+      // ===== HAZARD ZONE EVENTS (Issue #627) =====
+      case 'hazard_zone.erstellt':
+        return this.serializeHazardZoneCreated(event as unknown as HazardZoneCreatedEvent);
+      case 'hazard_zone.aktualisiert':
+        return this.serializeHazardZoneUpdated(event as unknown as HazardZoneUpdatedEvent);
+      case 'hazard_zone.geloescht':
+        return this.serializeHazardZoneDeleted(event as unknown as HazardZoneDeletedEvent);
 
       // ===== TAKTISCHE ZEICHEN EVENTS (Issue #636) =====
       case 'taktisches_zeichen.erstellt':
@@ -1449,6 +1460,33 @@ export class EventSerializer {
       schutzobjekt: event.schutzobjekt,
       warnstufe: event.warnstufe,
       aktualisiertVon: event.aktualisiertVon,
+    };
+  }
+
+  private serializeHazardZoneCreated(event: HazardZoneCreatedEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      hazardZoneId: event.hazardZoneId,
+      gefahrentyp: event.gefahrentyp,
+      createdBy: event.createdBy,
+    };
+  }
+
+  private serializeHazardZoneUpdated(event: HazardZoneUpdatedEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      hazardZoneId: event.hazardZoneId,
+      gefahrentyp: event.gefahrentyp,
+      updatedBy: event.updatedBy,
+    };
+  }
+
+  private serializeHazardZoneDeleted(event: HazardZoneDeletedEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      hazardZoneId: event.hazardZoneId,
+      gefahrentyp: event.gefahrentyp,
+      deletedBy: event.deletedBy,
     };
   }
 

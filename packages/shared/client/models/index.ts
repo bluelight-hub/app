@@ -1,6 +1,12 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './ActivateFuehrungsrhythmusTemplateDto';
+export * from './CreateHazardZoneDto';
+export * from './HazardZoneControllerCreateVAlpha201Response';
+export * from './HazardZoneControllerListVAlpha200Response';
+export * from './HazardZoneDto';
+export * from './HazardZoneListResponseDto';
+export * from './UpdateHazardZoneDto';
 export * from './ActivateFuehrungsrhythmusTemplateResponseDto';
 export * from './AddBefehlKommentarDto';
 export * from './AddEintragDto';

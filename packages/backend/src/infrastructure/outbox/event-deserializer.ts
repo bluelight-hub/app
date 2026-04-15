@@ -137,6 +137,11 @@ import { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von
 // Gefahrenmatrix Events (Issue #414)
 import { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
 
+// HazardZone Events (Issue #627)
+import { HazardZoneCreatedEvent } from '@domain/hazard-zone/events/hazard-zone-created.event';
+import { HazardZoneUpdatedEvent } from '@domain/hazard-zone/events/hazard-zone-updated.event';
+import { HazardZoneDeletedEvent } from '@domain/hazard-zone/events/hazard-zone-deleted.event';
+
 // Taktische Zeichen Events (Issue #636)
 import { ZeichenErstelltEvent } from '@domain/taktische-zeichen/events/zeichen-erstellt.event';
 import { ZeichenPlatziertEvent } from '@domain/taktische-zeichen/events/zeichen-platziert.event';
@@ -378,6 +383,11 @@ export class EventDeserializer {
 
       // ===== GEFAHRENMATRIX EVENTS (Issue #414) =====
       ['gefahrenmatrix.aktualisiert', deserializeGefahrenmatrixAktualisiert],
+
+      // ===== HAZARD ZONE EVENTS (Issue #627) =====
+      ['hazard_zone.erstellt', deserializeHazardZoneCreated],
+      ['hazard_zone.aktualisiert', deserializeHazardZoneUpdated],
+      ['hazard_zone.geloescht', deserializeHazardZoneDeleted],
 
       // ===== TAKTISCHE ZEICHEN EVENTS (Issue #636) =====
       ['taktisches_zeichen.erstellt', deserializeZeichenErstellt],
@@ -2260,6 +2270,26 @@ function deserializeGefahrenmatrixAktualisiert(payload: Record<string, unknown>,
     payload.aktualisiertVon as string,
     aggregateId,
   );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== HAZARD ZONE DESERIALIZERS (Issue #627) =====
+
+function deserializeHazardZoneCreated(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new HazardZoneCreatedEvent(payload.einsatzId as string, payload.hazardZoneId as string, payload.gefahrentyp as string, payload.createdBy as string);
+  (event as unknown as { aggregateId: string | undefined }).aggregateId = aggregateId ?? (payload.hazardZoneId as string);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeHazardZoneUpdated(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new HazardZoneUpdatedEvent(payload.einsatzId as string, payload.hazardZoneId as string, payload.gefahrentyp as string, payload.updatedBy as string);
+  (event as unknown as { aggregateId: string | undefined }).aggregateId = aggregateId ?? (payload.hazardZoneId as string);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeHazardZoneDeleted(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new HazardZoneDeletedEvent(payload.einsatzId as string, payload.hazardZoneId as string, payload.gefahrentyp as string, payload.deletedBy as string);
+  (event as unknown as { aggregateId: string | undefined }).aggregateId = aggregateId ?? (payload.hazardZoneId as string);
   return Result.ok<DomainEvent>(event);
 }
 

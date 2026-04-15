@@ -293,6 +293,18 @@ export const EVENT_NAMES = {
   },
 
   /**
+   * HazardZone Bounded Context Events (Issue #627)
+   */
+  HAZARD_ZONE: {
+    /** Event: Neue Gefahrenzone wurde auf der Lagekarte erstellt */
+    ERSTELLT: 'hazard_zone.erstellt',
+    /** Event: Gefahrenzone wurde aktualisiert (Geometrie/Typ/Label) */
+    AKTUALISIERT: 'hazard_zone.aktualisiert',
+    /** Event: Gefahrenzone wurde von der Lagekarte entfernt */
+    GELOESCHT: 'hazard_zone.geloescht',
+  },
+
+  /**
    * Funkkanal Bounded Context Events (Issue #407)
    */
   FUNKKANAL: {
@@ -368,6 +380,7 @@ export type EventName =
   | (typeof EVENT_NAMES.OPERATIVE_ROLLE)[keyof typeof EVENT_NAMES.OPERATIVE_ROLLE]
   | (typeof EVENT_NAMES.BEITRITTSANFRAGE)[keyof typeof EVENT_NAMES.BEITRITTSANFRAGE]
   | (typeof EVENT_NAMES.GEFAHRENMATRIX)[keyof typeof EVENT_NAMES.GEFAHRENMATRIX]
+  | (typeof EVENT_NAMES.HAZARD_ZONE)[keyof typeof EVENT_NAMES.HAZARD_ZONE]
   | (typeof EVENT_NAMES.FUNKKANAL)[keyof typeof EVENT_NAMES.FUNKKANAL]
   | (typeof EVENT_NAMES.FUNK)[keyof typeof EVENT_NAMES.FUNK]
   | (typeof EVENT_NAMES.TAKTISCHES_ZEICHEN)[keyof typeof EVENT_NAMES.TAKTISCHES_ZEICHEN];

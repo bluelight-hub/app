@@ -29,6 +29,7 @@ export * from './FuehrungsrhythmusTemplatesAdminApi';
 export * from './FunkkanalApi';
 export * from './GefahrenmatrixApi';
 export * from './GeoApi';
+export * from './HazardZonesApi';
 export * from './GeocodingApi';
 export * from './HealthApi';
 export * from './KategorienApi';

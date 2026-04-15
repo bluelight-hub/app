@@ -49,6 +49,7 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { GeoModule } from './modules/geo/geo.module';
 import { EinsatzBeitrittModule } from './modules/einsatz-beitritt/einsatz-beitritt.module';
 import { GefahrModule } from './modules/gefahr/gefahr.module';
+import { HazardZoneModule } from './modules/hazard-zone/hazard-zone.module';
 import { TaktischeZeichenModule } from './modules/taktische-zeichen/taktische-zeichen.module';
 import { FunkkanalInfrastructureModule } from '@infrastructure/funkkanal/funkkanal-infrastructure.module';
 import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
@@ -142,6 +143,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     GeoModule, // PLZ-Lookup via zippopotam.us (Issue #525)
     EinsatzBeitrittModule, // Einsatz-Beitrittsanfragen (Issue #98)
     GefahrModule, // Gefahrenmatrix (Issue #414)
+    HazardZoneModule, // Räumliche Gefahrenzonen (Issue #627)
     TaktischeZeichenModule, // Taktische Zeichen (DV 102) #636
     FunkkanalInfrastructureModule, // Funkkanal Infrastructure (Issue #407, Wave 2)
     FunkkanalModule, // Funkkanal HTTP Layer (Issue #407, Wave 2 / Phase 7)

@@ -42,6 +42,7 @@ import {
   FahrzeugEinheitZugewiesenEtbEventAdapter,
   LagekarteStateGeaendertWebsocketEventAdapter,
   ZeichenEventAdapter,
+  HazardZoneWebsocketEventAdapter,
   FunkkanalEventAdapter,
   EtbFunkspruchBroadcastAdapter,
   NotfallFunkspruchAlertEventAdapter,
@@ -179,6 +180,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     FahrzeugEinheitZugewiesenEtbEventAdapter, // Issue #411: FahrzeugEinheitZugewiesen ETB-Eintrag
     LagekarteStateGeaendertWebsocketEventAdapter, // Issue #638: LagekarteStateGeaendert WebSocket-Broadcast
     ZeichenEventAdapter, // Issue #636: Taktische Zeichen WebSocket-Broadcast
+    HazardZoneWebsocketEventAdapter, // Issue #627: HazardZone WebSocket-Broadcast + Gefahrenmatrix-Sync
     FunkkanalEventAdapter, // Issue #407: Funkkanal-Events WebSocket-Broadcast
     EtbFunkspruchBroadcastAdapter, // Issue #407: Funkspruch-ETB-Einträge WebSocket-Broadcast
     NotfallFunkspruchAlertEventAdapter, // Issue #407: Notfall-Funkspruch Alert-Publisher

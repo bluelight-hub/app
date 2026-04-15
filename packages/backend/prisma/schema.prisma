@@ -340,6 +340,9 @@ model Einsatz {
   // Gefahrenmatrix Relation (1:N, Issue #414)
   gefahrenmatrixBewertungen GefahrenmatrixBewertung[]
 
+  // HazardZones Relation (1:N, Issue #627)
+  hazardZones HazardZone[]
+
   // Taktische Einheiten Relation (1:N, Issue #411)
   einheiten EinsatzEinheit[]
 
@@ -2295,6 +2298,44 @@ model GefahrenmatrixBewertung {
   @@unique([einsatzId, gefahrentyp, schutzobjekt])
   @@index([einsatzId])
   @@map("gefahrenmatrix_bewertungen")
+}
+
+/// HazardZone: Räumliche Darstellung einer Gefahr auf der Lagekarte (Issue #627).
+///
+/// Verknüpft einen Gefahrenbereich (Polygon oder Kreis) auf der Lagekarte mit
+/// einem Gefahrentyp aus der Gefahrenmatrix. Die aktuelle Warnstufe wird zur
+/// Laufzeit aus allen zugehörigen GefahrenmatrixBewertungen (einsatzId +
+/// gefahrentyp) ermittelt (höchste Warnstufe über alle Schutzobjekte).
+///
+/// Geometrie:
+/// - geometry: GeoJSON Geometry (Polygon | Circle via Point + radiusMeters)
+/// - geometryType: Diskriminator ("POLYGON" | "CIRCLE") für effiziente Queries
+model HazardZone {
+  id            String      @id @default(cuid())
+  einsatzId     String
+  gefahrentyp   Gefahrentyp
+
+  // Geometrie (GeoJSON)
+  geometryType  String      @db.VarChar(20) // 'POLYGON' | 'CIRCLE'
+  geometry      Json        @db.JsonB       // GeoJSON Geometry
+  radiusMeters  Float?                      // Nur bei geometryType='CIRCLE'
+
+  // Metadaten
+  label         String?     @db.VarChar(255)
+  beschreibung  String?     @db.Text
+
+  // Audit
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  createdBy     String      @db.VarChar(100)
+  updatedBy     String      @db.VarChar(100)
+
+  // Relations
+  einsatz       Einsatz     @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+
+  @@index([einsatzId])
+  @@index([einsatzId, gefahrentyp])
+  @@map("hazard_zones")
 }
 
 // ========================================
