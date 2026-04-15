@@ -465,6 +465,14 @@ model EtbEintrag {
   isAutomatic Boolean @default(false) // Automatisch generierter Eintrag
   metadata    Json?   @db.JsonB // Zusätzliche strukturierte Daten
 
+  // Kontext-Variante (Discriminated Union via type + data)
+  kontextType String @default("standard") @map("kontext_type") // 'standard' | 'funkspruch'
+  kontextData Json?  @map("kontext_data") @db.JsonB
+
+  // Fachliche Zeitstempel
+  erfasstAm         DateTime @default(now()) @map("erfasst_am") // Immutabler Erfassungszeitpunkt
+  ereignisZeitpunkt DateTime @map("ereignis_zeitpunkt") // User-editierbarer fachlicher Zeitpunkt
+
   // Zeitstempel
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -496,6 +504,8 @@ model EtbEintrag {
   @@unique([etbId, sequenceNumber]) // Eindeutige laufende Nummer pro ETB
   @@index([etbId, timestamp])
   @@index([etbId, kategorie])
+  @@index([etbId, ereignisZeitpunkt])
+  @@index([etbId, kontextType])
   @@index([createdBy])
   @@index([deletedAt])
   @@index([korrigiertEintragId])
