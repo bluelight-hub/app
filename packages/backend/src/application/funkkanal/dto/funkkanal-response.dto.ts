@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ApiKanalDetailsExtraModels, KANAL_DETAILS_SCHEMA, type KanalDetailsUnionDto } from './kanal-details.dto';
+import { KANAL_DETAILS_SCHEMA, type KanalDetailsUnionDto } from './kanal-details.dto';
 import { ZuordnungResponseDto } from './zuordnung.dto';
 
 export const FUNKKANAL_STATUS_VALUES = ['aktiv', 'inaktiv', 'archiviert'] as const;
