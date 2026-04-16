@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearApiCache, getBaseUrl } from '../api';
+import { AlarmierungApi } from '@bluelight-hub/shared/client';
+import { clearApiCache, getApi, getBaseUrl } from '../api';
 import { serverStore } from '@/features/server/stores/server.store';
 import type { ServerConfig } from '@/features/server/types/server-config';
 import { logger } from '@/shared/lib/logger';
@@ -96,5 +97,29 @@ describe('getBaseUrl', () => {
       url: 'https://localhost:3092',
       serverName: 'Staging',
     });
+  });
+});
+
+describe('BackendApi', () => {
+  beforeEach(() => {
+    clearApiCache();
+    serverStore.setState({
+      servers: [],
+      activeServerId: null,
+      connectionStatus: new Map(),
+      isHydrated: false,
+    });
+    vi.clearAllMocks();
+  });
+
+  it('stellt eine AlarmierungApi-Instanz über alarmierung() bereit (Issue #408)', () => {
+    const api = getApi();
+    const alarmierungApi = api.alarmierung();
+
+    expect(alarmierungApi).toBeDefined();
+    expect(alarmierungApi).toBeInstanceOf(AlarmierungApi);
+
+    // Getter liefert die gecachte Instanz bei erneutem Aufruf (kein Neu-Instanziieren).
+    expect(api.alarmierung()).toBe(alarmierungApi);
   });
 });

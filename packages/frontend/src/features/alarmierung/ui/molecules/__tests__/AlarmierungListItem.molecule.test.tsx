@@ -44,4 +44,12 @@ describe('AlarmierungListItem', () => {
     render(<AlarmierungListItem alarmierung={buildAlarmierung({ istNachalarmierung: true })} />);
     expect(screen.getByRole('status', { name: /Nachalarmierung/ })).toBeInTheDocument();
   });
+
+  it('zeigt „--" für ein ungültiges Datum im Alarmierungszeitpunkt', () => {
+    // Ungültiger Datumsstring deckt den NaN-Pfad in formatDateTime ab.
+    const alarmierung = buildAlarmierung({ alarmierungszeit: 'not-a-date' as unknown as Date });
+    render(<AlarmierungListItem alarmierung={alarmierung} />);
+    expect(screen.getByText('--')).toBeInTheDocument();
+    expect(screen.getByLabelText('Alarmiert um --')).toBeInTheDocument();
+  });
 });
