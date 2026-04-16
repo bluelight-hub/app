@@ -55,6 +55,29 @@ const FUNKKANAL_EVENTS = [
   'funkkanal:zuordnung-entfernt',
 ] as const;
 
+/**
+ * Einsatz-Event-Payload für Alarmierungs-Events (Issue #408).
+ *
+ * `alarmierungId` ist immer gesetzt, `empfaengerId` nur bei empfänger-bezogenen
+ * Events. Der Hook invalidiert damit die Detail-Query gezielt, ohne auf die
+ * globale Liste warten zu müssen.
+ */
+export interface AlarmierungEventPayload {
+  einsatzId: string;
+  alarmierungId: string;
+  empfaengerId?: string;
+}
+
+const ALARMIERUNG_EVENTS = [
+  'alarmierung:erstellt',
+  'alarmierung:abgeschlossen',
+  'alarmierung:nachalarmierung-erstellt',
+  'alarmierung:empfaenger-hinzugefuegt',
+  'alarmierung:empfaenger-entfernt',
+  'alarmierung:zeitpunkt-korrigiert',
+  'alarmierung:fms-status-empfangen',
+] as const;
+
 const getWsBaseUrl = (): string => getBaseUrl() || 'http://localhost:3091';
 
 export function useEinsatzEvents({ einsatzId, enabled = true, onNotfall }: UseEinsatzEventsOptions): UseEinsatzEventsResult {
@@ -79,6 +102,22 @@ export function useEinsatzEvents({ einsatzId, enabled = true, onNotfall }: UseEi
     queryClient.invalidateQueries({ queryKey: ['etb', einsatzId] });
     queryClient.invalidateQueries({ queryKey: ['etb'] });
   }, [queryClient, einsatzId]);
+
+  /**
+   * Invalidiert Alarmierungs-Caches (Issue #408).
+   * - Immer: Liste + Timeline
+   * - Optional: Detail-Query, wenn Payload eine spezifische `alarmierungId` trägt
+   */
+  const invalidateAlarmierung = useCallback(
+    (payload?: AlarmierungEventPayload) => {
+      queryClient.invalidateQueries({ queryKey: ['alarmierung', 'list', einsatzId] });
+      queryClient.invalidateQueries({ queryKey: ['alarmierung', 'timeline', einsatzId] });
+      if (payload?.alarmierungId) {
+        queryClient.invalidateQueries({ queryKey: ['alarmierung', 'detail', einsatzId, payload.alarmierungId] });
+      }
+    },
+    [queryClient, einsatzId],
+  );
 
   useEffect(() => {
     if (!enabled || !einsatzId) {
@@ -121,6 +160,7 @@ export function useEinsatzEvents({ einsatzId, enabled = true, onNotfall }: UseEi
         // Reconnect-Fall: Full-Invalidate, damit verpasste Events nachgezogen werden.
         invalidateKanalplan();
         invalidateFunkprotokoll();
+        invalidateAlarmierung();
       });
 
       socket.on('join:einsatz:error', (payload: { message?: string }) => {
@@ -147,6 +187,10 @@ export function useEinsatzEvents({ einsatzId, enabled = true, onNotfall }: UseEi
         socket.on(channel, invalidateKanalplan);
       }
 
+      for (const channel of ALARMIERUNG_EVENTS) {
+        socket.on(channel, (payload?: AlarmierungEventPayload) => invalidateAlarmierung(payload));
+      }
+
       socket.on('funk:notfall-alert', (payload: NotfallAlertPayload) => {
         invalidateFunkprotokoll();
         onNotfallRef.current?.(payload);
@@ -166,7 +210,7 @@ export function useEinsatzEvents({ einsatzId, enabled = true, onNotfall }: UseEi
       socketRef.current = null;
       setStatus('disconnected');
     };
-  }, [einsatzId, enabled, invalidateKanalplan, invalidateFunkprotokoll]);
+  }, [einsatzId, enabled, invalidateKanalplan, invalidateFunkprotokoll, invalidateAlarmierung]);
 
   return { status, isConnected: status === 'connected' };
 }
