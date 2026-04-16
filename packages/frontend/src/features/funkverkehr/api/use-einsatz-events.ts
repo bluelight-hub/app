@@ -75,7 +75,7 @@ const ALARMIERUNG_EVENTS = [
   'alarmierung:empfaenger-hinzugefuegt',
   'alarmierung:empfaenger-entfernt',
   'alarmierung:zeitpunkt-korrigiert',
-  'alarmierung:fms-status-empfangen',
+  'alarmierung:zeitpunkt-fms-gesetzt',
 ] as const;
 
 const getWsBaseUrl = (): string => getBaseUrl() || 'http://localhost:3091';
