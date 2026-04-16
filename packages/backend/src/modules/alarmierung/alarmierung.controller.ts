@@ -22,6 +22,7 @@ import { Body, Controller, Get, HttpCode, NotFoundException, Param, Post, Query,
 import { ApiBearerAuth, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AlarmierungMapper } from './mappers/alarmierung.mapper';
 import { unwrapOrThrow } from './helpers/alarmierung-error.helper';
+import { toOptionalDate } from './helpers/date-parse.helper';
 
 /**
  * HTTP-Adapter für den Alarmierung-Bounded-Context (Issue #408).
@@ -78,7 +79,7 @@ export class AlarmierungController {
         einsatzId,
         bezeichnung: dto.bezeichnung,
         beschreibung: dto.beschreibung,
-        alarmierungszeit: toDate(dto.alarmierungszeit),
+        alarmierungszeit: toOptionalDate(dto.alarmierungszeit),
         empfaenger: dto.empfaenger.map(toEmpfaengerInput),
         createdBy: user.userId,
       }),
@@ -147,7 +148,7 @@ export class AlarmierungController {
         ursprungAlarmierungId,
         bezeichnung: dto.bezeichnung,
         beschreibung: dto.beschreibung,
-        alarmierungszeit: toDate(dto.alarmierungszeit),
+        alarmierungszeit: toOptionalDate(dto.alarmierungszeit),
         empfaenger: dto.empfaenger.map(toEmpfaengerInput),
         createdBy: user.userId,
       }),
@@ -170,32 +171,21 @@ function toEmpfaengerInput(dto: AlarmierungEmpfaengerInputDto): ErstelleAlarmier
         kind: 'fahrzeug',
         fahrzeugId: dto.fahrzeugId,
         nameSnapshot: dto.nameSnapshot,
-        alarmiertAm: toDate(dto.alarmiertAm),
+        alarmiertAm: toOptionalDate(dto.alarmiertAm),
       };
     case 'person':
       return {
         kind: 'person',
         personId: dto.personId,
         nameSnapshot: dto.nameSnapshot,
-        alarmiertAm: toDate(dto.alarmiertAm),
+        alarmiertAm: toOptionalDate(dto.alarmiertAm),
       };
     case 'einheit':
       return {
         kind: 'einheit',
         einheitId: dto.einheitId,
         nameSnapshot: dto.nameSnapshot,
-        alarmiertAm: toDate(dto.alarmiertAm),
+        alarmiertAm: toOptionalDate(dto.alarmiertAm),
       };
   }
-}
-
-/**
- * Übersetzt ein Request-Datum (Date | string | undefined) in ein Date oder
- * undefined. Akzeptiert ISO-Strings aus JSON-Bodies.
- */
-function toDate(value: Date | string | undefined | null): Date | undefined {
-  if (value === undefined || value === null) return undefined;
-  if (value instanceof Date) return value;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
