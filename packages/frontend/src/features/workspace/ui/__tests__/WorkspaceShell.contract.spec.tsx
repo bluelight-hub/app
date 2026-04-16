@@ -424,4 +424,101 @@ describe('WorkspaceShell contract', () => {
     const navigationPosition = navigation.compareDocumentPosition(quickActions);
     expect(navigationPosition & Node.DOCUMENT_POSITION_FOLLOWING).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
+
+  it('trennt deaktivierte Module in eine eigene „Demnächst verfügbar"-Sektion ausserhalb der Hauptnavigation', () => {
+    renderWorkspaceShell();
+
+    const desktopNavigation = screen.getByRole('navigation', { name: 'Modulseiten' });
+    const comingSoonSection = screen.getByRole('region', { name: 'Demnächst verfügbare Module' });
+
+    // Deaktiviertes Modul (Planung) befindet sich in der Coming-Soon-Sektion, nicht in der Hauptnavigation.
+    expect(within(comingSoonSection).getByText('Planung')).toBeInTheDocument();
+    expect(within(desktopNavigation).queryByText('Planung')).not.toBeInTheDocument();
+
+    // Coming-Soon-Sektion ist per DisclosureButton kollabierbar.
+    expect(within(comingSoonSection).getByRole('button')).toBeInTheDocument();
+  });
+
+  it('bietet einen Toggle zum Einklappen der Sidebar und passt das Layout an', () => {
+    const handleToggle = vi.fn();
+    const { rerender } = render(
+      <WorkspaceShell
+        contextBar={{
+          title: 'Einsatz',
+          backAction: { label: 'Übersicht', href: '/app/einsaetze' },
+        }}
+        modules={[
+          {
+            id: 'übersicht',
+            label: 'Übersicht',
+            description: 'Einsatzübersicht',
+            routeTarget: '/app/einsatz/$einsatzId/übersicht',
+            icon: PiHouse,
+            color: 'blue',
+            priority: 10,
+            visibility: { default: 'visible' },
+            shortcut: { modifiers: ['alt'], key: '1' },
+            subPages: [
+              {
+                id: 'dashboard',
+                label: 'Dashboard',
+                href: '/app/einsatz/$einsatzId/übersicht',
+                icon: PiHouse,
+                visibility: { default: 'visible' },
+              },
+            ],
+          },
+        ]}
+        activeModuleId="übersicht"
+        isCollapsed={false}
+        onToggleCollapsed={handleToggle}
+      >
+        <div>Arbeitsbereich</div>
+      </WorkspaceShell>,
+    );
+
+    const toggle = screen.getByRole('button', { name: 'Sidebar einklappen' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    toggle.click();
+    expect(handleToggle).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <WorkspaceShell
+        contextBar={{
+          title: 'Einsatz',
+          backAction: { label: 'Übersicht', href: '/app/einsaetze' },
+        }}
+        modules={[
+          {
+            id: 'übersicht',
+            label: 'Übersicht',
+            description: 'Einsatzübersicht',
+            routeTarget: '/app/einsatz/$einsatzId/übersicht',
+            icon: PiHouse,
+            color: 'blue',
+            priority: 10,
+            visibility: { default: 'visible' },
+            shortcut: { modifiers: ['alt'], key: '1' },
+            subPages: [
+              {
+                id: 'dashboard',
+                label: 'Dashboard',
+                href: '/app/einsatz/$einsatzId/übersicht',
+                icon: PiHouse,
+                visibility: { default: 'visible' },
+              },
+            ],
+          },
+        ]}
+        activeModuleId="übersicht"
+        isCollapsed={true}
+        onToggleCollapsed={handleToggle}
+      >
+        <div>Arbeitsbereich</div>
+      </WorkspaceShell>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Sidebar ausklappen' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('complementary', { name: 'Workspace-Sidebar' })).toHaveAttribute('data-collapsed', 'true');
+  });
 });

@@ -176,10 +176,6 @@ vi.mock('@/features/einsatz/ui/molecules/einsatz-status-badge.molecule', () => (
   EinsatzStatusBadge: ({ status }: { status: string }) => <div data-testid="einsatz-status-badge">{status}</div>,
 }));
 
-vi.mock('@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule', () => ({
-  EinsatzSwitcher: () => <div data-testid="einsatz-switcher">EinsatzSwitcher</div>,
-}));
-
 vi.mock('@/features/einsatz/ui/molecules/ModuleOverviewCard', () => ({
   ModuleOverviewCard: ({ open }: { open: boolean }) => (open ? <div data-testid="module-overview-overlay">Module Overview</div> : null),
 }));
@@ -274,6 +270,20 @@ vi.mock('@/shared/ui/organisms/command-palette', () => ({
         ))}
       </div>
     ) : null,
+  useEinsatzSwitcherModule: () => ({
+    id: 'einsatz-switcher',
+    name: 'Einsatz wechseln',
+    color: 'red',
+    icon: () => null,
+    subPages: [],
+  }),
+  useEinsatzActionsModule: () => ({
+    id: 'einsatz-actions',
+    name: 'Einsatz-Aktionen',
+    color: 'orange',
+    icon: () => null,
+    subPages: [],
+  }),
 }));
 
 vi.mock('@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary', () => ({

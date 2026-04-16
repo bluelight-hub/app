@@ -5,7 +5,6 @@ import { useMyEinsatzRolle } from '@/features/befehl/api/use-my-einsatz-rolle';
 import { EINSATZ_QUERY_KEYS, EinsatzRolleProvider, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { ETB_QUERY_KEYS } from '@/features/etb';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
-import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
 import { ExterneEinladenDialog } from '@/features/einsatz/ui/organisms/ExterneEinladenDialog';
@@ -38,14 +37,14 @@ import { api, EinsatzDtoStatusEnum } from '@/shared';
 import { cn } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { CommandPalette } from '@/shared/ui/organisms/command-palette';
+import { CommandPalette, useEinsatzActionsModule, useEinsatzSwitcherModule } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { PiArrowsOut, PiClock, PiRadio, PiSiren, PiSpeakerHigh, PiUserPlus, PiWarning } from 'react-icons/pi';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PiArrowsOut, PiClock, PiRadio, PiSiren, PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { hasBlockingWorkspaceOverlay, shouldBlockWorkspaceHotkey } from './single-einsatz-layout.utils';
 
@@ -371,7 +370,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     [modules],
   );
 
-  const commandPaletteModules = useMemo(
+  const navigationCommandModules = useMemo(
     () =>
       modules
         .filter((module) => !isHiddenVisibility(module.visibility))
@@ -395,6 +394,25 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         }))
         .filter((module) => module.subPages.length > 0),
     [modules],
+  );
+
+  // Stabile Callbacks für die Command-Palette-Einträge (sonst würde jeder Render das Memo invalidieren).
+  const handleOpenAudioDialog = useCallback(() => setShowAudioDialog(true), []);
+  const handleOpenExterneEinladenDialog = useCallback(() => setShowExterneEinladenDialog(true), []);
+  const handleOpenEndConfirmation = useCallback(() => setShowEndConfirmation(true), []);
+
+  const einsatzSwitcherModule = useEinsatzSwitcherModule(einsatzId);
+  const einsatzActionsModule = useEinsatzActionsModule({
+    onOpenAudioDialog: handleOpenAudioDialog,
+    onOpenExterneEinladenDialog: handleOpenExterneEinladenDialog,
+    onOpenEndConfirmation: handleOpenEndConfirmation,
+    isFuehrungskraft,
+    canEndEinsatz: einsatz?.status !== EinsatzDtoStatusEnum.Abgeschlossen && einsatz?.status !== EinsatzDtoStatusEnum.Archiviert,
+  });
+
+  const commandPaletteModules = useMemo(
+    () => [einsatzSwitcherModule, ...navigationCommandModules, einsatzActionsModule].filter((module) => module.subPages.length > 0),
+    [einsatzSwitcherModule, navigationCommandModules, einsatzActionsModule],
   );
 
   /**
@@ -479,37 +497,13 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         moduleOverviewLabel="Modulübersicht öffnen"
         onCommandTriggerClick={() => setCommandPaletteOpen(true)}
         onOpenModuleOverview={() => setShowModuleOverview(true)}
-        sidebarHeader={<EinsatzSwitcher />}
         quickActionsSlot={
-          <div className="space-y-1">
-            <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
-              <PiRadio className="mr-2 h-4 w-4" />
-              {currentEinsatzPersonId ? (
-                <span className="truncate">{teilnahmeData?.data?.personFunkrufname || `${teilnahmeData?.data?.personVorname} ${teilnahmeData?.data?.personNachname}`}</span>
-              ) : (
-                <span className="text-action-primary">Person wählen</span>
-              )}
+          !isTeilnahmeLoading && !currentEinsatzPersonId ? (
+            <Button intent="primary" size="sm" className="w-full justify-center gap-2" onClick={() => setShowBeitrittDialog(true)} aria-haspopup="dialog">
+              <PiRadio className="h-4 w-4" />
+              <span>Person wählen</span>
             </Button>
-            {isFuehrungskraft && (
-              <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowExterneEinladenDialog(true)} aria-haspopup="dialog">
-                <PiUserPlus className="mr-2 h-4 w-4" />
-                Externe einladen
-              </Button>
-            )}
-            <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
-              <PiSpeakerHigh className="mr-2 h-4 w-4" />
-              Audio-Einstellungen
-            </Button>
-            <Button
-              intent="danger"
-              size="sm"
-              className="w-full"
-              onClick={() => setShowEndConfirmation(true)}
-              disabled={einsatz?.status === EinsatzDtoStatusEnum.Abgeschlossen || einsatz?.status === EinsatzDtoStatusEnum.Archiviert}
-            >
-              Einsatz beenden
-            </Button>
-          </div>
+          ) : null
         }
         sidebarFooter={null}
         overlaySlot={
