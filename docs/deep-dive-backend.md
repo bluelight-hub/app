@@ -180,6 +180,91 @@ archiviert  (Mutationen gesperrt; Hard-Delete nur wenn keine
 - [ADR-007: Funkkanal als Aggregat](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-007-funkkanal-als-aggregat.md)
 - [ADR-008: Polymorphe Zuordnung via nullable FKs](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-008-polymorphe-zuordnung-nullable-fks.md)
 
+#### Alarmierung Aggregate (Neu: Issue #408 Alarmierung + Nachalarmierung)
+
+Das **Alarmierung Aggregate** (`domain/aggregates/alarmierung/alarmierung.aggregate.ts`) modelliert eine Alarmierung im Einsatz und ihre polymorphen Empfänger (Fahrzeug, Person, Einheit) inklusive nachtragbarer Zeitpunkte.
+
+**Aggregate-Struktur:**
+
+- **Aggregate Root:** `AlarmierungAggregate` (ID: `AlarmierungId`, CUID2)
+- **Child Entity:** `AlarmierungEmpfaenger[]` — verwaltet ausschließlich über Root-Methoden (`fuegeEmpfaengerHinzu`, `entferneEmpfaenger`, `korrigiereZeitpunkt`, `aktualisiereZeitpunktAusFms`)
+- **Empfänger-Ref:** `AlarmierungEmpfaengerRef` — Discriminated Union `fahrzeug | person | einheit` (analog ADR-008: drei nullable FKs + Check-Constraint)
+- **Status:** `aktiv | abgeschlossen` (append-only: kein Hard-Delete nach Abschluss)
+- **Nachalarmierung:** optionaler `ursprungAlarmierungId`-Verweis auf die Vorgänger-Alarmierung (gleicher Einsatz verpflichtend)
+
+**Vier Zeitpunkte je Empfänger:**
+
+| Feld | Bedeutung | Setzbar via |
+|------|-----------|-------------|
+| `alarmiertAm` | Pflichtfeld, wird beim Hinzufügen des Empfängers gesetzt — unveränderlich | Initial beim Empfänger-Hinzufügen |
+| `ausgeruecktAm` | Empfänger rückt aus | Manuell (`korrigiereZeitpunkt`) oder FMS-Status 3 |
+| `vorOrtAm` | Empfänger trifft am Einsatzort ein | Manuell oder FMS-Status 4 |
+| `wiederFreiAm` | Empfänger ist wieder einsatzbereit | Manuell oder FMS-Status 1/2 |
+
+`alarmiertAm` ist die Invariante, gegen die Reaktionszeit und Chronologie geprüft werden; alle anderen Zeitpunkte dürfen nicht davor liegen (Aggregat-seitige Validierung).
+
+**FMS-Auto-Population-Flow:**
+
+```
+FmsStatusGeaendertEvent (einsatzFahrzeugId, neuerStatus)
+        ▼
+FmsAlarmierungZeitpunktAdapter       (@OnEvent, Infrastructure)
+        │ 50ms Delay (DB-Commit-Race-Prevention)
+        │ circuitBreaker.execute('alarmierung', ...)
+        ▼
+FmsStatusZuAlarmierungHandler        (Application Event-Handler)
+        │ alarmierungRepository.findAktiveByFahrzeugId(einsatzId, fahrzeugId)
+        ▼
+AlarmierungAggregate.aktualisiereZeitpunktAusFms(fahrzeugId, status, zeitpunkt)
+        │ Mapping: 1/2 → wiederFreiAm · 3 → ausgeruecktAm · 4 → vorOrtAm
+        │ No-op wenn Feld bereits gesetzt (manuelle Werte gewinnen)
+        │ No-op wenn Alarmierung abgeschlossen
+        ▼
+AlarmierungZeitpunktFmsGesetztEvent  (eigenes Event mit Quelle = fms)
+```
+
+Der Adapter folgt exakt dem Pattern der ETB-Event-Adapter (50 ms Delay + Circuit-Breaker `alarmierung`). Fehler sind Fire-and-Forget-geloggt und propagieren nicht — ein FMS-Statuswechsel bleibt auch dann erfolgreich, wenn die Auto-Population scheitert.
+
+**Getrennte Commands manuell vs. FMS:**
+
+| Pfad | Command / Methode | Event | Zweck |
+|------|-------------------|-------|-------|
+| Manuell | `KorrigiereZeitpunktCommand` → `AlarmierungAggregate.korrigiereZeitpunkt()` | `AlarmierungZeitpunktKorrigiertEvent` (mit `korrigiertVon`, Audit-Trail) | Nachtrag durch Disponent |
+| FMS | implizit via Adapter → `aktualisiereZeitpunktAusFms()` | `AlarmierungZeitpunktFmsGesetztEvent` (mit `fmsStatus`) | Auto-Population |
+
+Zwei getrennte Events erlauben der Timeline-Query, die Quelle jedes Zeitpunkts zu unterscheiden. Manuelle Werte werden durch FMS NICHT überschrieben — die Methode `aktualisiereZeitpunktAusFms` ist gegen bereits gesetzte Felder defensiv (no-op, siehe ADR-009).
+
+**Reaktionszeit:** `vorOrtAm - alarmiertAm` wird ausschließlich berechnet (Frontend-Hook `useReaktionszeit`, kein gespeicherter Wert). Ungesetztes `vorOrtAm` ⇒ `null`.
+
+**Nachalarmierung:** eine Nachalarmierung ist eine eigenständige Alarmierung mit `ursprungAlarmierungId`-Referenz auf den Vorgänger. Domain-Validierung: Ursprungs- und Nachalarmierung müssen zum gleichen Einsatz gehören. Eigenes Event `NachalarmierungErstelltEvent` für Audit/Broadcast.
+
+**ETB-Integration:** Auslösung, Empfänger-Hinzufügen, Zeitpunkt-Korrekturen und Abschluss erzeugen ETB-Einträge über strukturierte Event-Handler (`alarmierung-*-zu-etb.handler.ts`) mit Kategorie `ALARMIERUNG`. Die Handler nutzen einen gemeinsamen `etb-eintrag.helper.ts` (Fire-and-Forget, Fehler geloggt statt propagiert).
+
+**Business Rules:**
+
+- `alarmiertAm` pro Empfänger ist unveränderlich und Pflicht — alle späteren Zeitpunkte müssen chronologisch passen (`ausgeruecktAm ≥ alarmiertAm`, `vorOrtAm ≥ alarmiertAm`, `wiederFreiAm ≥ alarmiertAm`).
+- Abgeschlossene Alarmierung blockt alle mutierenden Methoden mit `Result.fail` (FMS-Updates werden zu no-op).
+- Ein Empfänger-Ref darf pro Alarmierung nur einmal vorkommen (`empfaengerRefEquals`-Prüfung).
+- FMS-Auto-Population überschreibt keine manuellen Werte (Idempotenz bei wiederholten Status-Events).
+
+**7 Domain-Events:**
+
+`AlarmierungErstelltEvent`, `AlarmierungEmpfaengerHinzugefuegtEvent`, `AlarmierungEmpfaengerEntferntEvent`, `AlarmierungZeitpunktKorrigiertEvent`, `AlarmierungZeitpunktFmsGesetztEvent`, `AlarmierungAbgeschlossenEvent`, `NachalarmierungErstelltEvent` — alle 4-stellig registriert (Serializer, Deserializer, Adapter-Barrel, Adapter-Modul).
+
+**Referenzen:**
+
+- [ADR-005: ETB-Kontext Discriminated Union](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-005-etb-eintrag-kontext-discriminated-union.md)
+- [ADR-008: Polymorphe Zuordnung via nullable FKs](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-008-polymorphe-zuordnung-nullable-fks.md)
+- [ADR-009: Getrennte Commands für manuelle vs. FMS-Zeitpunkt-Aktualisierung](/Users/rubeen/dev/personal/bluelight-hub/docs/adr/adr-009-alarmierung-getrennte-commands-manuell-vs-fms.md)
+- [AlarmierungAggregate](/Users/rubeen/dev/personal/bluelight-hub/packages/backend/src/domain/aggregates/alarmierung/alarmierung.aggregate.ts)
+- [FmsAlarmierungZeitpunktAdapter](/Users/rubeen/dev/personal/bluelight-hub/packages/backend/src/infrastructure/events/adapters/fms-alarmierung-zeitpunkt.adapter.ts)
+
+**Follow-ups (Out-of-Scope Wave 1):**
+
+- #691 — Alarmierungswege (Analyse)
+- #692 — Externe Alarmierungssysteme (Analyse)
+- #693 — ETB-Einträge in Fahrzeug-Detailansicht
+
 #### Kraefte-Subdomain Aggregates
 
 | Aggregate | Zweck |
