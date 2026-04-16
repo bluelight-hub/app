@@ -24,6 +24,13 @@ export interface CreateAlarmierungArgs {
   readonly alarmierungszeit?: Date;
   readonly ursprungAlarmierungId?: AlarmierungId;
   readonly createdBy: string;
+  /**
+   * Anzahl der Empfänger, die der Command-Handler im Anschluss atomar hinzufügt.
+   * Fließt in die Payload des `AlarmierungErstelltEvent` und damit in den
+   * ETB-Eintrag ein. Default `0` — relevant nur, wenn das Aggregat ohne
+   * Empfänger angelegt wird (z. B. in Tests).
+   */
+  readonly initialEmpfaengerCount?: number;
 }
 
 export interface FuegeEmpfaengerHinzuArgs {
@@ -150,7 +157,7 @@ export class AlarmierungAggregate extends AggregateRoot<AlarmierungId> {
         beschreibung,
         alarmierungszeit,
         ursprungAlarmierungId: args.ursprungAlarmierungId?.value,
-        empfaengerCount: 0,
+        empfaengerCount: args.initialEmpfaengerCount ?? 0,
       }),
     );
     if (args.ursprungAlarmierungId) {

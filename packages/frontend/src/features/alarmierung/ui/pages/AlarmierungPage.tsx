@@ -18,6 +18,7 @@ import { showNotfallAlertToast } from '@/features/funkverkehr/ui/molecules/Notfa
 import { useEinsatzEvents } from '@/features/funkverkehr/api/use-einsatz-events';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useStore } from '@tanstack/react-store';
 import type { AlarmierungResponseDto } from '@bluelight-hub/shared/client';
 import { useEffect, useMemo, useState } from 'react';
@@ -60,6 +61,7 @@ export function AlarmierungPage({ einsatzId, tab, onTabChange }: AlarmierungPage
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [nachalarmierungQuelle, setNachalarmierungQuelle] = useState<AlarmierungResponseDto | null>(null);
+  const [isAbschliessenConfirmOpen, setIsAbschliessenConfirmOpen] = useState(false);
 
   const listeQuery = useAlarmierungen({ einsatzId, filter: { status: filter.status } });
   const alarmierungen = useMemo(() => listeQuery.data?.data ?? [], [listeQuery.data]);
@@ -96,10 +98,14 @@ export function AlarmierungPage({ einsatzId, tab, onTabChange }: AlarmierungPage
     if (tab !== 'liste') onTabChange('liste');
   };
 
+  // `window.confirm` wird in Tauri-WebView nicht zuverlässig unterstützt → Dialog.Confirm.
   const handleAbschliessen = () => {
     if (!selectedAlarmierung) return;
-    if (!window.confirm(`Alarmierung „${selectedAlarmierung.bezeichnung}" wirklich abschließen?`)) return;
-    abschliessenMutation.mutate({ alarmierungId: selectedAlarmierung.id, dto: {} });
+    setIsAbschliessenConfirmOpen(true);
+  };
+  const handleAbschliessenBestaetigen = () => {
+    if (!selectedAlarmierung) return;
+    abschliessenMutation.mutate({ alarmierungId: selectedAlarmierung.id, dto: {} }, { onSettled: () => setIsAbschliessenConfirmOpen(false) });
   };
 
   return (
@@ -220,6 +226,17 @@ export function AlarmierungPage({ einsatzId, tab, onTabChange }: AlarmierungPage
 
       {isCreateOpen && <AlarmierungErstellenDrawer einsatzId={einsatzId} isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />}
       {nachalarmierungQuelle && <NachalarmierungDialog einsatzId={einsatzId} ursprung={nachalarmierungQuelle} isOpen={Boolean(nachalarmierungQuelle)} onClose={() => setNachalarmierungQuelle(null)} />}
+
+      <Dialog.Confirm
+        isOpen={isAbschliessenConfirmOpen}
+        onClose={() => setIsAbschliessenConfirmOpen(false)}
+        onConfirm={handleAbschliessenBestaetigen}
+        title="Alarmierung abschließen"
+        message={selectedAlarmierung ? `Alarmierung „${selectedAlarmierung.bezeichnung}" wirklich abschließen?` : ''}
+        confirmLabel="Abschließen"
+        variant="warning"
+        isProcessing={abschliessenMutation.isPending}
+      />
     </div>
   );
 }

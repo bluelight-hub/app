@@ -61,4 +61,8 @@ export * from './funkkanal-event.adapter';
 export * from './etb-funkspruch-broadcast-event.adapter';
 export * from './notfall-funkspruch-alert-event.adapter';
 export * from './alarmierung-event.adapter';
+export * from './alarmierung-erstellt-etb-event.adapter';
+export * from './alarmierung-empfaenger-hinzugefuegt-etb-event.adapter';
+export * from './alarmierung-zeitpunkt-korrigiert-etb-event.adapter';
+export * from './alarmierung-abgeschlossen-etb-event.adapter';
 export * from './fms-alarmierung-zeitpunkt.adapter';

@@ -11,6 +11,7 @@ import { OUTBOX_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { UserId } from '@domain/value-objects/user-id';
 import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
+import { OperativeRoleChangedEvent } from '@domain/events/operative-role-changed.event';
 
 /**
  * Command Handler für UpdateUserCommand.
@@ -147,6 +148,7 @@ export class UpdateUserHandler extends TransactionalCommandHandler<UpdateUserCom
     }
 
     // 4. Falls Role-Änderung: Verwende Aggregate.updateRole() (mit Min-1-SUPER_ADMIN Check)
+    let promoteToFuehrungskraft = false;
     if (command.role !== undefined) {
       // Convert Prisma UserRole to Domain UserRole Value Object
       let newRole: ReturnType<typeof UserRole.SUPER_ADMIN | typeof UserRole.ADMIN | typeof UserRole.USER>;
@@ -169,7 +171,15 @@ export class UpdateUserHandler extends TransactionalCommandHandler<UpdateUserCom
       if (updateRoleResult.isFailure) {
         return Result.fail(updateRoleResult.error ?? 'Failed to update role');
       }
+
+      // Admin-Upgrade: nur hochsetzen, wenn aktuelle operative Rolle EXTERNE ist.
+      // Sonst würde eine bestehende EINSATZKRAFT-Zuweisung überschrieben.
+      promoteToFuehrungskraft = newRole.equals(UserRole.ADMIN()) || newRole.equals(UserRole.SUPER_ADMIN());
     }
+
+    // 5a. Events VOR save() extrahieren — prisma-user.repository.save()
+    // ruft clearDomainEvents() auf, danach wäre die Liste leer.
+    const events = user.getDomainEvents();
 
     // 5. Persistiere User Aggregate
     const saveResult = await this.userRepository.save(user, tx);
@@ -177,9 +187,21 @@ export class UpdateUserHandler extends TransactionalCommandHandler<UpdateUserCom
       return Result.fail(saveResult.error ?? 'Failed to save user');
     }
 
-    // 6. Extrahiere Domain Events
-    const events = user.getDomainEvents();
-    user.clearDomainEvents();
+    // 6a. Admin-Upgrade: operative Rolle auf FUEHRUNGSKRAFT heben, wenn bislang EXTERNE.
+    if (promoteToFuehrungskraft) {
+      const prismaTx = tx as { user: PrismaService['user'] };
+      const current = await prismaTx.user.findUnique({
+        where: { id: user.id.value },
+        select: { operativeRole: true },
+      });
+      if (current && current.operativeRole === 'EXTERNE') {
+        await prismaTx.user.update({
+          where: { id: user.id.value },
+          data: { operativeRole: 'FUEHRUNGSKRAFT' },
+        });
+        events.push(new OperativeRoleChangedEvent(user.id.value, 'EXTERNE', 'FUEHRUNGSKRAFT', updatedById.value, user.id.value));
+      }
+    }
 
     // 7. Return success mit Events für atomare Outbox-Persistierung
     return { result: undefined, events };

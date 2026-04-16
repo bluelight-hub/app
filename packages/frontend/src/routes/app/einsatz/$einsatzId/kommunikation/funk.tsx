@@ -2,8 +2,10 @@ import { FunkverkehrPage } from '@/features/funkverkehr/ui/pages/FunkverkehrPage
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { z } from 'zod';
 
+// `.catch` fängt fehlende UND ungültige Werte ab (z. B. wenn ein `tab`-Param von
+// einer Schwester-Route via `search={(prev) => prev}` durchgereicht wird).
 const searchSchema = z.object({
-  tab: z.enum(['kanalplan', 'protokoll']).optional().default('kanalplan'),
+  tab: z.enum(['kanalplan', 'protokoll']).catch('kanalplan'),
 });
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/kommunikation/funk')({

@@ -7,6 +7,7 @@
 
 import type { AlarmierungEmpfaengerResponseDto, AlarmierungResponseDto } from '@bluelight-hub/shared/client';
 import { cn } from '@/shared/ui/cn';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useMemo, useState } from 'react';
 import { PiCaretDown, PiCaretUp } from 'react-icons/pi';
 import { useEntferneEmpfaenger, useKorrigiereZeitpunkt } from '../../api/mutations';
@@ -38,6 +39,7 @@ function sortEmpfaenger(list: AlarmierungEmpfaengerResponseDto[], key: SortKey, 
 export function AlarmierungEmpfaengerTabelle({ einsatzId, alarmierung, disabled }: AlarmierungEmpfaengerTabelleProps) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [entferneKandidat, setEntferneKandidat] = useState<AlarmierungEmpfaengerResponseDto | null>(null);
 
   const korrigiereZeitpunkt = useKorrigiereZeitpunkt(einsatzId);
   const entferneEmpfaenger = useEntferneEmpfaenger(einsatzId);
@@ -57,9 +59,11 @@ export function AlarmierungEmpfaengerTabelle({ einsatzId, alarmierung, disabled 
     korrigiereZeitpunkt.mutate({ alarmierungId: alarmierung.id, empfaengerId, feld, wert });
   };
 
-  const handleEntferne = (empfaengerId: string) => () => {
-    if (!window.confirm('Empfänger wirklich aus der Alarmierung entfernen?')) return;
-    entferneEmpfaenger.mutate({ alarmierungId: alarmierung.id, empfaengerId });
+  // `window.confirm` wird in Tauri-WebView nicht zuverlässig unterstützt → eigene Dialog.Confirm-Variante.
+  const handleEntferneRequest = (empfaenger: AlarmierungEmpfaengerResponseDto) => () => setEntferneKandidat(empfaenger);
+  const handleEntferneBestaetigen = () => {
+    if (!entferneKandidat) return;
+    entferneEmpfaenger.mutate({ alarmierungId: alarmierung.id, empfaengerId: entferneKandidat.id }, { onSettled: () => setEntferneKandidat(null) });
   };
 
   const SortButton = ({ label, value, colKey }: { label: string; value: SortKey; colKey: string }) => {
@@ -117,11 +121,22 @@ export function AlarmierungEmpfaengerTabelle({ einsatzId, alarmierung, disabled 
               empfaenger={empfaenger}
               disabled={disabled || korrigiereZeitpunkt.isPending}
               onKorrigiere={handleKorrigiere(empfaenger.id)}
-              onEntferne={handleEntferne(empfaenger.id)}
+              onEntferne={handleEntferneRequest(empfaenger)}
             />
           ))}
         </tbody>
       </table>
+
+      <Dialog.Confirm
+        isOpen={entferneKandidat !== null}
+        onClose={() => setEntferneKandidat(null)}
+        onConfirm={handleEntferneBestaetigen}
+        title="Empfänger entfernen"
+        message={`„${entferneKandidat?.nameSnapshot ?? ''}" wirklich aus der Alarmierung entfernen?`}
+        confirmLabel="Entfernen"
+        variant="danger"
+        isProcessing={entferneEmpfaenger.isPending}
+      />
     </div>
   );
 }

@@ -1,5 +1,14 @@
 {
   "enabledPlugins": {},
+  "permissions": {
+    "allow": [
+      "Bash(pnpm exec tsc --noEmit *)",
+      "Bash(pnpm --filter @bluelight-hub/backend check:arch)",
+      "Bash(pnpm --filter @bluelight-hub/backend check:di:imports)",
+      "Bash(pnpm --filter @bluelight-hub/shared:*)",
+      "Bash(docker compose ps *)"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {

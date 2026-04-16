@@ -78,7 +78,13 @@ export function ZeitpunktKorrekturPopover({ feld, wert, quelle, disabled, onSubm
         <PiPencilSimple className="h-3 w-3 text-slate-400" aria-hidden="true" />
       </PopoverButton>
 
-      <PopoverPanel className="absolute z-20 mt-1 w-64 rounded border border-slate-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+      {/*
+        `anchor` aktiviert Portal + Floating-UI — sonst wird das Panel vom
+        Overflow-Container der Empfänger-Tabelle abgeschnitten.
+        `bottom end` + `padding` → Panel wächst nach links statt aus dem Viewport nach rechts;
+        Floating-UI flippt automatisch, falls nach oben mehr Platz ist.
+      */}
+      <PopoverPanel anchor={{ to: 'bottom end', gap: 4, padding: 8 }} className="z-20 w-64 rounded border border-slate-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900">
         {({ close }) => (
           <div className="space-y-3">
             <div>

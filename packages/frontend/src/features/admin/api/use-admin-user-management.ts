@@ -1,6 +1,7 @@
 import { api } from '@/shared';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
+import { broadcastInvalidation } from '@/shared/lib/cross-window-sync';
 import type { CreateUserDto, DeleteManagedUserResponse, ResponseError, UpdateUserDto, ManagedUserResponse, ManagedUsersListResponse, ChangeOperativeRoleDtoOperativeRoleEnum } from '@/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -39,6 +40,7 @@ export const useAdminUserManagement = () => {
         description: 'Der Benutzer wurde erfolgreich erstellt.',
       });
       await queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+      broadcastInvalidation('admin.users');
     },
     onError: async (error: ResponseError) => {
       const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht erstellt werden.', 'createUser');
@@ -63,6 +65,7 @@ export const useAdminUserManagement = () => {
         description: 'Die Änderungen wurden erfolgreich gespeichert.',
       });
       await queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+      broadcastInvalidation('admin.users');
     },
     onError: async (error: ResponseError) => {
       const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht aktualisiert werden.', 'updateUser');
@@ -120,6 +123,7 @@ export const useAdminUserManagement = () => {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+      broadcastInvalidation('admin.users');
     },
   });
 
@@ -136,6 +140,7 @@ export const useAdminUserManagement = () => {
         description: 'Der Benutzer wurde erfolgreich gesperrt.',
       });
       await queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+      broadcastInvalidation('admin.users');
     },
     onError: async (error: ResponseError) => {
       const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht gesperrt werden.', 'lockUser');
@@ -157,6 +162,7 @@ export const useAdminUserManagement = () => {
         description: 'Der Benutzer wurde erfolgreich entsperrt.',
       });
       await queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+      broadcastInvalidation('admin.users');
     },
     onError: async (error: ResponseError) => {
       const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht entsperrt werden.', 'unlockUser');
@@ -181,6 +187,7 @@ export const useAdminUserManagement = () => {
         description: 'Die operative Rolle wurde erfolgreich aktualisiert.',
       });
       await queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+      broadcastInvalidation('admin.users');
     },
     onError: async (error: ResponseError) => {
       const message = await getApiErrorMessage(error, 'Die operative Rolle konnte nicht geändert werden.', 'changeOperativeRole');
@@ -202,6 +209,7 @@ export const useAdminUserManagement = () => {
         description: 'Die Stammperson-Zuweisung wurde erfolgreich aktualisiert.',
       });
       await queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+      broadcastInvalidation('admin.users');
     },
     onError: async (error: ResponseError) => {
       const message = await getApiErrorMessage(error, 'Die Stammperson konnte nicht zugewiesen werden.', 'assignStammperson');

@@ -1,6 +1,7 @@
 import { api } from '@/shared';
 import type { ResponseError } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { broadcastInvalidation } from '@/shared/lib/cross-window-sync';
 import { ADMIN_QUERY_KEYS } from './queries';
 
 /**
@@ -20,6 +21,7 @@ export function useRevokePermission() {
     },
     onSuccess: async (_data, { userId }) => {
       await Promise.all([queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.permissions.byUser(userId) }), queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users })]);
+      broadcastInvalidation('admin.users');
     },
   });
 }

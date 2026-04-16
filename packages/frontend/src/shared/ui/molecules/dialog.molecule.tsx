@@ -378,7 +378,15 @@ Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', 
                   </div>
                 </div>
 
-                {/* Content */}
+                {/*
+                  Content-Bereich scrollt (`overflow-y-auto`). Das bedeutet für Kinder:
+                  - Popover-artige Komponenten (Combobox-Optionen, Listbox-Optionen,
+                    Menü-Panels, Tooltips) MÜSSEN per Portal rendern — sonst werden sie
+                    am Content-Rand abgeschnitten.
+                  - Für Headless UI v2: `anchor="bottom start"` an `ComboboxOptions` /
+                    `ListboxOptions` / `MenuItems` aktiviert Portal + Floating-UI
+                    (siehe `shared/ui/headless/combobox.tsx` als Referenz).
+                */}
                 <div className="relative flex-1 overflow-y-auto px-5 py-4">{children}</div>
               </div>
             </DialogPanel>
