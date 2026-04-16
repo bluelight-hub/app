@@ -16,12 +16,13 @@ import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { cn } from '@/shared/ui/cn';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
-import type { AlarmierungResponseDto, CreateAlarmierungDtoEmpfaengerInner, ErstelleNachalarmierungDto } from '@bluelight-hub/shared/client';
+import type { AlarmierungResponseDto, ErstelleNachalarmierungDto } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';
 import { useEffect, useMemo, useState } from 'react';
 import { PiCaretDown, PiCheck, PiX } from 'react-icons/pi';
 import { useErstelleNachalarmierung } from '../../api/mutations';
 import { nachalarmierungFormSchema, type EmpfaengerInput, type EmpfaengerKind, type NachalarmierungFormValues } from '../../schemas/alarmierung.schema';
+import { toCreateEmpfaenger } from '../../utils/empfaenger-mapping';
 import { EmpfaengerTypBadge } from '../atoms/EmpfaengerTypBadge.atom';
 
 interface KraftOption {
@@ -37,19 +38,6 @@ export interface NachalarmierungDialogProps {
   ursprung: AlarmierungResponseDto;
   isOpen: boolean;
   onClose: () => void;
-}
-
-/**
- * Mapped die UI-Empfänger-Liste auf den polymorphen DTO-Array für das Backend.
- * Identisch zum Create-Drawer — lokal dupliziert, um die Organisms unabhängig
- * zu halten.
- */
-function toCreateEmpfaenger(empfaenger: EmpfaengerInput[]): CreateAlarmierungDtoEmpfaengerInner[] {
-  return empfaenger.map<CreateAlarmierungDtoEmpfaengerInner>((e) => {
-    if (e.kind === 'fahrzeug') return { kind: 'fahrzeug', fahrzeugId: e.refId, nameSnapshot: e.nameSnapshot ?? null };
-    if (e.kind === 'person') return { kind: 'person', personId: e.refId, nameSnapshot: e.nameSnapshot ?? null };
-    return { kind: 'einheit', einheitId: e.refId, nameSnapshot: e.nameSnapshot ?? null };
-  });
 }
 
 /**
@@ -104,14 +92,14 @@ export function NachalarmierungDialog({ einsatzId, ursprung, isOpen, onClose }: 
 
   // Wenn der Dialog neu geöffnet wird, das Formular auf den aktuellen
   // Ursprung zurücksetzen — sonst klebt ein älterer State aus dem letzten Öffnen.
+  // `form` ist eine stabile Referenz aus `useForm`, daher sicher als Dependency.
   useEffect(() => {
     if (isOpen) {
       form.reset(defaultValues);
       setQuery('');
       setSelectedKraft(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, defaultValues]);
+  }, [isOpen, defaultValues, form]);
 
   const options = useMemo<KraftOption[]>(() => {
     if (!vorschlaege?.data) return [];

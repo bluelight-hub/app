@@ -3,13 +3,16 @@ import type { AlarmierungEmpfaengerHinzugefuegtEvent } from '@domain/events/alar
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
-import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
+import { executeAlarmierungEtbCommand } from './etb-eintrag.helper';
 
 /**
  * Application-Handler: Schreibt pro hinzugefügtem Alarmierungs-Empfänger
  * einen ETB-Eintrag (Kategorie `ALARMIERUNG`).
  *
  * Text: "Alarmiert: {nameSnapshot}"
+ *
+ * **Fire-and-Forget:** siehe {@link executeAlarmierungEtbCommand}.
  */
 @Injectable()
 export class AlarmierungEmpfaengerHinzugefuegtZuEtbHandler implements IEventHandler<AlarmierungEmpfaengerHinzugefuegtEvent> {
@@ -19,45 +22,22 @@ export class AlarmierungEmpfaengerHinzugefuegtZuEtbHandler implements IEventHand
   ) {}
 
   async handle(event: AlarmierungEmpfaengerHinzugefuegtEvent): Promise<void> {
-    try {
-      const text = `Alarmiert: ${event.data.nameSnapshot}`;
-      const commandResult = AddEintragCommand.create(
-        event.einsatzId.value,
-        text,
-        'system',
-        'ALARMIERUNG',
-        event.einsatzId.value,
-        undefined,
-        undefined,
-        {
-          eventType: 'AlarmierungEmpfaengerHinzugefuegt',
-          alarmierungId: event.alarmierungId.value,
-          empfaengerId: event.data.empfaengerId.value,
-          ref: event.data.ref,
-        },
-        event.occurredAt,
-      );
-      if (commandResult.isFailure || !commandResult.value) {
-        this.logger.error('AlarmierungEmpfaengerHinzugefuegtZuEtbHandler: Command-Erstellung fehlgeschlagen', {
-          alarmierungId: event.alarmierungId.value,
-          empfaengerId: event.data.empfaengerId.value,
-          error: commandResult.error,
-        });
-        return;
-      }
-      const result = await this.addEintragHandler.execute(commandResult.value);
-      if (result.isFailure) {
-        this.logger.error('AlarmierungEmpfaengerHinzugefuegtZuEtbHandler: ETB-Eintrag fehlgeschlagen', {
-          alarmierungId: event.alarmierungId.value,
-          empfaengerId: event.data.empfaengerId.value,
-          error: result.error,
-        });
-      }
-    } catch (error) {
-      this.logger.error('AlarmierungEmpfaengerHinzugefuegtZuEtbHandler: unerwarteter Fehler', {
-        alarmierungId: event.alarmierungId.value,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+    const text = `Alarmiert: ${event.data.nameSnapshot}`;
+    const metadata = {
+      eventType: 'AlarmierungEmpfaengerHinzugefuegt',
+      alarmierungId: event.alarmierungId.value,
+      empfaengerId: event.data.empfaengerId.value,
+      ref: event.data.ref,
+    };
+
+    await executeAlarmierungEtbCommand(this.addEintragHandler, this.logger, {
+      handlerName: 'AlarmierungEmpfaengerHinzugefuegtZuEtbHandler',
+      einsatzId: event.einsatzId.value,
+      alarmierungId: event.alarmierungId.value,
+      text,
+      metadata,
+      occurredAt: event.occurredAt,
+      extraLogContext: { empfaengerId: event.data.empfaengerId.value },
+    });
   }
 }

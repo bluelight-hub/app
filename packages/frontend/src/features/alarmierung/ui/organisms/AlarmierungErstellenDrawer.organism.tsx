@@ -18,12 +18,13 @@ import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { cn } from '@/shared/ui/cn';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
-import type { CreateAlarmierungDto, CreateAlarmierungDtoEmpfaengerInner } from '@bluelight-hub/shared/client';
+import type { CreateAlarmierungDto } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';
 import { useMemo, useState } from 'react';
 import { PiCaretDown, PiCheck, PiX } from 'react-icons/pi';
 import { useErstelleAlarmierung } from '../../api/mutations';
 import { createAlarmierungFormSchema, type CreateAlarmierungFormValues, type EmpfaengerInput, type EmpfaengerKind } from '../../schemas/alarmierung.schema';
+import { toCreateEmpfaenger } from '../../utils/empfaenger-mapping';
 import { EmpfaengerTypBadge } from '../atoms/EmpfaengerTypBadge.atom';
 
 interface KraftOption {
@@ -37,17 +38,6 @@ export interface AlarmierungErstellenDrawerProps {
   einsatzId: string;
   isOpen: boolean;
   onClose: () => void;
-}
-
-/**
- * Mapped die UI-Empfänger-Liste auf den polymorphen DTO-Array für das Backend.
- */
-function toCreateEmpfaenger(empfaenger: EmpfaengerInput[]): CreateAlarmierungDtoEmpfaengerInner[] {
-  return empfaenger.map<CreateAlarmierungDtoEmpfaengerInner>((e) => {
-    if (e.kind === 'fahrzeug') return { kind: 'fahrzeug', fahrzeugId: e.refId, nameSnapshot: e.nameSnapshot ?? null };
-    if (e.kind === 'person') return { kind: 'person', personId: e.refId, nameSnapshot: e.nameSnapshot ?? null };
-    return { kind: 'einheit', einheitId: e.refId, nameSnapshot: e.nameSnapshot ?? null };
-  });
 }
 
 export function AlarmierungErstellenDrawer({ einsatzId, isOpen, onClose }: AlarmierungErstellenDrawerProps) {
