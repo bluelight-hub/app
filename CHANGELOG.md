@@ -1,6 +1,7 @@
 ## Funkverkehr
 
 ### Kanalplan
+
 - Neue Seite zur Verwaltung von Funkkanälen pro Einsatz mit Unterstützung für TMO-Sprechgruppen, DMO-Kanäle und analoge Frequenzen
 - Funkkanäle können per Drag & Drop sortiert werden
 - Kräfte (Fahrzeuge, Personen, Einheiten) lassen sich Kanälen mit Rufnamen zuordnen
@@ -8,6 +9,7 @@
 - PDF-Export des Kanalplans für die Einsatzdokumentation
 
 ### Funkprotokoll
+
 - Funksprüche werden im Einsatztagebuch als separate Kategorie "Kommunikation" erfasst
 - Virtualisierte Darstellung für flüssige Performance bei vielen Einträgen
 - Zwei Anzeigemodi: Kompakte Tabellenansicht und Chat-Bubble-Darstellung
@@ -15,6 +17,7 @@
 - Notfall-Funksprüche lösen automatisch visuelle Warnmeldungen für alle Einsatzteilnehmer aus
 
 ### Live-Updates
+
 - Echtzeit-Synchronisation über WebSockets: Änderungen am Kanalplan und neue Funksprüche erscheinen sofort bei allen Teilnehmern
 - Automatische Wiederverbindung bei Netzwerkunterbrechungen
 

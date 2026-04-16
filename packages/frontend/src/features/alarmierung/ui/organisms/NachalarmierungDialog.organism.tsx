@@ -142,11 +142,12 @@ export function NachalarmierungDialog({ einsatzId, ursprung, isOpen, onClose }: 
         <div className="space-y-5">
           <form.Field name="bezeichnung">
             {(field) => (
-              <label className="block text-sm">
+              <label htmlFor="nachalarmierung-bezeichnung" className="block text-sm">
                 <span className="block font-medium text-slate-700 dark:text-slate-200">
                   Bezeichnung <span className="text-red-500">*</span>
                 </span>
                 <Input
+                  id="nachalarmierung-bezeichnung"
                   type="text"
                   value={field.state.value}
                   onChange={(event) => field.handleChange(event.target.value)}
@@ -162,9 +163,10 @@ export function NachalarmierungDialog({ einsatzId, ursprung, isOpen, onClose }: 
 
           <form.Field name="beschreibung">
             {(field) => (
-              <label className="block text-sm">
+              <label htmlFor="nachalarmierung-beschreibung" className="block text-sm">
                 <span className="block font-medium text-slate-700 dark:text-slate-200">Beschreibung (optional)</span>
                 <Textarea
+                  id="nachalarmierung-beschreibung"
                   rows={2}
                   value={field.state.value ?? ''}
                   onChange={(event) => field.handleChange(event.target.value)}
