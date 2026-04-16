@@ -10,6 +10,7 @@ import {
   AdminKraefteRollenApi,
   AdminStammdatenFahrzeugeApi,
   AdminStammdatenPersonenApi,
+  AlarmierungApi,
   AufbewahrungApi,
   AuthApi,
   EinsatzBeitrittApi,
@@ -164,6 +165,7 @@ class BackendApi {
   private readonly warnungenApi: WarnungenApi;
   private readonly taktischeZeichenApi: TaktischeZeichenApi;
   private readonly funkkanalApi: FunkkanalApi;
+  private readonly alarmierungApi: AlarmierungApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -225,6 +227,7 @@ class BackendApi {
     this.warnungenApi = new WarnungenApi(this.configuration);
     this.taktischeZeichenApi = new TaktischeZeichenApi(this.configuration);
     this.funkkanalApi = new FunkkanalApi(this.configuration);
+    this.alarmierungApi = new AlarmierungApi(this.configuration);
   }
 
   /**
@@ -629,6 +632,19 @@ class BackendApi {
    */
   funkkanal(): FunkkanalApi {
     return this.funkkanalApi;
+  }
+
+  /**
+   * Gibt die gecachte Alarmierung-API-Instanz zurück (Issue #408)
+   *
+   * Deckt Alarmierung-CRUD, Nachalarmierung, Timeline und Empfänger-Management
+   * (Hinzufügen/Entfernen/Zeitpunkt-Korrektur) ab — alle Routes unter
+   * `einsatz/:einsatzId/alarmierungen[/:alarmierungId[/empfaenger[/:empfaengerId]]]`.
+   *
+   * @returns Die Alarmierung-API-Instanz für Alarmierungs- und Nachalarmierungs-Verwaltung
+   */
+  alarmierung(): AlarmierungApi {
+    return this.alarmierungApi;
   }
 }
 

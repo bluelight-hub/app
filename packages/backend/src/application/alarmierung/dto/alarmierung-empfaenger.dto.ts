@@ -114,13 +114,13 @@ export class AlarmierungEmpfaengerResponseDto {
   @ApiProperty({ enum: ALARMIERUNG_EMPFAENGER_KIND_VALUES, example: 'fahrzeug', description: 'Typ des Empfängers' })
   kind!: AlarmierungEmpfaengerKindValue;
 
-  @ApiPropertyOptional({ description: 'ID des Fahrzeugs (nur bei kind=fahrzeug)', nullable: true })
+  @ApiPropertyOptional({ description: 'ID des Fahrzeugs (nur bei kind=fahrzeug)', type: 'string', nullable: true })
   fahrzeugId?: string | null;
 
-  @ApiPropertyOptional({ description: 'ID der Person (nur bei kind=person)', nullable: true })
+  @ApiPropertyOptional({ description: 'ID der Person (nur bei kind=person)', type: 'string', nullable: true })
   personId?: string | null;
 
-  @ApiPropertyOptional({ description: 'ID der Einheit (nur bei kind=einheit)', nullable: true })
+  @ApiPropertyOptional({ description: 'ID der Einheit (nur bei kind=einheit)', type: 'string', nullable: true })
   einheitId?: string | null;
 
   @ApiProperty({ example: 'Florian Mainz 12-1', description: 'Name-Snapshot zum Zeitpunkt der Zuordnung' })
@@ -138,11 +138,12 @@ export class AlarmierungEmpfaengerResponseDto {
   @ApiPropertyOptional({ type: 'string', format: 'date-time', nullable: true, description: 'Wieder-Frei-Zeitpunkt (FMS 1/2 oder manuell)' })
   wiederFreiAm?: Date | null;
 
-  @ApiPropertyOptional({ description: 'Letzter empfangener FMS-Status', nullable: true, example: 4 })
+  @ApiPropertyOptional({ description: 'Letzter empfangener FMS-Status', type: 'number', nullable: true, example: 4 })
   letzterFmsStatus?: number | null;
 
   @ApiPropertyOptional({
     description: 'Reaktionszeit in Sekunden (alarmiertAm → vorOrtAm). Null, solange vorOrtAm nicht gesetzt.',
+    type: 'number',
     nullable: true,
     example: 245,
   })

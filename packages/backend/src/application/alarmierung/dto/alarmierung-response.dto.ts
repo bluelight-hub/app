@@ -16,7 +16,7 @@ export class AlarmierungResponseDto {
   @ApiProperty({ example: 'Brandschutzgruppe Süd', description: 'Bezeichnung / Schlagwort der Alarmierung' })
   bezeichnung!: string;
 
-  @ApiPropertyOptional({ example: 'Industriebrand, B-Stufe', description: 'Optionale Beschreibung', nullable: true })
+  @ApiPropertyOptional({ example: 'Industriebrand, B-Stufe', description: 'Optionale Beschreibung', type: 'string', nullable: true })
   beschreibung?: string | null;
 
   @ApiProperty({ enum: ALARMIERUNG_STATUS_VALUES, example: 'aktiv' })
@@ -27,6 +27,7 @@ export class AlarmierungResponseDto {
 
   @ApiPropertyOptional({
     description: 'ID der Ursprungsalarmierung — nur gesetzt bei Nachalarmierungen.',
+    type: 'string',
     nullable: true,
     example: 'clalarm-original',
   })
@@ -44,9 +45,9 @@ export class AlarmierungResponseDto {
   @ApiProperty({ type: 'string', format: 'date-time' })
   updatedAt!: Date;
 
-  @ApiPropertyOptional({ description: 'User-ID des Erstellers', nullable: true })
+  @ApiPropertyOptional({ description: 'User-ID des Erstellers', type: 'string', nullable: true })
   createdBy?: string | null;
 
-  @ApiPropertyOptional({ description: 'User-ID des letzten Editors', nullable: true })
+  @ApiPropertyOptional({ description: 'User-ID des letzten Editors', type: 'string', nullable: true })
   updatedBy?: string | null;
 }
