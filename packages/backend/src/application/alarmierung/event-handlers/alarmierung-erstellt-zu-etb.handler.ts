@@ -3,7 +3,8 @@ import type { AlarmierungErstelltEvent } from '@domain/events/alarmierung-erstel
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
-import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
+import { executeAlarmierungEtbCommand } from './etb-eintrag.helper';
 
 /**
  * Application-Handler: Schreibt für jede neu ausgelöste Alarmierung einen
@@ -11,7 +12,8 @@ import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands'
  *
  * Text: "Alarmierung ausgelöst: {bezeichnung} ({empfaengerCount} Empfänger)"
  *
- * **Fire-and-Forget:** Fehler werden geloggt, nicht propagiert.
+ * **Fire-and-Forget:** Fehler werden geloggt, nicht propagiert
+ * (Delegation an {@link executeAlarmierungEtbCommand}).
  */
 @Injectable()
 export class AlarmierungErstelltZuEtbHandler implements IEventHandler<AlarmierungErstelltEvent> {
@@ -21,45 +23,21 @@ export class AlarmierungErstelltZuEtbHandler implements IEventHandler<Alarmierun
   ) {}
 
   async handle(event: AlarmierungErstelltEvent): Promise<void> {
-    try {
-      const empfaengerCount = event.data.empfaengerCount;
-      const text = `Alarmierung ausgelöst: ${event.data.bezeichnung} (${empfaengerCount} Empfänger)`;
+    const empfaengerCount = event.data.empfaengerCount;
+    const text = `Alarmierung ausgelöst: ${event.data.bezeichnung} (${empfaengerCount} Empfänger)`;
+    const metadata = {
+      eventType: 'AlarmierungErstellt',
+      alarmierungId: event.alarmierungId.value,
+      ursprungAlarmierungId: event.data.ursprungAlarmierungId,
+    };
 
-      const commandResult = AddEintragCommand.create(
-        event.einsatzId.value,
-        text,
-        'system',
-        'ALARMIERUNG',
-        event.einsatzId.value,
-        undefined,
-        undefined,
-        {
-          eventType: 'AlarmierungErstellt',
-          alarmierungId: event.alarmierungId.value,
-          ursprungAlarmierungId: event.data.ursprungAlarmierungId,
-        },
-        event.occurredAt,
-      );
-      if (commandResult.isFailure || !commandResult.value) {
-        this.logger.error('AlarmierungErstelltZuEtbHandler: Command-Erstellung fehlgeschlagen', {
-          alarmierungId: event.alarmierungId.value,
-          error: commandResult.error,
-        });
-        return;
-      }
-
-      const result = await this.addEintragHandler.execute(commandResult.value);
-      if (result.isFailure) {
-        this.logger.error('AlarmierungErstelltZuEtbHandler: ETB-Eintrag fehlgeschlagen', {
-          alarmierungId: event.alarmierungId.value,
-          error: result.error,
-        });
-      }
-    } catch (error) {
-      this.logger.error('AlarmierungErstelltZuEtbHandler: unerwarteter Fehler', {
-        alarmierungId: event.alarmierungId.value,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+    await executeAlarmierungEtbCommand(this.addEintragHandler, this.logger, {
+      handlerName: 'AlarmierungErstelltZuEtbHandler',
+      einsatzId: event.einsatzId.value,
+      alarmierungId: event.alarmierungId.value,
+      text,
+      metadata,
+      occurredAt: event.occurredAt,
+    });
   }
 }
