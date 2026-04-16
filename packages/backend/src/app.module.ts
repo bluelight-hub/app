@@ -16,6 +16,7 @@ import { InfrastructureCommonModule } from '@infrastructure/common.module';
 import { EinsatzModule } from './modules/einsatz/einsatz.module';
 import { EtbModule } from './modules/etb/etb.module';
 import { FunkkanalModule } from './modules/funkkanal/funkkanal.module';
+import { AlarmierungModule } from './modules/alarmierung/alarmierung.module';
 import { HealthModule } from '@infrastructure/health/health.module';
 import { PrismaModule } from '@infrastructure/database';
 import { UserManagementModule } from './modules/user-management';
@@ -147,6 +148,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     FunkkanalInfrastructureModule, // Funkkanal Infrastructure (Issue #407, Wave 2)
     FunkkanalModule, // Funkkanal HTTP Layer (Issue #407, Wave 2 / Phase 7)
     AlarmierungInfrastructureModule, // Alarmierung Infrastructure (Issue #408, Wave 1)
+    AlarmierungModule, // Alarmierung HTTP Layer (Issue #408, Wave 1 / Task 5)
     WebsocketModule, // Einsatz-Events WebSocket-Gateway + Publisher (Issue #407, Task 18)
   ],
   controllers: [AppController],
