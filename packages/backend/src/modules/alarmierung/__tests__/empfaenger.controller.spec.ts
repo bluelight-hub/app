@@ -127,6 +127,11 @@ describe('AlarmierungEmpfaengerController', () => {
       entferneHandler.execute.mockResolvedValue(Result.fail('Alarmierung nicht gefunden'));
       await expect(controller.entfernen('einsatz-1', 'alarm-x', 'emp-1', userStub)).rejects.toThrow(NotFoundException);
     });
+
+    it('mappt "Abgeschlossene Alarmierung" bei entfernen auf 422', async () => {
+      entferneHandler.execute.mockResolvedValue(Result.fail('Abgeschlossene Alarmierung kann nicht geändert werden'));
+      await expect(controller.entfernen('einsatz-1', 'alarm-1', 'emp-1', userStub)).rejects.toThrow(UnprocessableEntityException);
+    });
   });
 
   describe('PATCH .../empfaenger/:empfaengerId/zeitpunkte', () => {
@@ -179,6 +184,11 @@ describe('AlarmierungEmpfaengerController', () => {
     it('mappt "Empfänger nicht gefunden" auf 404', async () => {
       korrigiereHandler.execute.mockResolvedValue(Result.fail('Empfänger nicht gefunden'));
       await expect(controller.korrigiereZeitpunkte('einsatz-1', 'alarm-1', 'emp-x', { vorOrtAm: '2026-04-15T12:10:00.000Z' }, userStub)).rejects.toThrow(NotFoundException);
+    });
+
+    it('mappt "Abgeschlossene Alarmierung" bei zeitpunkte-Korrektur auf 422', async () => {
+      korrigiereHandler.execute.mockResolvedValue(Result.fail('Abgeschlossene Alarmierung kann nicht geändert werden'));
+      await expect(controller.korrigiereZeitpunkte('einsatz-1', 'alarm-1', 'emp-1', { vorOrtAm: '2026-04-15T12:10:00.000Z' }, userStub)).rejects.toThrow(UnprocessableEntityException);
     });
 
     it('wirft 404 wenn die Alarmierung nach Korrektur nicht mehr auffindbar ist', async () => {

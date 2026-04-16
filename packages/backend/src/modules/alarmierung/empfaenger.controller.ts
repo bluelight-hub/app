@@ -11,6 +11,7 @@ import { BadRequestException, Body, Controller, Delete, HttpCode, NotFoundExcept
 import { ApiBearerAuth, ApiBody, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AlarmierungMapper } from './mappers/alarmierung.mapper';
 import { unwrapOrThrow } from './helpers/alarmierung-error.helper';
+import { toOptionalDate } from './helpers/date-parse.helper';
 import type { ZeitpunktFeld } from '@domain/aggregates/alarmierung/alarmierung-empfaenger.entity';
 import { ZEITPUNKT_FELDER } from '@domain/aggregates/alarmierung/alarmierung-empfaenger.entity';
 
@@ -56,6 +57,7 @@ export class AlarmierungEmpfaengerController {
   async hinzufuegen(
     @Param('einsatzId') _einsatzId: string,
     @Param('alarmierungId') alarmierungId: string,
+    // Kein ValidationPipe — Discriminator-Union ohne class-transformer-Subtype-Config, Validierung im Command-Layer
     @Body() dto: FuegeEmpfaengerHinzuDto,
     @CurrentUser() user: ValidatedUser,
   ): Promise<AlarmierungResponseDto> {
@@ -64,7 +66,7 @@ export class AlarmierungEmpfaengerController {
         alarmierungId,
         empfaenger: toDomainRef(dto),
         nameSnapshot: dto.nameSnapshot,
-        alarmiertAm: toDate(dto.alarmiertAm),
+        alarmiertAm: toOptionalDate(dto.alarmiertAm),
         createdBy: user.userId,
       }),
     );
@@ -93,6 +95,19 @@ export class AlarmierungEmpfaengerController {
     unwrapOrThrow(await this.entferneHandler.execute(command));
   }
 
+  /**
+   * Korrigiert einen oder mehrere Zeitpunkte eines Empfängers.
+   *
+   * **Partial-Commit-Semantik (best-effort):** Jedes Feld wird separat
+   * transaktional committed (eigener `KorrigiereZeitpunktCommand` pro Feld).
+   * Bei Fehler am n-ten Feld bleiben Felder 1…n-1 persistiert — es gibt
+   * **kein atomisches Multi-Feld-Rollback**. Der Client bekommt in dem Fall
+   * eine HTTP-Fehlerantwort zurück und sollte den aktuellen Stand via
+   * `GET /:alarmierungId` nachladen.
+   *
+   * Die Reihenfolge entspricht {@link ZEITPUNKT_FELDER}
+   * (`ausgeruecktAm`, `vorOrtAm`, `wiederFreiAm`).
+   */
   @Patch(':empfaengerId/zeitpunkte')
   @ApiOperation({ summary: 'Einen oder mehrere Zeitpunkte eines Empfängers korrigieren' })
   @ApiWrappedResponse(AlarmierungResponseDto, { description: 'Aktualisierte Alarmierung nach Korrektur' })
@@ -162,12 +177,5 @@ function parseZeitpunktWert(raw: string | null | undefined): Date | null | undef
   if (raw === undefined) return undefined;
   if (typeof raw !== 'string') return undefined;
   const parsed = new Date(raw);
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
-}
-
-function toDate(value: Date | string | undefined | null): Date | undefined {
-  if (value === undefined || value === null) return undefined;
-  if (value instanceof Date) return value;
-  const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
