@@ -14,6 +14,17 @@ import { AlarmierungTimelineEvent } from '../molecules/AlarmierungTimelineEvent.
 
 type EventType = AlarmierungTimelineEventDto['type'];
 
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function getEventKey(event: AlarmierungTimelineEventDto): string {
+  const alarmierungId = asString(event.data.alarmierungId);
+  const empfaengerId = asString(event.data.empfaengerId);
+  const eintragId = asString(event.data.eintragId);
+  return `${event.type}-${alarmierungId}-${empfaengerId}-${eintragId}-${new Date(event.occurredAt).getTime()}`;
+}
+
 const FILTER_CHIPS: Array<{ type: EventType; label: string }> = [
   { type: 'alarmierung_ausgeloest', label: 'Auslösung' },
   { type: 'empfaenger_alarmiert', label: 'Alarmiert' },
@@ -78,8 +89,8 @@ export function AlarmierungTimeline({ einsatzId, className }: AlarmierungTimelin
         {!isLoading && !isError && events.length === 0 && <p className="p-4 text-sm text-slate-500">Keine Ereignisse im aktuellen Filter.</p>}
         {events.length > 0 && (
           <ol className="space-y-0">
-            {events.map((event, idx) => (
-              <AlarmierungTimelineEvent key={`${event.type}-${new Date(event.occurredAt).getTime()}-${idx}`} event={event} />
+            {events.map((event) => (
+              <AlarmierungTimelineEvent key={getEventKey(event)} event={event} />
             ))}
           </ol>
         )}
