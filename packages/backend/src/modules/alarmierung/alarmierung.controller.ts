@@ -103,8 +103,8 @@ export class AlarmierungController {
   @ApiOperation({ summary: 'Einzelne Alarmierung laden' })
   @ApiWrappedResponse(AlarmierungResponseDto, { description: 'Alarmierung inkl. Empfänger' })
   @ApiNotFoundResponse({ description: 'Alarmierung nicht gefunden' })
-  async getById(@Param('einsatzId') _einsatzId: string, @Param('alarmierungId') alarmierungId: string): Promise<AlarmierungResponseDto> {
-    const query = unwrapOrThrow(GetAlarmierungByIdQuery.create({ alarmierungId }));
+  async getById(@Param('einsatzId') einsatzId: string, @Param('alarmierungId') alarmierungId: string): Promise<AlarmierungResponseDto> {
+    const query = unwrapOrThrow(GetAlarmierungByIdQuery.create({ einsatzId, alarmierungId }));
     const aggregate = unwrapOrThrow(await this.getByIdHandler.execute(query));
     if (!aggregate) {
       throw new NotFoundException(`Alarmierung ${alarmierungId} nicht gefunden`);

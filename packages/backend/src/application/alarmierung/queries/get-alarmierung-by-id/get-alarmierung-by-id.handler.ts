@@ -9,8 +9,13 @@ import type { GetAlarmierungByIdQuery } from './get-alarmierung-by-id.query';
 /**
  * Handler für {@link GetAlarmierungByIdQuery}.
  *
- * Liefert `Result.ok(null)`, wenn keine Alarmierung mit der ID existiert —
- * der Controller entscheidet über 404.
+ * Liefert `Result.ok(null)`, wenn keine Alarmierung mit der ID existiert oder
+ * wenn die gefundene Alarmierung zu einem anderen Einsatz gehört als
+ * `query.einsatzId` — der Controller entscheidet über 404.
+ *
+ * Der Cross-Einsatz-Check nutzt bewusst die gleiche Ausgabe wie „not found",
+ * damit die Existenz einer Alarmierung nicht an Nutzer anderer Einsätze
+ * geleakt wird.
  */
 @Injectable()
 export class GetAlarmierungByIdQueryHandler {
@@ -22,6 +27,14 @@ export class GetAlarmierungByIdQueryHandler {
       return Result.fail<AlarmierungAggregate | null>(idResult.error ?? 'Ungültige AlarmierungId');
     }
     const aggregate = await this.alarmierungRepository.findById(idResult.value);
+    if (!aggregate) {
+      return Result.ok<AlarmierungAggregate | null>(null);
+    }
+    if (aggregate.einsatzId.value !== query.einsatzId) {
+      // Cross-Einsatz-Zugriff — identische Antwort wie „nicht gefunden", damit
+      // die Existenz einer Alarmierung nicht geleakt wird.
+      return Result.ok<AlarmierungAggregate | null>(null);
+    }
     return Result.ok<AlarmierungAggregate | null>(aggregate);
   }
 }

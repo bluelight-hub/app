@@ -112,7 +112,7 @@ export class AlarmierungEmpfaengerController {
   @ApiOperation({ summary: 'Einen oder mehrere Zeitpunkte eines Empfängers korrigieren' })
   @ApiWrappedResponse(AlarmierungResponseDto, { description: 'Aktualisierte Alarmierung nach Korrektur' })
   async korrigiereZeitpunkte(
-    @Param('einsatzId') _einsatzId: string,
+    @Param('einsatzId') einsatzId: string,
     @Param('alarmierungId') alarmierungId: string,
     @Param('empfaengerId') empfaengerId: string,
     @Body() body: KorrigiereZeitpunkteBody,
@@ -142,7 +142,7 @@ export class AlarmierungEmpfaengerController {
       unwrapOrThrow(await this.korrigiereHandler.execute(command));
     }
 
-    const query = unwrapOrThrow(GetAlarmierungByIdQuery.create({ alarmierungId }));
+    const query = unwrapOrThrow(GetAlarmierungByIdQuery.create({ einsatzId, alarmierungId }));
     const aggregate = unwrapOrThrow(await this.getByIdHandler.execute(query));
     if (!aggregate) {
       throw new NotFoundException(`Alarmierung ${alarmierungId} nicht gefunden`);

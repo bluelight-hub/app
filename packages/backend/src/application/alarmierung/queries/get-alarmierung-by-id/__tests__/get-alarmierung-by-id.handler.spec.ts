@@ -24,15 +24,16 @@ describe('GetAlarmierungByIdQueryHandler', () => {
     handler = module.get(GetAlarmierungByIdQueryHandler);
   });
 
-  it('gibt Alarmierung zurück, wenn vorhanden', async () => {
+  it('gibt Alarmierung zurück, wenn vorhanden und zum Einsatz gehörig', async () => {
+    const einsatzId = EinsatzId.create().value as EinsatzId;
     const aggregate = AlarmierungAggregate.create({
-      einsatzId: EinsatzId.create().value as EinsatzId,
+      einsatzId,
       bezeichnung: 'Brand',
       createdBy: 'system',
     }).value as AlarmierungAggregate;
     mockRepo.findById.mockResolvedValue(aggregate);
 
-    const query = GetAlarmierungByIdQuery.create({ alarmierungId: aggregate.id.value }).value as GetAlarmierungByIdQuery;
+    const query = GetAlarmierungByIdQuery.create({ einsatzId: einsatzId.value, alarmierungId: aggregate.id.value }).value as GetAlarmierungByIdQuery;
     const result = await handler.execute(query);
 
     expect(result.isSuccess).toBe(true);
@@ -41,16 +42,37 @@ describe('GetAlarmierungByIdQueryHandler', () => {
 
   it('gibt null zurück, wenn nicht vorhanden', async () => {
     mockRepo.findById.mockResolvedValue(null);
+    const einsatzId = (EinsatzId.create().value as EinsatzId).value;
     const id = (AlarmierungId.create().value as AlarmierungId).value;
-    const query = GetAlarmierungByIdQuery.create({ alarmierungId: id }).value as GetAlarmierungByIdQuery;
+    const query = GetAlarmierungByIdQuery.create({ einsatzId, alarmierungId: id }).value as GetAlarmierungByIdQuery;
     const result = await handler.execute(query);
 
     expect(result.isSuccess).toBe(true);
     expect(result.value).toBeNull();
   });
 
+  it('gibt null zurück, wenn Alarmierung zu einem anderen Einsatz gehört (Security)', async () => {
+    // Aggregat gehört zu Einsatz A, Query fragt mit Einsatz B an.
+    const einsatzA = EinsatzId.create().value as EinsatzId;
+    const einsatzB = EinsatzId.create().value as EinsatzId;
+    const aggregate = AlarmierungAggregate.create({
+      einsatzId: einsatzA,
+      bezeichnung: 'Brand',
+      createdBy: 'system',
+    }).value as AlarmierungAggregate;
+    mockRepo.findById.mockResolvedValue(aggregate);
+
+    const query = GetAlarmierungByIdQuery.create({ einsatzId: einsatzB.value, alarmierungId: aggregate.id.value }).value as GetAlarmierungByIdQuery;
+    const result = await handler.execute(query);
+
+    // Identische Antwort wie „nicht gefunden" — Existenz wird nicht geleakt.
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toBeNull();
+  });
+
   it('meldet Fehler bei ungültiger alarmierungId', async () => {
-    const query = GetAlarmierungByIdQuery.create({ alarmierungId: '123' }).value as GetAlarmierungByIdQuery;
+    const einsatzId = (EinsatzId.create().value as EinsatzId).value;
+    const query = GetAlarmierungByIdQuery.create({ einsatzId, alarmierungId: '123' }).value as GetAlarmierungByIdQuery;
     const result = await handler.execute(query);
     expect(result.isFailure).toBe(true);
   });
