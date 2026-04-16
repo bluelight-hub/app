@@ -9,6 +9,7 @@ apis/AdminKraefteQualifikationenApi.ts
 apis/AdminKraefteRollenApi.ts
 apis/AdminStammdatenFahrzeugeApi.ts
 apis/AdminStammdatenPersonenApi.ts
+apis/AlarmierungApi.ts
 apis/AppApi.ts
 apis/AufbewahrungApi.ts
 apis/AuthApi.ts
@@ -112,6 +113,17 @@ models/AdminTokenVerificationDto.ts
 models/AdminUserDto.ts
 models/AendereEmpfaengerStatusDto.ts
 models/AktiveTeilnehmerResponseDto.ts
+models/AlarmierungControllerCreateVAlpha201Response.ts
+models/AlarmierungControllerListVAlpha200Response.ts
+models/AlarmierungControllerTimelineVAlpha200Response.ts
+models/AlarmierungEmpfaengerControllerHinzufuegenVAlphaRequest.ts
+models/AlarmierungEmpfaengerEinheitDto.ts
+models/AlarmierungEmpfaengerFahrzeugDto.ts
+models/AlarmierungEmpfaengerPersonDto.ts
+models/AlarmierungEmpfaengerResponseDto.ts
+models/AlarmierungResponseDto.ts
+models/AlarmierungTimelineEventDataDto.ts
+models/AlarmierungTimelineEventDto.ts
 models/AnalogDetailsDto.ts
 models/ApiMeta.ts
 models/ApiPagination.ts
@@ -176,6 +188,8 @@ models/ConfigDoctorDto.ts
 models/CoordinateDto.ts
 models/CreateAccessTokenDto.ts
 models/CreateAccessTokenResponseDto.ts
+models/CreateAlarmierungDto.ts
+models/CreateAlarmierungDtoEmpfaengerInner.ts
 models/CreateBefehlDto.ts
 models/CreateBefehlEmpfaengerDto.ts
 models/CreateBefehlsgeberVorschlagDto.ts
@@ -277,6 +291,7 @@ models/ErinnerungTimelineEventDto.ts
 models/ErinnerungsvorlageControllerCreateVAlpha201Response.ts
 models/ErinnerungsvorlageControllerGetAllVAlpha200Response.ts
 models/ErinnerungsvorlageResponseDto.ts
+models/ErstelleNachalarmierungDto.ts
 models/EskalationsAnalyseDto.ts
 models/EskalationsAnalyseItemDto.ts
 models/EtbCqrsControllerAddEintragVAlpha201Response.ts
@@ -431,6 +446,7 @@ models/RuntimeConfigEntryDto.ts
 models/RuntimeConfigListDto.ts
 models/SaveLagekarteStateDto.ts
 models/SaveQualifikationMappingRequestDto.ts
+models/SchliesseAlarmierungAbDto.ts
 models/SecurityStatusDto.ts
 models/ServerInfoDto.ts
 models/SetEinheitenfuehrerDto.ts

@@ -10,6 +10,7 @@ export * from './AdminKraefteQualifikationenApi';
 export * from './AdminKraefteRollenApi';
 export * from './AdminStammdatenFahrzeugeApi';
 export * from './AdminStammdatenPersonenApi';
+export * from './AlarmierungApi';
 export * from './AppApi';
 export * from './AufbewahrungApi';
 export * from './AuthApi';
