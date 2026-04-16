@@ -230,4 +230,8 @@ gha-creds-*.json
 .husky/_/
 
 .claude/worktrees
+.claude/skills/
 .superpowers
+
+# BMAD-Method CLI-Tooling (lokal installiert, nicht ins Repo)
+_bmad/

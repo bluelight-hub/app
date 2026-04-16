@@ -46,6 +46,10 @@ import {
   EtbFunkspruchBroadcastAdapter,
   NotfallFunkspruchAlertEventAdapter,
   AlarmierungEventAdapter,
+  AlarmierungErstelltEtbEventAdapter,
+  AlarmierungEmpfaengerHinzugefuegtEtbEventAdapter,
+  AlarmierungZeitpunktKorrigiertEtbEventAdapter,
+  AlarmierungAbgeschlossenEtbEventAdapter,
   FmsAlarmierungZeitpunktAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
@@ -187,6 +191,10 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     EtbFunkspruchBroadcastAdapter, // Issue #407: Funkspruch-ETB-Einträge WebSocket-Broadcast
     NotfallFunkspruchAlertEventAdapter, // Issue #407: Notfall-Funkspruch Alert-Publisher
     AlarmierungEventAdapter, // Issue #408: Alarmierung-Events WebSocket-Broadcast
+    AlarmierungErstelltEtbEventAdapter, // Issue #408: AlarmierungErstellt → ETB-Eintrag
+    AlarmierungEmpfaengerHinzugefuegtEtbEventAdapter, // Issue #408: AlarmierungEmpfaengerHinzugefuegt → ETB-Eintrag
+    AlarmierungZeitpunktKorrigiertEtbEventAdapter, // Issue #408: AlarmierungZeitpunktKorrigiert → ETB-Eintrag
+    AlarmierungAbgeschlossenEtbEventAdapter, // Issue #408: AlarmierungAbgeschlossen → ETB-Eintrag
     FmsAlarmierungZeitpunktAdapter, // Issue #408: FMS-Status → Alarmierung Auto-Population
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag

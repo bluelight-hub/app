@@ -35,8 +35,9 @@ describe('Route /app/einsatz/$einsatzId/kommunikation/funk', () => {
     expect(search.tab).toBe('protokoll');
   });
 
-  it('wirft bei ungültigem Tab', async () => {
+  it('fällt bei ungültigem Tab auf Default zurück', async () => {
     const { Route } = await import('../funk');
-    expect(() => (Route as { validateSearch: (s: unknown) => { tab: string } }).validateSearch({ tab: 'unknown' })).toThrow();
+    const search = (Route as { validateSearch: (s: unknown) => { tab: string } }).validateSearch({ tab: 'unknown' });
+    expect(search.tab).toBe('kanalplan');
   });
 });

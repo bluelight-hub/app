@@ -7,6 +7,8 @@ import { useLoadServers } from '@/features/server/hooks';
 import { urlParamsSchema } from '@/features/server/schemas/url-params.schema';
 import { useNotificationNavigation } from '@/features/reminders/hooks';
 import { useBefehlNotificationNavigation } from '@/features/befehl';
+import { useCrossWindowSync } from '@/shared/lib/cross-window-sync';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Reset Setup-Redirect-Flag beim App-Start - ABER NICHT wenn wir auf /server/setup sind!
 // Grund: Nach einem Full-Page-Redirect zu /server/setup (via window.location.href) wird die App
@@ -48,6 +50,9 @@ function RootComponent() {
   // Notification Navigation - registriert Callbacks fuer Deep Links bei Notification-Klick
   useNotificationNavigation();
   useBefehlNotificationNavigation();
+
+  // Cross-Window-Sync: spiegelt Admin-Mutationen zwischen Haupt- und Admin-Fenster (Tauri).
+  useCrossWindowSync(useQueryClient());
 
   return (
     <Provider>

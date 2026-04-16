@@ -2,8 +2,10 @@ import { AlarmierungPage } from '@/features/alarmierung/ui/pages/AlarmierungPage
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { z } from 'zod';
 
+// `.catch` fängt fehlende UND ungültige Werte ab (z. B. wenn ein `tab`-Param von
+// einer Schwester-Route via `search={(prev) => prev}` durchgereicht wird).
 const searchSchema = z.object({
-  tab: z.enum(['liste', 'timeline']).optional().default('liste'),
+  tab: z.enum(['liste', 'timeline']).catch('liste'),
 });
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/kommunikation/alarmierung')({

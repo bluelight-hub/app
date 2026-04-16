@@ -66,6 +66,10 @@ export class ErstelleAlarmierungHandler extends TransactionalCommandHandler<Erst
       alarmierungszeit: command.alarmierungszeit,
       ursprungAlarmierungId,
       createdBy: command.createdBy,
+      // Handler fügt die Empfänger gleich im selben Atom hinzu — Count bereits
+      // jetzt mitgeben, damit der `AlarmierungErstelltEvent`-ETB-Eintrag die
+      // korrekte Empfänger-Zahl zeigt.
+      initialEmpfaengerCount: command.empfaenger.length,
     });
     if (aggregateResult.isFailure || !aggregateResult.value) {
       return Result.fail<AlarmierungAggregate>(aggregateResult.error ?? 'Alarmierung konnte nicht erstellt werden');

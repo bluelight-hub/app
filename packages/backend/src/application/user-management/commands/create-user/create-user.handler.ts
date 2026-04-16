@@ -14,6 +14,7 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
 import { USER_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { OperativeRoleChangedEvent } from '@domain/events/operative-role-changed.event';
 
 /**
  * Handler für CreateUserCommand mit Transactional Outbox Pattern.
@@ -215,6 +216,10 @@ export class CreateUserHandler extends TransactionalCommandHandler<CreateUserCom
       return Result.fail('User konnte nicht erstellt werden'); // ✅ Result Pattern statt Exception
     }
 
+    // Step 6a: Events VOR save() extrahieren — prisma-user.repository.save()
+    // ruft aggregate.clearDomainEvents() auf, danach wäre die Liste leer.
+    const events = userAggregate.getDomainEvents();
+
     // Step 6: Save Aggregate in Transaction (WICHTIG: Nutze tx, nicht this.prisma)
     const saveResult = await this.userRepository.save(userAggregate, tx);
     if (saveResult.isFailure) {
@@ -229,14 +234,25 @@ export class CreateUserHandler extends TransactionalCommandHandler<CreateUserCom
       return Result.fail(error); // ✅ Result Pattern statt Exception
     }
 
-    // Step 7: Extract Domain Events for Outbox
-    // Base Handler wird Events in Outbox persistieren (atomar in gleicher TX)
-    const events = userAggregate.getDomainEvents();
+    // Step 7a: Admins starten als FUEHRUNGSKRAFT statt dem Prisma-Default EXTERNE.
+    // Wir überschreiben das frisch persistierte User-Record in derselben Transaktion
+    // und ergänzen das entsprechende OperativeRoleChangedEvent, damit Outbox/Sync-
+    // Konsumenten den Wechsel mitbekommen.
+    const isAdminRole = userRole.equals(UserRole.ADMIN()) || userRole.equals(UserRole.SUPER_ADMIN());
+    if (isAdminRole) {
+      const prismaTx = tx as { user: PrismaService['user'] };
+      await prismaTx.user.update({
+        where: { id: userAggregate.id.value },
+        data: { operativeRole: 'FUEHRUNGSKRAFT' },
+      });
+      events.push(new OperativeRoleChangedEvent(userAggregate.id.value, 'EXTERNE', 'FUEHRUNGSKRAFT', command.createdBy, userAggregate.id.value));
+    }
 
     this.logger.log('User created successfully', {
       userId: userAggregate.id.value,
       username: username.value,
       role: userRole.value,
+      operativeRole: isAdminRole ? 'FUEHRUNGSKRAFT' : 'EXTERNE',
       eventCount: events.length,
     });
 

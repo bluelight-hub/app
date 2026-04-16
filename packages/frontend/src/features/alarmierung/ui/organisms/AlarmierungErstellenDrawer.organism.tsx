@@ -100,15 +100,20 @@ export function AlarmierungErstellenDrawer({ einsatzId, isOpen, onClose }: Alarm
 
   return (
     <Dialog.SlideIn isOpen={isOpen} onClose={handleClose} title="Neue Alarmierung" size="lg" position="right">
+      {/*
+        Layout: Der äußere `Dialog.SlideIn`-Content scrollt bereits (`overflow-y-auto px-5 py-4`).
+        Wir nutzen daher *keinen* zweiten Flex-Scroll-Container, sondern halten den Footer via
+        `sticky bottom-0` am sichtbaren Rand — sonst rutscht der Submit-Button bei langen
+        Empfängerlisten aus dem Viewport.
+      */}
       <form
-        className="flex h-full flex-col gap-5"
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
           void form.handleSubmit();
         }}
       >
-        <div className="flex-1 space-y-5 overflow-y-auto pr-1">
+        <div className="space-y-5">
           <form.Field name="bezeichnung">
             {(field) => (
               <label className="block text-sm">
@@ -176,7 +181,15 @@ export function AlarmierungErstellenDrawer({ einsatzId, isOpen, onClose }: Alarm
                       <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
                         <PiCaretDown className="h-4 w-4 text-slate-500" aria-hidden="true" />
                       </ComboboxButton>
-                      <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded border border-slate-200 bg-white py-1 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                      {/*
+                        `anchor` aktiviert Portal + Floating-UI — ohne das würde die Liste
+                        vom `overflow-y-auto` des Drawer-Contents (`Dialog.SlideIn`) abgeschnitten.
+                        `w-[var(--input-width)]` übernimmt die Breite des Anchor-Inputs.
+                      */}
+                      <ComboboxOptions
+                        anchor={{ to: 'bottom start', gap: 4 }}
+                        className="z-50 max-h-60 w-[var(--input-width)] overflow-auto rounded border border-slate-200 bg-white py-1 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-900"
+                      >
                         {Object.entries(filteredGroups).map(([groupName, items]) => {
                           if (items.length === 0) return null;
                           return (
@@ -258,7 +271,7 @@ export function AlarmierungErstellenDrawer({ einsatzId, isOpen, onClose }: Alarm
           </form.Field>
         </div>
 
-        <footer className="flex items-center justify-end gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
+        <footer className="sticky bottom-0 z-10 -mx-5 mt-5 flex items-center justify-end gap-2 border-t border-slate-200 bg-surface-panel px-5 py-3 dark:border-slate-800">
           <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={mutation.isPending}>
             Abbrechen
           </Button>
