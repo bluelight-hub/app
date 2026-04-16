@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { AlarmierungInfrastructureModule } from '@infrastructure/alarmierung/alarmierung-infrastructure.module';
+import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
+import { OutboxModule } from '@infrastructure/outbox';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { EntferneEmpfaengerHandler } from './commands/entferne-empfaenger';
 import { ErstelleAlarmierungHandler } from './commands/erstelle-alarmierung';
@@ -46,7 +48,7 @@ import { ListAlarmierungenQueryHandler } from './queries/list-alarmierungen';
  * importiert.
  */
 @Module({
-  imports: [AlarmierungInfrastructureModule, EventInfrastructureModule, KraefteInfrastructureModule, EtbApplicationModule],
+  imports: [AlarmierungInfrastructureModule, EventInfrastructureModule, KraefteInfrastructureModule, OutboxModule, EtbInfrastructureModule, EtbApplicationModule],
   providers: [
     {
       provide: LOGGER,
