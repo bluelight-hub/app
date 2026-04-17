@@ -293,6 +293,21 @@ export const EVENT_NAMES = {
   },
 
   /**
+   * Gefahrenzone Bounded Context Events (Issue #627)
+   *
+   * Räumliche Verortung von Matrix-Zellen auf der Lagekarte.
+   * Warnstufe bleibt in der Matrix (ADR-010) — Zone-Events tragen nur Geometrie.
+   */
+  GEFAHRENZONE: {
+    /** Event: Neue Gefahrenzone wurde auf der Karte gezeichnet und mit Matrix-Zelle verknüpft */
+    ERSTELLT: 'gefahrenzone.erstellt',
+    /** Event: Geometrie einer bestehenden Zone wurde geändert (Polygon/Kreis-Anpassung) */
+    GEOMETRY_GEAENDERT: 'gefahrenzone.geometry-geaendert',
+    /** Event: Gefahrenzone wurde gelöscht */
+    GELOESCHT: 'gefahrenzone.geloescht',
+  },
+
+  /**
    * Alarmierung Bounded Context Events (Issue #408)
    */
   ALARMIERUNG: {
@@ -388,6 +403,7 @@ export type EventName =
   | (typeof EVENT_NAMES.OPERATIVE_ROLLE)[keyof typeof EVENT_NAMES.OPERATIVE_ROLLE]
   | (typeof EVENT_NAMES.BEITRITTSANFRAGE)[keyof typeof EVENT_NAMES.BEITRITTSANFRAGE]
   | (typeof EVENT_NAMES.GEFAHRENMATRIX)[keyof typeof EVENT_NAMES.GEFAHRENMATRIX]
+  | (typeof EVENT_NAMES.GEFAHRENZONE)[keyof typeof EVENT_NAMES.GEFAHRENZONE]
   | (typeof EVENT_NAMES.FUNKKANAL)[keyof typeof EVENT_NAMES.FUNKKANAL]
   | (typeof EVENT_NAMES.FUNK)[keyof typeof EVENT_NAMES.FUNK]
   | (typeof EVENT_NAMES.ALARMIERUNG)[keyof typeof EVENT_NAMES.ALARMIERUNG]
