@@ -371,7 +371,7 @@ describe('WorkspaceShell contract', () => {
     expect(lagekarteLink).not.toHaveClass('bg-action-secondary');
   });
 
-  it('priorisiert in der Sidebar Navigation vor Schnellaktionen und zeigt Badge-Hinweise sichtbar an', () => {
+  it('priorisiert in der Sidebar Navigation vor Schnellaktionen und hält Badge-Hinweise aus der Nav fern', () => {
     render(
       <WorkspaceShell
         contextBar={{
@@ -417,8 +417,7 @@ describe('WorkspaceShell contract', () => {
     const navigation = screen.getByRole('navigation', { name: 'Modulseiten' });
     const [quickActions] = screen.getAllByRole('region', { name: 'Schnellaktionen' });
 
-    expect(within(navigation).getByText('Unquittierte Befehle')).toBeInTheDocument();
-    expect(within(navigation).getByText('3')).toBeInTheDocument();
+    expect(within(navigation).queryByText('Unquittierte Befehle')).not.toBeInTheDocument();
     expect(within(quickActions).getByRole('button', { name: 'Audio-Einstellungen' })).toBeInTheDocument();
 
     const navigationPosition = navigation.compareDocumentPosition(quickActions);
