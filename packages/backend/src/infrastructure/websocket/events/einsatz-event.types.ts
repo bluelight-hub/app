@@ -34,7 +34,9 @@ export type EinsatzEventName =
   // Gefahrenzone (Issue #627)
   | 'gefahrenzone:erstellt'
   | 'gefahrenzone:geometry-geaendert'
-  | 'gefahrenzone:geloescht';
+  | 'gefahrenzone:geloescht'
+  // Gefahrenmatrix — WebSocket-Broadcast parallel zum ETB-Adapter (Issue #627 G4)
+  | 'gefahrenmatrix:aktualisiert';
 
 /**
  * Port für den einsatzgebundenen WebSocket-Publisher.

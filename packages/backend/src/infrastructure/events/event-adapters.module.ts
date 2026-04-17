@@ -35,6 +35,7 @@ import {
   SystemWarnungEtbEventAdapter,
   EinsatzCompletedEtbEventAdapter,
   GefahrenmatrixAktualisiertEtbEventAdapter,
+  GefahrenmatrixAktualisiertBroadcastAdapter,
   EinheitErstelltEtbEventAdapter,
   EinheitStatusGeaendertEtbEventAdapter,
   PersonZuEinheitZugewiesenEtbEventAdapter,
@@ -181,6 +182,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     SystemWarnungEtbEventAdapter, // Story 5.6 AC3: SystemWarnung Audit-Log
     EinsatzCompletedEtbEventAdapter, // Issue #581: ETB automatisch sperren bei Einsatz-Abschluss
     GefahrenmatrixAktualisiertEtbEventAdapter, // Issue #414: GefahrenmatrixAktualisiert ETB-Eintrag
+    GefahrenmatrixAktualisiertBroadcastAdapter, // Issue #627 G4: GefahrenmatrixAktualisiert WebSocket-Broadcast (Split-View + AKUT-Toast)
     EinheitErstelltEtbEventAdapter, // Issue #411: EinheitErstellt ETB-Eintrag
     EinheitStatusGeaendertEtbEventAdapter, // Issue #411: EinheitStatusGeaendert ETB-Eintrag
     PersonZuEinheitZugewiesenEtbEventAdapter, // Issue #411: PersonZuEinheitZugewiesen ETB-Eintrag
