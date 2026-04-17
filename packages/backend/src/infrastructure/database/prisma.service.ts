@@ -214,6 +214,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get gefahrenmatrixBewertung() {
     return this._client.gefahrenmatrixBewertung;
   }
+  get gefahrenzone() {
+    return this._client.gefahrenzone;
+  }
   get fahrzeugtypZeichenDefault() {
     return this._client.fahrzeugtypZeichenDefault;
   }
