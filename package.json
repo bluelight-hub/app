@@ -70,6 +70,9 @@
     ],
     "overrides": {
       "glob": ">=11.1.0"
+    },
+    "patchedDependencies": {
+      "taktische-zeichen-core@0.10.0": "patches/taktische-zeichen-core@0.10.0.patch"
     }
   }
 }
