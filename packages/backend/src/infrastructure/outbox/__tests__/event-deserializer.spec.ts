@@ -2282,7 +2282,8 @@ describe('EventDeserializer', () => {
       // + TaktischesZeichen: Erstellt, Platziert, Verschoben, Aktualisiert, Entfernt (Issue #636)
       // + Funkkanal: Erstellt, Geaendert, Archiviert, Reihenfolge_Geaendert, Zuordnung_Erstellt, Zuordnung_Entfernt + NotfallAlertRequested (Issue #407)
       // + Alarmierung: Erstellt, EmpfaengerHinzugefuegt, EmpfaengerEntfernt, ZeitpunktKorrigiert, ZeitpunktFmsGesetzt, Abgeschlossen, NachalarmierungErstellt (Issue #408)
-      expect(supportedTypes).toHaveLength(109);
+      // + Gefahrenzone: Erstellt, GeometryGeaendert, Geloescht (Issue #627)
+      expect(supportedTypes).toHaveLength(112);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
@@ -2321,6 +2322,10 @@ describe('EventDeserializer', () => {
       expect(supportedTypes).toContain('funkkanal.zuordnung_erstellt');
       expect(supportedTypes).toContain('funkkanal.zuordnung_entfernt');
       expect(supportedTypes).toContain('funk.notfall_alert_requested');
+      // Gefahrenzone Events (Issue #627)
+      expect(supportedTypes).toContain('gefahrenzone.erstellt');
+      expect(supportedTypes).toContain('gefahrenzone.geometry-geaendert');
+      expect(supportedTypes).toContain('gefahrenzone.geloescht');
     });
   });
 
