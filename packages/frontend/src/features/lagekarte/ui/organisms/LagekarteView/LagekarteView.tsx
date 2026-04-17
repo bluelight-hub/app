@@ -47,6 +47,7 @@ import { GhostZeichenMarker } from '../../molecules/GhostZeichenMarker.molecule'
 import { KartenZeichenSidebar } from '../../molecules/KartenZeichenSidebar.molecule';
 import { ZeichenDetailPanel } from '../../molecules/ZeichenDetailPanel.molecule';
 import { useEinsatzZeichen, useCreateZeichen, usePlaceZeichen } from '@/features/taktische-zeichen';
+import { GefahrenzoneDrawControls, GefahrenzoneHost } from '@/features/gefahrenzone';
 import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import { toast } from 'sonner';
 import '@/features/lagekarte/detail-providers';
@@ -544,6 +545,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         {/* Taktische Zeichen Layer (DV 102) */}
         <TaktischeZeichenLayer mapRef={mapRef} isMapLoaded={isMapLoaded} zeichen={einsatzZeichen} />
 
+        {/* Gefahrenzonen-Layer + Inline-Popover (Issue #627, G2) */}
+        {isMapLoaded && einsatzId && <GefahrenzoneHost einsatzId={einsatzId} mapRef={mapRef} />}
+
         {/* Ghost-Marker: Halbtransparente Vorschau beim Platzieren */}
         {pendingZeichenPlacement && <GhostZeichenMarker mapRef={mapRef} isMapLoaded={isMapLoaded} definition={pendingZeichenPlacement.definition} />}
 
@@ -564,6 +568,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           </Popup>
         )}
       </Map>
+
+      {/* Gefahrenzone-Draw-Controls (Issue #627, G2): Floating-Toolbar links oben */}
+      {canDraw && (
+        <div className="pointer-events-auto absolute top-16 left-3 z-10">
+          <GefahrenzoneDrawControls />
+        </div>
+      )}
 
       {/* Draw-Toolbar (immer sichtbar für Lock-Button, ShortcutBar nur wenn nicht gesperrt) */}
       {canDraw && (
