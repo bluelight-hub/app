@@ -30,7 +30,11 @@ export type EinsatzEventName =
   | 'alarmierung:zeitpunkt-korrigiert'
   | 'alarmierung:zeitpunkt-fms-gesetzt'
   | 'alarmierung:abgeschlossen'
-  | 'alarmierung:nachalarmierung-erstellt';
+  | 'alarmierung:nachalarmierung-erstellt'
+  // Gefahrenzone (Issue #627)
+  | 'gefahrenzone:erstellt'
+  | 'gefahrenzone:geometry-geaendert'
+  | 'gefahrenzone:geloescht';
 
 /**
  * Port für den einsatzgebundenen WebSocket-Publisher.
