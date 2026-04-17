@@ -200,3 +200,12 @@ export const splitViewActions = { toggle(), activate(focus), setFocus(focus), de
   - Spec-135-Fix: `useSplitViewResponsive` deaktiviert Split automatisch bei Viewport-Shrink unter 1280 px + Info-Toast.
   - Tests: 36 neue Unit-Tests (Store, URL-Sync, Toggle, Dialog, AkutConfirm, AkutBroadcastStore, AkutBroadcastToast), 4531/4531 Full-Suite grün, TSC grün, Lint 0 Errors.
   - Follow-up für G5: Integration-Test Matrix→Dialog→WebSocket→Toast; Self-Filter-Unit-Test für `useGefahrenmatrixWebSocket`; Reduced-Motion-Audit-Doku.
+
+- **2026-04-17 · Backend-Engineer:** Broadcast-Adapter `GefahrenmatrixAktualisiertBroadcastAdapter` (Commit `7eaaace4a`) — exakt G2-Pattern dupliziert. `@OnEvent('gefahrenmatrix.aktualisiert')` → `broadcastToEinsatz(einsatzId, 'gefahrenmatrix:aktualisiert', payload)`. `EinsatzEventName` + `adapters/index.ts` + `event-adapters.module.ts` erweitert. Zweiter Consumer neben `GefahrenmatrixAktualisiertEtbEventAdapter`. 5 neue Tests (4 Unit + 1 Integration), Backend Matrix+Zone+Validator kumulativ 82/82. check:di:imports + check:arch grün.
+
+- **2026-04-17 · Team-Lead Validation-Gate:**
+  - Frontend vollständig: 4531/4531 Tests grün (36 G4-neu), 0 Lint-Errors (28 pre-existing Warnings), TSC clean.
+  - Backend: 82/82 Matrix/Zone/Validator-Tests grün (5 G4-neu), check:di:imports + check:arch grün.
+  - Event-Contract verifiziert: Backend-Channel `gefahrenmatrix:aktualisiert`, Payload wie G2-Pattern, `warnstufe: 'KEINE'` als Entfernungs-Signal; Frontend-Filter `warnstufe === 'AKUT' && aktualisiertVon !== currentUserId`.
+  - **Feature #627 ist funktional komplett.** Nur G5 (Polish, Follow-ups) bleibt.
+  - Manueller Browser-Smoke zwischen zwei Sessions (AKUT-Eskalation) empfohlen vor PR-Merge — im Gate nicht automatisiert.
