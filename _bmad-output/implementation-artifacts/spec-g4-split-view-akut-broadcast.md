@@ -1,8 +1,9 @@
 ---
-status: ready-for-dev
+status: done
 goal: G4
 parent_spec: ../planning-artifacts/ux-design-specification.md
 prev_spec: ./spec-g3-matrix-integration.md
+next_spec: ./spec-g5-polish.md
 github_issue: 627
 branch: 627-lagekarte-integration-der-gefahrenmatrix-mit-raeumlicher
 ---
@@ -183,3 +184,19 @@ export const splitViewActions = { toggle(), activate(focus), setFocus(focus), de
 ## Abschluss-Signal
 
 `status: done`, `## Spec Change Log`, Übergabe an G5 (Polish).
+
+## Spec Change Log
+
+- **2026-04-17 · Frontend-Engineer:** G4 Frontend komplett implementiert.
+  - `splitViewStore` (react-store) + `useSplitViewUrlSync` + `useSplitViewResponsive` + `useSplitViewHotkey` (`cmd/ctrl+shift+g`).
+  - `LagekarteGefahrenmatrixSplitView` Layout (40:60 xl / 50:50 2xl) in `features/einsatz/ui/layouts/`.
+  - `SplitViewToggle` Molecule (aria-switch, disabled <xl, Tooltip).
+  - Route-Integration in `gefahren.tsx` + `karte.tsx` (inkl. `validateSearch` für `split`).
+  - Focus-Roundtrip: `GefahrenmatrixCell.onMouseDownCapture` → `setFocus(cell)`; `GefahrenzoneDetailPanel`-Mount → `setFocus(zone)`; BBox-`fitBounds` in `GefahrenzoneHost` für Cell-Focus.
+  - `useAkutConfirm` Hook + `AkutBroadcastDialog` (Headless-UI; einzige Modal-Stelle). Eingehakt in `GefahrenmatrixGrid`, `GefahrenzoneDetailPanel`, `GefahrenzoneHost`-Create-Flow.
+  - `akutBroadcastStore` mit dreistufiger Eskalation (toast → persistent → banner) + `playAkutBeep` (Web-Audio-OscillatorNode, 500ms 800Hz; localStorage-persistierter Sound-Toggle).
+  - `AkutBroadcastToast` Organism mit `aria-live="assertive"`, Sound-Toggle im Banner, Navigate-On-Click zum Split-View.
+  - `useGefahrenmatrixWebSocket` mit Self-Filter (`aktualisiertVon === currentUserId`); global gemountet in `SingleEinsatzLayout`.
+  - Spec-135-Fix: `useSplitViewResponsive` deaktiviert Split automatisch bei Viewport-Shrink unter 1280 px + Info-Toast.
+  - Tests: 36 neue Unit-Tests (Store, URL-Sync, Toggle, Dialog, AkutConfirm, AkutBroadcastStore, AkutBroadcastToast), 4531/4531 Full-Suite grün, TSC grün, Lint 0 Errors.
+  - Follow-up für G5: Integration-Test Matrix→Dialog→WebSocket→Toast; Self-Filter-Unit-Test für `useGefahrenmatrixWebSocket`; Reduced-Motion-Audit-Doku.

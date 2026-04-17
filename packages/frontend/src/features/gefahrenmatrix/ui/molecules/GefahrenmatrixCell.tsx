@@ -26,6 +26,12 @@ interface GefahrenmatrixCellProps {
    * Wird vom Matrix-Grid aus dem `focus=cell:*`-Search-Param gesetzt.
    */
   isFocusTarget?: boolean;
+  /**
+   * Wird zusätzlich zu `onChange` beim Klick auf die Zelle aufgerufen
+   * (Issue #627, G4, Split-View-Focus-Roundtrip). Triggert der Split-Mode
+   * ein `setFocus({ kind: 'cell', ... })`, ohne die Listbox zu blockieren.
+   */
+  onCellActivate?: () => void;
 }
 
 /**
@@ -37,7 +43,7 @@ interface GefahrenmatrixCellProps {
  * `warnstufe !== 'KEINE'` und `zoneCount === 0`). Badge gewinnt, wenn
  * beide Bedingungen zuträfen.
  */
-export function GefahrenmatrixCell({ warnstufe, onChange, readonly = false, fullscreen = false, zoneCount = 0, onZoneBadgeClick, isFocusTarget = false }: GefahrenmatrixCellProps) {
+export function GefahrenmatrixCell({ warnstufe, onChange, readonly = false, fullscreen = false, zoneCount = 0, onZoneBadgeClick, isFocusTarget = false, onCellActivate }: GefahrenmatrixCellProps) {
   const showBadge = zoneCount > 0;
   const showOrphan = !showBadge && warnstufe !== 'KEINE';
   const focusRingClass = isFocusTarget ? 'animate-gefahrenmatrix-cell-pulse' : undefined;
@@ -63,7 +69,12 @@ export function GefahrenmatrixCell({ warnstufe, onChange, readonly = false, full
   }
 
   return (
-    <td className={cn('relative border border-border-subtle p-0 text-center', CELL_BG[warnstufe], focusRingClass)} data-matrix-cell {...focusAttrs}>
+    <td
+      className={cn('relative border border-border-subtle p-0 text-center', CELL_BG[warnstufe], focusRingClass)}
+      data-matrix-cell
+      {...focusAttrs}
+      onMouseDownCapture={onCellActivate ? () => onCellActivate() : undefined}
+    >
       <Listbox value={warnstufe} onChange={onChange}>
         <ListboxButton
           className="flex h-full w-full cursor-pointer items-center justify-center px-2 py-1.5 text-xs transition-colors focus:outline-none focus-visible:shadow-focus-ring"

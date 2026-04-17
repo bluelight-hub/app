@@ -16,6 +16,7 @@ import {
 import { useGefahrenmatrix, useUpdateGefahrenmatrixBewertung } from '../../api';
 import { cellKey, useGefahrenzonenByCell } from '@/features/gefahrenzone/api';
 import { GefahrenmatrixCell } from '../molecules/GefahrenmatrixCell';
+import { useAkutConfirm } from '../../hooks/use-akut-confirm';
 
 interface GefahrenmatrixGridProps {
   einsatzId: string;
@@ -32,13 +33,19 @@ interface GefahrenmatrixGridProps {
   focus?: string | null;
   /** Wird bei Zone-Badge-Klick aufgerufen (z. B. zur Lagekarte navigieren). */
   onZoneBadgeClick?: (typ: GefahrentypValue, objekt: SchutzobjektValue) => void;
+  /**
+   * Wird beim Klick auf eine Zelle zusätzlich zum `onChange` ausgelöst
+   * (Issue #627, G4) — fürs Focus-Roundtrip im Split-View. `undefined` →
+   * Standard-Click-Verhalten ohne zusätzlichen Side-Effect.
+   */
+  onCellActivate?: (typ: GefahrentypValue, objekt: SchutzobjektValue) => void;
 }
 
 /**
  * Vollständige Gefahrenmatrix als interaktive Tabelle.
  * Bildet das Papierformular der Gefahrenmatrix (5A-B-C-D-5E) ab.
  */
-export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = false, refetchInterval, focus, onZoneBadgeClick }: GefahrenmatrixGridProps) {
+export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = false, refetchInterval, focus, onZoneBadgeClick, onCellActivate }: GefahrenmatrixGridProps) {
   const { data, isLoading, isError } = useGefahrenmatrix(einsatzId, { refetchInterval });
   const { mutate: updateBewertung } = useUpdateGefahrenmatrixBewertung();
   const { data: zonenByCell } = useGefahrenzonenByCell(einsatzId);
@@ -82,12 +89,12 @@ export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = f
     [bewertungMap],
   );
 
-  const handleChange = useCallback(
-    (typ: GefahrentypValue, objekt: SchutzobjektValue, warnstufe: WarnstufeValue) => {
+  const commitChange = useCallback(
+    ({ gefahrentyp, schutzobjekt, warnstufe }: { gefahrentyp: GefahrentypValue; schutzobjekt: SchutzobjektValue; warnstufe: WarnstufeValue }) => {
       updateBewertung(
         {
           einsatzId,
-          data: { gefahrentyp: typ, schutzobjekt: objekt, warnstufe },
+          data: { gefahrentyp, schutzobjekt, warnstufe },
         },
         {
           onError: () => {
@@ -97,6 +104,16 @@ export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = f
       );
     },
     [einsatzId, updateBewertung],
+  );
+
+  const { requestChange, dialog: akutDialog } = useAkutConfirm({ onCommit: commitChange });
+
+  const handleChange = useCallback(
+    (typ: GefahrentypValue, objekt: SchutzobjektValue, warnstufe: WarnstufeValue) => {
+      const previous = getWarnstufe(typ, objekt);
+      requestChange({ gefahrentyp: typ, schutzobjekt: objekt, previous, next: warnstufe });
+    },
+    [getWarnstufe, requestChange],
   );
 
   if (isLoading) {
@@ -147,6 +164,7 @@ export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = f
                 zoneCount={count}
                 onZoneBadgeClick={() => onZoneBadgeClick?.(typ, objekt)}
                 isFocusTarget={isFocus}
+                onCellActivate={onCellActivate ? () => onCellActivate(typ, objekt) : undefined}
               />
             );
           })}
@@ -157,6 +175,7 @@ export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = f
 
   return (
     <div ref={gridRef} className="overflow-x-auto">
+      {akutDialog}
       <table className="w-full border-collapse border border-border-subtle">
         {/* Header: Gefahrentyp Labels */}
         <thead>
