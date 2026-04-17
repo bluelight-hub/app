@@ -22,6 +22,7 @@ vi.mock('../../../stores/draw.store', () => ({
       isTemplatePanelVisible: false,
       isLocked: false,
       isZeichenSidebarVisible: false,
+      isGefahrenSidebarVisible: false,
     },
     subscribe: vi.fn((cb) => {
       cb();
@@ -33,6 +34,7 @@ vi.mock('../../../stores/draw.store', () => ({
   toggleSymbolPanel: vi.fn(),
   toggleTemplatePanel: vi.fn(),
   toggleZeichenSidebar: vi.fn(),
+  toggleGefahrenSidebar: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-store', () => ({
@@ -44,6 +46,7 @@ vi.mock('@tanstack/react-store', () => ({
         isTemplatePanelVisible: false,
         isLocked: false,
         isZeichenSidebarVisible: false,
+        isGefahrenSidebarVisible: false,
       });
     }
     return true;
@@ -70,14 +73,25 @@ describe('DrawToolbar', () => {
     expect(screen.getByLabelText('Pfeil zeichnen')).toBeInTheDocument();
     expect(screen.getByLabelText('Ellipse zeichnen')).toBeInTheDocument();
     expect(screen.getByLabelText('Ausbreitungskegel zeichnen')).toBeInTheDocument();
-    expect(screen.getByLabelText('GAMS-Zonen platzieren')).toBeInTheDocument();
     expect(screen.getByLabelText('Text platzieren')).toBeInTheDocument();
     expect(screen.getByLabelText('OSM-Gebäude markieren')).toBeInTheDocument();
   });
 
-  it('sollte alle erwarteten Modi in TOOLBAR_ITEMS enthalten', () => {
+  it('sollte GAMS-Button nicht mehr im Haupt-Toolbar-Grid enthalten (liegt jetzt in der Gefahren-Sidebar)', () => {
+    render(<DrawToolbar activeMode="idle" onModeChange={vi.fn()} />);
+    expect(screen.queryByLabelText('GAMS-Zonen platzieren')).not.toBeInTheDocument();
+  });
+
+  it('sollte Gefahren-Tools-Button in der oberen Button-Reihe rendern', () => {
+    render(<DrawToolbar activeMode="idle" onModeChange={vi.fn()} />);
+    const btn = screen.getByLabelText('Gefahren-Tools');
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('sollte alle erwarteten Modi in TOOLBAR_ITEMS enthalten (ohne draw_gams)', () => {
     const allModes = TOOLBAR_ITEMS.filter((item): item is Exclude<typeof item, 'separator'> => item !== 'separator').map((t) => t.mode);
-    expect(allModes).toHaveLength(13);
+    expect(allModes).toHaveLength(12);
     expect(allModes).toContain('select');
     expect(allModes).toContain('draw_point');
     expect(allModes).toContain('draw_line_string');
@@ -88,7 +102,7 @@ describe('DrawToolbar', () => {
     expect(allModes).toContain('draw_arrow');
     expect(allModes).toContain('draw_ellipse');
     expect(allModes).toContain('draw_sector');
-    expect(allModes).toContain('draw_gams');
+    expect(allModes).not.toContain('draw_gams');
     expect(allModes).toContain('draw_text');
     expect(allModes).toContain('osm_mark');
   });

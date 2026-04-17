@@ -45,9 +45,10 @@ import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
 import { TaktischeZeichenLayer } from '../../molecules/TaktischeZeichenLayer.molecule';
 import { GhostZeichenMarker } from '../../molecules/GhostZeichenMarker.molecule';
 import { KartenZeichenSidebar } from '../../molecules/KartenZeichenSidebar.molecule';
+import { GefahrenToolsSidebar } from '../../molecules/GefahrenToolsSidebar.molecule';
 import { ZeichenDetailPanel } from '../../molecules/ZeichenDetailPanel.molecule';
 import { useEinsatzZeichen, useCreateZeichen, usePlaceZeichen } from '@/features/taktische-zeichen';
-import { GefahrenzoneDrawControls, GefahrenzoneHost } from '@/features/gefahrenzone';
+import { GefahrenzoneHost } from '@/features/gefahrenzone';
 import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import { toast } from 'sonner';
 import '@/features/lagekarte/detail-providers';
@@ -105,6 +106,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
   const isLocked = useStore(drawStore, (s) => s.isLocked);
   const isZeichenSidebarVisible = useStore(drawStore, (s) => s.isZeichenSidebarVisible);
+  const isGefahrenSidebarVisible = useStore(drawStore, (s) => s.isGefahrenSidebarVisible);
   const pendingZeichenPlacement = useStore(drawStore, (s) => s.pendingZeichenPlacement);
   const selectedZeichenId = useStore(drawStore, (s) => s.selectedZeichenId);
 
@@ -575,13 +577,6 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         )}
       </Map>
 
-      {/* Gefahrenzone-Draw-Controls (Issue #627, G2): Floating-Toolbar links oben */}
-      {canDraw && (
-        <div className="pointer-events-auto absolute top-16 left-3 z-10">
-          <GefahrenzoneDrawControls />
-        </div>
-      )}
-
       {/* Draw-Toolbar (immer sichtbar für Lock-Button, ShortcutBar nur wenn nicht gesperrt) */}
       {canDraw && (
         <>
@@ -640,6 +635,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
       {/* Karten-Zeichen-Sidebar (nur im Nicht-Präsentationsmodus) */}
       {mode !== 'presentation' && <KartenZeichenSidebar einsatzId={einsatzId} isVisible={isZeichenSidebarVisible} />}
+
+      {/* Gefahren-Tools-Sidebar (nur wenn gezeichnet werden darf) */}
+      {canDraw && <GefahrenToolsSidebar isVisible={isGefahrenSidebarVisible} onSelectSymbol={handleSelectSymbol} />}
     </div>
   );
 };

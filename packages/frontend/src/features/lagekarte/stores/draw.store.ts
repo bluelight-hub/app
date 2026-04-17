@@ -24,6 +24,9 @@ export interface FeatureGroup {
 /** Aktiver Tab in der Karten-Zeichen-Sidebar */
 export type ZeichenSidebarTab = 'katalog' | 'baukasten';
 
+/** Aktiver Tab in der Gefahren-Tools-Sidebar */
+export type GefahrenSidebarTab = 'zone' | 'gams' | 'symbole';
+
 /**
  * Unterscheidet, wozu ein aktiver Draw-Modus gehört — entscheidet, welches
  * Feature die `draw.create`/`draw.delete`-Events des MapboxDraw-Controls
@@ -57,6 +60,10 @@ export interface DrawStoreState {
   isZeichenSidebarVisible: boolean;
   /** Aktiver Tab der Zeichen-Sidebar */
   zeichenSidebarTab: ZeichenSidebarTab;
+  /** Ob die Gefahren-Tools-Sidebar sichtbar ist */
+  isGefahrenSidebarVisible: boolean;
+  /** Aktiver Tab der Gefahren-Sidebar */
+  gefahrenSidebarTab: GefahrenSidebarTab;
   /** Wartet auf Platzierung: Definition für ein neues Zeichen, optional existierende Zeichen-ID für unplatzierte Zeichen */
   pendingZeichenPlacement: { definition: ZeichenDefinition; existingZeichenId?: string; label?: string } | null;
   /** ID des aktuell im Detail-Panel angezeigten Zeichens (null = Panel geschlossen) */
@@ -77,6 +84,8 @@ const initialState: DrawStoreState = {
   isLocked: false,
   isZeichenSidebarVisible: false,
   zeichenSidebarTab: 'katalog',
+  isGefahrenSidebarVisible: false,
+  gefahrenSidebarTab: 'zone',
   pendingZeichenPlacement: null,
   selectedZeichenId: null,
   drawContext: null,
@@ -154,13 +163,19 @@ export const toggleLock = () => {
   drawStore.setState((state) => ({
     ...state,
     isLocked: !state.isLocked,
-    // Beim Sperren: Werkzeuge deaktivieren, aber Selektion beibehalten (Read-Only-Inspektion)
+    // Beim Sperren: Werkzeuge deaktivieren, aber Selektion beibehalten (Read-Only-Inspektion).
+    // Draw-Context + pendingZeichenPlacement zurücksetzen, damit keine hängenden Flows
+    // nach dem Entsperren ein Feature in den falschen Consumer leaken.
     ...(!state.isLocked && {
       drawMode: 'select' as DrawMode,
       isDirectSelect: false,
       isDrawToolbarVisible: false,
       isSymbolPanelVisible: false,
       isTemplatePanelVisible: false,
+      isZeichenSidebarVisible: false,
+      isGefahrenSidebarVisible: false,
+      drawContext: null,
+      pendingZeichenPlacement: null,
     }),
   }));
 };
@@ -218,24 +233,84 @@ export const setFeatureGroups = (groups: FeatureGroup[]) => {
 };
 
 /**
- * Schaltet die Karten-Zeichen-Sidebar um
+ * Schaltet die Karten-Zeichen-Sidebar um.
+ * Beim Öffnen wird die Gefahren-Sidebar geschlossen (Mutex).
  */
 export const toggleZeichenSidebar = () => {
+  drawStore.setState((state) => {
+    const willOpen = !state.isZeichenSidebarVisible;
+    return {
+      ...state,
+      isZeichenSidebarVisible: willOpen,
+      // Mutex: beim Öffnen die Gefahren-Sidebar schließen
+      ...(willOpen && { isGefahrenSidebarVisible: false }),
+      // Beim Schließen: Wartende Platzierung abbrechen
+      ...(willOpen ? {} : { pendingZeichenPlacement: null }),
+    };
+  });
+};
+
+/**
+ * Schaltet die Gefahren-Tools-Sidebar um.
+ * - Beim Öffnen: Zeichen-Sidebar schließen + `pendingZeichenPlacement` abbrechen (Mutex).
+ * - Beim Schließen: Gefahren-spezifische Draw-States zurücksetzen (Zone-Context + GAMS-Modus),
+ *   damit keine hängenden Modes nach Close ungewollt Karten-Klicks konsumieren.
+ */
+export const toggleGefahrenSidebar = () => {
+  drawStore.setState((state) => {
+    const willOpen = !state.isGefahrenSidebarVisible;
+    if (willOpen) {
+      return {
+        ...state,
+        isGefahrenSidebarVisible: true,
+        isZeichenSidebarVisible: false,
+        pendingZeichenPlacement: null,
+      };
+    }
+    const isGefahrenFlowActive = state.drawContext === 'gefahrenzone' || state.drawMode === 'draw_gams';
+    return {
+      ...state,
+      isGefahrenSidebarVisible: false,
+      ...(isGefahrenFlowActive && {
+        drawMode: 'select' as DrawMode,
+        drawContext: null,
+      }),
+    };
+  });
+};
+
+/**
+ * Öffnet die Gefahren-Sidebar mit einem bestimmten Tab.
+ */
+export const openGefahrenSidebar = (tab: GefahrenSidebarTab) => {
   drawStore.setState((state) => ({
     ...state,
-    isZeichenSidebarVisible: !state.isZeichenSidebarVisible,
-    // Beim Schließen: Wartende Platzierung abbrechen
-    ...(!state.isZeichenSidebarVisible ? {} : { pendingZeichenPlacement: null }),
+    isGefahrenSidebarVisible: true,
+    isZeichenSidebarVisible: false,
+    pendingZeichenPlacement: null,
+    gefahrenSidebarTab: tab,
   }));
 };
 
 /**
- * Öffnet die Zeichen-Sidebar mit einem bestimmten Tab
+ * Wechselt den aktiven Tab der Gefahren-Sidebar.
+ */
+export const setGefahrenSidebarTab = (tab: GefahrenSidebarTab) => {
+  drawStore.setState((state) => ({
+    ...state,
+    gefahrenSidebarTab: tab,
+  }));
+};
+
+/**
+ * Öffnet die Zeichen-Sidebar mit einem bestimmten Tab.
+ * Schließt dabei die Gefahren-Sidebar (Mutex).
  */
 export const openZeichenSidebar = (tab: ZeichenSidebarTab) => {
   drawStore.setState((state) => ({
     ...state,
     isZeichenSidebarVisible: true,
+    isGefahrenSidebarVisible: false,
     zeichenSidebarTab: tab,
   }));
 };
