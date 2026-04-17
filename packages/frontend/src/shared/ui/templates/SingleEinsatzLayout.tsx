@@ -493,8 +493,16 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         onOpenModuleOverview={() => setShowModuleOverview(true)}
         quickActionsSlot={
           <div className="space-y-1">
-            <Button intent="primary" appearance="filled" size="sm" className="w-full justify-center" onClick={handleOpenEtb} kbd="cmd+shift+e" aria-keyshortcuts="Control+Shift+E Meta+Shift+E">
-              <PiPlusCircle className="h-4 w-4" />
+            <Button
+              intent="primary"
+              appearance="filled"
+              size="sm"
+              className="w-full justify-center whitespace-nowrap"
+              onClick={handleOpenEtb}
+              kbd="cmd+shift+e"
+              aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
+            >
+              <PiPlusCircle className="h-4 w-4 shrink-0" />
               Neuer ETB-Eintrag
             </Button>
             <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
