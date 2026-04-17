@@ -50,6 +50,7 @@ export * from './system-warnung-websocket-event.adapter';
 export * from './system-warnung-etb-event.adapter';
 export * from './einsatz-completed-etb-event.adapter';
 export * from './gefahrenmatrix-aktualisiert-etb-event.adapter';
+export * from './gefahrenmatrix-aktualisiert-broadcast.adapter';
 export * from './einheit-erstellt-etb-event.adapter';
 export * from './einheit-status-geaendert-etb-event.adapter';
 export * from './person-zu-einheit-zugewiesen-etb-event.adapter';
