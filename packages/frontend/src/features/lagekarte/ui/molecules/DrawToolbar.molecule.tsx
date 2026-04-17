@@ -27,11 +27,11 @@ import {
   PiScribbleLoop,
   PiShieldStar,
   PiStamp,
-  PiTarget,
   PiTextT,
+  PiWarning,
 } from 'react-icons/pi';
 import type { DrawMode } from '../../drawing/types';
-import { drawStore, toggleDrawToolbar, toggleLock, toggleSymbolPanel, toggleTemplatePanel, toggleZeichenSidebar } from '../../stores/draw.store';
+import { drawStore, toggleDrawToolbar, toggleGefahrenSidebar, toggleLock, toggleSymbolPanel, toggleTemplatePanel, toggleZeichenSidebar } from '../../stores/draw.store';
 
 /** Props für die DrawToolbar-Komponente */
 export interface DrawToolbarProps {
@@ -70,8 +70,7 @@ export const TOOLBAR_ITEMS: ToolbarItem[] = [
   { mode: 'draw_ellipse', icon: PiCircleDashed, label: 'Ellipse zeichnen' },
   { mode: 'draw_sector', icon: PiArrowArcRight, label: 'Ausbreitungskegel zeichnen' },
   'separator',
-  // Spezial + Beschriftung
-  { mode: 'draw_gams', icon: PiTarget, label: 'GAMS-Zonen platzieren' },
+  // Spezial + Beschriftung (GAMS liegt jetzt in der Gefahren-Sidebar)
   { mode: 'draw_text', icon: PiTextT, label: 'Text platzieren' },
   { mode: 'osm_mark', icon: PiBuildings, label: 'OSM-Gebäude markieren' },
 ];
@@ -85,6 +84,7 @@ export function DrawToolbar({ activeMode, onModeChange, unplatzierteZeichenCount
   const isTemplatePanelVisible = useStore(drawStore, (s) => s.isTemplatePanelVisible);
   const isLocked = useStore(drawStore, (s) => s.isLocked);
   const isZeichenSidebarVisible = useStore(drawStore, (s) => s.isZeichenSidebarVisible);
+  const isGefahrenSidebarVisible = useStore(drawStore, (s) => s.isGefahrenSidebarVisible);
   const isDrawing = activeMode !== 'idle' && activeMode !== 'select';
 
   return (
@@ -118,6 +118,17 @@ export function DrawToolbar({ activeMode, onModeChange, unplatzierteZeichenCount
               {unplatzierteZeichenCount}
             </span>
           )}
+        </button>
+
+        <button
+          type="button"
+          aria-label="Gefahren-Tools"
+          aria-pressed={isGefahrenSidebarVisible}
+          title="Gefahren-Tools (Zone, GAMS, Symbole)"
+          onClick={toggleGefahrenSidebar}
+          className={cn(buttonBase, isGefahrenSidebarVisible ? 'bg-action-secondary text-status-warning-text' : 'text-text-muted hover:bg-action-secondary hover:text-status-warning-text')}
+        >
+          <PiWarning className="h-5 w-5" aria-hidden="true" />
         </button>
 
         <button
