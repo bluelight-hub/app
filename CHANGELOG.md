@@ -1,3 +1,26 @@
+## Workspace-Navigation & Sidebar
+
+Die Sidebar wurde grundlegend überarbeitet und in zwei klare Bereiche unterteilt: **Navigation** (scrollbar, oben) und **Schnellaktionen** (fixiert, unten). Die Command Palette ist nun kompakt am unteren Rand verankert und zeigt in schmaler Ansicht nur das Icon plus ⌘K-Shortcut.
+
+**Modulübersicht:** Ein neuer Button (Raster-Icon) in der Sidebar-Aktionen-Zone öffnet die Modulübersicht direkt – vorher nur über Umwege erreichbar.
+
+**Einsatzwechsel:** Der Einsatz-Switcher wurde aus der Sidebar entfernt. Wechsel zwischen aktiven Einsätzen erfolgt jetzt ausschließlich über die Command Palette in einer eigenen Gruppe „Einsätze". Der aktuelle Einsatz wird dabei ausgeblendet; bei nur einem aktiven Einsatz bleibt die Gruppe versteckt.
+
+**Visuelle Verbesserungen:**
+- Aktive Module erhalten einen farbigen Rand (border-left) in der jeweiligen Modulfarbe
+- Sub-Seiten werden durch einen farbigen Container gerahmt
+- Navigation-Items kompakter gestaltet (mehr Dichte, weniger Leerraum)
+- Touch-Targets auf Mobilgeräten automatisch auf mindestens 44×44 px vergrößert
+- Badge-Hinweise für unquittierte Befehle aus der Navigation entfernt – die Info bleibt in der Modulübersicht sichtbar
+
+## ETB (Elektronisches Tagebuch)
+
+**Schnelleinstieg:** Ein neuer Primary-Button „ETB-Eintrag" in den Sidebar-Schnellaktionen ermöglicht direkten Zugriff auf das ETB. Globaler Shortcut: **Cmd+Shift+E**. Der Button wurde visuell an andere Primary-Create-Buttons angeglichen (Plus-Icon ohne Kreis, optimierte Abstände).
+
+## Einsatz-Verwaltung
+
+**Command Palette:** Die bisherigen Sidebar-Schnellaktionen „Externe einladen", „Audio-Einstellungen" und „Einsatz beenden" sind jetzt über die Command Palette im neuen Modul „Einsatz" erreichbar. „Einsatz beenden" ist als destruktive Aktion markiert. Die Funktion „Person wählen" wurde entfernt – die Zuordnung erfolgt automatisch über den AssignmentGate.
+
 ## Alarmierung
 
 Die Bluelight Hub Desktop & Web App erhält ein komplett neues Alarmierungs-Feature für Einsatzkräfte im Katastrophenschutz:
