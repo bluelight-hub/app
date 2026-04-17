@@ -1,15 +1,13 @@
 import { Module } from '@nestjs/common';
 import { GefahrApplicationModule } from '@/application/gefahr/gefahr-application.module';
 import { GefahrenmatrixController } from './controllers/gefahrenmatrix.controller';
+import { GefahrenzoneController } from './controllers/gefahrenzone.controller';
 
 /**
- * Modul für die Gefahrenmatrix im Einsatz-Kontext (Issue #414).
- *
- * Stellt REST-Endpunkte zum Abrufen und Aktualisieren
- * von Gefahrenbewertungen innerhalb eines Einsatzes bereit.
+ * Modul für Gefahrenmatrix (Issue #414) und Gefahrenzonen (Issue #627) im Einsatz-Kontext.
  */
 @Module({
   imports: [GefahrApplicationModule],
-  controllers: [GefahrenmatrixController],
+  controllers: [GefahrenmatrixController, GefahrenzoneController],
 })
 export class GefahrModule {}
