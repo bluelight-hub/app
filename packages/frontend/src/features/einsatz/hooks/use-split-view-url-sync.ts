@@ -10,7 +10,7 @@
  * `focus` (string | undefined) — siehe `gefahren.tsx` / `karte.tsx`.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useStore } from '@tanstack/react-store';
 import { focusEquals, parseFocus, serializeFocus, splitViewActions, splitViewStore, type SplitViewFocus } from '../stores/split-view.store';
@@ -25,10 +25,16 @@ export interface UseSplitViewUrlSyncOptions {
 /**
  * URL → Store: wenn sich die Param-Werte aendern, uebernehmen wir sie.
  * Store → URL: Store-Aenderungen aktualisieren die URL via `navigate`.
+ *
+ * `syncFromUrlRef` verhindert eine Navigation-Dauerschleife: wenn der Store
+ * gerade durch URL→Store aktualisiert wurde, ueberspringt Store→URL einen
+ * Durchgang — sonst laeuft Store→URL im gleichen Flush noch mit dem alten
+ * `state`-Snapshot und setzt die URL-Params irrtuemlich zurueck.
  */
 export function useSplitViewUrlSync({ split, focus }: UseSplitViewUrlSyncOptions): void {
   const navigate = useNavigate();
   const state = useStore(splitViewStore, (s) => s);
+  const syncFromUrlRef = useRef(false);
 
   // URL → Store
   useEffect(() => {
@@ -37,11 +43,16 @@ export function useSplitViewUrlSync({ split, focus }: UseSplitViewUrlSyncOptions
     if (splitViewStore.state.isActive === desiredIsActive && focusEquals(splitViewStore.state.focus, desiredFocus)) {
       return;
     }
+    syncFromUrlRef.current = true;
     splitViewActions.setState({ isActive: desiredIsActive, focus: desiredFocus });
   }, [split, focus]);
 
   // Store → URL
   useEffect(() => {
+    if (syncFromUrlRef.current) {
+      syncFromUrlRef.current = false;
+      return;
+    }
     const targetSplit = state.isActive ? true : undefined;
     const targetFocus = serializeFocus(state.focus);
     if (split === targetSplit && focus === targetFocus) {
