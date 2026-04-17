@@ -340,6 +340,9 @@ model Einsatz {
   // Gefahrenmatrix Relation (1:N, Issue #414)
   gefahrenmatrixBewertungen GefahrenmatrixBewertung[]
 
+  // Gefahrenzonen Relation (1:N, Issue #627)
+  gefahrenzonen             Gefahrenzone[]
+
   // Taktische Einheiten Relation (1:N, Issue #411)
   einheiten EinsatzEinheit[]
 
@@ -2302,11 +2305,46 @@ model GefahrenmatrixBewertung {
 
   // Relations
   einsatz       Einsatz      @relation(fields: [einsatzId], references: [id], onDelete: Restrict)
+  gefahrenzonen Gefahrenzone[]
 
   // Constraints: Pro Einsatz nur eine Bewertung pro Gefahrentyp+Schutzobjekt
   @@unique([einsatzId, gefahrentyp, schutzobjekt])
   @@index([einsatzId])
   @@map("gefahrenmatrix_bewertungen")
+}
+
+/// Geometrietyp einer Gefahrenzone. CIRCLE-Zonen werden als 64-Punkt-Polygon gespeichert.
+enum GefahrenzoneGeometryType {
+  POLYGON
+  CIRCLE
+}
+
+/// Gefahrenzone: räumliche Verortung einer Matrix-Zelle auf der Lagekarte (Issue #627).
+///
+/// Composite FK auf (einsatzId, gefahrentyp, schutzobjekt) referenziert die Matrix-Zelle
+/// (ADR-010). Beim Create wird die Zelle implizit mit warnstufe=KEINE angelegt, wenn sie
+/// noch nicht existiert. Warnstufe lebt ausschließlich in der Matrix — keine Duplikation.
+model Gefahrenzone {
+  id              String       @id @default(cuid())
+  einsatzId       String
+  gefahrentyp     Gefahrentyp
+  schutzobjekt    Schutzobjekt
+  geometryType    GefahrenzoneGeometryType
+  geometry        Json         @db.JsonB
+  bezeichnung     String?      @db.VarChar(200)
+  erstelltVon     String       @db.VarChar(100)
+  aktualisiertVon String?      @db.VarChar(100)
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  einsatz         Einsatz                 @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  matrixZelle     GefahrenmatrixBewertung @relation(fields: [einsatzId, gefahrentyp, schutzobjekt], references: [einsatzId, gefahrentyp, schutzobjekt], onDelete: Restrict)
+
+  @@index([einsatzId])
+  @@index([einsatzId, gefahrentyp, schutzobjekt])
+  @@map("gefahrenzonen")
 }
 
 // ========================================
