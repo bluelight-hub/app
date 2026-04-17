@@ -1,0 +1,30 @@
+diff --git a/dist/cjs/utils.js b/dist/cjs/utils.js
+index d3b0db3fcd92d2bf78a83683dac5a198e5916850..f8599f84d3f9014d2856269d7056c0269ce7d20b 100644
+--- a/dist/cjs/utils.js
++++ b/dist/cjs/utils.js
+@@ -35,10 +35,8 @@ class ImageImpl {
+ exports.ImageImpl = ImageImpl;
+ function toBase64(string) {
+     if (typeof Buffer !== "undefined") {
+-        console.log("using Buffer to encode base64:", string);
+         return Buffer.from(string).toString("base64");
+     }
+-    console.log("using Array to encode base64:", string);
+     return (0, base64_js_1.fromByteArray)(new TextEncoder().encode(string));
+ }
+ function placeComponent({ parent, component, padding = [0, 0], align, svg, }) {
+diff --git a/dist/esm/utils.js b/dist/esm/utils.js
+index dd355bd7708099bfbf67f192113780e77ba98588..2c25f49a8f74cf6578029fa6f65e4ea2c507c2d5 100644
+--- a/dist/esm/utils.js
++++ b/dist/esm/utils.js
+@@ -23,10 +23,8 @@ export class ImageImpl {
+ }
+ function toBase64(string) {
+     if (typeof Buffer !== "undefined") {
+-        console.log("using Buffer to encode base64:", string);
+         return Buffer.from(string).toString("base64");
+     }
+-    console.log("using Array to encode base64:", string);
+     return fromByteArray(new TextEncoder().encode(string));
+ }
+ export function placeComponent({ parent, component, padding = [0, 0], align, svg, }) {

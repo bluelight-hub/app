@@ -8,6 +8,11 @@ settings:
 overrides:
   glob: '>=11.1.0'
 
+patchedDependencies:
+  taktische-zeichen-core@0.10.0:
+    hash: a427be0c7acbb4a6e7df4d16354d34d5e82a0e4cae8955dcd36f237c740bc7f2
+    path: patches/taktische-zeichen-core@0.10.0.patch
+
 importers:
 
   .:
@@ -423,7 +428,7 @@ importers:
         version: 4.2.2
       taktische-zeichen-core:
         specifier: ^0.10.0
-        version: 0.10.0
+        version: 0.10.0(patch_hash=a427be0c7acbb4a6e7df4d16354d34d5e82a0e4cae8955dcd36f237c740bc7f2)
       taktische-zeichen-react:
         specifier: ^0.10.0
         version: 0.10.0(react@19.2.5)
@@ -24460,14 +24465,14 @@ snapshots:
 
   tailwindcss@4.2.2: {}
 
-  taktische-zeichen-core@0.10.0:
+  taktische-zeichen-core@0.10.0(patch_hash=a427be0c7acbb4a6e7df4d16354d34d5e82a0e4cae8955dcd36f237c740bc7f2):
     dependencies:
       base64-js: 1.5.1
 
   taktische-zeichen-react@0.10.0(react@19.2.5):
     dependencies:
       react: 19.2.5
-      taktische-zeichen-core: 0.10.0
+      taktische-zeichen-core: 0.10.0(patch_hash=a427be0c7acbb4a6e7df4d16354d34d5e82a0e4cae8955dcd36f237c740bc7f2)
 
   tapable@2.3.2: {}
 
