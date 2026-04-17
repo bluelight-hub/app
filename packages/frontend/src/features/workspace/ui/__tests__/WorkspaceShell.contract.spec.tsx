@@ -425,6 +425,30 @@ describe('WorkspaceShell contract', () => {
     expect(navigationPosition & Node.DOCUMENT_POSITION_FOLLOWING).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
+  it('akzentuiert das aktive Sidebar-Modul mit border-l-4 + icon-pill und rahmt die Sub-Liste mit border-l-2 in Modul-Farbe', () => {
+    renderWorkspaceShell();
+
+    const desktopNavigation = screen.getByRole('navigation', { name: 'Modulseiten' });
+    const activeModuleLink = within(desktopNavigation).getByRole('link', { name: 'Führung' });
+
+    expect(activeModuleLink).toHaveClass('border-l-4');
+    expect(activeModuleLink).toHaveClass('border-action-primary');
+    expect(activeModuleLink.querySelector('span.bg-primary-50')).not.toBeNull();
+    expect(activeModuleLink).toHaveClass('touch:py-2.5');
+    expect(activeModuleLink).toHaveClass('touch:my-0.5');
+
+    const inactiveModuleLink = within(desktopNavigation).getByRole('link', { name: 'Übersicht' });
+    expect(inactiveModuleLink).toHaveClass('border-l-4');
+    expect(inactiveModuleLink).toHaveClass('border-transparent');
+
+    const subList = screen.getByTestId('sub-list-führung');
+    expect(subList).toHaveClass('border-l-2');
+    expect(subList).toHaveClass('border-action-primary');
+
+    const activeSubPage = within(subList).getByRole('link', { name: /ETB/ });
+    expect(activeSubPage).toHaveClass('touch:py-2.5');
+  });
+
   it('gliedert die Desktop-Sidebar in Workspace-Navigation- und Workspace-Aktionen-Zone und platziert den Command-Trigger in der Aktionen-Zone', () => {
     render(
       <WorkspaceShell

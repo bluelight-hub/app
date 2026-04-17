@@ -31,3 +31,51 @@ export const getModuleActiveColor = (color: ModuleColor): string => {
   };
   return colors[color] || colors.blue;
 };
+
+export const getModuleAccentBorder = (color: ModuleColor): string => {
+  const colors: Record<ModuleColor, string> = {
+    blue: 'border-status-info-text',
+    purple: 'border-action-primary',
+    green: 'border-status-success-text',
+    orange: 'border-status-warning-text',
+    red: 'border-status-danger-text',
+    emerald: 'border-status-success-text',
+    cyan: 'border-status-info-text',
+    violet: 'border-action-primary',
+    primary: 'border-action-primary',
+    secondary: 'border-border-strong',
+  };
+  return colors[color] || colors.blue;
+};
+
+export const getModuleAccentSurface = (color: ModuleColor): string => {
+  const colors: Record<ModuleColor, string> = {
+    blue: 'bg-status-info-surface',
+    purple: 'bg-primary-50',
+    green: 'bg-status-success-surface',
+    orange: 'bg-status-warning-surface',
+    red: 'bg-status-danger-surface',
+    emerald: 'bg-status-success-surface',
+    cyan: 'bg-status-info-surface',
+    violet: 'bg-primary-50',
+    primary: 'bg-primary-50',
+    secondary: 'bg-surface-raised',
+  };
+  return colors[color] || colors.blue;
+};
+
+export const getModuleAccentText = (color: ModuleColor): string => {
+  const colors: Record<ModuleColor, string> = {
+    blue: 'text-status-info-text',
+    purple: 'text-action-primary',
+    green: 'text-status-success-text',
+    orange: 'text-status-warning-text',
+    red: 'text-status-danger-text',
+    emerald: 'text-status-success-text',
+    cyan: 'text-status-info-text',
+    violet: 'text-action-primary',
+    primary: 'text-action-primary',
+    secondary: 'text-text-primary',
+  };
+  return colors[color] || colors.blue;
+};

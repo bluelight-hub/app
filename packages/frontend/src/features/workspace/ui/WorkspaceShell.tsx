@@ -3,6 +3,7 @@ import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { cn } from '@/shared/ui/cn';
 import { DynamicLink } from '@/shared/ui/atoms/DynamicLink';
+import { getModuleAccentBorder, getModuleAccentSurface, getModuleAccentText } from '@/shared/ui/module-colors';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { PiGridFour } from 'react-icons/pi';
@@ -151,8 +152,14 @@ export function WorkspaceShell({
                     {navigationGroups.map((module) => (
                       <div key={module.id} className="space-y-1 pb-2 last:pb-0">
                         {isDisabled(module.visibility) ? (
-                          <div aria-disabled="true" className="flex items-center gap-2 rounded-control px-2.5 py-2 text-text-muted" title={module.visibility.reason}>
-                            <module.icon className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
+                          <div
+                            aria-disabled="true"
+                            className="flex items-center gap-2 rounded-control border-l-4 border-transparent px-2.5 py-2 text-text-muted touch:my-0.5 touch:py-2.5"
+                            title={module.visibility.reason}
+                          >
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-control">
+                              <module.icon className="h-4 w-4 text-text-muted" aria-hidden="true" />
+                            </span>
                             <h3 className="text-body-sm font-medium">{module.label}</h3>
                             {getShortcutBadge(module) ? (
                               <span
@@ -170,8 +177,10 @@ export function WorkspaceShell({
                             aria-label={module.label}
                             aria-keyshortcuts={module.shortcut ? [...module.shortcut.modifiers, module.shortcut.key].join('+') : undefined}
                             className={cn(
-                              'group flex cursor-pointer items-center gap-2 rounded-control px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring',
-                              module.id === currentModule.id ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
+                              'group flex cursor-pointer items-center gap-2 rounded-control border-l-4 px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring touch:my-0.5 touch:py-2.5',
+                              module.id === currentModule.id
+                                ? cn('bg-action-secondary text-text-primary', getModuleAccentBorder(module.color))
+                                : 'border-transparent text-text-secondary hover:bg-action-secondary',
                             )}
                             search={(prev) => prev}
                             aria-description={getBadgeText(module)}
@@ -181,10 +190,17 @@ export function WorkspaceShell({
                                 : undefined
                             }
                           >
-                            <module.icon
-                              className={cn('h-4 w-4 flex-shrink-0 transition-colors', module.id === currentModule.id ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')}
-                              aria-hidden="true"
-                            />
+                            <span
+                              className={cn(
+                                'flex h-6 w-6 shrink-0 items-center justify-center rounded-control transition-colors',
+                                module.id === currentModule.id ? getModuleAccentSurface(module.color) : '',
+                              )}
+                            >
+                              <module.icon
+                                className={cn('h-4 w-4 transition-colors', module.id === currentModule.id ? getModuleAccentText(module.color) : 'text-text-muted group-hover:text-text-secondary')}
+                                aria-hidden="true"
+                              />
+                            </span>
                             <h3 className="text-body-sm font-medium">{module.label}</h3>
                             {getShortcutBadge(module) ? (
                               <span
@@ -206,15 +222,15 @@ export function WorkspaceShell({
                           </div>
                         ) : null}
 
-                        {module.id !== currentModule.id || isDisabled(module.visibility)
-                          ? null
-                          : module.visibleSubPages.map((page) => {
+                        {module.id !== currentModule.id || isDisabled(module.visibility) ? null : (
+                          <div className={cn('ml-3.5 space-y-0.5 border-l-2 pl-1', getModuleAccentBorder(module.color))} data-testid={`sub-list-${module.id}`}>
+                            {module.visibleSubPages.map((page) => {
                               const isActive = page.href === resolvedActivePageHref;
                               const pageIsDisabled = isDisabled(page.visibility);
 
                               if (pageIsDisabled) {
                                 return (
-                                  <div key={page.id} aria-disabled="true" className="ml-2.5 rounded-control px-2.5 py-2 text-text-muted" title={page.visibility.reason}>
+                                  <div key={page.id} aria-disabled="true" className="rounded-control px-2.5 py-2 text-text-muted touch:my-0.5 touch:py-2.5" title={page.visibility.reason}>
                                     <div className="flex items-start gap-3">
                                       <page.icon className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
                                       <div className="min-w-0 flex-1">
@@ -238,7 +254,7 @@ export function WorkspaceShell({
                                   search={(prev) => prev}
                                   aria-current={isActive ? 'page' : undefined}
                                   className={cn(
-                                    'group ml-2.5 flex cursor-pointer items-start gap-3 rounded-control px-2.5 py-2 transition-colors',
+                                    'group flex cursor-pointer items-start gap-3 rounded-control px-2.5 py-2 transition-colors touch:my-0.5 touch:py-2.5',
                                     isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                                   )}
                                 >
@@ -253,6 +269,8 @@ export function WorkspaceShell({
                                 </DynamicLink>
                               );
                             })}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </nav>
