@@ -28,6 +28,7 @@ apis/ErinnerungsvorlagenApi.ts
 apis/FuehrungsrhythmusTemplatesAdminApi.ts
 apis/FunkkanalApi.ts
 apis/GefahrenmatrixApi.ts
+apis/GefahrenzonenApi.ts
 apis/GeoApi.ts
 apis/GeocodingApi.ts
 apis/HealthApi.ts
@@ -200,6 +201,7 @@ models/CreateErinnerungsvorlageDto.ts
 models/CreateFahrzeugtypDto.ts
 models/CreateFuehrungsrhythmusTemplateDto.ts
 models/CreateFunkkanalDto.ts
+models/CreateGefahrenzoneDto.ts
 models/CreateInviteDto.ts
 models/CreateInviteResponseDto.ts
 models/CreateKategorieDto.ts
@@ -328,6 +330,10 @@ models/GefahrenmatrixBewertungDto.ts
 models/GefahrenmatrixControllerGetVAlpha200Response.ts
 models/GefahrenmatrixControllerUpdateBewertungVAlpha200Response.ts
 models/GefahrenmatrixResponseDto.ts
+models/GefahrenzoneControllerCreateVAlpha201Response.ts
+models/GefahrenzoneControllerListVAlpha200Response.ts
+models/GefahrenzoneDto.ts
+models/GefahrenzoneListResponseDto.ts
 models/GeoJsonPointDto.ts
 models/GeoPositionDto.ts
 models/GeocodeAddressDto.ts
@@ -492,6 +498,7 @@ models/UpdateFunkStatusConfigDto.ts
 models/UpdateFunkkanalDto.ts
 models/UpdateFunkkanalDtoDetails.ts
 models/UpdateGefahrenmatrixDto.ts
+models/UpdateGefahrenzoneGeometryDto.ts
 models/UpdateNotizDto.ts
 models/UpdatePoiDto.ts
 models/UpdatePoiPositionDto.ts
