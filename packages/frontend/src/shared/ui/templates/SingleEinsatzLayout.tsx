@@ -44,7 +44,7 @@ import { Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanst
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PiArrowsOut, PiClock, PiFlag, PiPlusCircle, PiSiren, PiSpeakerHigh, PiUserPlus, PiWarning } from 'react-icons/pi';
+import { PiArrowsOut, PiClock, PiFlag, PiPlus, PiSiren, PiSpeakerHigh, PiUserPlus, PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { hasBlockingWorkspaceOverlay, shouldBlockWorkspaceHotkey } from './single-einsatz-layout.utils';
 
@@ -544,7 +544,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
             aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
             title="Neuen ETB-Eintrag erstellen (⌘⇧E)"
           >
-            <PiPlusCircle className="h-4 w-4 shrink-0" />
+            <PiPlus className="mr-1.5 h-4 w-4 shrink-0" aria-hidden="true" />
             ETB-Eintrag
           </Button>
         }
