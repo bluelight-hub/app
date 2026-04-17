@@ -122,7 +122,21 @@ export function GefahrenzoneLayer({ zonen, beforeId }: GefahrenzoneLayerProps) {
         stylesByStufe.KEINE.strokeColor,
       ],
       'line-width': ['match', ['get', 'warnstufe'], 'AKUT', stylesByStufe.AKUT.strokeWidth, 'HOCH', stylesByStufe.HOCH.strokeWidth, stylesByStufe.NIEDRIG.strokeWidth],
-      'line-dasharray': ['case', ['==', ['get', 'warnstufe'], 'KEINE'], ['literal', [4, 4]], ['literal', [1]]],
+    }),
+    [stylesByStufe],
+  );
+
+  /**
+   * Dashed Stroke ausschließlich für KEINE via eigenem Layer mit Filter —
+   * MapLibre v5 validiert `line-dasharray` strikt (min. 2 Elemente, even-length,
+   * keine `case`-Expression im Paint-Root zulaessig auf manchen Stilen).
+   * Ein separater Layer mit statischem dasharray ist die stabilste Variante.
+   */
+  const lineDashPaintKeine: LineLayerSpecification['paint'] = useMemo(
+    () => ({
+      'line-color': stylesByStufe.KEINE.strokeColor,
+      'line-width': 2,
+      'line-dasharray': [4, 4],
     }),
     [stylesByStufe],
   );
@@ -141,7 +155,8 @@ export function GefahrenzoneLayer({ zonen, beforeId }: GefahrenzoneLayerProps) {
     <Source id={GEFAHRENZONE_SOURCE_ID} type="geojson" data={geojson}>
       <Layer id={GEFAHRENZONE_AKUT_GLOW_LAYER_ID} type="line" filter={['==', ['get', 'warnstufe'], 'AKUT']} paint={glowPaint} beforeId={beforeId} />
       <Layer id={GEFAHRENZONE_FILL_LAYER_ID} type="fill" paint={fillPaint} beforeId={beforeId} />
-      <Layer id={GEFAHRENZONE_LINE_LAYER_ID} type="line" paint={linePaint} beforeId={beforeId} />
+      <Layer id={GEFAHRENZONE_LINE_LAYER_ID} type="line" filter={['!=', ['get', 'warnstufe'], 'KEINE']} paint={linePaint} beforeId={beforeId} />
+      <Layer id={`${GEFAHRENZONE_LINE_LAYER_ID}-keine`} type="line" filter={['==', ['get', 'warnstufe'], 'KEINE']} paint={lineDashPaintKeine} beforeId={beforeId} />
     </Source>
   );
 }
