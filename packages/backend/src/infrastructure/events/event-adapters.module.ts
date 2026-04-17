@@ -43,6 +43,7 @@ import {
   LagekarteStateGeaendertWebsocketEventAdapter,
   ZeichenEventAdapter,
   FunkkanalEventAdapter,
+  GefahrenzoneEventAdapter,
   EtbFunkspruchBroadcastAdapter,
   NotfallFunkspruchAlertEventAdapter,
   AlarmierungEventAdapter,
@@ -188,6 +189,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     LagekarteStateGeaendertWebsocketEventAdapter, // Issue #638: LagekarteStateGeaendert WebSocket-Broadcast
     ZeichenEventAdapter, // Issue #636: Taktische Zeichen WebSocket-Broadcast
     FunkkanalEventAdapter, // Issue #407: Funkkanal-Events WebSocket-Broadcast
+    GefahrenzoneEventAdapter, // Issue #627: Gefahrenzone-Events WebSocket-Broadcast
     EtbFunkspruchBroadcastAdapter, // Issue #407: Funkspruch-ETB-Einträge WebSocket-Broadcast
     NotfallFunkspruchAlertEventAdapter, // Issue #407: Notfall-Funkspruch Alert-Publisher
     AlarmierungEventAdapter, // Issue #408: Alarmierung-Events WebSocket-Broadcast

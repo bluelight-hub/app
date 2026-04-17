@@ -58,6 +58,7 @@ export * from './fahrzeug-einheit-zugewiesen-etb-event.adapter';
 export * from './lagekarte-state-geaendert-websocket-event.adapter';
 export * from './zeichen-event.adapter';
 export * from './funkkanal-event.adapter';
+export * from './gefahrenzone-event.adapter';
 export * from './etb-funkspruch-broadcast-event.adapter';
 export * from './notfall-funkspruch-alert-event.adapter';
 export * from './alarmierung-event.adapter';
