@@ -1,23 +1,27 @@
 /**
- * GefahrenzoneHost (Issue #627, G2)
+ * GefahrenzoneHost (Issue #627, G2/G3)
  *
  * Bindeglied zwischen MapGL-Instanz und Gefahrenzone-Feature:
  * - Lauscht auf `draw.create` mit `drawContext === 'gefahrenzone'` → öffnet Create-Popover.
- * - Lauscht auf Zone-Klick via `queryRenderedFeatures` → öffnet Edit-Popover.
- * - Rendert `GefahrenzoneLayer` (alle Zonen des Einsatzes) + Inline-Popover + aktiviert
- *   den WebSocket-Sync-Hook.
+ * - Rendert `GefahrenzoneLayer` (alle Zonen des Einsatzes) + aktiviert den WebSocket-Sync-Hook.
+ * - Trackt die aktuelle Einsatz-ID für den `GefahrenzonenDetailProvider` (G3).
+ *
+ * Zone-Klicks werden seit G3 vom `GefahrenzonenDetailProvider` via `queryAllDetailProviders`
+ * konsumiert (Popup → Panel) — nicht mehr vom Host direkt.
  */
 
 import { useStore } from '@tanstack/react-store';
 import { useEffect, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/maplibre';
-import type { CreateGefahrenzoneDto, GefahrenzoneDto } from '@bluelight-hub/shared/client';
-import { WARNSTUFEN, type GefahrentypValue, type SchutzobjektValue, type WarnstufeValue } from '@/features/gefahrenmatrix/schemas/gefahrenmatrix.schema';
+import type { CreateGefahrenzoneDto } from '@bluelight-hub/shared/client';
 import { useUpdateGefahrenmatrixBewertung } from '@/features/gefahrenmatrix/api/mutations';
 import { drawStore, setDrawContext, setDrawMode } from '@/features/lagekarte/stores/draw.store';
-import { useCreateGefahrenzone, useDeleteGefahrenzone, useGefahrenzoneWebSocket, useGefahrenzonen } from '../../api';
+import { useCreateGefahrenzone, useGefahrenzoneWebSocket, useGefahrenzonen } from '../../api';
 import { GefahrenzoneInlinePopover, type GefahrenzonePopoverValues } from '../molecules/GefahrenzoneInlinePopover';
-import { GEFAHRENZONE_FILL_LAYER_ID, GefahrenzoneLayer } from './GefahrenzoneLayer';
+import { useNavigate } from '@tanstack/react-router';
+import { setGefahrenzonenProviderEinsatzId } from '@/features/lagekarte/detail-providers';
+import { GefahrenzoneDetailPanel } from './GefahrenzoneDetailPanel';
+import { GefahrenzoneLayer } from './GefahrenzoneLayer';
 import { gefahrenzoneDrawStore, rememberLastUsedDefaults, setActiveEinsatzForDrawDefaults } from '../../stores/gefahrenzone-draw.store';
 
 /** Minimal-Form eines MapboxDraw-Create-Events — wir lesen nur `features`. */
@@ -25,22 +29,25 @@ interface DrawCreateEvent {
   features: Array<{ id: string; geometry: GeoJSON.Geometry; properties?: Record<string, unknown> }>;
 }
 
-type PopoverState =
-  | { mode: 'create'; geometry: GeoJSON.Feature; geometryType: 'POLYGON' | 'CIRCLE'; initialValues: GefahrenzonePopoverValues; anchor: { x: number; y: number } | null }
-  | { mode: 'edit'; zone: GefahrenzoneDto; initialValues: GefahrenzonePopoverValues; anchor: { x: number; y: number } | null }
-  | null;
+interface CreatePopoverState {
+  geometry: GeoJSON.Feature;
+  geometryType: 'POLYGON' | 'CIRCLE';
+  initialValues: GefahrenzonePopoverValues;
+  anchor: { x: number; y: number } | null;
+}
 
 export interface GefahrenzoneHostProps {
   einsatzId: string;
   mapRef: React.RefObject<MapRef | null>;
+  /** Deep-Link-Fokus, z. B. `zone:{zoneId}` — öffnet das DetailPanel für die Zone (G3). */
+  focus?: string;
 }
 
-export function GefahrenzoneHost({ einsatzId, mapRef }: GefahrenzoneHostProps) {
+export function GefahrenzoneHost({ einsatzId, mapRef, focus }: GefahrenzoneHostProps) {
   const { data: zonen = [] } = useGefahrenzonen(einsatzId);
   useGefahrenzoneWebSocket({ einsatzId });
 
   const createMutation = useCreateGefahrenzone();
-  const deleteMutation = useDeleteGefahrenzone();
   const updateMatrixMutation = useUpdateGefahrenmatrixBewertung();
 
   const drawContext = useStore(drawStore, (s) => s.drawContext);
@@ -49,7 +56,7 @@ export function GefahrenzoneHost({ einsatzId, mapRef }: GefahrenzoneHostProps) {
     lastUsedSchutzobjekt: s.lastUsedSchutzobjekt,
   }));
 
-  const [popover, setPopover] = useState<PopoverState>(null);
+  const [popover, setPopover] = useState<CreatePopoverState | null>(null);
 
   // Merkt sich aktuelle `drawContext`-Wert (handleCreate wird einmal registriert).
   const drawContextRef = useRef(drawContext);
@@ -57,9 +64,13 @@ export function GefahrenzoneHost({ einsatzId, mapRef }: GefahrenzoneHostProps) {
   const defaultsRef = useRef(defaults);
   defaultsRef.current = defaults;
 
-  // Beim Einsatz-Wechsel: Defaults-Store resetten.
+  // Beim Einsatz-Wechsel: Defaults-Store resetten + Detail-Provider mit aktuellem Einsatz verdrahten.
   useEffect(() => {
     setActiveEinsatzForDrawDefaults(einsatzId);
+    setGefahrenzonenProviderEinsatzId(einsatzId);
+    return () => {
+      setGefahrenzonenProviderEinsatzId(null);
+    };
   }, [einsatzId]);
 
   // ----- Draw-Create-Listener -----
@@ -81,7 +92,6 @@ export function GefahrenzoneHost({ einsatzId, mapRef }: GefahrenzoneHostProps) {
       const anchor = computeAnchorFromGeometry(feature.geometry, mapRef);
 
       setPopover({
-        mode: 'create',
         geometry: wrappedFeature,
         geometryType,
         anchor,
@@ -117,86 +127,74 @@ export function GefahrenzoneHost({ einsatzId, mapRef }: GefahrenzoneHostProps) {
     };
   }, [mapRef]);
 
-  // ----- Zone-Click-Listener (nur wenn kein Draw-Context aktiv) -----
+  const isSubmitting = createMutation.isPending || updateMatrixMutation.isPending;
+
+  // ----- Deep-Link: `focus=zone:<id>` → Panel öffnen + flyTo (G3) -----
+  const navigate = useNavigate();
+  const deepLinkZoneId = focus?.startsWith('zone:') ? focus.slice('zone:'.length) : null;
+  const deepLinkZone = deepLinkZoneId ? (zonen.find((z) => z.id === deepLinkZoneId) ?? null) : null;
+  const lastFlownZoneRef = useRef<string | null>(null);
+
   useEffect(() => {
+    if (!deepLinkZone) {
+      lastFlownZoneRef.current = null;
+      return;
+    }
+    if (lastFlownZoneRef.current === deepLinkZone.id) return;
     const map = mapRef.current?.getMap();
     if (!map) return;
+    const anchor = computeAnchorFromZone(deepLinkZone);
+    if (anchor) {
+      try {
+        map.flyTo({ center: [anchor.lng, anchor.lat], zoom: Math.max(map.getZoom(), 14), duration: 600 });
+      } catch {
+        // flyTo kann in jsdom fehlen — ok, Panel öffnet trotzdem.
+      }
+    }
+    lastFlownZoneRef.current = deepLinkZone.id;
+  }, [deepLinkZone, mapRef]);
 
-    const handleMapClick = (e: { point: { x: number; y: number }; lngLat: { lng: number; lat: number }; features?: unknown[] }) => {
-      if (drawContextRef.current === 'gefahrenzone') return; // Draw hat Vorrang
-      const features = map.queryRenderedFeatures(e.point, { layers: [GEFAHRENZONE_FILL_LAYER_ID] });
-      const zoneHit = features?.[0];
-      if (!zoneHit) return;
-      const zoneId = (zoneHit.properties as { zoneId?: string } | undefined)?.zoneId;
-      if (!zoneId) return;
-      const zone = zonen.find((z) => z.id === zoneId);
-      if (!zone) return;
-
-      setPopover({
-        mode: 'edit',
-        zone,
-        anchor: { x: e.point.x, y: e.point.y },
-        initialValues: {
-          gefahrentyp: zone.gefahrentyp as GefahrentypValue,
-          schutzobjekt: zone.schutzobjekt as SchutzobjektValue,
-          warnstufe: normalizeWarnstufe(zone.warnstufe),
-        },
-      });
-    };
-
-    map.on('click', handleMapClick);
-    return () => {
-      map.off('click', handleMapClick);
-    };
-  }, [mapRef, zonen]);
-
-  const isSubmitting = createMutation.isPending || updateMatrixMutation.isPending || deleteMutation.isPending;
+  const clearDeepLinkFocus = () => {
+    navigate({
+      to: '/app/einsatz/$einsatzId/übersicht/karte',
+      params: { einsatzId },
+      search: (prev) => ({ ...(prev as Record<string, unknown>), focus: undefined }) as never,
+    });
+  };
 
   return (
     <>
       <GefahrenzoneLayer zonen={zonen} />
+      {deepLinkZone ? (
+        <aside
+          className="pointer-events-auto absolute top-4 right-4 z-20 w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-panel border border-border-subtle bg-surface-panel shadow-panel"
+          data-gefahrenzone-deeplink-panel
+        >
+          <GefahrenzoneDetailPanel zone={deepLinkZone} einsatzId={einsatzId} onClose={clearDeepLinkFocus} />
+        </aside>
+      ) : null}
       {popover ? (
         <GefahrenzoneInlinePopover
-          mode={popover.mode}
+          mode="create"
           anchor={popover.anchor}
           initialValues={popover.initialValues}
           isSubmitting={isSubmitting}
           onCancel={() => setPopover(null)}
-          onDelete={
-            popover.mode === 'edit'
-              ? () => {
-                  deleteMutation.mutate({ einsatzId, zoneId: popover.zone.id }, { onSettled: () => setPopover(null) });
-                }
-              : undefined
-          }
           onSubmit={async (values) => {
-            if (popover.mode === 'create') {
-              const dto: CreateGefahrenzoneDto = {
-                gefahrentyp: values.gefahrentyp,
-                schutzobjekt: values.schutzobjekt,
-                geometryType: popover.geometryType,
-                geometry: popover.geometry as unknown as { [key: string]: unknown },
-              };
-              await createMutation.mutateAsync({ einsatzId, data: dto });
-              rememberLastUsedDefaults(values.gefahrentyp, values.schutzobjekt);
-              // Matrix-Warnstufe setzen, damit die Zone sofort die korrekte Warnstufe erbt.
-              await updateMatrixMutation.mutateAsync({
-                einsatzId,
-                data: { gefahrentyp: values.gefahrentyp, schutzobjekt: values.schutzobjekt, warnstufe: values.warnstufe },
-              });
-              setPopover(null);
-            } else {
-              // Edit-Mode: nur Warnstufe → Matrix-Update (Source-of-Truth).
-              await updateMatrixMutation.mutateAsync({
-                einsatzId,
-                data: {
-                  gefahrentyp: popover.zone.gefahrentyp as GefahrentypValue,
-                  schutzobjekt: popover.zone.schutzobjekt as SchutzobjektValue,
-                  warnstufe: values.warnstufe,
-                },
-              });
-              setPopover(null);
-            }
+            const dto: CreateGefahrenzoneDto = {
+              gefahrentyp: values.gefahrentyp,
+              schutzobjekt: values.schutzobjekt,
+              geometryType: popover.geometryType,
+              geometry: popover.geometry as unknown as { [key: string]: unknown },
+            };
+            await createMutation.mutateAsync({ einsatzId, data: dto });
+            rememberLastUsedDefaults(values.gefahrentyp, values.schutzobjekt);
+            // Matrix-Warnstufe setzen, damit die Zone sofort die korrekte Warnstufe erbt.
+            await updateMatrixMutation.mutateAsync({
+              einsatzId,
+              data: { gefahrentyp: values.gefahrentyp, schutzobjekt: values.schutzobjekt, warnstufe: values.warnstufe },
+            });
+            setPopover(null);
           }}
         />
       ) : null}
@@ -204,11 +202,25 @@ export function GefahrenzoneHost({ einsatzId, mapRef }: GefahrenzoneHostProps) {
   );
 }
 
-function normalizeWarnstufe(input: unknown): WarnstufeValue {
-  if (typeof input === 'string' && WARNSTUFEN.includes(input as WarnstufeValue)) {
-    return input as WarnstufeValue;
+/**
+ * Berechnet Lng/Lat-Zentrum aus einer Zone. Unwrapped GeoJSON-Feature bzw.
+ * Geometry-Objekt auf Polygon-Koordinaten.
+ */
+function computeAnchorFromZone(zone: { geometry: unknown }): { lng: number; lat: number } | null {
+  const geom = zone.geometry as { type?: string; geometry?: { type?: string; coordinates?: unknown }; coordinates?: unknown } | undefined;
+  if (!geom) return null;
+  const polygon = geom.type === 'Feature' ? (geom.geometry as { type?: string; coordinates?: unknown } | undefined) : geom;
+  if (!polygon || polygon.type !== 'Polygon') return null;
+  const rings = polygon.coordinates as number[][][] | undefined;
+  const ring = rings?.[0];
+  if (!ring || ring.length === 0) return null;
+  let lng = 0;
+  let lat = 0;
+  for (const [x, y] of ring) {
+    lng += x;
+    lat += y;
   }
-  return 'HOCH';
+  return { lng: lng / ring.length, lat: lat / ring.length };
 }
 
 /**

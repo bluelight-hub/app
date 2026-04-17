@@ -6,8 +6,12 @@
  */
 
 import { dwdDetailProvider } from './dwd/dwd-detail-provider';
+import { gefahrenzonenDetailProvider } from './gefahrenzonen/gefahrenzonen-detail-provider';
 import { ninaDetailProvider } from './nina/nina-detail-provider';
 import { registerDetailProvider } from './registry';
 
 registerDetailProvider(dwdDetailProvider);
 registerDetailProvider(ninaDetailProvider);
+registerDetailProvider(gefahrenzonenDetailProvider);
+
+export { setGefahrenzonenProviderEinsatzId } from './gefahrenzonen/gefahrenzonen-detail-provider';
