@@ -1,6 +1,7 @@
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
+import { ModuleOverviewButton } from '@/shared/ui/atoms/module-overview-button.atom';
 import { cn } from '@/shared/ui/cn';
 import { DynamicLink } from '@/shared/ui/atoms/DynamicLink';
 import { getModuleAccentBorder, getModuleAccentSurface, getModuleAccentText } from '@/shared/ui/module-colors';
@@ -276,11 +277,17 @@ export function WorkspaceShell({
                   </nav>
                 </section>
 
-                {onCommandTriggerClick || quickActionsSlot || statusItems.length > 0 || sidebarFooter ? (
+                {onCommandTriggerClick || onOpenModuleOverview || quickActionsSlot || statusItems.length > 0 || sidebarFooter ? (
                   <section aria-label="Workspace-Aktionen" className="flex-shrink-0 space-y-2 border-t border-border-subtle pt-2">
                     {onCommandTriggerClick ? (
                       <div className="px-0.5">
                         <CommandTrigger onClick={onCommandTriggerClick} variant="compact" aria-label={commandTriggerLabel} className="w-full justify-center" />
+                      </div>
+                    ) : null}
+
+                    {onOpenModuleOverview ? (
+                      <div className="flex justify-end px-0.5">
+                        <ModuleOverviewButton onClick={onOpenModuleOverview} aria-label={moduleOverviewLabel} />
                       </div>
                     ) : null}
 

@@ -24,6 +24,7 @@ export * from './button.atom';
 export * from './icon-button.atom';
 export * from './close-button.atom';
 export * from './command-trigger.atom';
+export * from './module-overview-button.atom';
 export * from './poi-type-button.atom';
 export * from './confirmation-prompt.atom';
 
