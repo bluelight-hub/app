@@ -13,6 +13,7 @@ import { useCommandHandlers } from './hooks/useCommandHandlers';
 import { useCommandPaletteKeyboard } from './hooks/useCommandPaletteKeyboard';
 import { useCommandPaletteState } from './hooks/useCommandPaletteState';
 import { useCommandSearch } from './hooks/useCommandSearch';
+import { useEinsatzWechselModule } from './hooks/useEinsatzWechselModule';
 import { useFocusManagement } from './hooks/useFocusManagement';
 import { useGlobalFullscreenHotkeys } from './hooks/useGlobalFullscreenHotkeys';
 import { useGlobalThemeHotkeys } from './hooks/useGlobalThemeHotkeys';
@@ -54,6 +55,9 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
   // Get quick actions module
   const quickActions = useQuickActionsModule();
 
+  // Einsatz-Wechsel-Modul (nur relevant, wenn mehr als ein aktiver Einsatz existiert)
+  const einsatzWechsel = useEinsatzWechselModule();
+
   // Command handlers
   const { handleSelect, handleSubCommand } = useCommandHandlers({
     onOpenChange,
@@ -74,8 +78,12 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
   // Global fullscreen hotkeys (work even when palette is closed)
   useGlobalFullscreenHotkeys();
 
-  // Combine modules with quick actions
-  const allModules = useMemo(() => [quickActions, ...modules], [quickActions, modules]);
+  // Combine modules with quick actions; Einsatz-Wechsel nur einblenden,
+  // wenn mindestens ein anderer aktiver Einsatz verfügbar ist.
+  const allModules = useMemo(() => {
+    const extraModules = einsatzWechsel.subPages.length > 0 ? [einsatzWechsel] : [];
+    return [quickActions, ...extraModules, ...modules];
+  }, [quickActions, einsatzWechsel, modules]);
 
   // Search functionality
   const { filteredCommands, commandGroups } = useCommandSearch({
