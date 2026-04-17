@@ -389,4 +389,38 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
     expect(clearActiveEinsatzSpy).toHaveBeenCalledTimes(1);
     expect(navigateSpy).toHaveBeenCalledWith({ to: '/app/einsaetze' });
   });
+
+  it('öffnet den ETB-Composer per Quick-Action-Button', async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    await user.click(screen.getAllByRole('button', { name: /neuer etb-eintrag/i })[0]);
+
+    expect(navigateSpy).toHaveBeenCalledWith({
+      to: '/app/einsatz/$einsatzId/führung/etb',
+      params: { einsatzId: 'einsatz-42' },
+    });
+  });
+
+  it('öffnet den ETB-Composer per Cmd+Shift+E', () => {
+    renderLayout();
+
+    fireEvent.keyDown(document, { key: 'e', code: 'KeyE', metaKey: true, shiftKey: true });
+
+    expect(navigateSpy).toHaveBeenCalledWith({
+      to: '/app/einsatz/$einsatzId/führung/etb',
+      params: { einsatzId: 'einsatz-42' },
+    });
+  });
+
+  it('blockiert Cmd+Shift+E, sobald ein Overlay aktiv ist', () => {
+    renderLayout();
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Modulübersicht öffnen' })[0]);
+    navigateSpy.mockClear();
+
+    fireEvent.keyDown(document, { key: 'e', code: 'KeyE', metaKey: true, shiftKey: true });
+
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
 });

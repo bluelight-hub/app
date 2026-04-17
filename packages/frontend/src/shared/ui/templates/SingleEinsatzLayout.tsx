@@ -3,7 +3,7 @@ import { useCurrentUser } from '@/features/auth';
 import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
 import { useMyEinsatzRolle } from '@/features/befehl/api/use-my-einsatz-rolle';
 import { EINSATZ_QUERY_KEYS, EinsatzRolleProvider, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
-import { ETB_QUERY_KEYS } from '@/features/etb';
+import { ETB_QUERY_KEYS, useNeuerEtbEintragHotkey } from '@/features/etb';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
@@ -43,8 +43,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { PiArrowsOut, PiClock, PiRadio, PiSiren, PiSpeakerHigh, PiUserPlus, PiWarning } from 'react-icons/pi';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PiArrowsOut, PiClock, PiPlusCircle, PiRadio, PiSiren, PiSpeakerHigh, PiUserPlus, PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { hasBlockingWorkspaceOverlay, shouldBlockWorkspaceHotkey } from './single-einsatz-layout.utils';
 
@@ -115,6 +115,19 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   });
   useQuickCreateNotizHotkeys({
     einsatzId,
+    enabled: !workspaceIsBlocked,
+  });
+
+  // Phase 4: ETB-Quick-Action-Default — navigiert zum bestehenden
+  // ETB-Composer. Shortcut (Cmd+Shift+E) gespiegelt zum Sidebar-Button.
+  const handleOpenEtb = useCallback(() => {
+    void navigate({
+      to: '/app/einsatz/$einsatzId/führung/etb',
+      params: { einsatzId },
+    });
+  }, [navigate, einsatzId]);
+  useNeuerEtbEintragHotkey({
+    onTrigger: handleOpenEtb,
     enabled: !workspaceIsBlocked,
   });
 
@@ -480,6 +493,10 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         onOpenModuleOverview={() => setShowModuleOverview(true)}
         quickActionsSlot={
           <div className="space-y-1">
+            <Button intent="primary" appearance="filled" size="sm" className="w-full justify-center" onClick={handleOpenEtb} kbd="cmd+shift+e" aria-keyshortcuts="Control+Shift+E Meta+Shift+E">
+              <PiPlusCircle className="h-4 w-4" />
+              Neuer ETB-Eintrag
+            </Button>
             <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
               <PiRadio className="mr-2 h-4 w-4" />
               {currentEinsatzPersonId ? (
