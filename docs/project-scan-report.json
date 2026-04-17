@@ -1,117 +1,225 @@
 {
   "workflow_version": "1.2.0",
   "timestamps": {
-    "started": "2026-01-04T21:00:00.000Z",
-    "last_updated": "2026-01-05T14:00:00.000Z",
-    "completed": "2026-01-04T22:15:00.000Z"
+    "started": "2026-04-17T18:25:00.000Z",
+    "last_updated": "2026-04-17T18:52:00.000Z",
+    "completed": "2026-04-17T18:52:00.000Z"
   },
-  "mode": "initial_scan",
+  "mode": "full_rescan",
   "scan_level": "exhaustive",
   "project_root": "/Users/rubeen/dev/personal/bluelight-hub",
-  "output_folder": "/Users/rubeen/dev/personal/bluelight-hub/docs",
-  "completed_steps": ["step_1", "step_2", "step_3", "step_4", "step_5", "step_6", "step_7", "step_8", "step_9", "step_10", "step_11", "step_12"],
+  "project_knowledge": "/Users/rubeen/dev/personal/bluelight-hub/docs",
+  "completed_steps": [
+    { "step": "step_0_archive", "status": "completed", "timestamp": "2026-04-17T18:26:00Z", "summary": "Alten Scan-Report (2026-01-05) nach docs/.archive/ verschoben" },
+    {
+      "step": "step_1_structure",
+      "status": "completed",
+      "timestamp": "2026-04-17T18:27:00Z",
+      "summary": "Monorepo pnpm@10.32.1 klassifiziert: backend + frontend + shared; 26 Backend-Module, 22 Frontend-Features identifiziert"
+    },
+    {
+      "step": "step_2_agents",
+      "status": "completed",
+      "timestamp": "2026-04-17T18:45:00Z",
+      "summary": "6 Explore-Agents parallel ausgeführt: backend-domain, backend-modules, frontend-arch, shared-api, devops-testing, existing-docs. Alle erfolgreich abgeschlossen."
+    },
+    {
+      "step": "step_3_synthesis",
+      "status": "completed",
+      "timestamp": "2026-04-17T18:52:00Z",
+      "summary": "10 umfassende Doku-Dokumente in docs/project-documentation/ erzeugt (00-Index bis 09-Integrationen)"
+    }
+  ],
   "current_step": "completed",
+  "status": "completed",
   "findings": {
     "project_classification": {
       "repository_type": "monorepo",
-      "workspace_manager": "pnpm@10.x",
+      "workspace_manager": "pnpm@10.32.1",
       "workspace_config": "pnpm-workspace.yaml",
       "parts": [
         {
           "part_id": "backend",
           "path": "packages/backend",
-          "project_type": "backend",
-          "primary_tech": "NestJS 11 + TypeScript + Prisma + PostgreSQL",
-          "architecture": "Hexagonal/Clean Architecture with CQRS",
-          "entry_points": ["src/main.ts"]
+          "project_type_id": "backend",
+          "primary_tech": "NestJS 11.1 + TypeScript 5.8 + Prisma 6.8 + PostgreSQL 18",
+          "architecture": "Hexagonal (Ports & Adapters) + CQRS + DDD + Result Pattern + Transactional Outbox",
+          "entry_points": ["src/main.ts", "src/main-cli.ts", "src/main-cli-archive.ts", "src/main-cli-invite-once.ts"]
         },
         {
           "part_id": "frontend",
           "path": "packages/frontend",
-          "project_type": "desktop",
-          "primary_tech": "React 19 + Vite + Tauri 2 + TanStack",
-          "architecture": "Feature-based modules with Atomic Design",
+          "project_type_id": "desktop",
+          "primary_tech": "React 19.1 + Vite 6 + Tauri 2.10 + TanStack (Router/Query/Store/Form/Table/Virtual)",
+          "architecture": "Feature-based + Atomic Design (Shared UI) + File-based Routing",
           "entry_points": ["src/main.tsx", "src-tauri/src/main.rs"]
         },
         {
           "part_id": "shared",
           "path": "packages/shared",
-          "project_type": "library",
-          "primary_tech": "TypeScript (Generated API Client)",
-          "architecture": "Auto-generated from OpenAPI spec",
-          "entry_points": ["client/index.ts"]
+          "project_type_id": "library",
+          "primary_tech": "Generierter TypeScript-Fetch-Client (OpenAPI Generator v7.10) + Zod-Schemas",
+          "architecture": "Auto-generiert aus OpenAPI Spec (v-alpha + v-1)",
+          "entry_points": ["client/index.ts", "client-v1/index.ts", "src/schemas/index.ts"]
         }
       ]
     },
     "technology_stack": {
       "backend": {
-        "framework": "NestJS 11.0.11",
-        "language": "TypeScript 5.8.3",
-        "orm": "Prisma 6.8.2",
-        "database": "PostgreSQL 17",
-        "auth": "JWT (passport-jwt)",
-        "api_docs": "@nestjs/swagger 11.1.4",
-        "testing": "Jest 30.0.0-beta.3"
+        "framework": "NestJS 11.1.18",
+        "language": "TypeScript 5.8",
+        "orm": "Prisma 6.8",
+        "database": "PostgreSQL 18",
+        "auth": "passport-jwt + 3 eigene Strategien (JWT, Refresh, Admin)",
+        "websocket": "socket.io 5 (namespace /ws/einsatz-events)",
+        "api_docs": "@nestjs/swagger 11.1 (v-alpha + v-1)",
+        "testing": "Jest 30.0.0-beta",
+        "cqrs": "@nestjs/cqrs 11",
+        "performance": "Artillery (NFR-4: p95 < 200ms)"
       },
       "frontend": {
-        "ui_library": "React 19.1.0",
-        "build_tool": "Vite 6.3.5",
-        "desktop": "Tauri 2.5.1",
-        "routing": "TanStack Router 1.120.13",
-        "state": "TanStack Query 5.81.0 + TanStack Store",
-        "forms": "TanStack Form + Zod",
-        "styling": "Tailwind CSS 4.1.10 + Headless UI",
-        "testing": "Vitest 3.2.3"
+        "ui_library": "React 19.1",
+        "build_tool": "Vite 6.3",
+        "desktop": "Tauri 2.10 (macOS arm64/x64, Windows, Linux, iOS, Android)",
+        "routing": "TanStack Router 1.168 (72 File-based Routes)",
+        "state": "TanStack Query 5.99 (Server) + TanStack Store 0.10 (Client)",
+        "forms": "TanStack Form 1.29 + Zod 4.3",
+        "styling": "Tailwind CSS 4.2 + Headless UI 2.2 + CVA 0.7",
+        "map": "MapLibre GL 5.22 + React Map GL 8.1 + Mapbox Draw 1.5 (9 Custom Modi) + Turf 7.3",
+        "testing": "Vitest 4.1 + React Testing Library 16.3 + jsdom 29"
       },
       "shared": {
-        "api_generator": "Orval/hey-api",
-        "http_client": "Axios 1.9.0"
+        "api_generator": "openapi-generator-cli 2.31 (template: typescript-fetch, spec v7.10)",
+        "http_client": "Fetch mit Custom Wrapper (fetchWithRefresh)",
+        "validators": "Zod 4.3 + Plain-JS"
       },
       "devops": {
-        "ci": "GitHub Actions",
-        "linting": "Biome 1.9.4",
-        "git_hooks": "Husky + lint-staged",
-        "release": "semantic-release"
+        "ci": "GitHub Actions (ci.yml, release.yml, gitmoji-sync.yml, codeql.yml, docker-publish.yml)",
+        "linting": "OXC: oxlint 1.60 + oxfmt 0.45 (ersetzt Biome)",
+        "circular_deps": "madge",
+        "git_hooks": "Husky 9.1 + lint-staged 16.4",
+        "release": "semantic-release 25 + semantic-release-gitmoji + semantic-release-claude-changelog",
+        "container": "Docker Multi-Stage (Node 25-alpine + pnpm) + docker-compose (postgres:18)",
+        "https_dev": "mkcert (pnpm gen:certs)",
+        "worktree": "scripts/worktree-setup.sh (dynamische Ports, Offset 1000/Worktree)"
       }
     },
-    "api_endpoints": {
-      "total": 24,
-      "modules": [
-        { "name": "health", "endpoints": 1, "auth": "none" },
-        { "name": "auth", "endpoints": 3, "auth": "mixed" },
-        { "name": "einsatz", "endpoints": 5, "auth": "JwtAuthGuard" },
-        { "name": "etb", "endpoints": 2, "auth": "JwtAuthGuard" },
-        { "name": "lagekarte", "endpoints": 4, "auth": "JwtAuthGuard" },
-        { "name": "kraefte", "endpoints": 6, "auth": "JwtAuthGuard" },
-        { "name": "user-management", "endpoints": 4, "auth": "AdminJwtAuthGuard" },
-        { "name": "integrations", "endpoints": 3, "auth": "JwtAuthGuard" }
-      ]
+    "metrics": {
+      "backend_modules": 26,
+      "backend_controllers": 58,
+      "rest_endpoints_total": 272,
+      "frontend_features": 22,
+      "frontend_routes": 72,
+      "frontend_stores": 57,
+      "frontend_query_hooks": 543,
+      "frontend_custom_hooks": 227,
+      "shared_atoms": 46,
+      "shared_molecules": 30,
+      "shared_organisms": 22,
+      "prisma_models": 58,
+      "prisma_migrations": 98,
+      "domain_aggregate_roots": 7,
+      "domain_value_objects": 74,
+      "domain_events": 73,
+      "domain_repositories": 28,
+      "application_command_handlers": 178,
+      "application_query_handlers": 105,
+      "event_serializer_cases": 107,
+      "generated_api_classes": 52,
+      "generated_models": 475,
+      "generated_typescript_files": 527,
+      "test_files_backend": 521,
+      "test_files_frontend": 354,
+      "test_cases_frontend": 1474,
+      "adrs": 10,
+      "docs_markdown_total": 62
     },
-    "data_models": {
-      "prisma_models": 10,
-      "domain_entities": 9,
-      "value_objects": 18,
-      "enums": 4,
-      "migrations": 35
+    "api_endpoints": {
+      "total": 272,
+      "modules": [
+        { "name": "admin", "endpoints": 18, "auth": "AdminJwtAuthGuard" },
+        { "name": "alarmierung", "endpoints": 12, "auth": "JwtAuthGuard" },
+        { "name": "aufbewahrung", "endpoints": 4, "auth": "AdminJwtAuthGuard" },
+        { "name": "auth", "endpoints": 12, "auth": "mixed" },
+        { "name": "befehl", "endpoints": 16, "auth": "JwtAuthGuard + BefehlRollenGuard" },
+        { "name": "einsatz", "endpoints": 18, "auth": "JwtAuthGuard + Roles" },
+        { "name": "einsatz-beitritt", "endpoints": 6, "auth": "JwtAuthGuard" },
+        { "name": "einsatz-teilnehmer", "endpoints": 8, "auth": "JwtAuthGuard + OperativeRole" },
+        { "name": "erinnerung", "endpoints": 14, "auth": "JwtAuthGuard" },
+        { "name": "erinnerungsvorlage", "endpoints": 6, "auth": "JwtAuthGuard" },
+        { "name": "etb", "endpoints": 8, "auth": "JwtAuthGuard" },
+        { "name": "fuehrungsrhythmus-template", "endpoints": 6, "auth": "JwtAuthGuard" },
+        { "name": "funkkanal", "endpoints": 24, "auth": "JwtAuthGuard" },
+        { "name": "gefahr", "endpoints": 6, "auth": "JwtAuthGuard" },
+        { "name": "geo", "endpoints": 4, "auth": "mixed" },
+        { "name": "integrations", "endpoints": 12, "auth": "AdminJwtAuthGuard" },
+        { "name": "kategorie", "endpoints": 6, "auth": "JwtAuthGuard" },
+        { "name": "kraefte", "endpoints": 64, "auth": "JwtAuthGuard + Roles" },
+        { "name": "lagekarte", "endpoints": 16, "auth": "JwtAuthGuard" },
+        { "name": "notiz", "endpoints": 6, "auth": "JwtAuthGuard" },
+        { "name": "taktische-zeichen", "endpoints": 8, "auth": "JwtAuthGuard" },
+        { "name": "user-management", "endpoints": 20, "auth": "AdminJwtAuthGuard" },
+        { "name": "health", "endpoints": 1, "auth": "none" }
+      ]
     },
     "architecture_patterns": {
       "backend": {
         "architecture": "Hexagonal (Ports & Adapters)",
         "layers": ["domain", "application", "infrastructure", "modules"],
-        "patterns": ["CQRS", "Result Pattern", "Outbox Pattern", "DDD", "Repository Pattern"]
+        "patterns": ["CQRS", "Result Pattern", "Transactional Outbox", "DDD (Aggregates/Entities/VOs)", "Repository Pattern", "State Machines (Value Objects)", "Event Sourcing (ETB)"]
       },
       "frontend": {
-        "architecture": "Feature-based + Atomic Design",
+        "architecture": "Feature-based + Atomic Design (Shared UI)",
         "layers": ["features", "shared", "routes", "provider"],
-        "patterns": ["Query Factory", "Form with Zod", "File-based Routing"]
+        "patterns": ["Query Factory per Feature", "File-based Routing", "Fetch-Wrapper mit Token-Refresh-Queue", "Persistent Stores (Offline)", "WebSocket Live-Sync"]
       }
     },
-    "existing_documentation": {
-      "root_files": 10,
-      "package_readmes": 5,
-      "total": 182
-    }
+    "adrs_list": [
+      { "id": "ADR-001", "title": "API-Versionierungsstrategie", "status": "Akzeptiert 2026-02-24" },
+      { "id": "ADR-002", "title": "Runtime-Konfigurationsmodell & Secret-Management", "status": "Akzeptiert, Phase 1" },
+      { "id": "ADR-003", "title": "Gitmoji Source of Truth für Commit-Validierung", "status": "Akzeptiert" },
+      { "id": "ADR-004", "title": "Frontend-Workspace-Orchestrierung (Feature-Tree)", "status": "Akzeptiert" },
+      { "id": "ADR-005", "title": "ETB-Eintrag-Kontext als Discriminated Union", "status": "Akzeptiert" },
+      { "id": "ADR-006", "title": "WebSocket-Event-Bus einsatz-scoped", "status": "Akzeptiert" },
+      { "id": "ADR-007", "title": "Funkkanal als eigenes Aggregat", "status": "Akzeptiert" },
+      { "id": "ADR-008", "title": "Polymorphe Funkkanal-Zuordnung (3 nullable FKs)", "status": "Akzeptiert" },
+      { "id": "ADR-009", "title": "Getrennte Commands manuell vs. FMS-Auto", "status": "Akzeptiert" },
+      { "id": "ADR-010", "title": "Gefahrenzone → Matrixzelle (Warnstufe Source-of-Truth)", "status": "Akzeptiert 2026-04-17" }
+    ],
+    "documentation_gaps": [
+      "Migrationsguide v-alpha → v-1",
+      "Systematische Error-Handling-Patterns (Frontend + Backend)",
+      "WebSocket-Event-Katalog mit Payloads",
+      "Datenbankschema-Dokumentation mit fachlicher Erklärung (Teilaspekt in 06-datenmodell.md adressiert)",
+      "DSGVO-Recht-auf-Vergessen",
+      "Disaster-Recovery / Backup-Strategie",
+      "Monitoring-Dashboards + Runbooks",
+      "Release-Checkliste / Go-Live-Gate"
+    ]
   },
+  "agents_dispatched": [
+    {
+      "agent_id": "a9e9922ce86aa4734",
+      "name": "backend-domain",
+      "scope": "packages/backend/src/domain/ + application/",
+      "result": "7 Aggregates, 74 VOs, 73 Events, 28 Repos, ~178 Commands, ~105 Queries"
+    },
+    {
+      "agent_id": "a3bd23fcf2626d068",
+      "name": "backend-modules",
+      "scope": "packages/backend/src/modules/ + infrastructure/",
+      "result": "26 Module, 58 Controller, 272 Endpoints, Outbox (107 Cases), Socket.io Gateway"
+    },
+    { "agent_id": "a5ee7aab3277d71e2", "name": "frontend-arch", "scope": "packages/frontend/", "result": "22 Features, 72 Routes, 57 Stores, 543 Query-Hooks, 9 Custom Draw Modi, Tauri Commands" },
+    { "agent_id": "a9125bc6bbe4a27d2", "name": "shared-api", "scope": "packages/shared/", "result": "52 API-Klassen, 475 Modelle, 527 generierte TS-Dateien, Zod-Schemas, fetchWithRefresh" },
+    {
+      "agent_id": "a2133e816583c319a",
+      "name": "devops-testing",
+      "scope": "Root + .github/workflows/ + scripts/",
+      "result": "5 Workflows, OXC-Stack, Worktree-Setup, Tauri Cross-Build, Artillery NFR-4 (p95<200ms)"
+    },
+    { "agent_id": "aa32196a6f6bf4fb3", "name": "existing-docs", "scope": "docs/ (außer project-documentation/)", "result": "10 ADRs, 62 Markdown-Docs, Epic-8-Retro, Ring-2-Gates, Platform-Storage" }
+  ],
   "outputs_generated": [
     "project-scan-report.json",
     "project-documentation/00-index.md",
@@ -120,55 +228,10 @@
     "project-documentation/03-frontend-architektur.md",
     "project-documentation/04-api-referenz.md",
     "project-documentation/05-entwicklungshandbuch.md",
-    "deep-dive-frontend.md",
-    "project-documentation/deep-dive-frontend-backend-integration.md"
+    "project-documentation/06-datenmodell.md",
+    "project-documentation/07-testing-und-qualitaet.md",
+    "project-documentation/08-devops-und-deployment.md",
+    "project-documentation/09-integrationen-und-extern.md"
   ],
-  "deep_dive_targets": [
-    {
-      "target_name": "Backend (Gesamt)",
-      "target_path": "packages/backend/src/",
-      "files_analyzed": 810,
-      "total_loc": 187000,
-      "output_file": "deep-dive-backend.md",
-      "timestamp": "2026-01-04T22:45:00.000Z",
-      "layers_scanned": ["domain", "application", "infrastructure", "modules"]
-    },
-    {
-      "target_name": "Frontend (Gesamt)",
-      "target_path": "packages/frontend/src/",
-      "files_analyzed": 424,
-      "total_loc": 85000,
-      "output_file": "deep-dive-frontend.md",
-      "timestamp": "2026-01-05T01:30:00.000Z",
-      "areas_scanned": ["features", "routes", "provider", "shared"]
-    },
-    {
-      "target_name": "Externe System-Schnittstellen",
-      "target_path": "packages/backend/src/",
-      "files_analyzed": 62,
-      "total_loc": 4500,
-      "output_file": "deep-dive-externe-system-schnittstellen.md",
-      "timestamp": "2026-01-05T12:00:00.000Z",
-      "areas_scanned": ["domain/integrations", "domain/ports", "application/integrations", "infrastructure/integrations", "infrastructure/geocoding", "modules/integrations"],
-      "external_systems": ["HiOrg-Server (OAuth2 + REST)", "Nominatim (Geocoding)"]
-    },
-    {
-      "target_name": "Frontend-Backend Integration",
-      "target_path": "packages/",
-      "files_analyzed": 150,
-      "total_loc": 25000,
-      "output_file": "project-documentation/deep-dive-frontend-backend-integration.md",
-      "timestamp": "2026-01-05T14:00:00.000Z",
-      "areas_scanned": ["shared/client", "backend/src/modules/*/controllers", "frontend/src/features/*/api", "frontend/src/shared/api"],
-      "integration_points": {
-        "backend_controllers": 25,
-        "rest_endpoints": 95,
-        "frontend_hooks": 70,
-        "generated_apis": 27,
-        "generated_models": 100
-      }
-    }
-  ],
-  "status": "completed",
-  "resume_instructions": "Workflow completed successfully. Documentation generated in docs/project-documentation/"
+  "resume_instructions": "Workflow erfolgreich abgeschlossen. Dokumentation in docs/project-documentation/. Für Deep-Dive eines spezifischen Bereichs erneut /bmad-document-project aufrufen und Option 2 wählen."
 }

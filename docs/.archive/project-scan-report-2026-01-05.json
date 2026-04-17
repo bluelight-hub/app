@@ -1,0 +1,174 @@
+{
+  "workflow_version": "1.2.0",
+  "timestamps": {
+    "started": "2026-01-04T21:00:00.000Z",
+    "last_updated": "2026-01-05T14:00:00.000Z",
+    "completed": "2026-01-04T22:15:00.000Z"
+  },
+  "mode": "initial_scan",
+  "scan_level": "exhaustive",
+  "project_root": "/Users/rubeen/dev/personal/bluelight-hub",
+  "output_folder": "/Users/rubeen/dev/personal/bluelight-hub/docs",
+  "completed_steps": ["step_1", "step_2", "step_3", "step_4", "step_5", "step_6", "step_7", "step_8", "step_9", "step_10", "step_11", "step_12"],
+  "current_step": "completed",
+  "findings": {
+    "project_classification": {
+      "repository_type": "monorepo",
+      "workspace_manager": "pnpm@10.x",
+      "workspace_config": "pnpm-workspace.yaml",
+      "parts": [
+        {
+          "part_id": "backend",
+          "path": "packages/backend",
+          "project_type": "backend",
+          "primary_tech": "NestJS 11 + TypeScript + Prisma + PostgreSQL",
+          "architecture": "Hexagonal/Clean Architecture with CQRS",
+          "entry_points": ["src/main.ts"]
+        },
+        {
+          "part_id": "frontend",
+          "path": "packages/frontend",
+          "project_type": "desktop",
+          "primary_tech": "React 19 + Vite + Tauri 2 + TanStack",
+          "architecture": "Feature-based modules with Atomic Design",
+          "entry_points": ["src/main.tsx", "src-tauri/src/main.rs"]
+        },
+        {
+          "part_id": "shared",
+          "path": "packages/shared",
+          "project_type": "library",
+          "primary_tech": "TypeScript (Generated API Client)",
+          "architecture": "Auto-generated from OpenAPI spec",
+          "entry_points": ["client/index.ts"]
+        }
+      ]
+    },
+    "technology_stack": {
+      "backend": {
+        "framework": "NestJS 11.0.11",
+        "language": "TypeScript 5.8.3",
+        "orm": "Prisma 6.8.2",
+        "database": "PostgreSQL 17",
+        "auth": "JWT (passport-jwt)",
+        "api_docs": "@nestjs/swagger 11.1.4",
+        "testing": "Jest 30.0.0-beta.3"
+      },
+      "frontend": {
+        "ui_library": "React 19.1.0",
+        "build_tool": "Vite 6.3.5",
+        "desktop": "Tauri 2.5.1",
+        "routing": "TanStack Router 1.120.13",
+        "state": "TanStack Query 5.81.0 + TanStack Store",
+        "forms": "TanStack Form + Zod",
+        "styling": "Tailwind CSS 4.1.10 + Headless UI",
+        "testing": "Vitest 3.2.3"
+      },
+      "shared": {
+        "api_generator": "Orval/hey-api",
+        "http_client": "Axios 1.9.0"
+      },
+      "devops": {
+        "ci": "GitHub Actions",
+        "linting": "Biome 1.9.4",
+        "git_hooks": "Husky + lint-staged",
+        "release": "semantic-release"
+      }
+    },
+    "api_endpoints": {
+      "total": 24,
+      "modules": [
+        { "name": "health", "endpoints": 1, "auth": "none" },
+        { "name": "auth", "endpoints": 3, "auth": "mixed" },
+        { "name": "einsatz", "endpoints": 5, "auth": "JwtAuthGuard" },
+        { "name": "etb", "endpoints": 2, "auth": "JwtAuthGuard" },
+        { "name": "lagekarte", "endpoints": 4, "auth": "JwtAuthGuard" },
+        { "name": "kraefte", "endpoints": 6, "auth": "JwtAuthGuard" },
+        { "name": "user-management", "endpoints": 4, "auth": "AdminJwtAuthGuard" },
+        { "name": "integrations", "endpoints": 3, "auth": "JwtAuthGuard" }
+      ]
+    },
+    "data_models": {
+      "prisma_models": 10,
+      "domain_entities": 9,
+      "value_objects": 18,
+      "enums": 4,
+      "migrations": 35
+    },
+    "architecture_patterns": {
+      "backend": {
+        "architecture": "Hexagonal (Ports & Adapters)",
+        "layers": ["domain", "application", "infrastructure", "modules"],
+        "patterns": ["CQRS", "Result Pattern", "Outbox Pattern", "DDD", "Repository Pattern"]
+      },
+      "frontend": {
+        "architecture": "Feature-based + Atomic Design",
+        "layers": ["features", "shared", "routes", "provider"],
+        "patterns": ["Query Factory", "Form with Zod", "File-based Routing"]
+      }
+    },
+    "existing_documentation": {
+      "root_files": 10,
+      "package_readmes": 5,
+      "total": 182
+    }
+  },
+  "outputs_generated": [
+    "project-scan-report.json",
+    "project-documentation/00-index.md",
+    "project-documentation/01-projektueberblick.md",
+    "project-documentation/02-backend-architektur.md",
+    "project-documentation/03-frontend-architektur.md",
+    "project-documentation/04-api-referenz.md",
+    "project-documentation/05-entwicklungshandbuch.md",
+    "deep-dive-frontend.md",
+    "project-documentation/deep-dive-frontend-backend-integration.md"
+  ],
+  "deep_dive_targets": [
+    {
+      "target_name": "Backend (Gesamt)",
+      "target_path": "packages/backend/src/",
+      "files_analyzed": 810,
+      "total_loc": 187000,
+      "output_file": "deep-dive-backend.md",
+      "timestamp": "2026-01-04T22:45:00.000Z",
+      "layers_scanned": ["domain", "application", "infrastructure", "modules"]
+    },
+    {
+      "target_name": "Frontend (Gesamt)",
+      "target_path": "packages/frontend/src/",
+      "files_analyzed": 424,
+      "total_loc": 85000,
+      "output_file": "deep-dive-frontend.md",
+      "timestamp": "2026-01-05T01:30:00.000Z",
+      "areas_scanned": ["features", "routes", "provider", "shared"]
+    },
+    {
+      "target_name": "Externe System-Schnittstellen",
+      "target_path": "packages/backend/src/",
+      "files_analyzed": 62,
+      "total_loc": 4500,
+      "output_file": "deep-dive-externe-system-schnittstellen.md",
+      "timestamp": "2026-01-05T12:00:00.000Z",
+      "areas_scanned": ["domain/integrations", "domain/ports", "application/integrations", "infrastructure/integrations", "infrastructure/geocoding", "modules/integrations"],
+      "external_systems": ["HiOrg-Server (OAuth2 + REST)", "Nominatim (Geocoding)"]
+    },
+    {
+      "target_name": "Frontend-Backend Integration",
+      "target_path": "packages/",
+      "files_analyzed": 150,
+      "total_loc": 25000,
+      "output_file": "project-documentation/deep-dive-frontend-backend-integration.md",
+      "timestamp": "2026-01-05T14:00:00.000Z",
+      "areas_scanned": ["shared/client", "backend/src/modules/*/controllers", "frontend/src/features/*/api", "frontend/src/shared/api"],
+      "integration_points": {
+        "backend_controllers": 25,
+        "rest_endpoints": 95,
+        "frontend_hooks": 70,
+        "generated_apis": 27,
+        "generated_models": 100
+      }
+    }
+  ],
+  "status": "completed",
+  "resume_instructions": "Workflow completed successfully. Documentation generated in docs/project-documentation/"
+}

@@ -1,334 +1,301 @@
-# Entwicklungshandbuch
+# 5 — Entwicklungshandbuch
 
-> **Stand:** 2026-01-04
-> **Node.js:** 22.x (LTS)
-> **Package Manager:** pnpm 10.x
+> Setup · Commands · Konventionen · Worktrees · HTTPS im Dev-Modus · Troubleshooting
 
 ---
 
-## 1. Projekt-Setup
+## 5.1 Voraussetzungen
 
-### 1.1 Voraussetzungen
+| Tool              | Version (verpflichtend)       | Quelle                                       |
+| ----------------- | ----------------------------- | -------------------------------------------- |
+| Node.js           | `>= 24` (`mise.toml: node=24`) | `mise use` oder `nvm use`                    |
+| pnpm              | `10.32.1` (`packageManager`-Feld) | Corepack oder `npm i -g pnpm@10.32.1`    |
+| Python            | `3` (`mise.toml`)             | für Tauri-Build / node-gyp                   |
+| Rust              | neueste stabile (via `rustup`) | für Tauri-Cross-Compilation                  |
+| Docker            | >= 24                         | PostgreSQL, optional Backend-Container       |
+| mkcert            | beliebig                      | `brew install mkcert` (für HTTPS im Dev)     |
+| `mise`            | optional empfohlen            | zentralisiert Node/Python-Version            |
 
-- Node.js 22.x
-- pnpm 10.x
-- Docker (für PostgreSQL)
-- Rust (für Tauri)
+> **Tipp:** `mise install` liest `mise.toml` und installiert Node 24 + Python 3 automatisch.
 
-### 1.2 Installation
+---
+
+## 5.2 Ersteinrichtung
 
 ```bash
 # Repository klonen
-git clone https://github.com/rubenvitt/bluelight-hub.git
+git clone https://github.com/…/bluelight-hub.git
 cd bluelight-hub
 
-# Dependencies installieren
-pnpm install
+# Tool-Versionen (optional via mise)
+mise install
 
-# Umgebungsvariablen kopieren
-cp .env.example .env
+# Dependencies
+pnpm install                          # hoisting + workspace
 
-# Datenbank starten
-docker-compose up -d
+# HTTPS-Zertifikate (mkcert muss einmal mit CA initialisiert sein)
+pnpm gen:certs                        # legt certs/localhost.pem + localhost-key.pem an
 
-# Prisma Migrationen ausführen
-pnpm --filter @bluelight-hub/backend prisma:migrate
+# Datenbank (Docker-Compose)
+docker compose up -d postgres
 
-# Development Server starten
-pnpm -r dev
-```
+# Prisma: Schema anwenden + Seeds
+pnpm --filter @bluelight-hub/backend prisma:migrate --name init
+pnpm --filter @bluelight-hub/backend prisma:seed          # (falls vorhanden)
 
----
-
-## 2. Ports & URLs
-
-| Service | Port | URL |
-|---------|------|-----|
-| Frontend (Vite) | 3090 | http://localhost:3090 |
-| Backend (NestJS) | 3091 | http://localhost:3091/api |
-| PostgreSQL | 3092 | postgresql://localhost:3092 |
-| Prisma Studio | 3093 | http://localhost:3093 |
-
----
-
-## 3. Wichtige Commands
-
-### 3.1 Development
-
-```bash
-# Alle Services starten
-pnpm -r dev
-
-# Nur Backend
-pnpm --filter @bluelight-hub/backend dev
-
-# Nur Frontend (Tauri)
-pnpm --filter @bluelight-hub/frontend dev
-
-# Nur Vite (ohne Tauri)
-pnpm --filter @bluelight-hub/frontend dev:vite
-```
-
-### 3.2 API Client
-
-```bash
-# Nach Backend-Änderungen IMMER ausführen!
+# API-Client regenerieren (falls Schema geändert)
 pnpm run generate-api
 ```
 
-### 3.3 Testing
+**HTTPS-Hintergrund:** Vite und NestJS binden self-signed Zertifikate aus `certs/` via `HTTPS_KEY_PATH` / `HTTPS_CERT_PATH` (relative Pfade, werden durch Worktree-Setup gefüllt). `http://localhost:3090` antwortet mit `ERR_EMPTY_RESPONSE` — immer `https://` verwenden.
+
+---
+
+## 5.3 Standard-Ports (Hauptrepo)
+
+| Dienst              | Port  | Konfigurierbar via          |
+| ------------------- | ----: | --------------------------- |
+| Frontend (Vite)     | 3090  | `VITE_PORT`                 |
+| Backend (NestJS)    | 3091  | `BACKEND_PORT` / `PORT`     |
+| PostgreSQL          | 3092  | `DATABASE_PORT`             |
+| Prisma Studio       | 3093  | Fix                         |
+
+Im Worktree werden diese Ports automatisch um 1000 verschoben (`Worktree 1 → 4090/4091/4092`, `Worktree 2 → 5090/5091/5092`, …).
+
+---
+
+## 5.4 Entwicklungs-Workflow
+
+### 5.4.1 Alles starten
 
 ```bash
-# Backend Tests
-pnpm --filter @bluelight-hub/backend test           # Alle
-pnpm --filter @bluelight-hub/backend test:unit      # Unit
-pnpm --filter @bluelight-hub/backend test:e2e       # E2E
-
-# Frontend Tests
-pnpm --filter @bluelight-hub/frontend test
+pnpm -r dev                     # Parallel: backend dev, frontend dev (inkl. tauri dev)
+pnpm run dev:web                # Backend + frontend Vite ohne Tauri
+pnpm --filter @bluelight-hub/frontend dev:vite   # Nur Web-Frontend
+pnpm --filter @bluelight-hub/frontend dev         # Frontend inkl. Tauri
+pnpm --filter @bluelight-hub/backend dev          # Nur Backend mit Watch
 ```
 
-### 3.4 Linting
+### 5.4.2 API-Client neu generieren
 
 ```bash
-# Biome lint + fix
-pnpm lint
-
-# Nur Check (ohne fix)
-pnpm lint:check
-
-# Architektur-Check (Circular Dependencies)
-pnpm --filter @bluelight-hub/backend check:arch
+# Nach Backend-Endpoint-Änderungen IMMER erforderlich
+pnpm run generate-api
 ```
 
-### 3.5 Database
+**Workflow-Regel:** Backend-Endpoint → `pnpm run generate-api` → TanStack-Query-Hook → Komponente. Keine manuellen `fetch()`-Calls!
+
+### 5.4.3 Datenbank-Migrationen
 
 ```bash
-# Migrationen ausführen
-pnpm --filter @bluelight-hub/backend prisma:migrate
+# Neue Migration erzeugen (IMMER mit --name, sonst interaktiv!)
+pnpm --filter @bluelight-hub/backend prisma:migrate --name add_feature_xyz
+
+# Schema-Produktion (ohne Dev-Reset)
+pnpm --filter @bluelight-hub/backend prisma:deploy
 
 # Prisma Studio
-pnpm --filter @bluelight-hub/backend prisma:studio
+pnpm --filter @bluelight-hub/backend prisma:studio        # Port 3093
+```
 
-# Schema formatieren
-pnpm --filter @bluelight-hub/backend exec prisma format
+**Datenbank-Zugriff** (kein lokales `psql`):
+
+```bash
+docker compose exec postgres psql -U bluelight -d bluelight-hub -c "SELECT ..."
+```
+
+### 5.4.4 Tests
+
+```bash
+# Backend (Jest)
+pnpm --filter @bluelight-hub/backend test                # alle
+pnpm --filter @bluelight-hub/backend test:unit           # ohne DB
+pnpm --filter @bluelight-hub/backend test:db             # Integration + E2E + Smoke
+pnpm --filter @bluelight-hub/backend test:integration    # nur .integration.spec.ts
+pnpm --filter @bluelight-hub/backend test:domain         # nur domain/
+pnpm --filter @bluelight-hub/backend test:cov            # Coverage (Threshold 79 %)
+
+# Empfehlung aus Memory: präzise Pattern nutzen
+cd packages/backend
+npx jest --testPathPatterns="einsatz.*\.spec\.ts$" --no-coverage
+
+# Frontend (Vitest)
+pnpm --filter @bluelight-hub/frontend test
+pnpm --filter @bluelight-hub/frontend test:ui            # Vitest UI
+pnpm --filter @bluelight-hub/frontend test:coverage
+pnpm --filter @bluelight-hub/frontend test:performance   # 3 Performance-Suites
+
+# Performance (Artillery, Backend)
+pnpm --filter @bluelight-hub/backend test:perf:quick     # kurz
+pnpm --filter @bluelight-hub/backend test:perf           # Voll (NFR-4: p95 < 200 ms)
+pnpm --filter @bluelight-hub/backend seed:perf           # Testdaten-Seed
+pnpm --filter @bluelight-hub/backend perf:report         # HTML-Report
+```
+
+### 5.4.5 Qualität
+
+```bash
+pnpm lint                                     # oxlint --fix + oxfmt --write
+pnpm lint:check                               # nur prüfen (kein Fix)
+
+# Backend-spezifisch
+pnpm --filter @bluelight-hub/backend check:arch         # Madge + OXLint auf Layers
+pnpm --filter @bluelight-hub/backend check:di:imports   # DI-Import-Hygiene (AC1)
+pnpm --filter @bluelight-hub/backend check:jsdoc        # Fehlende JSDoc melden
+pnpm --filter @bluelight-hub/backend check:deps         # madge --circular domain/
+pnpm --filter @bluelight-hub/backend lint:deps:core     # domain + application
+
+# Repository-weit
+pnpm check:repo-hygiene                       # sucht .bak, .orig, .rej
+pnpm gitmoji:check                            # Snapshot-Validierung
+pnpm test:gitmoji                             # Gitmoji-Validator-Test
+pnpm commit:check-range                       # Commits einer Range prüfen
+```
+
+### 5.4.6 CLI-Tools (Backend)
+
+```bash
+pnpm --filter @bluelight-hub/backend admin:reset            # Admin-Passwort zurücksetzen
+pnpm --filter @bluelight-hub/backend cli:archive            # Einsätze archivieren (Batch)
+pnpm --filter @bluelight-hub/backend cli:invite-once        # Einmal-Invite-Code generieren
 ```
 
 ---
 
-## 4. Code-Konventionen
+## 5.5 Worktrees & dynamische Ports
 
-### 4.1 Datei-Benennung
+Für parallele Feature-Arbeit in Git-Worktrees existiert ein Setup-Skript.
 
-| Typ | Pattern | Beispiel |
-|-----|---------|----------|
-| Entity | `kebab-case.entity.ts` | `einsatz.entity.ts` |
-| Handler | `kebab-case.handler.ts` | `create-einsatz.handler.ts` |
-| DTO | `kebab-case.dto.ts` | `create-einsatz.dto.ts` |
-| Repository | `i-kebab-case.repository.ts` | `i-einsatz.repository.ts` |
-| Komponente | `PascalCase.tsx` | `EinsatzList.tsx` |
-| Hook | `use-kebab-case.ts` | `use-einsaetze.ts` |
+```bash
+# Neuen Worktree anlegen (Beispiel)
+git worktree add ../bluelight-hub-feature-xyz feature/xyz
 
-### 4.2 Klassen-Benennung
-
-| Typ | Pattern | Beispiel |
-|-----|---------|----------|
-| Entity | `PascalCase` | `Einsatz` |
-| Command | `PascalCaseCommand` | `CreateEinsatzCommand` |
-| Handler | `PascalCaseHandler` | `CreateEinsatzHandler` |
-| DTO | `PascalCaseDto` | `CreateEinsatzDto` |
-| Interface | `IPascalCase` | `IEinsatzRepository` |
-
-### 4.3 Import-Reihenfolge
-
-```typescript
-// 1. Externe Packages
-import { Injectable } from '@nestjs/common';
-
-// 2. Path Aliases
-import { DI_TOKENS } from '@infrastructure/di-tokens';
-import { Result } from '@domain/common/result';
-
-// 3. Relative Imports
-import { CreateEinsatzCommand } from './create-einsatz.command';
+# Setup im Worktree (wichtig!)
+cd ../bluelight-hub-feature-xyz
+bash scripts/worktree-setup.sh
 ```
+
+Was `scripts/worktree-setup.sh` tut:
+
+1. Ermittelt eine eindeutige **Worktree-ID** (0 = Hauptrepo, 1 = erster Worktree, …).
+2. Berechnet dynamische **Ports** via `scripts/worktree-ports.sh` (Offset 1000 je Worktree).
+3. Prüft Port-Kollisionen mit `lsof`.
+4. Erzeugt `.env`-Dateien für Backend + Frontend (inkl. `MASTER_SECRET`, HTTPS-Pfade).
+5. Startet PostgreSQL-Container mit eigenem Docker-Compose-Projektnamen.
+6. Führt `pnpm install`, `prisma generate`, `prisma migrate`, `prisma:seed` aus.
+7. Erzeugt HTTPS-Zertifikate über `pnpm gen:certs` (mkcert).
 
 ---
 
-## 5. Commit-Konventionen
+## 5.6 Projekt-Regeln (Enforcement)
 
-### 5.1 Format
-
-```
-<emoji>(<scope>): <message>
-```
-
-### 5.2 Emojis
-
-Erlaubte Emojis kommen ausschließlich aus der offiziellen Gitmoji-Quelle:
-
-- `https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json`
-
-Im Repository wird diese Liste lokal als Snapshot gepflegt:
-
-- `scripts/gitmojis.snapshot.json`
-
-Nützliche Befehle:
-
-```bash
-# Snapshot mit offizieller Quelle synchronisieren
-pnpm gitmoji:sync
-
-# Prüfen, ob der Snapshot aktuell ist (Exit-Code 1 bei Drift)
-pnpm gitmoji:check
-```
-
-### 5.3 Beispiele
-
-```bash
-✨(einsatz): Add status filter endpoint
-🐛(auth): Fix token expiration handling
-♻️(etb): Extract validation logic
-📝(readme): Update setup instructions
-```
+| Regel                                  | Erzwingung                                        | Details                                   |
+| -------------------------------------- | ------------------------------------------------- | ----------------------------------------- |
+| **DI-Import (AC1)**                    | Pre-commit Hook + CI                              | Injectable Classes mit `import`, nicht `import type` |
+| **API-Workflow**                       | Dev-Konvention + Code-Review                      | Backend → `generate-api` → TanStack → UI  |
+| **Response-Decorators (AC7)**          | Swagger-Generierung + Review                      | `@ApiWrappedResponse` / `@ApiWrappedCreatedResponse` |
+| **Tech-Stack-Whitelist**               | Code-Review                                       | Tailwind, Headless UI, TanStack, Zod, OXC |
+| **Verbotene Tech**                     | Code-Review                                       | Redux, ESLint, Prettier, Biome, Formik, CSS-in-JS |
+| **Umlaut-Regel**                       | `oxfmt`-Konvention, manuell geprüft               | `ä ö ü ß` in UI-Strings und Kommentaren   |
+| **Einsatz-Routen-Nesting**             | Code-Review + Memory                              | `/einsatz/:einsatzId/…` statt Top-Level   |
+| **Commit-Format**                      | `commit-msg` Husky-Hook (ADR-003)                 | `<emoji>(<context>): <title>`, `--no-verify` untersagt |
+| **Layer-Isolation (Hexagonal)**        | `madge` + `oxlint` auf `domain`, `application`    | `pnpm --filter @bluelight-hub/backend check:arch` |
+| **10-Jahre-Aufbewahrung**              | Datenbank-Trigger + Soft-Delete                   | Einsatz, ETB, Befehl dürfen nicht hart gelöscht werden |
 
 ---
 
-## 6. Git Workflow
+## 5.7 Commit-Konventionen
 
-### 6.1 Branch-Naming
+### 5.7.1 Format
 
 ```
-feature/XX-kurze-beschreibung
-fix/XX-bug-beschreibung
-refactor/bereich
+<emoji>(<context>): <titel>
+
+[optional: mehrzeilige Beschreibung]
 ```
 
-### 6.2 Pull Request
+Max. 72 Zeichen in der ersten Zeile.
 
-```bash
-# Feature-Branch erstellen
-git checkout -b feature/123-neue-funktion
+### 5.7.2 Gitmoji-Quelle
 
-# Commits machen (mit Emoji!)
-git commit -m "✨(scope): message"
+- **Source of Truth:** Offizielle Gitmoji-Liste von `carloscuesta/gitmoji`.
+- **Lokaler Snapshot:** `scripts/gitmojis.snapshot.json`, wöchentlich synchronisiert via Workflow `gitmoji-sync.yml` (Montag 07:00).
+- **Validator:** `scripts/gitmoji-commit-validator.mjs` → `commit-msg` Husky-Hook.
 
-# Push & PR erstellen
-git push -u origin feature/123-neue-funktion
-gh pr create
-```
+### 5.7.3 Häufige Emojis
+
+| Emoji | Bedeutung        |
+| ----- | ---------------- |
+| ✨    | Feature          |
+| 🐛    | Bugfix           |
+| ♻️    | Refactor         |
+| 📝    | Docs             |
+| 🧪    | Tests            |
+| 💥    | Breaking Change  |
+| 🎨    | Styling / UI     |
+| 🔒    | Security         |
+| 🔖    | Release-Tag      |
+| 🚀    | Deploy           |
+
+Weitere siehe `scripts/gitmojis.snapshot.json`.
+
+### 5.7.4 Pre-Commit-Hooks (`.husky/pre-commit`)
+
+1. TypeScript-Typ-Check (`tsconfig.build.json`, `--noEmit`, ohne Tests).
+2. DI-Import-Prüfung (`pnpm --filter @bluelight-hub/backend check:di:imports`).
+3. Circular-Deps-Check (`pnpm --filter @bluelight-hub/backend lint:deps:core`).
+4. `lint-staged`: oxlint + oxfmt für alle gematchten Dateien.
 
 ---
 
-## 7. Breaking Rules (NIEMALS brechen!)
+## 5.8 Branch- & Release-Strategie
 
-### 7.1 API Client
+- **alpha** — aktuelle Arbeitsversion (→ Prerelease).
+- **beta** — Stabilisierung (→ Prerelease).
+- **main** — stabile Release-Branch (→ `latest`-Tag).
+- **Feature-Branches:** `feature/<ticket>-<kurzbeschreibung>`.
 
-```typescript
-// ✅ RICHTIG: Generierter Client + TanStack Query
-const useEinsaetze = () => useQuery({
-  queryKey: QUERY_KEYS.einsatz.list(),
-  queryFn: () => api.einsatz.findAll(),
-});
-
-// ❌ FALSCH: Manueller fetch
-const fetchEinsaetze = () => fetch('/api/einsaetze');
-```
-
-### 7.2 Styling
-
-```typescript
-// ✅ RICHTIG: Tailwind CSS + Headless UI
-<Dialog open={isOpen} onClose={close}>
-  <DialogPanel className="bg-white rounded-lg p-6">
-
-// ❌ FALSCH: Andere CSS-in-JS oder Frameworks
-<StyledDialog>  // styled-components
-<Modal>         // MUI, Chakra, etc.
-```
-
-### 7.3 Forms
-
-```typescript
-// ✅ RICHTIG: TanStack Form + Zod
-const form = useForm({
-  validatorAdapter: zodValidator(),
-  validators: { onChange: schema },
-});
-
-// ❌ FALSCH: React Hook Form, Formik, HTML Forms
-<form onSubmit={handleSubmit}>
-  <input {...register('name')} />
-</form>
-```
-
-### 7.4 Git Hooks
-
-```bash
-# ✅ RICHTIG: Hooks respektieren
-git commit -m "message"  # pre-commit läuft
-
-# ❌ NIEMALS: Hooks umgehen
-git commit --no-verify
-```
+**Release-Automation:** `semantic-release` + `semantic-release-gitmoji` + `semantic-release-claude-changelog` triggern auf erfolgreichem CI auf `main/alpha/beta/next`.
 
 ---
 
-## 8. Troubleshooting
+## 5.9 Umgebungsvariablen
 
-### 8.1 API Client nicht aktuell
-
-```bash
-# Backend muss laufen!
-pnpm --filter @bluelight-hub/backend dev
-
-# Dann generieren
-pnpm run generate-api
-```
-
-### 8.2 Database-Fehler
-
-```bash
-# Container neustarten
-docker-compose down && docker-compose up -d
-
-# Migrationen neu ausführen
-pnpm --filter @bluelight-hub/backend prisma:migrate
-```
-
-### 8.3 Tauri startet nicht
-
-```bash
-# Rust toolchain prüfen
-rustup update
-
-# Dependencies neu installieren
-cd packages/frontend && pnpm install
-```
+- **Signierte .env-Dateien** (`@dotenvx/dotenvx`): `packages/backend/.env`, `packages/frontend/.env`.
+- **Auto-Generierung:** `scripts/worktree-setup.sh` erzeugt / aktualisiert diese Dateien je Worktree.
+- **Kritische Variablen:**
+  - `MASTER_SECRET` — AES-Key für Secrets-at-Rest (wird pro Setup generiert).
+  - `DATABASE_URL` — Postgres-Connection.
+  - `JWT_SECRET` / `JWT_REFRESH_SECRET`.
+  - `BACKEND_PORT`, `VITE_PORT`, `DATABASE_PORT`.
+  - `HTTPS_KEY_PATH`, `HTTPS_CERT_PATH` — relative Pfade in den .env-Dateien.
+  - `BLUELIGHT_OPENAPI_BASE_URL` — für Client-Generierung.
+  - `HIORG_*` — OAuth2-Konfiguration (siehe Kapitel 9).
 
 ---
 
-## 9. IDE Setup
+## 5.10 Troubleshooting
 
-### 9.1 Empfohlene Extensions
-
-- **Biome** (Linting/Formatting)
-- **Tailwind CSS IntelliSense**
-- **Prisma**
-- **rust-analyzer**
-
-### 9.2 Settings
-
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "oxc.oxc-vscode",
-  "[typescript]": {
-    "editor.defaultFormatter": "oxc.oxc-vscode"
-  }
-}
-```
+| Problem                                                   | Lösung                                                                                      |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `ERR_EMPTY_RESPONSE` auf `http://localhost:3090`          | HTTPS verwenden: `https://localhost:3090` — Backend akzeptiert nur HTTPS.                    |
+| `NET::ERR_CERT_AUTHORITY_INVALID`                         | `mkcert -install` einmalig ausführen, danach `pnpm gen:certs`.                               |
+| Port bereits belegt                                       | `scripts/worktree-setup.sh` erkennt via `lsof` — Fehlerausgabe beachten, Port freigeben.     |
+| API-Client zeigt veraltete Typen                          | `pnpm run generate-api` nach Backend-Endpoint-Änderung.                                      |
+| `pnpm --filter … test -- --testPathPatterns`              | Memory: Pipe-Problem — direkt `cd packages/backend && npx jest --testPathPatterns=…` nutzen. |
+| NestJS DI `Nest can't resolve dependencies …`             | `import type` für Injectable entfernt? `pnpm check:di:imports` laufen lassen.                |
+| Swagger-Client hat keine Typen                            | Controller nutzt `@ApiOkResponse` statt `@ApiWrappedResponse` — AC7-Regel.                   |
+| Commit wird abgelehnt („gitmoji invalid“)                 | `pnpm gitmoji:sync` (aktualisiert Snapshot) + Emoji aus offizieller Liste.                   |
+| Circular Dependency in `domain/`                          | `pnpm --filter @bluelight-hub/backend lint:deps:core` zeigt Kette.                           |
+| Prisma-Migration wartet auf DB                            | `docker compose up -d postgres` und Healthcheck prüfen.                                      |
 
 ---
 
-*Dokumentation generiert am 2026-01-04*
+## 5.11 Nützliche Ressourcen
+
+- [Projektüberblick](./01-projektueberblick.md)
+- [Backend-Architektur](./02-backend-architektur.md) · [Frontend-Architektur](./03-frontend-architektur.md)
+- [API-Referenz](./04-api-referenz.md) · [Datenmodell](./06-datenmodell.md)
+- [Testing & Qualität](./07-testing-und-qualitaet.md) · [DevOps](./08-devops-und-deployment.md)
+- [ADRs](../adr/) · [Architecture Principles](../architecture-principles.md)
+- [Code Conventions](../development-guide/code-conventions.md) · [Tauri-Plugins](../development-guide/tauri-plugins.md)
