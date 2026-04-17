@@ -25,6 +25,13 @@ export interface FeatureGroup {
 export type ZeichenSidebarTab = 'katalog' | 'baukasten';
 
 /**
+ * Unterscheidet, wozu ein aktiver Draw-Modus gehört — entscheidet, welches
+ * Feature die `draw.create`/`draw.delete`-Events des MapboxDraw-Controls
+ * konsumiert. `null` = idle / Taktisch-Default (wie bisher).
+ */
+export type DrawContext = 'gefahrenzone' | 'taktisch' | null;
+
+/**
  * State für die Zeichenwerkzeuge der Lagekarte
  */
 export interface DrawStoreState {
@@ -54,6 +61,8 @@ export interface DrawStoreState {
   pendingZeichenPlacement: { definition: ZeichenDefinition; existingZeichenId?: string; label?: string } | null;
   /** ID des aktuell im Detail-Panel angezeigten Zeichens (null = Panel geschlossen) */
   selectedZeichenId: string | null;
+  /** Aktueller Draw-Kontext — entscheidet, wer das finishte Feature übernimmt (Gefahrenzone vs. Taktische Zeichen). */
+  drawContext: DrawContext;
 }
 
 const initialState: DrawStoreState = {
@@ -70,6 +79,7 @@ const initialState: DrawStoreState = {
   zeichenSidebarTab: 'katalog',
   pendingZeichenPlacement: null,
   selectedZeichenId: null,
+  drawContext: null,
 };
 
 /**
@@ -281,6 +291,16 @@ export const closeZeichenDetail = () => {
   drawStore.setState((state) => ({
     ...state,
     selectedZeichenId: null,
+  }));
+};
+
+/**
+ * Setzt den Draw-Kontext — bestimmt, wer das aktive Draw-Feature konsumiert.
+ */
+export const setDrawContext = (ctx: DrawContext) => {
+  drawStore.setState((state) => ({
+    ...state,
+    drawContext: ctx,
   }));
 };
 
