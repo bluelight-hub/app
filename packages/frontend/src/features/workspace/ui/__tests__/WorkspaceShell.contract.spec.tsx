@@ -146,7 +146,7 @@ describe('WorkspaceShell contract', () => {
     expect(screen.getByRole('navigation', { name: 'Modulseiten mobil' })).toBeInTheDocument();
     expect(screen.queryByRole('complementary', { name: 'Workspace-Hilfe' })).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Workspace-Status' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Modulübersicht öffnen' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Modulübersicht öffnen' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('button', { name: 'Befehle und Navigation' }).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Führung').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Lagefilm')[0]?.closest('[aria-disabled="true"]')).not.toBeNull();
