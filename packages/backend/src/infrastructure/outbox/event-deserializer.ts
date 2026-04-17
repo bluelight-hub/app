@@ -137,6 +137,12 @@ import { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von
 // Gefahrenmatrix Events (Issue #414)
 import { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
 
+// Gefahrenzone Events (Issue #627)
+import { GefahrenzoneErstelltEvent } from '@domain/gefahr/events/gefahrenzone-erstellt.event';
+import { GefahrenzoneGeometryGeaendertEvent } from '@domain/gefahr/events/gefahrenzone-geometry-geaendert.event';
+import { GefahrenzoneGeloeschtEvent } from '@domain/gefahr/events/gefahrenzone-geloescht.event';
+import type { GeoJsonPolygonFeature } from '@domain/gefahr/value-objects/gefahrenzone-geometry';
+
 // Taktische Zeichen Events (Issue #636)
 import { ZeichenErstelltEvent } from '@domain/taktische-zeichen/events/zeichen-erstellt.event';
 import { ZeichenPlatziertEvent } from '@domain/taktische-zeichen/events/zeichen-platziert.event';
@@ -391,6 +397,11 @@ export class EventDeserializer {
 
       // ===== GEFAHRENMATRIX EVENTS (Issue #414) =====
       ['gefahrenmatrix.aktualisiert', deserializeGefahrenmatrixAktualisiert],
+
+      // ===== GEFAHRENZONE EVENTS (Issue #627) =====
+      ['gefahrenzone.erstellt', deserializeGefahrenzoneErstellt],
+      ['gefahrenzone.geometry-geaendert', deserializeGefahrenzoneGeometryGeaendert],
+      ['gefahrenzone.geloescht', deserializeGefahrenzoneGeloescht],
 
       // ===== TAKTISCHE ZEICHEN EVENTS (Issue #636) =====
       ['taktisches_zeichen.erstellt', deserializeZeichenErstellt],
@@ -2282,6 +2293,40 @@ function deserializeGefahrenmatrixAktualisiert(payload: Record<string, unknown>,
     payload.aktualisiertVon as string,
     aggregateId,
   );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== GEFAHRENZONE DESERIALIZERS (Issue #627) =====
+
+function deserializeGefahrenzoneErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new GefahrenzoneErstelltEvent(
+    payload.zoneId as string,
+    payload.einsatzId as string,
+    payload.gefahrentyp as string,
+    payload.schutzobjekt as string,
+    payload.geometryType as string,
+    payload.geometry as GeoJsonPolygonFeature,
+    (payload.bezeichnung as string | null | undefined) ?? null,
+    payload.erstelltVon as string,
+    aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeGefahrenzoneGeometryGeaendert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new GefahrenzoneGeometryGeaendertEvent(
+    payload.zoneId as string,
+    payload.einsatzId as string,
+    payload.geometryType as string,
+    payload.geometry as GeoJsonPolygonFeature,
+    payload.aktualisiertVon as string,
+    aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeGefahrenzoneGeloescht(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new GefahrenzoneGeloeschtEvent(payload.zoneId as string, payload.einsatzId as string, payload.geloeschtVon as string, aggregateId);
   return Result.ok<DomainEvent>(event);
 }
 

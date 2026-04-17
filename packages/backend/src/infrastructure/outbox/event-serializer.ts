@@ -88,6 +88,9 @@ import type { EinheitAufgeloestEvent } from '@domain/kraefte/events/einheit-aufg
 import type { PersonZuEinheitZugewiesenEvent } from '@domain/kraefte/events/person-zu-einheit-zugewiesen.event';
 import type { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von-einheit-entfernt.event';
 import type { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
+import type { GefahrenzoneErstelltEvent } from '@domain/gefahr/events/gefahrenzone-erstellt.event';
+import type { GefahrenzoneGeometryGeaendertEvent } from '@domain/gefahr/events/gefahrenzone-geometry-geaendert.event';
+import type { GefahrenzoneGeloeschtEvent } from '@domain/gefahr/events/gefahrenzone-geloescht.event';
 import type { ZeichenErstelltEvent } from '@domain/taktische-zeichen/events/zeichen-erstellt.event';
 import type { ZeichenPlatziertEvent } from '@domain/taktische-zeichen/events/zeichen-platziert.event';
 import type { ZeichenVerschobenEvent } from '@domain/taktische-zeichen/events/zeichen-verschoben.event';
@@ -443,6 +446,14 @@ export class EventSerializer {
       // ===== GEFAHRENMATRIX EVENTS (Issue #414) =====
       case 'gefahrenmatrix.aktualisiert':
         return this.serializeGefahrenmatrixAktualisiert(event as unknown as GefahrenmatrixAktualisiertEvent);
+
+      // ===== GEFAHRENZONE EVENTS (Issue #627) =====
+      case 'gefahrenzone.erstellt':
+        return this.serializeGefahrenzoneErstellt(event as unknown as GefahrenzoneErstelltEvent);
+      case 'gefahrenzone.geometry-geaendert':
+        return this.serializeGefahrenzoneGeometryGeaendert(event as unknown as GefahrenzoneGeometryGeaendertEvent);
+      case 'gefahrenzone.geloescht':
+        return this.serializeGefahrenzoneGeloescht(event as unknown as GefahrenzoneGeloeschtEvent);
 
       // ===== TAKTISCHE ZEICHEN EVENTS (Issue #636) =====
       case 'taktisches_zeichen.erstellt':
@@ -1474,6 +1485,39 @@ export class EventSerializer {
       schutzobjekt: event.schutzobjekt,
       warnstufe: event.warnstufe,
       aktualisiertVon: event.aktualisiertVon,
+    };
+  }
+
+  // ===== GEFAHRENZONE SERIALIZERS (Issue #627) =====
+
+  private serializeGefahrenzoneErstellt(event: GefahrenzoneErstelltEvent): Record<string, unknown> {
+    return {
+      zoneId: event.zoneId,
+      einsatzId: event.einsatzId,
+      gefahrentyp: event.gefahrentyp,
+      schutzobjekt: event.schutzobjekt,
+      geometryType: event.geometryType,
+      geometry: event.geometry as unknown as Record<string, unknown>,
+      bezeichnung: event.bezeichnung,
+      erstelltVon: event.erstelltVon,
+    };
+  }
+
+  private serializeGefahrenzoneGeometryGeaendert(event: GefahrenzoneGeometryGeaendertEvent): Record<string, unknown> {
+    return {
+      zoneId: event.zoneId,
+      einsatzId: event.einsatzId,
+      geometryType: event.geometryType,
+      geometry: event.geometry as unknown as Record<string, unknown>,
+      aktualisiertVon: event.aktualisiertVon,
+    };
+  }
+
+  private serializeGefahrenzoneGeloescht(event: GefahrenzoneGeloeschtEvent): Record<string, unknown> {
+    return {
+      zoneId: event.zoneId,
+      einsatzId: event.einsatzId,
+      geloeschtVon: event.geloeschtVon,
     };
   }
 
