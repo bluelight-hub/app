@@ -394,7 +394,7 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
     const user = userEvent.setup();
     renderLayout();
 
-    await user.click(screen.getAllByRole('button', { name: /neuer etb-eintrag/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /etb-eintrag/i })[0]);
 
     expect(navigateSpy).toHaveBeenCalledWith({
       to: '/app/einsatz/$einsatzId/führung/etb',
