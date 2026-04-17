@@ -1,5 +1,5 @@
 ---
-status: ready-for-dev
+status: done
 goal: G5
 parent_spec: ../planning-artifacts/ux-design-specification.md
 prev_spec: ./spec-g4-split-view-akut-broadcast.md
@@ -159,3 +159,18 @@ const undoStore = new Store<{ stack: UndoableAction[] }>({ stack: [] });
 ## Abschluss-Signal
 
 `status: done`, `## Spec Change Log`, **Feature #627 komplett**. ADR-Finalisierung + ggf. finale Review + PR-Erstellung sind außerhalb Skill-Scope.
+
+## Spec Change Log
+
+- **2026-04-17 · Frontend-Engineer:** G5 Polish-Sprint abgeschlossen.
+  - **Reduced-Motion-Audit** (`g5-reduced-motion-audit.md`): systematische Prüfung aller G2–G4-Animationen; alle ✅ oder ⚠️ (kurze `transition-colors`), keine zusätzlichen CSS-Guards nötig — der bestehende `@media (prefers-reduced-motion: reduce)`-Block in `index.tailwind.css` deckt `animate-warnstufe-akut-pulse` + `animate-gefahrenmatrix-cell-pulse` samt Fallback-Stiles ab. `AkutBroadcastToast` verzichtet bewusst auf Entry-Animationen.
+  - **Undo-Mechanik** (`cmd+z`): `undoStore` (react-store, Stack `UndoableAction { kind: create|update-geometry|delete, before?, after? }`, 30 s-Timer pro Action); `useGefahrenzoneUndo`-Hook mit globaler `mod+z`-Registrierung, Re-Apply-Toast „Aktion zurückgenommen · Wiederherstellen", Stale-Error-Toast, Offline-Guard (`navigator.onLine`). Eingehakt in `GefahrenzoneHost` (`recordCreate` nach Zone-Anlage) + `GefahrenzoneDetailPanel` (`recordDelete` nach Löschen). Server-Undo-Command nicht benötigt — Revert nutzt bestehende REST-Mutations.
+  - **Onboarding-Coach-Mark**: `onboardingStore` persistiert `coachMarkSeen` via `localStorage:bluelight:coachmark:gefahrenzone:v1`; `GefahrenzoneCoachMark`-Organism rendert 4 Tour-Steps (Matrix, Karte, Verknüpfte Ansicht, AKUT-Broadcast) nur wenn Split-View aktiv + Zonen vorhanden + !seen. Tastatur-Navigation: `ArrowLeft/Right`, `Enter` (Weiter), `Esc` (Skip). Mount-Point: innerhalb `LagekarteGefahrenmatrixSplitView`.
+  - **G4-Follow-ups**:
+    - Self-Filter-Unit-Test für `useGefahrenmatrixWebSocket` (fremde AKUT → Alert, eigene AKUT → kein Alert, Nicht-AKUT → kein Alert).
+    - Integration-Test Matrix → AKUT-Confirm-Dialog → Confirm → Mutation; zweiter Client (separate Tree) empfängt `gefahrenmatrix:aktualisiert` via gemocktes Socket und rendert Toast. Abbruch-Pfad: keine Mutation.
+  - **Manual-a11y-Checkliste** (`g5-manual-a11y-audit.md`): 8 Szenarien (Matrix-Tab-Reihenfolge, Karten-Tab, Split-View-Roundtrip, AKUT-Dialog-Focus-Trap, Toast-Narration, Undo-Toast, Coach-Mark-Keys, Reduced-Motion-Prüfung). QA-Befund-Template enthalten. Automatisierung via `@axe-core/playwright` als Follow-up markiert (Playwright nicht installiert).
+  - **Tests**: 28 neue Unit-/Integration-Tests, **4563/4563 Full-Suite grün** (21 skipped), TSC grün, Lint 0 Errors.
+  - **Hotfix in Undo-Hook**: `@tanstack/store.subscribe()` gibt `{ unsubscribe }`-Objekt zurück, keine Function — Cleanup korrigiert, Regression-Test via Mount-Unmount-Cycle ergänzt.
+
+**Feature #627 funktional + polished komplett.** Nur noch manueller Smoke-Test zwischen zwei Browser-Sessions + PR empfohlen. Playwright-Integration (axe + Visual-Regression) als separate Follow-up-Initiative.

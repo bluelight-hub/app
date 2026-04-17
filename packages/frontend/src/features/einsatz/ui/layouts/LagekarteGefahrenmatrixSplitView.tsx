@@ -17,6 +17,7 @@
 import { useStore } from '@tanstack/react-store';
 import { GefahrenmatrixGrid, GefahrenmatrixLegende } from '@/features/gefahrenmatrix/ui';
 import { LagekarteView } from '@/features/lagekarte/ui';
+import { GefahrenzoneCoachMark } from '@/features/gefahrenzone/ui/organisms/GefahrenzoneCoachMark';
 import { splitViewActions, splitViewStore } from '../../stores/split-view.store';
 
 export interface LagekarteGefahrenmatrixSplitViewProps {
@@ -44,6 +45,7 @@ export function LagekarteGefahrenmatrixSplitView({ einsatzId }: LagekarteGefahre
       <section className="min-h-0 min-w-0" aria-label="Lagekarte">
         <LagekarteView einsatzId={einsatzId} mode="standard" focus={mapFocus} />
       </section>
+      <GefahrenzoneCoachMark einsatzId={einsatzId} />
     </div>
   );
 }

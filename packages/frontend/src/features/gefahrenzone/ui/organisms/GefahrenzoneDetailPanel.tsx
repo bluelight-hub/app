@@ -9,6 +9,7 @@ import { useAkutConfirm } from '@/features/gefahrenmatrix/hooks/use-akut-confirm
 import { splitViewActions, splitViewStore } from '@/features/einsatz/stores/split-view.store';
 import { cn } from '@/shared/ui/cn';
 import { useDeleteGefahrenzone } from '../../api';
+import { useGefahrenzoneUndo } from '../../hooks/use-gefahrenzone-undo';
 import { GefahrenzoneInlinePopover, type GefahrenzonePopoverValues } from '../molecules/GefahrenzoneInlinePopover';
 
 export interface GefahrenzoneDetailPanelProps {
@@ -61,6 +62,7 @@ export function GefahrenzoneDetailPanel({ zone, einsatzId, onClose }: Gefahrenzo
 
   const updateMatrix = useUpdateGefahrenmatrixBewertung();
   const deleteZone = useDeleteGefahrenzone();
+  const { recordDelete } = useGefahrenzoneUndo();
 
   const initialValues: GefahrenzonePopoverValues = {
     gefahrentyp: zone.gefahrentyp as GefahrentypValue,
@@ -97,6 +99,7 @@ export function GefahrenzoneDetailPanel({ zone, einsatzId, onClose }: Gefahrenzo
 
   const handleDelete = async () => {
     await deleteZone.mutateAsync({ einsatzId, zoneId: zone.id });
+    recordDelete(einsatzId, zone);
     setConfirmDelete(false);
     onClose?.();
   };
