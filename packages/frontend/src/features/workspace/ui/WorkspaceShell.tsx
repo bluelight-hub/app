@@ -30,18 +30,6 @@ function getShortcutBadge(module: WorkspaceModuleDefinition): string | undefined
   return [...module.shortcut.modifiers, module.shortcut.key].join('+');
 }
 
-function getBadgeText(module: WorkspaceModuleDefinition): string | undefined {
-  if (!module.badgeHint) {
-    return undefined;
-  }
-
-  if (module.badgeHint.value === undefined) {
-    return module.badgeHint.label;
-  }
-
-  return `${module.badgeHint.label}: ${module.badgeHint.value}`;
-}
-
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => (typeof window !== 'undefined' ? window.matchMedia(query).matches : false));
 
@@ -184,7 +172,6 @@ export function WorkspaceShell({
                                 : 'border-transparent text-text-secondary hover:bg-action-secondary',
                             )}
                             search={(prev) => prev}
-                            aria-description={getBadgeText(module)}
                             title={
                               module.shortcut
                                 ? `Tastenkürzel: ${module.shortcut.modifiers.join('+').toLowerCase() === 'alt' ? `Alt+${module.shortcut.key}` : [...module.shortcut.modifiers, module.shortcut.key].join('+')}`
@@ -213,15 +200,6 @@ export function WorkspaceShell({
                             ) : null}
                           </DynamicLink>
                         )}
-
-                        {module.badgeHint ? (
-                          <div className="ml-2.5 flex items-center gap-2 px-2.5 py-1 text-body-xs text-text-secondary">
-                            <span className="font-medium">{module.badgeHint.label}</span>
-                            {module.badgeHint.value !== undefined ? (
-                              <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 text-body-xs font-semibold text-text-primary">{module.badgeHint.value}</span>
-                            ) : null}
-                          </div>
-                        ) : null}
 
                         {module.id !== currentModule.id || isDisabled(module.visibility) ? null : (
                           <div className={cn('ml-3.5 space-y-0.5 border-l-2 pl-1', getModuleAccentBorder(module.color))} data-testid={`sub-list-${module.id}`}>
