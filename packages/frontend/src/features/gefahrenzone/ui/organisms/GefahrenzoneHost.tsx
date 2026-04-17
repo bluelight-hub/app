@@ -26,6 +26,7 @@ import { setGefahrenzonenProviderEinsatzId } from '@/features/lagekarte/detail-p
 import { GefahrenzoneDetailPanel } from './GefahrenzoneDetailPanel';
 import { GefahrenzoneLayer } from './GefahrenzoneLayer';
 import { gefahrenzoneDrawStore, rememberLastUsedDefaults, setActiveEinsatzForDrawDefaults } from '../../stores/gefahrenzone-draw.store';
+import { useGefahrenzoneUndo } from '../../hooks/use-gefahrenzone-undo';
 
 /** Minimal-Form eines MapboxDraw-Create-Events — wir lesen nur `features`. */
 interface DrawCreateEvent {
@@ -52,6 +53,7 @@ export function GefahrenzoneHost({ einsatzId, mapRef, focus }: GefahrenzoneHostP
 
   const createMutation = useCreateGefahrenzone();
   const updateMatrixMutation = useUpdateGefahrenmatrixBewertung();
+  const { recordCreate } = useGefahrenzoneUndo();
   const { data: matrixData } = useGefahrenmatrix(einsatzId);
   const currentWarnstufeFor = (typ: GefahrentypValue, objekt: SchutzobjektValue): WarnstufeValue => {
     const hit = matrixData?.bewertungen?.find((b) => b.gefahrentyp === typ && b.schutzobjekt === objekt);
@@ -245,7 +247,8 @@ export function GefahrenzoneHost({ einsatzId, mapRef, focus }: GefahrenzoneHostP
               geometryType: popover.geometryType,
               geometry: popover.geometry as unknown as { [key: string]: unknown },
             };
-            await createMutation.mutateAsync({ einsatzId, data: dto });
+            const createdZone = await createMutation.mutateAsync({ einsatzId, data: dto });
+            recordCreate(einsatzId, createdZone);
             rememberLastUsedDefaults(values.gefahrentyp, values.schutzobjekt);
             // Matrix-Warnstufe setzen — bei Hochstufe auf AKUT wird vorher der Confirm-Dialog gezeigt.
             requestChange({
