@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { PiArrowSquareOut, PiPencilSimple, PiTrash, PiWarningCircle } from 'react-icons/pi';
 import type { GefahrenzoneDto } from '@bluelight-hub/shared/client';
 import { GEFAHRENTYP_LABELS, SCHUTZOBJEKT_LABELS, WARNSTUFEN, type GefahrentypValue, type SchutzobjektValue, type WarnstufeValue } from '@/features/gefahrenmatrix/schemas/gefahrenmatrix.schema';
 import { useUpdateGefahrenmatrixBewertung } from '@/features/gefahrenmatrix/api/mutations';
 import { WarnstufeChip } from '@/features/gefahrenmatrix/ui/atoms/WarnstufeChip';
+import { useAkutConfirm } from '@/features/gefahrenmatrix/hooks/use-akut-confirm';
+import { splitViewActions, splitViewStore } from '@/features/einsatz/stores/split-view.store';
 import { cn } from '@/shared/ui/cn';
 import { useDeleteGefahrenzone } from '../../api';
 import { GefahrenzoneInlinePopover, type GefahrenzonePopoverValues } from '../molecules/GefahrenzoneInlinePopover';
@@ -47,6 +49,16 @@ export function GefahrenzoneDetailPanel({ zone, einsatzId, onClose }: Gefahrenzo
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  // Split-View-Roundtrip (G4): Im Split-Modus spiegelt der Panel-Mount die Zone
+  // als Focus in den Store, damit die Gefahrenmatrix-Seite die passende Zelle
+  // scrollt und pulsiert. Out-of-split: kein Side-Effect.
+  useEffect(() => {
+    if (!splitViewStore.state.isActive) return;
+    const current = splitViewStore.state.focus;
+    if (current?.kind === 'zone' && current.zoneId === zone.id) return;
+    splitViewActions.setFocus({ kind: 'zone', zoneId: zone.id });
+  }, [zone.id]);
+
   const updateMatrix = useUpdateGefahrenmatrixBewertung();
   const deleteZone = useDeleteGefahrenzone();
 
@@ -64,16 +76,23 @@ export function GefahrenzoneDetailPanel({ zone, einsatzId, onClose }: Gefahrenzo
     });
   };
 
-  const handleSubmitEdit = async (values: GefahrenzonePopoverValues) => {
-    await updateMatrix.mutateAsync({
-      einsatzId,
-      data: {
-        gefahrentyp: zone.gefahrentyp as GefahrentypValue,
-        schutzobjekt: zone.schutzobjekt as SchutzobjektValue,
-        warnstufe: values.warnstufe,
-      },
+  const { requestChange, dialog: akutDialog } = useAkutConfirm({
+    onCommit: async ({ gefahrentyp, schutzobjekt, warnstufe: nextWarnstufe }) => {
+      await updateMatrix.mutateAsync({ einsatzId, data: { gefahrentyp, schutzobjekt, warnstufe: nextWarnstufe } });
+      setEditing(false);
+    },
+    onCancel: () => {
+      // Edit-Popover bleibt offen, damit der Nutzer eine andere Warnstufe wählen kann.
+    },
+  });
+
+  const handleSubmitEdit = (values: GefahrenzonePopoverValues) => {
+    requestChange({
+      gefahrentyp: zone.gefahrentyp as GefahrentypValue,
+      schutzobjekt: zone.schutzobjekt as SchutzobjektValue,
+      previous: warnstufe,
+      next: values.warnstufe,
     });
-    setEditing(false);
   };
 
   const handleDelete = async () => {
@@ -86,6 +105,7 @@ export function GefahrenzoneDetailPanel({ zone, einsatzId, onClose }: Gefahrenzo
 
   return (
     <section role="region" aria-labelledby={sectionHeaderId} className="flex flex-col gap-4 p-panel">
+      {akutDialog}
       <header className="flex items-start gap-3">
         <WarnstufeChip warnstufe={warnstufe} size="md" />
         <div className="min-w-0 flex-1">

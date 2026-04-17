@@ -1,6 +1,8 @@
 import { formatAddress } from '@/shared/lib/addressFormatter';
 import { useCurrentUser } from '@/features/auth';
 import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
+import { useGefahrenmatrixWebSocket } from '@/features/gefahrenmatrix/api/use-gefahrenmatrix-websocket';
+import { AkutBroadcastToast } from '@/features/gefahrenmatrix/ui/organisms/AkutBroadcastToast';
 import { useMyEinsatzRolle } from '@/features/befehl/api/use-my-einsatz-rolle';
 import { EINSATZ_QUERY_KEYS, EinsatzRolleProvider, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { ETB_QUERY_KEYS, useNeuerEtbEintragHotkey } from '@/features/etb';
@@ -172,6 +174,11 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Quittierung-Alerts: Zeigt persistente Alarm-Toasts fuer verpasste
   // RUECKFRAGE/NICHT_VERSTANDEN Quittierungen (z.B. nach erneutem Login).
   useMissedBefehlAlerts(einsatzId);
+
+  // Gefahrenmatrix-Broadcast (Issue #627, G4): AKUT-Events loesen dreistufigen
+  // Toast aus, Matrix-Cache wird invalidiert. Eigene Broadcasts (`aktualisiertVon
+  // === user.id`) werden rausgefiltert.
+  useGefahrenmatrixWebSocket({ einsatzId, currentUserId: user?.id });
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
@@ -474,6 +481,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     return (
       <EinsatzRolleProvider value={einsatzRolleContextValue}>
         <div className={cn('min-h-screen bg-surface-canvas text-text-primary', className)}>
+          <AkutBroadcastToast />
           <Outlet />
         </div>
       </EinsatzRolleProvider>
@@ -482,6 +490,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   return (
     <EinsatzRolleProvider value={einsatzRolleContextValue}>
+      <AkutBroadcastToast />
       <WorkspaceShell
         className={className}
         contextBar={{

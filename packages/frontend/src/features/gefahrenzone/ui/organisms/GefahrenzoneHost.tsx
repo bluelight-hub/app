@@ -15,6 +15,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/maplibre';
 import type { CreateGefahrenzoneDto } from '@bluelight-hub/shared/client';
 import { useUpdateGefahrenmatrixBewertung } from '@/features/gefahrenmatrix/api/mutations';
+import { useGefahrenmatrix } from '@/features/gefahrenmatrix/api/queries';
+import { useAkutConfirm } from '@/features/gefahrenmatrix/hooks/use-akut-confirm';
+import type { GefahrentypValue, SchutzobjektValue, WarnstufeValue } from '@/features/gefahrenmatrix/schemas/gefahrenmatrix.schema';
 import { drawStore, setDrawContext, setDrawMode } from '@/features/lagekarte/stores/draw.store';
 import { useCreateGefahrenzone, useGefahrenzoneWebSocket, useGefahrenzonen } from '../../api';
 import { GefahrenzoneInlinePopover, type GefahrenzonePopoverValues } from '../molecules/GefahrenzoneInlinePopover';
@@ -49,6 +52,11 @@ export function GefahrenzoneHost({ einsatzId, mapRef, focus }: GefahrenzoneHostP
 
   const createMutation = useCreateGefahrenzone();
   const updateMatrixMutation = useUpdateGefahrenmatrixBewertung();
+  const { data: matrixData } = useGefahrenmatrix(einsatzId);
+  const currentWarnstufeFor = (typ: GefahrentypValue, objekt: SchutzobjektValue): WarnstufeValue => {
+    const hit = matrixData?.bewertungen?.find((b) => b.gefahrentyp === typ && b.schutzobjekt === objekt);
+    return (hit?.warnstufe as WarnstufeValue) ?? 'KEINE';
+  };
 
   const drawContext = useStore(drawStore, (s) => s.drawContext);
   const defaults = useStore(gefahrenzoneDrawStore, (s) => ({
@@ -127,6 +135,18 @@ export function GefahrenzoneHost({ einsatzId, mapRef, focus }: GefahrenzoneHostP
     };
   }, [mapRef]);
 
+  const { requestChange, dialog: akutDialog } = useAkutConfirm({
+    onCommit: ({ gefahrentyp, schutzobjekt, warnstufe }) => {
+      updateMatrixMutation.mutate({ einsatzId, data: { gefahrentyp, schutzobjekt, warnstufe } });
+      setPopover(null);
+    },
+    onCancel: () => {
+      // Zone ist erstellt; die Matrix-Warnstufe bleibt unverändert. Popover schließen
+      // und den Nutzer auf die Detailansicht fallen lassen.
+      setPopover(null);
+    },
+  });
+
   const isSubmitting = createMutation.isPending || updateMatrixMutation.isPending;
 
   // ----- Deep-Link: `focus=zone:<id>` → Panel öffnen + flyTo (G3) -----
@@ -154,6 +174,43 @@ export function GefahrenzoneHost({ einsatzId, mapRef, focus }: GefahrenzoneHostP
     lastFlownZoneRef.current = deepLinkZone.id;
   }, [deepLinkZone, mapRef]);
 
+  // ----- Split-View: `focus=cell:<typ>:<objekt>` → BBox aller zugehörigen Zonen anfliegen (G4) -----
+  const cellFocus = focus?.startsWith('cell:') ? focus.split(':') : null;
+  const cellTyp = cellFocus?.length === 3 ? cellFocus[1] : null;
+  const cellObj = cellFocus?.length === 3 ? cellFocus[2] : null;
+  const lastFlownCellRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!cellTyp || !cellObj) {
+      lastFlownCellRef.current = null;
+      return;
+    }
+    const cellKey = `${cellTyp}:${cellObj}`;
+    if (lastFlownCellRef.current === cellKey) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const matchingZonen = zonen.filter((z) => z.gefahrentyp === cellTyp && z.schutzobjekt === cellObj);
+    if (matchingZonen.length === 0) {
+      lastFlownCellRef.current = cellKey;
+      return;
+    }
+    const bbox = computeBboxFromZonen(matchingZonen);
+    if (bbox) {
+      try {
+        map.fitBounds(
+          [
+            [bbox.minLng, bbox.minLat],
+            [bbox.maxLng, bbox.maxLat],
+          ],
+          { padding: 80, duration: 600, maxZoom: 16 },
+        );
+      } catch {
+        // fitBounds kann in jsdom fehlen — ok.
+      }
+    }
+    lastFlownCellRef.current = cellKey;
+  }, [cellTyp, cellObj, zonen, mapRef]);
+
   const clearDeepLinkFocus = () => {
     navigate({
       to: '/app/einsatz/$einsatzId/übersicht/karte',
@@ -164,6 +221,7 @@ export function GefahrenzoneHost({ einsatzId, mapRef, focus }: GefahrenzoneHostP
 
   return (
     <>
+      {akutDialog}
       <GefahrenzoneLayer zonen={zonen} />
       {deepLinkZone ? (
         <aside
@@ -189,17 +247,49 @@ export function GefahrenzoneHost({ einsatzId, mapRef, focus }: GefahrenzoneHostP
             };
             await createMutation.mutateAsync({ einsatzId, data: dto });
             rememberLastUsedDefaults(values.gefahrentyp, values.schutzobjekt);
-            // Matrix-Warnstufe setzen, damit die Zone sofort die korrekte Warnstufe erbt.
-            await updateMatrixMutation.mutateAsync({
-              einsatzId,
-              data: { gefahrentyp: values.gefahrentyp, schutzobjekt: values.schutzobjekt, warnstufe: values.warnstufe },
+            // Matrix-Warnstufe setzen — bei Hochstufe auf AKUT wird vorher der Confirm-Dialog gezeigt.
+            requestChange({
+              gefahrentyp: values.gefahrentyp,
+              schutzobjekt: values.schutzobjekt,
+              previous: currentWarnstufeFor(values.gefahrentyp, values.schutzobjekt),
+              next: values.warnstufe,
             });
-            setPopover(null);
           }}
         />
       ) : null}
     </>
   );
+}
+
+/**
+ * Berechnet die Bounding-Box über alle übergebenen Zonen (Issue #627, G4).
+ * Iteriert über Polygon-Ringe und sammelt Min/Max-Lng/Lat. `null`, wenn
+ * keine brauchbaren Koordinaten gefunden werden.
+ */
+function computeBboxFromZonen(zonen: Array<{ geometry: unknown }>): { minLng: number; minLat: number; maxLng: number; maxLat: number } | null {
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+  let hasAny = false;
+  for (const zone of zonen) {
+    const geom = zone.geometry as { type?: string; geometry?: { type?: string; coordinates?: unknown }; coordinates?: unknown } | undefined;
+    if (!geom) continue;
+    const polygon = geom.type === 'Feature' ? (geom.geometry as { type?: string; coordinates?: unknown } | undefined) : geom;
+    if (!polygon || polygon.type !== 'Polygon') continue;
+    const rings = polygon.coordinates as number[][][] | undefined;
+    const ring = rings?.[0];
+    if (!ring) continue;
+    for (const [x, y] of ring) {
+      if (x < minLng) minLng = x;
+      if (y < minLat) minLat = y;
+      if (x > maxLng) maxLng = x;
+      if (y > maxLat) maxLat = y;
+      hasAny = true;
+    }
+  }
+  if (!hasAny) return null;
+  return { minLng, minLat, maxLng, maxLat };
 }
 
 /**
