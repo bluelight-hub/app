@@ -545,7 +545,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
             title="Neuen ETB-Eintrag erstellen (⌘⇧E)"
           >
             <PiPlusCircle className="h-4 w-4 shrink-0" />
-            Neuer ETB-Eintrag
+            ETB-Eintrag
           </Button>
         }
         sidebarFooter={null}
