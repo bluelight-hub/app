@@ -136,14 +136,14 @@ export function WorkspaceShell({
                 <section aria-label="Workspace-Navigation" className="min-h-0 flex-1 space-y-2 overflow-y-auto">
                   {sidebarHeader}
 
-                  <nav aria-label="Modulseiten" className="-mt-1 space-y-0.5 pb-3">
-                    <h2 className="mb-3 px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Navigation</h2>
+                  <nav aria-label="Modulseiten" className="-mt-1 space-y-0.5 pb-2">
+                    <h2 className="mb-2 px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Navigation</h2>
                     {navigationGroups.map((module) => (
                       <div key={module.id} className="space-y-1 pb-2 last:pb-0">
                         {isDisabled(module.visibility) ? (
                           <div
                             aria-disabled="true"
-                            className="flex items-center gap-2 rounded-control border-l-4 border-transparent px-2.5 py-2 text-text-muted touch:my-0.5 touch:py-2.5"
+                            className="flex items-center gap-2 rounded-control border-l-4 border-transparent px-2.5 py-1.5 text-text-muted touch:my-0.5 touch:py-2.5"
                             title={module.visibility.reason}
                           >
                             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-control">
@@ -166,7 +166,7 @@ export function WorkspaceShell({
                             aria-label={module.label}
                             aria-keyshortcuts={module.shortcut ? [...module.shortcut.modifiers, module.shortcut.key].join('+') : undefined}
                             className={cn(
-                              'group flex cursor-pointer items-center gap-2 rounded-control border-l-4 px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring touch:my-0.5 touch:py-2.5',
+                              'group flex cursor-pointer items-center gap-2 rounded-control border-l-4 px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:shadow-focus-ring touch:my-0.5 touch:py-2.5',
                               module.id === currentModule.id
                                 ? cn('bg-action-secondary text-text-primary', getModuleAccentBorder(module.color))
                                 : 'border-transparent text-text-secondary hover:bg-action-secondary',
@@ -209,7 +209,7 @@ export function WorkspaceShell({
 
                               if (pageIsDisabled) {
                                 return (
-                                  <div key={page.id} aria-disabled="true" className="rounded-control px-2.5 py-2 text-text-muted touch:my-0.5 touch:py-2.5" title={page.visibility.reason}>
+                                  <div key={page.id} aria-disabled="true" className="rounded-control px-2.5 py-1.5 text-text-muted touch:my-0.5 touch:py-2.5" title={page.visibility.reason}>
                                     <div className="flex items-start gap-3">
                                       <page.icon className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
                                       <div className="min-w-0 flex-1">
@@ -233,7 +233,7 @@ export function WorkspaceShell({
                                   search={(prev) => prev}
                                   aria-current={isActive ? 'page' : undefined}
                                   className={cn(
-                                    'group flex cursor-pointer items-start gap-3 rounded-control px-2.5 py-2 transition-colors touch:my-0.5 touch:py-2.5',
+                                    'group flex cursor-pointer items-start gap-3 rounded-control px-2.5 py-1.5 transition-colors touch:my-0.5 touch:py-2.5',
                                     isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                                   )}
                                 >
@@ -257,21 +257,18 @@ export function WorkspaceShell({
 
                 {onCommandTriggerClick || onOpenModuleOverview || quickActionsSlot || statusItems.length > 0 || sidebarFooter ? (
                   <section aria-label="Workspace-Aktionen" className="flex-shrink-0 space-y-2 border-t border-border-subtle pt-2">
-                    {onCommandTriggerClick ? (
-                      <div className="px-0.5">
-                        <CommandTrigger onClick={onCommandTriggerClick} variant="compact" aria-label={commandTriggerLabel} className="w-full justify-center" />
-                      </div>
-                    ) : null}
-
-                    {onOpenModuleOverview ? (
-                      <div className="flex justify-end px-0.5">
-                        <ModuleOverviewButton onClick={onOpenModuleOverview} aria-label={moduleOverviewLabel} />
+                    {onCommandTriggerClick || onOpenModuleOverview ? (
+                      <div className="flex items-center gap-2 px-0.5">
+                        {onCommandTriggerClick ? (
+                          <CommandTrigger onClick={onCommandTriggerClick} variant="compact" aria-label={commandTriggerLabel} className="h-9 flex-1 justify-center py-0" />
+                        ) : null}
+                        {onOpenModuleOverview ? <ModuleOverviewButton onClick={onOpenModuleOverview} aria-label={moduleOverviewLabel} className="h-9 w-9" /> : null}
                       </div>
                     ) : null}
 
                     {quickActionsSlot ? (
-                      <section aria-label="Schnellaktionen" className="space-y-1">
-                        <h2 className="px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Schnellaktionen</h2>
+                      <section aria-label="Schnellaktionen" className="space-y-1 rounded-control bg-surface-raised/50 p-2">
+                        <h2 className="px-1 text-body-xs font-semibold tracking-[0.16em] text-action-primary uppercase">Schnellaktionen</h2>
                         {quickActionsSlot}
                       </section>
                     ) : null}
