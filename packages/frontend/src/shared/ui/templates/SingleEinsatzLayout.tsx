@@ -37,14 +37,14 @@ import { api, EinsatzDtoStatusEnum } from '@/shared';
 import { cn } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { CommandPalette } from '@/shared/ui/organisms/command-palette';
+import { CommandPalette, type ModuleConfig } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PiArrowsOut, PiClock, PiPlusCircle, PiRadio, PiSiren, PiSpeakerHigh, PiUserPlus, PiWarning } from 'react-icons/pi';
+import { PiArrowsOut, PiClock, PiFlag, PiPlusCircle, PiSiren, PiSpeakerHigh, PiUserPlus, PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { hasBlockingWorkspaceOverlay, shouldBlockWorkspaceHotkey } from './single-einsatz-layout.utils';
 
@@ -70,7 +70,6 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [showModuleOverview, setShowModuleOverview] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
-  const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
   const [showExterneEinladenDialog, setShowExterneEinladenDialog] = useState(false);
   const { isFuehrungskraft } = useOperativeRole();
@@ -91,7 +90,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
   const currentEinsatzPersonId = teilnahmeData?.data?.einsatzPersonId;
   const requiresAssignment = !isTeilnahmeLoading && !currentEinsatzPersonId;
-  const beitrittDialogOpen = showBeitrittDialog || requiresAssignment;
+  const beitrittDialogOpen = requiresAssignment;
 
   const anyDialogOpen = hasBlockingWorkspaceOverlay({
     commandPaletteOpen,
@@ -409,6 +408,49 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     [modules],
   );
 
+  const einsatzActionsModule = useMemo<ModuleConfig>(() => {
+    const einsatzBeendet = einsatz?.status === EinsatzDtoStatusEnum.Abgeschlossen || einsatz?.status === EinsatzDtoStatusEnum.Archiviert;
+
+    return {
+      id: 'einsatz-aktionen',
+      name: 'Einsatz',
+      color: 'red',
+      icon: PiSiren,
+      subPages: [
+        ...(isFuehrungskraft
+          ? [
+              {
+                id: 'externe-einladen',
+                name: 'Externe einladen',
+                description: 'Weitere Personen in den Einsatz einladen',
+                icon: PiUserPlus,
+                action: () => setShowExterneEinladenDialog(true),
+              },
+            ]
+          : []),
+        {
+          id: 'audio-einstellungen',
+          name: 'Audio-Einstellungen',
+          description: 'Audio-Optionen für den Einsatz',
+          icon: PiSpeakerHigh,
+          action: () => setShowAudioDialog(true),
+        },
+        {
+          id: 'einsatz-beenden',
+          name: 'Einsatz beenden',
+          description: einsatzBeendet ? 'Einsatz ist bereits beendet' : 'Einsatz abschließen',
+          icon: PiFlag,
+          destructive: true,
+          disabled: einsatzBeendet,
+          disabledReason: einsatzBeendet ? 'Einsatz ist bereits beendet' : undefined,
+          action: () => setShowEndConfirmation(true),
+        },
+      ],
+    };
+  }, [einsatz?.status, isFuehrungskraft]);
+
+  const allCommandPaletteModules = useMemo(() => [einsatzActionsModule, ...commandPaletteModules], [einsatzActionsModule, commandPaletteModules]);
+
   /**
    * Handler für Fullscreen-Toggle
    * Navigiert zur aktuellen Route mit mode=fullscreen
@@ -492,47 +534,18 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         onCommandTriggerClick={() => setCommandPaletteOpen(true)}
         onOpenModuleOverview={() => setShowModuleOverview(true)}
         quickActionsSlot={
-          <div className="space-y-1">
-            <Button
-              intent="primary"
-              appearance="filled"
-              size="sm"
-              className="w-full justify-center whitespace-nowrap"
-              onClick={handleOpenEtb}
-              kbd="cmd+shift+e"
-              aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
-            >
-              <PiPlusCircle className="h-4 w-4 shrink-0" />
-              Neuer ETB-Eintrag
-            </Button>
-            <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
-              <PiRadio className="mr-2 h-4 w-4" />
-              {currentEinsatzPersonId ? (
-                <span className="truncate">{teilnahmeData?.data?.personFunkrufname || `${teilnahmeData?.data?.personVorname} ${teilnahmeData?.data?.personNachname}`}</span>
-              ) : (
-                <span className="text-action-primary">Person wählen</span>
-              )}
-            </Button>
-            {isFuehrungskraft && (
-              <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowExterneEinladenDialog(true)} aria-haspopup="dialog">
-                <PiUserPlus className="mr-2 h-4 w-4" />
-                Externe einladen
-              </Button>
-            )}
-            <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
-              <PiSpeakerHigh className="mr-2 h-4 w-4" />
-              Audio-Einstellungen
-            </Button>
-            <Button
-              intent="danger"
-              size="sm"
-              className="w-full"
-              onClick={() => setShowEndConfirmation(true)}
-              disabled={einsatz?.status === EinsatzDtoStatusEnum.Abgeschlossen || einsatz?.status === EinsatzDtoStatusEnum.Archiviert}
-            >
-              Einsatz beenden
-            </Button>
-          </div>
+          <Button
+            intent="primary"
+            appearance="filled"
+            size="sm"
+            className="w-full justify-center whitespace-nowrap"
+            onClick={handleOpenEtb}
+            aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
+            title="Neuen ETB-Eintrag erstellen (⌘⇧E)"
+          >
+            <PiPlusCircle className="h-4 w-4 shrink-0" />
+            Neuer ETB-Eintrag
+          </Button>
         }
         sidebarFooter={null}
         overlaySlot={
@@ -563,7 +576,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
       {/* Command Palette Modal */}
       <CommandPaletteErrorBoundary>
-        <CommandPalette modules={commandPaletteModules} open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
+        <CommandPalette modules={allCommandPaletteModules} open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
       </CommandPaletteErrorBoundary>
 
       {/* Einsatz beenden Confirmation Dialog */}
@@ -607,7 +620,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
       </Dialog>
 
       {/* Einsatz Beitritt / Funkrufname Dialog */}
-      <EinsatzBeitrittDialog einsatzId={einsatzId} isOpen={beitrittDialogOpen} onClose={() => setShowBeitrittDialog(false)} onReturnToOverview={handleReturnToEinsatzliste} />
+      <EinsatzBeitrittDialog einsatzId={einsatzId} isOpen={beitrittDialogOpen} onClose={() => {}} onReturnToOverview={handleReturnToEinsatzliste} />
 
       {/* Quick-Create Erinnerung Dialog (Story 1.1 AC1, Story 5.4) */}
       <QuickCreateErinnerungDialog
