@@ -143,13 +143,8 @@ export function WorkspaceShell({
           <div className="flex gap-3 xl:gap-4">
             <aside className="hidden w-52 flex-shrink-0 py-2 lg:block xl:w-56">
               <div className="sticky top-24 flex h-[calc(100vh-8rem)] flex-col rounded-panel border border-border-subtle bg-surface-panel p-2 shadow-panel">
-                <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
+                <section aria-label="Workspace-Navigation" className="min-h-0 flex-1 space-y-2 overflow-y-auto">
                   {sidebarHeader}
-                  {onCommandTriggerClick ? (
-                    <div className="px-0.5">
-                      <CommandTrigger onClick={onCommandTriggerClick} label={commandTriggerLabel} />
-                    </div>
-                  ) : null}
 
                   <nav aria-label="Modulseiten" className="-mt-1 space-y-0.5 pb-3">
                     <h2 className="mb-3 px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Navigation</h2>
@@ -261,19 +256,27 @@ export function WorkspaceShell({
                       </div>
                     ))}
                   </nav>
-                </div>
+                </section>
 
-                <div className="flex-shrink-0">
-                  {quickActionsSlot ? (
-                    <section aria-label="Schnellaktionen" className="space-y-1 border-t border-border-subtle pt-2">
-                      <h2 className="px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Schnellaktionen</h2>
-                      {quickActionsSlot}
-                    </section>
-                  ) : null}
+                {onCommandTriggerClick || quickActionsSlot || statusItems.length > 0 || sidebarFooter ? (
+                  <section aria-label="Workspace-Aktionen" className="flex-shrink-0 space-y-2 border-t border-border-subtle pt-2">
+                    {onCommandTriggerClick ? (
+                      <div className="px-0.5">
+                        <CommandTrigger onClick={onCommandTriggerClick} variant="compact" aria-label={commandTriggerLabel} className="w-full justify-center" />
+                      </div>
+                    ) : null}
 
-                  <StatusRail items={statusItems} />
-                  {sidebarFooter}
-                </div>
+                    {quickActionsSlot ? (
+                      <section aria-label="Schnellaktionen" className="space-y-1">
+                        <h2 className="px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Schnellaktionen</h2>
+                        {quickActionsSlot}
+                      </section>
+                    ) : null}
+
+                    <StatusRail items={statusItems} />
+                    {sidebarFooter}
+                  </section>
+                ) : null}
               </div>
             </aside>
 

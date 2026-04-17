@@ -424,4 +424,58 @@ describe('WorkspaceShell contract', () => {
     const navigationPosition = navigation.compareDocumentPosition(quickActions);
     expect(navigationPosition & Node.DOCUMENT_POSITION_FOLLOWING).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
+
+  it('gliedert die Desktop-Sidebar in Workspace-Navigation- und Workspace-Aktionen-Zone und platziert den Command-Trigger in der Aktionen-Zone', () => {
+    render(
+      <WorkspaceShell
+        contextBar={{
+          title: 'Einsatz 98-76 | Gefahrgut',
+          subtitle: 'ABC 2 • Industriepark',
+        }}
+        modules={[
+          {
+            id: 'führung',
+            label: 'Führung',
+            description: 'Einsatzleitung und Dokumentation',
+            routeTarget: '/app/einsatz/$einsatzId/führung/etb',
+            icon: PiClipboard,
+            color: 'purple',
+            priority: 20,
+            visibility: { default: 'visible' },
+            shortcut: { modifiers: ['alt'], key: '2' },
+            subPages: [
+              {
+                id: 'etb',
+                label: 'ETB',
+                href: '/app/einsatz/$einsatzId/führung/etb',
+                icon: PiClipboard,
+                visibility: { default: 'visible' },
+              },
+            ],
+          },
+        ]}
+        activeModuleId="führung"
+        activePageHref="/app/einsatz/$einsatzId/führung/etb"
+        routeParams={{ einsatzId: 'einsatz-98-76' }}
+        commandTriggerLabel="Befehle und Navigation"
+        onCommandTriggerClick={vi.fn()}
+        quickActionsSlot={<button type="button">Audio-Einstellungen</button>}
+      >
+        <div>Arbeitsbereich</div>
+      </WorkspaceShell>,
+    );
+
+    const navigationZone = screen.getByRole('region', { name: 'Workspace-Navigation' });
+    const actionZone = screen.getByRole('region', { name: 'Workspace-Aktionen' });
+
+    expect(navigationZone).toBeInTheDocument();
+    expect(actionZone).toBeInTheDocument();
+    expect(within(navigationZone).getByRole('navigation', { name: 'Modulseiten' })).toBeInTheDocument();
+    expect(within(navigationZone).queryByRole('button', { name: 'Befehle und Navigation' })).not.toBeInTheDocument();
+    expect(within(actionZone).getByRole('button', { name: 'Befehle und Navigation' })).toBeInTheDocument();
+    expect(within(actionZone).getByRole('region', { name: 'Schnellaktionen' })).toBeInTheDocument();
+
+    const navigationFollowsAction = navigationZone.compareDocumentPosition(actionZone);
+    expect(navigationFollowsAction & Node.DOCUMENT_POSITION_FOLLOWING).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
 });

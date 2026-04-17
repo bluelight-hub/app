@@ -5,7 +5,6 @@ import { useMyEinsatzRolle } from '@/features/befehl/api/use-my-einsatz-rolle';
 import { EINSATZ_QUERY_KEYS, EinsatzRolleProvider, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { ETB_QUERY_KEYS } from '@/features/etb';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
-import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
 import { ExterneEinladenDialog } from '@/features/einsatz/ui/organisms/ExterneEinladenDialog';
@@ -479,7 +478,6 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         moduleOverviewLabel="Modulübersicht öffnen"
         onCommandTriggerClick={() => setCommandPaletteOpen(true)}
         onOpenModuleOverview={() => setShowModuleOverview(true)}
-        sidebarHeader={<EinsatzSwitcher />}
         quickActionsSlot={
           <div className="space-y-1">
             <Button appearance="ghost" size="sm" className="w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
