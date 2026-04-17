@@ -2,9 +2,18 @@ import { describe, it, expect, vi } from 'vitest';
 import type { GefahrenzoneDto } from '@bluelight-hub/shared/client';
 import { extractZoneClick, GEFAHRENZONE_FILL_LAYER_ID } from '../GefahrenzoneLayer';
 
+// Wir fangen die Layer-Props ein, damit Tests die Paint-Konfiguration inspizieren
+// können — MapLibre v5 rejectet `line-dasharray` mit <2 oder ungeraden Elementen
+// pro Frame (→ Log-Spam). Der Test verifiziert, dass keine Layer mit invalidem
+// Paint gerendert werden.
+const layerProps: Array<Record<string, unknown>> = [];
+
 vi.mock('react-map-gl/maplibre', () => ({
-  Source: () => null,
-  Layer: () => null,
+  Source: ({ children }: { children?: unknown }) => children ?? null,
+  Layer: (props: Record<string, unknown>) => {
+    layerProps.push(props);
+    return null;
+  },
 }));
 
 vi.mock('@/features/lagekarte/detail-providers/warnstufe-style', () => ({
@@ -52,6 +61,31 @@ describe('GefahrenzoneLayer (smoke)', () => {
     const { GefahrenzoneLayer } = await import('../GefahrenzoneLayer');
     const { container } = render(<GefahrenzoneLayer zonen={[]} />);
     expect(container).toBeInTheDocument();
+  });
+
+  it('rendert nur valide line-dasharray-Arrays (>=2 Elemente, gerade Länge)', async () => {
+    layerProps.length = 0;
+    const { render } = await import('@testing-library/react');
+    const { GefahrenzoneLayer } = await import('../GefahrenzoneLayer');
+    render(<GefahrenzoneLayer zonen={[]} />);
+    const dashLayers = layerProps.filter((p) => {
+      const paint = p.paint as Record<string, unknown> | undefined;
+      return paint && 'line-dasharray' in paint;
+    });
+    // Es sollte mindestens ein Layer mit dasharray existieren (der KEINE-Layer).
+    expect(dashLayers.length).toBeGreaterThan(0);
+    for (const layer of dashLayers) {
+      const paint = layer.paint as Record<string, unknown>;
+      const dash = paint['line-dasharray'];
+      // Regression-Guard: MapLibre v5 akzeptiert nur statische Arrays mit >=2
+      // Elementen und gerader Länge. Kein Case-Branch mit [1].
+      expect(Array.isArray(dash)).toBe(true);
+      expect((dash as unknown[]).length).toBeGreaterThanOrEqual(2);
+      expect((dash as unknown[]).length % 2).toBe(0);
+      for (const value of dash as unknown[]) {
+        expect(typeof value).toBe('number');
+      }
+    }
   });
 
   it('rendert mit AKUT-Zone (Glow-Layer wird mit gefiltertem Paint gerendert)', async () => {
