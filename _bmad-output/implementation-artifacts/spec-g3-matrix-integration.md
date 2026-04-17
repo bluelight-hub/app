@@ -1,10 +1,11 @@
 ---
-status: ready-for-dev
+status: done
 goal: G3
 parent_spec: ../planning-artifacts/ux-design-specification.md
 prev_spec: ./spec-g2-karten-zone-erstellung.md
 github_issue: 627
 branch: 627-lagekarte-integration-der-gefahrenmatrix-mit-raeumlicher
+completed_at: 2026-04-17
 ---
 
 # Spec G3 — Matrix-Integration (Bidirektionale Sichtbarkeit)
@@ -260,3 +261,69 @@ class GefahrenzonenDetailProvider implements LayerDetailProvider {
 ## Abschluss-Signal
 
 `status: done` im Frontmatter, `## Spec Change Log` mit Files/Abweichungen/Tests, Übergabe an G4.
+
+## Spec Change Log
+
+**Datum:** 2026-04-17
+**Branch:** `627-lagekarte-integration-der-gefahrenmatrix-mit-raeumlicher`
+**Team:** `lagekarte-gefahrenmatrix` (team-lead, frontend-engineer)
+
+### Commits (1)
+
+- `b9c89294e` ✨(gefahrenzone): G3 — Matrix-Badges + Detail-Provider + Deep-Links (frontend-engineer; 24 Files, +1246/-134)
+
+### Neue/geänderte Files
+
+**Neu:**
+
+- `features/gefahrenzone/api/use-gefahrenzonen-by-cell.ts` (+ Test)
+- `features/gefahrenzone/lib/point-in-polygon.ts` (+ Test, inline Ray-Casting ohne turf)
+- `features/gefahrenzone/ui/organisms/GefahrenzoneDetailPanel.tsx` (+ Test)
+- `features/gefahrenzone/ui/organisms/GefahrenzoneDetailPopup.tsx`
+- `features/gefahrenmatrix/ui/atoms/ZoneCountBadge.tsx` (+ Test)
+- `features/gefahrenmatrix/ui/atoms/OrphanWarningIndicator.tsx` (+ Test)
+- `features/gefahrenmatrix/ui/molecules/__tests__/GefahrenmatrixCell.spec.tsx`
+- `features/lagekarte/detail-providers/gefahrenzonen/gefahrenzonen-detail-provider.tsx` (+ Test)
+
+**Geändert:**
+
+- `features/gefahrenzone/api/index.ts` — `useGefahrenzonenByCell`, `cellKey` exportiert.
+- `features/gefahrenzone/ui/organisms/GefahrenzoneHost.tsx` — G2-Click-Handler entfernt (Provider übernimmt); `focus`-Prop; Einsatz-ID-Setter für Provider; Panel-Mount am View-Root für Deep-Link.
+- `features/gefahrenzone/ui/organisms/__tests__/GefahrenzoneHost.spec.tsx` — Tests aktualisiert (Click → Deep-Link).
+- `features/gefahrenmatrix/ui/molecules/GefahrenmatrixCell.tsx` — Badge/Orphan-Rendering + `isFocusTarget`-Prop.
+- `features/gefahrenmatrix/ui/organisms/GefahrenmatrixGrid.tsx` — `useGefahrenzonenByCell` + `focus`-Param + ScrollIntoView.
+- `features/lagekarte/detail-providers/index.ts` — Provider registriert.
+- `features/lagekarte/ui/organisms/LagekarteView/LagekarteView.tsx` — `focus`-Prop durchreichen.
+- Routen `sicherheit/gefahren.tsx` und `übersicht/karte.tsx` — `focus?: string` im Search-Schema; Badge-Click → navigate.
+- `index.tailwind.css` — `@keyframes gefahrenmatrix-cell-pulse` + Reduced-Motion-Fallback (einmaliger Border-Flash 300 ms).
+
+### Abweichungen vom Plan (mit Begründung)
+
+1. **Deep-Link-Panel als zweiter Mount-Pfad** — direkt vom `GefahrenzoneHost` als `<aside>`, nicht über `LayerDetailProvider.renderPanel`. Grund: MapDetail-Flow ist click-gesteuert (Punkt → `queryFeature`), Deep-Link ist ID-gesteuert (Zone aus Query-Cache direkt). Synthetische Provider-Aufrufe wären hacky. Panel-Komponente ist identisch, nur Mount-Pfad unterscheidet sich.
+2. **G2-Host-Click-Handler entfernt** — `GefahrenzonenDetailProvider` übernimmt den Klick-Flow über `queryAllDetailProviders` → `MapDetailPopup` → `MapDetailPanel`. Damit Gefahrenzone konsistent mit DWD/NINA. Alter Host-Test-Case ersetzt.
+3. **Provider-State via globalen `queryClient` + Modul-Level `currentEinsatzId`** statt Provider-Factory. Setter `setGefahrenzonenProviderEinsatzId` vom `GefahrenzoneHost`-Mount aufgerufen. Einfacher als Factory + Registry-Unregister-Hook.
+4. **Badge-Click-Navigation-Target:** navigate zu `/übersicht/karte?focus=cell:X:Y` (statt `/lagekarte`, wie in Spec). Route im Projekt heißt `/übersicht/karte` — Spec-Text war generisch.
+
+### Tests
+
+| Bereich                   | Ergebnis                                               |
+| ------------------------- | ------------------------------------------------------ |
+| G3 + gefahrenmatrix-Scope | **100/100 grün** (16 Test-Files)                       |
+| Frontend-Suite gesamt     | **4492/4492 grün** (370 Test-Files — keine Regression) |
+| `tsc --noEmit`            | ✅ clean                                               |
+| `pnpm lint`               | ✅ 0 Errors, 28 Warnings (pre-existing)                |
+
+### Manueller Smoke (nicht automatisiert im Gate — zu prüfen vor Release)
+
+- Matrix-Zelle mit 0/1/2 Zonen + Orphan-Fall (Warnstufe ohne Zone).
+- Badge-Klick → `/übersicht/karte?focus=cell:X:Y`.
+- Zone-Click auf Karte → Popup → Panel → „Zur Matrix-Zelle" → Zelle pulst.
+- Deep-Link `?focus=zone:<id>` → Panel öffnet, Karte zoomt.
+- Dark-Mode Badge + Indicator.
+
+### Übergabe an G4
+
+- `useGefahrenzonenByCell` ist auch der Fokus-Handler für Split-View-Matrix-Zell-Klick (G4 Mechanik C).
+- `GefahrenzoneDetailPanel` + `GefahrenzoneInlinePopover` sind wiederverwendbar im Split-Modus.
+- `@keyframes gefahrenmatrix-cell-pulse` bereits da — Split-View-Fokus-Pulse kann das reusen.
+- Routen haben bereits `focus`-Search-Param — G4 ergänzt `split=true` dazu.
