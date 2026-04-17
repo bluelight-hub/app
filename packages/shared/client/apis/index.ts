@@ -29,6 +29,7 @@ export * from './ErinnerungsvorlagenApi';
 export * from './FuehrungsrhythmusTemplatesAdminApi';
 export * from './FunkkanalApi';
 export * from './GefahrenmatrixApi';
+export * from './GefahrenzonenApi';
 export * from './GeoApi';
 export * from './GeocodingApi';
 export * from './HealthApi';
