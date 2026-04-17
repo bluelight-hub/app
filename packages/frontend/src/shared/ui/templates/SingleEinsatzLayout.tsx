@@ -538,8 +538,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
             intent="primary"
             appearance="filled"
             size="sm"
-            className="w-full justify-center whitespace-nowrap"
+            className="w-full justify-center whitespace-nowrap [&_kbd]:px-1 [&_kbd]:py-0 [&_kbd]:text-[10px] [&_kbd]:font-normal"
             onClick={handleOpenEtb}
+            kbd="cmd+shift+e"
             aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
             title="Neuen ETB-Eintrag erstellen (⌘⇧E)"
           >
