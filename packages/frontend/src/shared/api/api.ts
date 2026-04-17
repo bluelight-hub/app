@@ -15,6 +15,7 @@ import {
   AuthApi,
   EinsatzBeitrittApi,
   GefahrenmatrixApi,
+  GefahrenzonenApi,
   BefehleApi,
   Configuration,
   EinsatzApi,
@@ -131,6 +132,7 @@ class BackendApi {
   private readonly einsatzApi: EinsatzApi;
   private readonly einsatzBeitrittApi: EinsatzBeitrittApi;
   private readonly gefahrenmatrixApi: GefahrenmatrixApi;
+  private readonly gefahrenzonenApi: GefahrenzonenApi;
   private readonly etbApi: ETBApi;
   private readonly lagekarteApi: LagekarteApi;
   private readonly lagekarteCqrsApi: LagekarteCQRSApi;
@@ -193,6 +195,7 @@ class BackendApi {
     this.einsatzApi = new EinsatzApi(this.configuration);
     this.einsatzBeitrittApi = new EinsatzBeitrittApi(this.configuration);
     this.gefahrenmatrixApi = new GefahrenmatrixApi(this.configuration);
+    this.gefahrenzonenApi = new GefahrenzonenApi(this.configuration);
     this.etbApi = new ETBApi(this.configuration);
     this.lagekarteApi = new LagekarteApi(this.configuration);
     this.lagekarteCqrsApi = new LagekarteCQRSApi(this.configuration);
@@ -327,6 +330,15 @@ class BackendApi {
    */
   gefahrenmatrix(): GefahrenmatrixApi {
     return this.gefahrenmatrixApi;
+  }
+
+  /**
+   * Gibt die gecachte Gefahrenzonen-API-Instanz zurück (Issue #627)
+   *
+   * @returns Die Gefahrenzonen-API-Instanz für Geometrie-Zonen auf der Lagekarte
+   */
+  gefahrenzonen(): GefahrenzonenApi {
+    return this.gefahrenzonenApi;
   }
 
   /**

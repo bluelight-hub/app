@@ -320,6 +320,10 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
     const handleCreate = (e: any) => {
       if (isUndoInProgress.current) return;
       if (isRemoteApplyRef?.current) return;
+      // Issue #627 G2: Gefahrenzone-Draw wird separat vom `GefahrenzoneHost` konsumiert,
+      // um Taktisch-Styling, Undo und Lagekarte-Delta-Sync zu vermeiden. Der Host entfernt
+      // das Draw-Feature selbst nach erfolgreichem Save bzw. Abbruch.
+      if (drawStore.state.drawContext === 'gefahrenzone') return;
 
       // Feature-Limit prüfen
       const allFeatures = draw.getAll();
