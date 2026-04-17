@@ -25,6 +25,13 @@ vi.mock('react-map-gl/maplibre', () => ({
 
 vi.mock('@/features/lagekarte/detail-providers/warnstufe-style', () => ({
   getWarnstufeMapStyle: () => ({ fillColor: 'x', strokeColor: 'y', fillOpacity: 1, strokeWidth: 2 }),
+  WARNSTUFE_CHIP_STYLES: {
+    KEINE: { bg: 'bg', text: 'text', border: 'border', icon: 'icon', kuerzel: '—' },
+    NIEDRIG: { bg: 'bg', text: 'text', border: 'border', icon: 'icon', kuerzel: 'N' },
+    MITTEL: { bg: 'bg', text: 'text', border: 'border', icon: 'icon', kuerzel: 'M' },
+    HOCH: { bg: 'bg', text: 'text', border: 'border', icon: 'icon', kuerzel: 'H' },
+    AKUT: { bg: 'bg', text: 'text', border: 'border', icon: 'icon', kuerzel: 'A' },
+  },
 }));
 
 const mockCreate = vi.fn();
@@ -46,6 +53,14 @@ vi.mock('@/shared', () => ({
 
 vi.mock('../../../api/use-gefahrenzone-websocket', () => ({
   useGefahrenzoneWebSocket: () => ({ status: 'disconnected', isConnected: false }),
+}));
+
+vi.mock('@/features/lagekarte/detail-providers', () => ({
+  setGefahrenzonenProviderEinsatzId: vi.fn(),
+}));
+
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => vi.fn(),
 }));
 
 import { GefahrenzoneHost } from '../GefahrenzoneHost';
@@ -83,11 +98,12 @@ describe('GefahrenzoneHost', () => {
     }));
   });
 
-  it('registriert `draw.create`- und `click`-Listener auf der Map', () => {
+  it('registriert den `draw.create`-Listener auf der Map (Klick-Flow via Detail-Provider, G3)', () => {
     const { wrapper } = makeWrapper();
     render(<GefahrenzoneHost einsatzId="e1" mapRef={mapRef as unknown as Parameters<typeof GefahrenzoneHost>[0]['mapRef']} />, { wrapper });
     expect(mapListeners.has('draw.create')).toBe(true);
-    expect(mapListeners.has('click')).toBe(true);
+    // G3: kein Click-Handler mehr am Host — Zone-Klick wird vom GefahrenzonenDetailProvider konsumiert.
+    expect(mapListeners.has('click')).toBe(false);
   });
 
   it('öffnet Create-Popover bei draw.create, wenn drawContext === "gefahrenzone"', async () => {
@@ -152,7 +168,7 @@ describe('GefahrenzoneHost', () => {
     expect(screen.queryByRole('heading', { name: /Neue Gefahrenzone/i })).not.toBeInTheDocument();
   });
 
-  it('öffnet Edit-Popover bei Klick auf eine Zone', async () => {
+  it('öffnet das DetailPanel, wenn Deep-Link-Prop `focus=zone:<id>` gesetzt ist (G3)', async () => {
     const zone: GefahrenzoneDto = {
       id: 'z-42',
       einsatzId: 'e1',
@@ -184,13 +200,17 @@ describe('GefahrenzoneHost', () => {
     const { client, wrapper } = makeWrapper();
     client.setQueryData(['gefahrenzonen', 'e1'], [zone]);
 
-    render(<GefahrenzoneHost einsatzId="e1" mapRef={mapRef as unknown as Parameters<typeof GefahrenzoneHost>[0]['mapRef']} />, { wrapper });
+    render(<GefahrenzoneHost einsatzId="e1" mapRef={mapRef as unknown as Parameters<typeof GefahrenzoneHost>[0]['mapRef']} focus="zone:z-42" />, { wrapper });
 
-    fakeMap.queryRenderedFeatures.mockReturnValueOnce([{ properties: { zoneId: 'z-42' } }] as unknown as ReturnType<typeof fakeMap.queryRenderedFeatures>);
-    act(() => {
-      mapListeners.get('click')!({ point: { x: 5, y: 5 }, lngLat: { lng: 0, lat: 0 } });
-    });
+    await waitFor(() => expect(screen.getByRole('region')).toBeInTheDocument());
+    // Panel-Header ist das h2 mit dem Gefahrentyp-Label.
+    expect(screen.getByText(/Brand/i)).toBeInTheDocument();
+  });
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: /Zone bearbeiten/i })).toBeInTheDocument());
+  it('rendert kein DetailPanel, wenn `focus` auf einen unbekannten Zonen-ID verweist', () => {
+    const { client, wrapper } = makeWrapper();
+    client.setQueryData(['gefahrenzonen', 'e1'], []);
+    render(<GefahrenzoneHost einsatzId="e1" mapRef={mapRef as unknown as Parameters<typeof GefahrenzoneHost>[0]['mapRef']} focus="zone:does-not-exist" />, { wrapper });
+    expect(screen.queryByRole('region')).not.toBeInTheDocument();
   });
 });

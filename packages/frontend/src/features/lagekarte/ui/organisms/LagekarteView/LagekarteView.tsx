@@ -65,9 +65,15 @@ export type LagekarteSearchParams = {
 interface LagekarteViewProps {
   einsatzId: string;
   mode?: LagekarteMode;
+  /**
+   * Deep-Link-Fokus (Issue #627, G3). Aktuell unterstützt: `zone:{zoneId}` —
+   * öffnet das `GefahrenzoneDetailPanel` für die angegebene Zone, sobald die
+   * Query-Daten geladen sind.
+   */
+  focus?: string;
 }
 
-export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 'standard' }) => {
+export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 'standard', focus }) => {
   const { resolvedStyle, selectedBaseLayer, dwdOverlayEnabled, availableLayers, ninaOverlays } = useMapLayer(einsatzId);
   const { data: ninaGeoJson } = useNinaMapData();
   const [isLoading, setIsLoading] = useState(true);
@@ -545,8 +551,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         {/* Taktische Zeichen Layer (DV 102) */}
         <TaktischeZeichenLayer mapRef={mapRef} isMapLoaded={isMapLoaded} zeichen={einsatzZeichen} />
 
-        {/* Gefahrenzonen-Layer + Inline-Popover (Issue #627, G2) */}
-        {isMapLoaded && einsatzId && <GefahrenzoneHost einsatzId={einsatzId} mapRef={mapRef} />}
+        {/* Gefahrenzonen-Layer + Inline-Popover (Issue #627, G2) + Deep-Link-Panel (G3) */}
+        {isMapLoaded && einsatzId && <GefahrenzoneHost einsatzId={einsatzId} mapRef={mapRef} focus={focus} />}
 
         {/* Ghost-Marker: Halbtransparente Vorschau beim Platzieren */}
         {pendingZeichenPlacement && <GhostZeichenMarker mapRef={mapRef} isMapLoaded={isMapLoaded} definition={pendingZeichenPlacement.definition} />}

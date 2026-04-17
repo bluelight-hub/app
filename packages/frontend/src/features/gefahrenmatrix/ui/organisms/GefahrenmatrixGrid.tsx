@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@/shared/ui/cn';
 import {
@@ -14,6 +14,7 @@ import {
   type WarnstufeValue,
 } from '../../schemas/gefahrenmatrix.schema';
 import { useGefahrenmatrix, useUpdateGefahrenmatrixBewertung } from '../../api';
+import { cellKey, useGefahrenzonenByCell } from '@/features/gefahrenzone/api';
 import { GefahrenmatrixCell } from '../molecules/GefahrenmatrixCell';
 
 interface GefahrenmatrixGridProps {
@@ -24,15 +25,44 @@ interface GefahrenmatrixGridProps {
   fullscreen?: boolean;
   /** Polling-Intervall in ms für automatische Aktualisierung */
   refetchInterval?: number;
+  /**
+   * Deep-Link-Ziel — wenn gesetzt, scrollt die entsprechende Zelle ins Viewport
+   * und pulst einmal. Format: `cell:{typ}:{objekt}`.
+   */
+  focus?: string | null;
+  /** Wird bei Zone-Badge-Klick aufgerufen (z. B. zur Lagekarte navigieren). */
+  onZoneBadgeClick?: (typ: GefahrentypValue, objekt: SchutzobjektValue) => void;
 }
 
 /**
  * Vollständige Gefahrenmatrix als interaktive Tabelle.
  * Bildet das Papierformular der Gefahrenmatrix (5A-B-C-D-5E) ab.
  */
-export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = false, refetchInterval }: GefahrenmatrixGridProps) {
+export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = false, refetchInterval, focus, onZoneBadgeClick }: GefahrenmatrixGridProps) {
   const { data, isLoading, isError } = useGefahrenmatrix(einsatzId, { refetchInterval });
   const { mutate: updateBewertung } = useUpdateGefahrenmatrixBewertung();
+  const { data: zonenByCell } = useGefahrenzonenByCell(einsatzId);
+
+  // Deep-Link-Parsing: `cell:{typ}:{objekt}` → Fokus-Target.
+  const focusTarget = useMemo<{ typ: GefahrentypValue; objekt: SchutzobjektValue } | null>(() => {
+    if (!focus?.startsWith('cell:')) return null;
+    const parts = focus.split(':');
+    if (parts.length !== 3) return null;
+    return { typ: parts[1] as GefahrentypValue, objekt: parts[2] as SchutzobjektValue };
+  }, [focus]);
+
+  // Scroll-into-View beim Auftreten der Focus-Zelle. Das Pulse-Animation-Retrigger
+  // (CSS-Klasse auf der Zelle) wird in der Cell-Komponente via `isFocusTarget` gesteuert.
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!focusTarget || !gridRef.current) return;
+    // jsdom: requestAnimationFrame asynchron → Timeout gibt dem Render einen Tick.
+    const id = setTimeout(() => {
+      const target = gridRef.current?.querySelector<HTMLElement>('[data-focus-target="true"]');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
+    return () => clearTimeout(id);
+  }, [focusTarget]);
 
   // Bewertungen als Map: "GEFAHRENTYP:SCHUTZOBJEKT" → WarnstufeValue
   const bewertungMap = useMemo(() => {
@@ -94,31 +124,39 @@ export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = f
           >
             {SCHUTZOBJEKT_LABELS[objekt]}
           </th>
-          {GEFAHRENTYPEN.map((typ) =>
-            isKombinationGueltig(typ, objekt) ? (
+          {GEFAHRENTYPEN.map((typ) => {
+            if (!isKombinationGueltig(typ, objekt)) {
+              return (
+                <td
+                  key={`${typ}:${objekt}`}
+                  className="cursor-not-allowed border border-border-subtle p-0 text-center"
+                  style={{ background: 'repeating-linear-gradient(-45deg, transparent, transparent 3px, var(--color-border-subtle) 3px, var(--color-border-subtle) 4px)' }}
+                  title={`${GEFAHRENTYP_LABELS[typ]} ist für ${SCHUTZOBJEKT_LABELS[objekt]} nicht anwendbar`}
+                />
+              );
+            }
+            const count = zonenByCell.countByCell.get(cellKey(typ, objekt)) ?? 0;
+            const isFocus = focusTarget?.typ === typ && focusTarget?.objekt === objekt;
+            return (
               <GefahrenmatrixCell
                 key={`${typ}:${objekt}`}
                 warnstufe={getWarnstufe(typ, objekt)}
                 onChange={(warnstufe) => handleChange(typ, objekt, warnstufe)}
                 readonly={readonly}
                 fullscreen={fullscreen}
+                zoneCount={count}
+                onZoneBadgeClick={() => onZoneBadgeClick?.(typ, objekt)}
+                isFocusTarget={isFocus}
               />
-            ) : (
-              <td
-                key={`${typ}:${objekt}`}
-                className="cursor-not-allowed border border-border-subtle p-0 text-center"
-                style={{ background: 'repeating-linear-gradient(-45deg, transparent, transparent 3px, var(--color-border-subtle) 3px, var(--color-border-subtle) 4px)' }}
-                title={`${GEFAHRENTYP_LABELS[typ]} ist für ${SCHUTZOBJEKT_LABELS[objekt]} nicht anwendbar`}
-              />
-            ),
-          )}
+            );
+          })}
         </tr>
       ))}
     </>
   );
 
   return (
-    <div className="overflow-x-auto">
+    <div ref={gridRef} className="overflow-x-auto">
       <table className="w-full border-collapse border border-border-subtle">
         {/* Header: Gefahrentyp Labels */}
         <thead>
