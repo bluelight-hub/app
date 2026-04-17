@@ -1,3 +1,25 @@
+## Alarmierung
+
+Die Bluelight Hub Desktop & Web App erhält ein komplett neues Alarmierungs-Feature für Einsatzkräfte im Katastrophenschutz:
+
+- **Alarmierungen erstellen und verwalten**: Erfassen Sie Alarmierungen für Fahrzeuge, Personen und Einheiten mit automatischer Zeiterfassung der vier kritischen Zeitpunkte (Alarmiert, Ausgerückt, Vor Ort, Wieder Frei)
+- **Automatische FMS-Integration**: Zeitpunkte werden automatisch aus FMS-Statusmeldungen (Status 1-4) übernommen und können bei Bedarf manuell korrigiert werden
+- **Reaktionszeit-Tracking**: Übersichtliche Darstellung der Reaktionszeiten mit farbcodierter Anzeige für schnelle Einschätzung der Einsatzbereitschaft
+- **Nachalarmierung**: Nachträgliches Hinzufügen weiterer Empfänger zu bestehenden Alarmierungen mit vollständiger Nachvollziehbarkeit
+- **Timeline-Ansicht**: Chronologische Übersicht aller Alarmierungs-Events und -Änderungen im Einsatzverlauf
+- **Live-Updates**: Echtzeit-Synchronisation zwischen allen geöffneten Fenstern über WebSocket-Verbindungen
+- **ETB-Integration**: Alle Alarmierungs-Vorgänge werden automatisch im Elektronischen Tagebuch (ETB) dokumentiert
+
+## Administration
+
+- **Verbesserte Rollenzuweisung**: Administratoren und Super-Administratoren erhalten bei der Erstellung automatisch die operative Rolle "Führungskraft" statt der Standardrolle
+- **Fensterübergreifende Synchronisation**: Änderungen an Benutzerverwaltung, Berechtigungen und Sperr-Status werden in der Desktop-App sofort über alle geöffneten Fenster hinweg aktualisiert
+
+## Dokumentation
+
+- Ausführliche Architektur-Dokumentation zum Alarmierungs-Feature mit detaillierter Beschreibung des Domain-Models, der vier Zeitpunkte und der FMS-Integration
+- Neuer Architecture Decision Record (ADR-009) zur Trennung zwischen manueller Zeiterfassung und automatischer FMS-Population
+
 ## Funkverkehr
 
 ### Kanalplan
