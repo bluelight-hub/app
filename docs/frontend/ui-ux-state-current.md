@@ -1,0 +1,197 @@
+# UI/UX — Aktueller Umsetzungsstand
+
+> **Stand:** 2026-04-17
+> **Version:** Alpha `1.0.0-alpha.102`
+> **Aktueller Branch-Kontext:** `627-lagekarte-integration-der-gefahrenmatrix-mit-raeumlicher`
+> **Charakter:** Lebendes Dokument — bei signifikanten UX-Änderungen aktualisieren
+
+## Zweck
+
+Dieses Dokument ist der **Puls des Frontends**: Was ist in Ring 1, Ring 2 und Ring 3 tatsächlich gebaut? Wo liegen offene Kanten? Welche Qualitätsgates sind abgenommen, welche warten?
+
+Es ergänzt die zeitlosen Ring-Verträge um eine momentane Bestandsaufnahme.
+
+## Ring-Status im Überblick
+
+| Ring | Status | Nachweis |
+| --- | --- | --- |
+| Ring 1 — Visuelle Sprache | ✅ stabil | [`ring-1-design-tokens.md`](./ring-1-design-tokens.md), Tests unter [`shared/ui/__tests__/ring-1-*.spec.ts`](../../packages/frontend/src/shared/ui/__tests__/) |
+| Ring 2a — Workspace-Fundament | ✅ stabil | [`workspace-fundament-ring-2.md`](./workspace-fundament-ring-2.md), ADR-004 |
+| Ring 2b — Review-Gates | 🟡 in Anwendung | [`ring-2-review-gates.md`](./ring-2-review-gates.md) — universelle Gates implementiert, manuelle Assistive-Tech-Durchläufe pro Story |
+| Ring 2c — Performance-Gates | ✅ stabil | [`ring-2-performance-gates.md`](./ring-2-performance-gates.md), Guardrail-Specs für `Überblick`/`ETB`/`Befehle` |
+| Ring 2d — Session/API-Vertrag | ✅ stabil | [`session-api-contract-ring-2.md`](./session-api-contract-ring-2.md) |
+| Ring 3 — Komponenten-Vertrag | 🟡 dokumentiert | [`ring-3-component-contract.md`](./ring-3-component-contract.md) — Katalog vollständig, fehlende Tests pro Atom werden laufend ergänzt |
+
+## Frontend-Inventar (Stand Projekt-Scan 2026-04-17)
+
+| Einheit | Anzahl |
+| --- | --- |
+| Feature-Module | 22 |
+| File-based Routes | 72 |
+| TanStack-Query-Hooks | 543 |
+| Custom Hooks (gesamt) | 227 |
+| TanStack Stores | 57 |
+| Shared Atoms | 46 |
+| Shared Molecules | 30 |
+| Shared Organisms | 22 |
+| Shared Templates | 7 |
+| Test-Dateien Frontend | 354 |
+| Test-Cases Frontend | 1 474 |
+
+## Design-Tokens
+
+- **Token-Namespace:** `--ring-1-*` (primitive) + Tailwind-`@theme inline`-Aliase (semantisch)
+- **Kategorien-Abdeckung:** Farbe ✅ · Typografie ✅ · Spacing/Density ✅ · Radius ✅ · Shadow ✅ · Warnstufen ✅ · Motion ✅
+- **Light/Dark-Mode:** vollständige Abdeckung, gesteuert über `.dark` auf `<html>` via `next-themes`
+- **Jüngste Erweiterung (Issue #627):** Warnstufen-Tokens `--ring-1-color-warnstufe-{keine|niedrig|mittel|hoch|akut}-{fill|stroke|text|glow}` + Akut-Glow-Shadow
+- **Offene Punkte:**
+  - `Geist`/`Geist Mono` wurden in Story 1.1 bewusst nicht eingeführt — Entscheidung gilt fort, solange keine Marketing-nahe Fläche dazukommt
+  - `surface-elevated` ist aktuell Alias auf `surface-raised` — bei Bedarf eigenständiger Token
+
+## Shell und Workspace
+
+### Kanonische Anker
+
+| Anker | Rolle | Ring-Slot |
+| --- | --- | --- |
+| `WorkspaceShell` | Gesamter Shell-Rahmen | alle Slots |
+| `WorkspaceContextBar` | Einsatz-Kontext, Titel, Rücksprung | Context |
+| `ModuleRail` | Modul-Navigation | Navigation |
+| `StatusRail` | Live-Status | Status |
+| `CommandPalette` | Shell-nahe Suche/Aktionen | Overlay |
+| `SingleEinsatzLayout` | Operativer Arbeitsraum für einen Einsatz | Template |
+
+### Registry
+
+- Modul-Registry ist typisiert und enthält pro Modul: `id`, `label`, `routeTarget`, `description`, `icon`, `shortcut`, `badgeHint`, `visibility`, `priority`, `subPages`
+- Shortcut-Metadaten sind **nicht** in JSX-Strings, sondern im Contract
+- `routeTarget` ist je Modul ausdrücklich modelliert, nicht implizit aus `subPages[0]`
+
+### Status-Zustände
+
+Der Ring-2-Vertrag fordert lesbare Zustände für: `loading`, `pending`, `warning`, `error`, `offline`, `local draft`, `syncing`, `synced`, `failed`, `conflict/retry`, `degraded connection`, `readonly/locked`, `focus/active`. Alle produzieren mindestens Text + Icon oder Zähler, nicht nur Farbe.
+
+## Komponenten (Ring 3)
+
+### Reife pro Ebene
+
+| Ebene | Reife | Notizen |
+| --- | --- | --- |
+| Atoms | ✅ stabil | Varianten-API (`intent`/`appearance`/`size`) konsistent, Tests vorhanden für Kernkomponenten |
+| Molecules | ✅ stabil | Dialog-Familie (`Dialog`, `.Confirm`, `.Alert`, `.SlideIn`) bewährt; Form-Wrapper über TanStack Form |
+| Organisms | 🟡 laufend | Command-Palette und Workspace-Rails komplett; Dashboard-Panels werden je Feature verfeinert |
+| Templates | ✅ stabil | 4 produktive Layouts (`AuthLayout`, `AdminLayout`, `AdminDashboardLayout`, `SingleEinsatzLayout`) |
+
+### Bewährte Muster
+
+- `cn()`-Utility (`clsx` + `tailwind-merge`) als einziger Class-Merger
+- Headless UI überall dort, wo Tastatur- und Screenreader-Verhalten heikel wird (Dialog, Combobox, Switch, Checkbox, Tabs)
+- `forwardRef` für alle Form-Primitives — Ref-Zugriff aus Feature-Code funktioniert überall
+- Loading-States im Button sind absolut positioniert, damit die Button-Fläche beim Laden nicht springt
+
+### Bekannte Feinheiten
+
+- `Dialog.SlideIn` scrollt den Content-Bereich — Combobox-/Listbox-/Menu-Optionen müssen per `anchor="bottom start"` über Floating-UI rendern, sonst schneiden sie ab
+- `Dialog` nutzt `__demoMode` bei Headless UI, um `Escape` selbst zu behandeln (Capture-Phase)
+- `Button.kbd` formatiert Modifier-Tasten (`cmd`→⌘, `shift`→⇧, `alt`→⌥) über eine kleine `KEY_MAP` im Atom
+
+## Feature-Flächen (Auszug, 22 Features gesamt)
+
+| Feature | Hauptflächen | UX-Status |
+| --- | --- | --- |
+| `einsatz` | `SingleEinsatzDashboard`, Wechsel-Dialog, Beitritts-Flow | stabil · Performance-Gate abgenommen |
+| `etb` | `EtbPage`, `EtbEntryList`, Composer-Workspace, Kategorie-Filter | stabil · Performance-Gate abgenommen · Virtualisierung aktiv |
+| `befehl` | `BefehlsListeMitEingabe`, Karten, Filter, Kommentar-Thread | stabil · Performance-Gate abgenommen |
+| `lagekarte` | `LagekarteView` (MapLibre GL), Drawing-Engine, Layer-Switcher, Gefahrenzonen-Matrix-Sync (Issue #627) | aktiv in Entwicklung |
+| `kraefte` | Personen, Fahrzeuge, Einheiten, Qualifikationen, Zuweisungs-Dropdowns | stabil |
+| `funkverkehr` | Funkkanal-Aggregat, Zuweisungs-Flows | stabil |
+| `reminders` | Multi-Eskalation, Snooze, Templates, Tauri-Audio-Alerts | stabil |
+| `alarmierung` | Empfänger-Management, Nachalarmierung | stabil |
+| `auth` | `LoginWindow`, Server-Auswahl, Invite-Flow, Admin-Setup | stabil · Session-API-Vertrag greift |
+| `admin` | User-Management, Integrationen, Qualifikationen-Mapping | stabil |
+
+## Qualitätsgates
+
+### Accessibility (Ring 2a)
+
+- Automatisierte Shell-/Landmarken-/Keyboard-/Status-Assertions laufen im Vitest-Stack
+- `ModuleRail`-Shortcut-Verhalten, `StatusRail`-Live-Status, `WorkspaceContextBar`-Non-Nesting sind als Contract-Tests verankert
+- Manuell pro Ring-2-Story: VoiceOver (macOS), NVDA (Windows), `200 %`-Zoom, Browser-Matrix
+
+### Performance (Ring 2b)
+
+Verbindliche Gates gegen die Referenzlasten:
+
+| Fläche | Referenzlast | Grenzwert |
+| --- | --- | --- |
+| `Überblick` | 100 Statusobjekte | `usable-state P95 ≤ 2000 ms` · `interaction-feedback ≤ 200 ms` · `status-feedback ≤ 300 ms` · `pass-rate ≥ 95 %` bei 30 Läufen |
+| `ETB` | 200 Einträge | s. o. |
+| `Befehle` | 20 offene Befehle | s. o. |
+
+Reports werden maschinenlesbar via [`ring-2-performance-metrics.ts`](../../packages/frontend/src/test/performance/ring-2-performance-metrics.ts) erzeugt.
+
+### Browser und Assistive Tech
+
+Referenz-Matrix Stand Story 1.2a (2026-03-16):
+
+- Chrome 146 + Vorgänger
+- Edge 146 + Vorgänger
+- Safari 26.2 + 26.1
+- Firefox 140.7 ESR
+- VoiceOver (macOS), NVDA (Windows)
+
+## Responsive
+
+| Größenklasse | Erwartung |
+| --- | --- |
+| `< 640 px` | aktives Modul sichtbar, Modulübersicht über Overlay, Command-Trigger erreichbar |
+| `640–1023 px` | kompakte Rail mit priorisierten Modulen + Overview-Button |
+| `≥ 1024 px` | Desktop-Referenz — Shell vollständig, Kontext + Status parallel lesbar |
+| `≥ 1536 px` | Wide-Desktop — keine erzwungene inhaltliche Verdichtung |
+
+Touch-Targets bleiben ausreichend groß; keine Orientierung über Hover-Only-Zustände.
+
+## Motion und Alarm-Feedback
+
+- Alarm-Eskalation in zwei Stufen: `.animate-border-glow` → `.animate-pulse-urgent` + `.animate-border-glow-urgent`
+- Audio-Ausfall-Signal: `.animate-pulse-audio-failed` (Shake + Scale)
+- Update-Highlights: `.animate-highlight-new` (grün), `.animate-highlight-updated` (amber)
+- `prefers-reduced-motion` liefert statische Fallbacks mit Shadow-/Opacity-Änderungen
+
+## Desktop-Shell (Tauri)
+
+- Tauri 2.10, Cross-Build für macOS arm64/x64, Windows, Linux, iOS, Android
+- Store-Plugin via `@tauri-apps/plugin-store` (Setup: [`../frontend-tauri-plugin-store-setup.md`](../frontend-tauri-plugin-store-setup.md))
+- Audio-Alerts über Tauri-Native-API bei Reminder-Eskalation
+- Self-signed HTTPS im Dev-Modus (mkcert): Frontend `https://localhost:3090`, Backend `https://127.0.0.1:3091`
+
+## Offene Kanten (Stand 2026-04-17)
+
+- **Gefahrenzonen × Lagekarte (Issue #627 / ADR-010):** Matrix-Sync auf der Karte, Warnstufen-Darstellung mit Akut-Glow — in aktiver Entwicklung auf Branch `627-lagekarte-integration-der-gefahrenmatrix-mit-raeumlicher`
+- **Ring-3-Test-Abdeckung:** nicht alle 46 Atoms und 30 Molecules haben dedizierte Varianten-Matrix-Tests; wachsend
+- **Storybook/Komponenten-Showcase:** bisher nicht eingeführt — Entscheidung offen, da der Katalog heute über Code + Tests belegbar ist
+
+## Nicht im Scope
+
+- Zweite UI-Schicht neben `shared/ui` (explizit untersagt)
+- Redux, Biome, ESLint, Prettier, CSS-in-JS, Formik (per CLAUDE.md untersagt)
+- Marketing-nahe Typografie/Gradients außerhalb des Auth-Ambient-Tokens
+- Benutzerdefinierte Fokus-Ringe pro Fachfläche
+
+## Wie dieses Dokument pflegen
+
+- **Taktung:** bei jedem signifikanten UX-/Komponenten-/Gate-Wechsel, mindestens aber quartalsweise
+- **Quelle für Zahlen:** [`docs/project-scan-report.json`](../project-scan-report.json) — bei Aktualisierung die Metriken hier übernehmen
+- **Feature-Zeilen:** nur stabile Aussagen aufnehmen, keine spekulativen Pläne — Spekulatives gehört in [`../superpowers/plans/`](../superpowers/plans/)
+- **Offene Kanten:** sichtbar halten; geschlossene Kanten mit PR-Referenz markieren und später streichen
+
+## Verweise
+
+- Übersicht: [`00-design-system-overview.md`](./00-design-system-overview.md)
+- Tokens: [`ring-1-design-tokens.md`](./ring-1-design-tokens.md)
+- Shell: [`workspace-fundament-ring-2.md`](./workspace-fundament-ring-2.md)
+- Review-Gates: [`ring-2-review-gates.md`](./ring-2-review-gates.md)
+- Performance-Gates: [`ring-2-performance-gates.md`](./ring-2-performance-gates.md)
+- Session/API: [`session-api-contract-ring-2.md`](./session-api-contract-ring-2.md)
+- Komponenten-Vertrag: [`ring-3-component-contract.md`](./ring-3-component-contract.md)
+- Frontend-Architektur: [`../project-documentation/03-frontend-architektur.md`](../project-documentation/03-frontend-architektur.md)

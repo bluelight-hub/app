@@ -7,6 +7,7 @@ Die Sidebar wurde grundlegend überarbeitet und in zwei klare Bereiche unterteil
 **Einsatzwechsel:** Der Einsatz-Switcher wurde aus der Sidebar entfernt. Wechsel zwischen aktiven Einsätzen erfolgt jetzt ausschließlich über die Command Palette in einer eigenen Gruppe „Einsätze". Der aktuelle Einsatz wird dabei ausgeblendet; bei nur einem aktiven Einsatz bleibt die Gruppe versteckt.
 
 **Visuelle Verbesserungen:**
+
 - Aktive Module erhalten einen farbigen Rand (border-left) in der jeweiligen Modulfarbe
 - Sub-Seiten werden durch einen farbigen Container gerahmt
 - Navigation-Items kompakter gestaltet (mehr Dichte, weniger Leerraum)

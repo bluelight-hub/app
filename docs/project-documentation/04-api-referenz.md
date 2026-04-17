@@ -1,397 +1,263 @@
-# API-Referenz
+# 4 — API-Referenz
 
-> **Basis-URL:** `http://localhost:3091/api`
-> **Swagger UI:** `http://localhost:3091/api`
-> **OpenAPI Spec:** `http://localhost:3091/api-json`
-
----
-
-## 1. Authentifizierung
-
-### 1.1 Auth Strategien
-
-| Strategie | Guard | Verwendung |
-|-----------|-------|------------|
-| `server-access` | `ServerAccessGuard` | Server-zu-Server (global) |
-| `jwt` | `JwtAuthGuard` | Standard-Benutzer |
-| `admin-jwt` | `AdminJwtAuthGuard` | Admin-Operationen |
-
-### 1.2 Server-Access-Token (X-Server-Access-Token)
-
-Der `X-Server-Access-Token` Header authentifiziert Server/Clients gegen das Backend. Dieser Guard wird **global** angewendet und muss bei jedem API-Aufruf (außer Health/Setup) mitgesendet werden.
-
-**Format:**
-```
-X-Server-Access-Token: <plaintext_token>
-```
-
-**Multi-Token Support:**
-- Mehrere aktive Tokens gleichzeitig möglich
-- Jedes Token hat einen eindeutigen Namen zur Identifikation
-- `lastUsedAt` wird bei jeder Nutzung asynchron aktualisiert
-- Tokens können individuell deaktiviert/reaktiviert werden
-
-**Token-Validierung:**
-- Tokens werden gegen bcrypt-Hashes validiert (timing-safe)
-- Nur aktive (`isActive: true`) und nicht abgelaufene Tokens sind gültig
-- Bei ungültigem Token: `401 Unauthorized`
-
-**Bypass:**
-- Endpoints mit `@SkipServerAccess()` Decorator (z.B. `/health`, `/setup`)
-- `INSECURE_MODE=true` (nur lokale Entwicklung!)
-
-#### Token-Namenskonventionen (Best Practices)
-
-Bei der Erstellung von Access Tokens sollten beschreibende Namen gewählt werden:
-
-| Empfohlener Name | Verwendungszweck |
-|------------------|------------------|
-| `Desktop Hauptwache` | Desktop-App der Hauptwache |
-| `Mobile SEG Nord` | Mobile App der SEG Nord |
-| `Backup Token` | Notfall-Zugang |
-| `Integration Server` | Automatisierte Systeme |
-| `Test Token Dev` | Entwicklung/Testing |
-
-**Namensrichtlinien:**
-- **Beschreibend:** Kombination aus Gerät + Standort (z.B. `Tablet Wache 2`)
-- **Keine sensitiven Daten:** Keine Passwörter, IPs oder interne URLs im Namen
-- **Bei Rotation:** Neuen Namen mit Datum versehen (z.B. `Desktop HW 2026-01`)
-- **Eindeutig:** Jeder Token sollte einen einzigartigen Namen haben
-
-### 1.3 JWT Token Format
-
-```
-Authorization: Bearer <jwt_token>
-```
+> **Basis-URL (Dev):** `https://127.0.0.1:3091/api` · **Swagger (Alpha):** `/api/alpha-json` · **Swagger (V1):** `/api/v1-json`
+> **Protokoll:** HTTPS (self-signed, mkcert) · **Auth:** HTTP-only Cookies (`accessToken`, `refreshToken`)
+> **WebSocket:** `wss://…/ws/einsatz-events`
 
 ---
 
-## 2. Response Format
+## 4.1 API-Versionierung (ADR-001)
 
-Alle Responses folgen dem `WrappedResponse<T>` Schema:
+- **URI-Segment** in der Basis-Route: `/api/alpha/…` (experimentell, kann brechen) und `/api/v1/…` (stabil).
+- **Zwei getrennte OpenAPI-Dokumente:** `/api/alpha-json` und `/api/v1-json`.
+- **Generierter Client** bedient beide Varianten (`@bluelight-hub/shared/client` = Alpha, `@bluelight-hub/shared/client-v1` = V1).
+- **WebSocket-Namespace** ist derzeit **nicht versioniert** — `/ws/einsatz-events`.
 
-```typescript
-interface WrappedResponse<T> {
-  data: T;
-  meta?: {
-    timestamp: string;
-    pagination?: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
-  };
-}
-```
+Deprecation-Timeline und Migrationsstrategie: `docs/api-versioning.md`.
 
 ---
 
-## 3. Endpoints
+## 4.2 Response-Envelope
 
-### 3.1 Health
+Alle Responses werden über die Custom Decorators `@ApiWrappedResponse(Dto)` / `@ApiWrappedCreatedResponse(Dto)` (`packages/backend/src/modules/common/decorators/api-wrapped-response.decorator.ts`) in folgendes Envelope verpackt:
 
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/health` | Health Check | - |
-
----
-
-### 3.2 Auth
-
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| POST | `/auth/login` | Benutzer-Login | - |
-| POST | `/auth/logout` | Logout | JWT |
-| GET | `/auth/me` | Aktueller Benutzer | JWT |
-| POST | `/auth/refresh` | Token erneuern | Refresh |
-
-**Login Request:**
-```json
+```ts
 {
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Login Response:**
-```json
-{
-  "data": {
-    "accessToken": "eyJ...",
-    "user": {
-      "id": "abc123",
-      "email": "user@example.com",
-      "name": "Max Mustermann"
-    }
-  }
-}
-```
-
----
-
-### 3.3 Einsatz
-
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/einsaetze` | Alle Einsätze | JWT |
-| POST | `/einsaetze` | Einsatz erstellen | JWT |
-| GET | `/einsaetze/:id` | Einsatz Details | JWT |
-| PATCH | `/einsaetze/:id` | Einsatz aktualisieren | JWT |
-| POST | `/einsaetze/:id/archive` | Einsatz archivieren | JWT |
-
-**CreateEinsatzDto:**
-```json
-{
-  "nummer": "E-2026-001",
-  "stichwort": "Brand",
-  "beschreibung": "Wohnungsbrand",
-  "einsatzort": {
-    "strasse": "Hauptstraße",
-    "hausnummer": "1",
-    "plz": "12345",
-    "ort": "Musterstadt"
-  }
-}
-```
-
-**EinsatzDto (Response):**
-```json
-{
-  "data": {
-    "id": "clx...",
-    "nummer": "E-2026-001",
-    "stichwort": "Brand",
-    "status": "AKTIV",
-    "alarmiertAm": "2026-01-04T10:00:00Z",
-    "createdAt": "2026-01-04T10:00:00Z",
-    "updatedAt": "2026-01-04T10:00:00Z"
-  }
-}
-```
-
----
-
-### 3.4 ETB (Einsatztagebuch)
-
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/einsaetze/:einsatzId/etb` | ETB-Einträge abrufen | JWT |
-| POST | `/einsaetze/:einsatzId/etb` | ETB-Eintrag erstellen | JWT |
-
-**CreateEtbEintragDto:**
-```json
-{
-  "inhalt": "Erste Kräfte vor Ort",
-  "kategorie": "LAGE",
-  "absender": "EL",
-  "empfaenger": "Leitstelle"
-}
-```
-
-**Kategorien:**
-- `EREIGNIS`
-- `KOMMUNIKATION`
-- `MASSNAHME`
-- `LAGE`
-- `DOKUMENTATION`
-- `SONSTIGES`
-
----
-
-### 3.5 Lagekarte
-
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/einsaetze/:einsatzId/lagekarte/pois` | POIs abrufen | JWT |
-| POST | `/einsaetze/:einsatzId/lagekarte/pois` | POI erstellen | JWT |
-| PATCH | `/einsaetze/:einsatzId/lagekarte/pois/:id` | POI aktualisieren | JWT |
-| DELETE | `/einsaetze/:einsatzId/lagekarte/pois/:id` | POI löschen | JWT |
-
-**CreatePoiDto:**
-```json
-{
-  "typ": "EINSATZLEITUNG",
-  "bezeichnung": "EL",
-  "koordinaten": {
-    "lat": 52.520008,
-    "lng": 13.404954
+  data: T,
+  meta: {
+    timestamp: string,   // ISO 8601
+    version: 'alpha' | '1',
+    requestId: string    // CUID2
   },
-  "beschreibung": "Einsatzleitung vor Ort"
+  pagination?: {         // nur bei Listen
+    page: number,
+    limit: number,
+    total: number,
+    totalPages: number
+  }
 }
 ```
 
-**POI Typen:**
-- `GEFAHRENSTELLE`
-- `ABSPERRUNG`
-- `SAMMELSTELLE`
-- `RETTUNGSPUNKT`
-- `EINSATZLEITUNG`
-- `FAHRZEUG`
-- `PATIENT`
-- `BRANDSTELLE`
-- `WASSERSTELLE`
-- `SONSTIGES`
+Der OpenAPI-Generator (`typescript-fetch`) erzeugt daraus korrekt typisierte Response-Klassen — Controller, die Standard-`@ApiOkResponse` nutzen, brechen diese Pipeline (AC7-Regel in `CLAUDE.md`).
 
 ---
 
-### 3.6 Kräfte
+## 4.3 Endpoint-Katalog (≈ 272 Operationen, 58 Controller)
 
-#### Fahrzeuge
+| Modul                         | Endpoints | Primärer Guard              | Kurzbeschreibung                                                   |
+| ----------------------------- | --------: | --------------------------- | ------------------------------------------------------------------ |
+| `health`                      |       1   | Public                      | Liveness-Check                                                     |
+| `auth`                        |      12   | Public / JwtAuthGuard       | Login, Register, Token-Refresh, Admin-Setup                        |
+| `admin`                       |      18   | AdminJwtAuthGuard           | System-Konfiguration, Invites, Rollen-Definitionen, Migration      |
+| `einsatz`                     |      18   | JwtAuthGuard (+ Roles)      | CRUD, Status, Archivierung, Teilnehmer-Aggregation                 |
+| `einsatz-beitritt`            |       6   | JwtAuthGuard                | Beitrittsanfragen-Workflow                                         |
+| `einsatz-teilnehmer`          |       8   | JwtAuthGuard (+ OperativeRole) | Teilnehmer-Rollen, Zuweisung                                    |
+| `etb`                         |       8   | JwtAuthGuard                | Einsatztagebuch (CQRS, Snapshots)                                  |
+| `befehl`                      |      16   | JwtAuthGuard + BefehlRollen | Erteilen, Empfänger, Quittierung, Kommentar, Anonymisierung        |
+| `alarmierung`                 |     ~12   | JwtAuthGuard                | Alarmierungen, Empfänger, Nachalarm (ADR-009)                      |
+| `aufbewahrung`                |       4   | AdminJwtAuthGuard           | Aufbewahrungsrichtlinien, Compliance-Reports                       |
+| `erinnerung`                  |      14   | JwtAuthGuard                | Multi-Eskalation, Snooze, Serien                                   |
+| `erinnerungsvorlage`          |       6   | JwtAuthGuard                | Vorlagen-CRUD                                                      |
+| `fuehrungsrhythmus-template`  |       6   | JwtAuthGuard                | Führungsrhythmen-Templates                                         |
+| `funkkanal`                   |      24   | JwtAuthGuard                | Kanal-Aggregat (ADR-007), Zuordnung (ADR-008), Rufname, Export     |
+| `gefahr`                      |       6   | JwtAuthGuard                | Gefahrenmatrix (ADR-010)                                           |
+| `geo`                         |       4   | Public / JwtAuthGuard       | PLZ-Lookup, Adress-Suche                                           |
+| `integrations`                |      12   | AdminJwtAuthGuard           | HiOrg-OAuth2-Connect, Personen-Import                              |
+| `kategorie`                   |       6   | JwtAuthGuard                | Einsatz-Kategorisierung                                            |
+| `kraefte`                     |      64   | JwtAuthGuard (+ Roles)      | Größte API-Oberfläche — Fahrzeuge, Personen, Einheiten, Qualifikationen |
+| `lagekarte`                   |      16   | JwtAuthGuard                | POIs, Taktische Zeichen, Karte-State                               |
+| `notiz`                       |       6   | JwtAuthGuard                | Freitext-Notizen                                                   |
+| `taktische-zeichen`           |       8   | JwtAuthGuard                | Symbolkatalog, Platzierung                                         |
+| `user-management`             |      20   | AdminJwtAuthGuard           | User-CRUD, Rollen, Berechtigungen, Sperrung                        |
 
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/einsaetze/:einsatzId/kraefte/fahrzeuge` | Fahrzeuge abrufen | JWT |
-| POST | `/einsaetze/:einsatzId/kraefte/fahrzeuge` | Fahrzeug zuweisen | JWT |
-| PATCH | `/einsaetze/:einsatzId/kraefte/fahrzeuge/:id/status` | Status ändern | JWT |
-| DELETE | `/einsaetze/:einsatzId/kraefte/fahrzeuge/:id` | Fahrzeug entfernen | JWT |
-
-#### Personen
-
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/einsaetze/:einsatzId/kraefte/personen` | Personen abrufen | JWT |
-| POST | `/einsaetze/:einsatzId/kraefte/personen` | Person hinzufügen | JWT |
-| DELETE | `/einsaetze/:einsatzId/kraefte/personen/:id` | Person entfernen | JWT |
-
-**Fahrzeug-Status:**
-- `ALARMIERT`
-- `AUSGERUECKT`
-- `AN_EINSATZSTELLE`
-- `VERFUEGBAR`
-- `EINGERUECKT`
-
----
-
-### 3.7 User Management
-
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/users` | Alle Benutzer | Admin |
-| POST | `/users` | Benutzer erstellen | Admin |
-| PATCH | `/users/:id` | Benutzer aktualisieren | Admin |
-| DELETE | `/users/:id` | Benutzer löschen | Admin |
+> **Hinweis zur Einsatz-Nesting-Regel (Memory):** Einsatz-bezogene Endpoints hängen immer unter `/einsatz/:einsatzId/…` (z. B. `/einsatz/:einsatzId/etb/…`, `/einsatz/:einsatzId/befehl/…`, `/einsatz/:einsatzId/alarmierung/…`). Top-Level-Pfade wie `/etb/:id` ohne Einsatz-Kontext sind untersagt.
 
 ---
 
-### 3.8 Integrations
+## 4.4 Auth-Flow
 
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/integrations/credentials` | Credentials abrufen | JWT |
-| POST | `/integrations/credentials` | Credentials speichern | JWT |
-| POST | `/integrations/hiorg/sync` | HiOrg-Server Sync | JWT |
+### 4.4.1 Login
+
+1. `POST /api/v1/auth/login` (Zod-validiertes Payload: `usernameSchema`, `passwordSchema` aus `@bluelight-hub/shared/schemas`).
+2. Backend setzt HTTP-only Cookies `accessToken` + `refreshToken`.
+3. Frontend verwendet `credentials: 'include'` im Fetch-Wrapper — Browser/Tauri schicken Cookies automatisch.
+
+### 4.4.2 Token-Refresh
+
+- Access-Token-TTL kurz; Refresh-Token-TTL länger.
+- Beim 401 ruft `fetchWithRefresh.ts` `POST /api/v1/auth/refresh` auf. Ein `TokenRefreshQueue` verhindert parallele Refresh-Requests.
+- Nach erfolgreichem Refresh wird der ursprüngliche Request erneut ausgeführt.
+
+### 4.4.3 Admin-Auth
+
+- Separate Passport-Strategie `admin-jwt`.
+- Schutz aller `/api/*/admin/*` und vieler `/api/*/user-management/*`-Routen via `AdminJwtAuthGuard`.
+
+### 4.4.4 Operative Rollen
+
+- Orthogonal zum RBAC (`SUPER_ADMIN / ADMIN / USER`).
+- Einsatz-Scope: `Führungskraft`, `Einsatzkraft`, `Externe` → `OperativeRoleGuard`.
 
 ---
 
-### 3.9 Admin - Access Tokens
+## 4.5 WebSocket
 
-Verwaltung von Server-Access-Tokens für Multi-Client-Support.
+### 4.5.1 Gateway
 
-| Method | Endpoint | Beschreibung | Auth |
-|--------|----------|--------------|------|
-| GET | `/admin/tokens` | Alle Tokens auflisten | Admin |
-| POST | `/admin/tokens` | Neues Token erstellen | Admin |
-| POST | `/admin/tokens/:id/revoke` | Token deaktivieren | Admin |
-| POST | `/admin/tokens/:id/reactivate` | Token reaktivieren | Admin |
-| POST | `/admin/tokens/:id/rotate` | Token rotieren | Admin |
+- **Namespace:** `/ws/einsatz-events`
+- **Server:** Socket.io 5.x (Backend), `socket.io-client` 4.8 (Frontend)
+- **Auth:** `WsJwtAuthGuard` — Cookie-basierte JWT-Validierung (gleicher Flow wie HTTP).
+- **Room-Modell:** `einsatz:{einsatzId}` — Broadcast an alle verbundenen Einsatz-Teilnehmer (ADR-006).
 
-**CreateAccessTokenDto:**
-```json
+### 4.5.2 Event-Flow
+
+```
+Domain-Event (z. B. FunkspruchCreated)
+  → Outbox (Transactional)
+  → OutboxPublisher
+  → EinsatzEventPublisher.broadcast(einsatzId, event)
+  → Socket.io Server → Room: einsatz:{einsatzId}
+  → Frontend-Listener → TanStack-Query-Invalidation / Store-Update
+```
+
+Verwendete Live-Streams:
+- Funkverkehr (Kanäle, Funksprüche)
+- Kartenänderungen (Polygon-Sync, Zeichen)
+- Gefahrenmatrix (Warnstufen-Live-Sync, ADR-010)
+- Befehle / ETB-Einträge
+- Notfall-Alerts / Alarmierungen
+
+> Ein dedizierter **WebSocket-Event-Katalog** fehlt noch (Dokumentations-Lücke). Als Quelle dient aktuell der Event-Serializer (107 Cases in `infrastructure/outbox/event-serializer.ts`).
+
+---
+
+## 4.6 Generierter API-Client (Shared)
+
+### 4.6.1 Struktur
+
+```
+packages/shared/
+├── openapitools.json         # Konfiguration
+├── scripts/
+│   └── generate-openapi-client.mjs   # Download Spec → Generator → Lint
+├── client/                   # Alpha (527 TS-Dateien, 52 APIs, 475 Modelle)
+├── client-v1/                # V1
+├── src/
+│   ├── schemas/              # Zod-Schemas (auth/, …)
+│   └── validation/           # Plain-JS-Validatoren
+├── ARCHITECTURE.md           # Datenfluss, Schema-Lifecycle
+├── INTEGRATION_EXAMPLES.md   # TanStack Form + NestJS DTO
+├── QUICK_REFERENCE.md
+└── SHARED_SCHEMAS_SUMMARY.md
+```
+
+### 4.6.2 Generator-Pipeline
+
+**Tool:** `@openapitools/openapi-generator-cli` (`v2.31.1`, Generator-Spec `v7.10.0`).
+**Generator-Template:** `typescript-fetch`.
+**Base-URL konfigurierbar:** `BLUELIGHT_OPENAPI_BASE_URL` / `OPENAPI_GENERATOR_BASE_URL` (Standard: `https://localhost:3091`).
+
+**Package-Scripts (`packages/shared/`):**
+
+| Script                       | Wirkung                                                     |
+| ---------------------------- | ----------------------------------------------------------- |
+| `pnpm run generate-api:alpha` | Spec laden → Alpha-Client generieren → oxlint + oxfmt       |
+| `pnpm run generate-api:all`   | Alpha + V1 parallel                                         |
+| `pnpm run build`              | TypeScript-Kompilation ohne Regeneration                    |
+| `pnpm run build:with-api`     | Regenerate + Build                                          |
+
+### 4.6.3 Verwendung im Frontend
+
+```ts
+const { data } = useQuery<EinsatzControllerFindAllVAlpha200Response, ResponseError>({
+  queryKey: EINSATZ_QUERY_KEYS.list(filters),
+  queryFn: () => api.einsatz().einsatzControllerFindAllVAlpha({ page, limit, filters }),
+  staleTime: 30_000,
+  retry: 3,
+});
+```
+
+- `api` wird in `packages/frontend/src/shared/api/api.ts` gebaut — pro Tag eine API-Instanz mit `Configuration({ fetchApi: fetchWithRefresh, credentials: 'include' })`.
+- Server-Auflösung über `serverStore` (Multi-Server-Support: Welcher Server ist aktuell aktiv?).
+- Token-Lookup über `getServerAccessToken()` aus `shared/lib/server-access-token.ts`.
+
+---
+
+## 4.7 Zod-Schemas (Shared)
+
+Verfügbare Schemas in `packages/shared/src/schemas/auth/`:
+
+| Schema                          | Regel                                                                |
+| ------------------------------- | -------------------------------------------------------------------- |
+| `usernameSchema`                | 3–20 Zeichen, `[a-zA-Z0-9_-]`                                        |
+| `passwordSchema`                | 8–128 Zeichen, Komplexitätsregeln (Groß, Klein, Ziffer, Symbol)      |
+| `inviteCodeSchema`              | Exakt 8 Zeichen, `[A-Z0-9]` (Backend-strikt)                         |
+| `inviteCodeSchemaNormalized`    | Frontend-UX-Variante mit Auto-Uppercase                              |
+| `serverUrlSchema`               | Nur `http://` / `https://` (Fail-fast bei anderem Protokoll)         |
+
+**Import:** `@bluelight-hub/shared/schemas` (nicht direkt aus `src/`).
+**Backend-Nutzung:** `@ValidateWithZod(schema)` auf DTOs.
+**Synchronisation:** Backend-Value-Objects (z. B. `InviteCodeValue`) müssen **manuell** mit Shared-Schemas abgeglichen werden — dokumentiert in `packages/shared/ARCHITECTURE.md` (Zeile ≈ 419–441).
+
+---
+
+## 4.8 Error-Handling
+
+### Response-Format bei Fehler
+
+```ts
 {
-  "name": "Desktop Hauptwache",
-  "expiresAt": "2027-01-01T00:00:00Z"
+  statusCode: number,
+  error: string,      // HTTP-Statusname
+  message: string | string[],  // Fehlerbeschreibung(en)
+  requestId: string,
+  timestamp: string
 }
 ```
 
-**TokenListItemDto (Response):**
-```json
-{
-  "id": "clx...",
-  "name": "Desktop Hauptwache",
-  "tokenPrefix": "bh_abc1",
-  "isActive": true,
-  "lastUsedAt": "2026-01-13T10:30:00Z",
-  "expiresAt": "2027-01-01T00:00:00Z",
-  "createdAt": "2026-01-10T08:00:00Z"
-}
-```
+Typische Fälle:
 
-**Token nach Erstellung (einmalig sichtbar):**
-```json
-{
-  "id": "clx...",
-  "name": "Desktop Hauptwache",
-  "token": "bh_abc123...xyz789",
-  "tokenPrefix": "bh_abc1"
-}
-```
+| HTTP | Bedeutung                                   | Quelle                                       |
+| ---- | ------------------------------------------- | -------------------------------------------- |
+| 400  | Validation / Business-Regel                 | Zod-Pipe, `Result.fail()` aus Domain/App     |
+| 401  | Kein Token oder abgelaufen                  | `JwtAuthGuard` → Frontend ruft Refresh       |
+| 403  | Rolle fehlt                                 | `RolesGuard`, `AdminJwtAuthGuard`, `OperativeRoleGuard` |
+| 404  | Aggregat nicht gefunden                     | `*Repository.findById` → `Result.fail(NOT_FOUND)` |
+| 409  | State-Konflikt (z. B. Einsatz bereits archiviert) | Domain-Invariant → `Result.fail`     |
+| 500  | Unerwartet                                  | Exception-Filter                             |
 
-**Hinweis:** Das vollständige Token wird nur bei Erstellung/Rotation zurückgegeben und kann danach nicht mehr abgerufen werden.
+> Ein kohärentes **Error-Handling-Pattern-Doc** ist noch zu erstellen (Dokumentations-Lücke laut Doku-Recherche).
 
 ---
 
-## 4. Error Responses
+## 4.9 API-Workflow (kritisch)
 
-### 4.1 Format
-
-```json
-{
-  "statusCode": 400,
-  "message": "Validation failed",
-  "error": "Bad Request",
-  "details": [
-    {
-      "field": "nummer",
-      "message": "Nummer ist erforderlich"
-    }
-  ]
-}
 ```
-
-### 4.2 HTTP Status Codes
-
-| Code | Bedeutung |
-|------|-----------|
-| 200 | Erfolg |
-| 201 | Erstellt |
-| 400 | Validierungsfehler |
-| 401 | Nicht authentifiziert |
-| 403 | Nicht autorisiert |
-| 404 | Nicht gefunden |
-| 409 | Konflikt |
-| 500 | Server-Fehler |
-
----
-
-## 5. WebSocket Events
-
-**Endpoint:** `ws://localhost:3091`
-
-### Events
-
-| Event | Beschreibung | Payload |
-|-------|--------------|---------|
-| `einsatz:created` | Neuer Einsatz | `EinsatzDto` |
-| `einsatz:updated` | Einsatz aktualisiert | `EinsatzDto` |
-| `etb:created` | Neuer ETB-Eintrag | `EtbEintragDto` |
-| `lagekarte:poi:created` | Neuer POI | `PoiDto` |
-| `kraefte:fahrzeug:status` | Fahrzeug-Status geändert | `FahrzeugStatusDto` |
-
----
-
-## 6. API Client Generierung
-
-```bash
-# API Client aus OpenAPI generieren
+Backend-Endpoint
+  ↓ (mit @ApiWrappedResponse + korrektem DTO)
 pnpm run generate-api
-
-# Nutzung im Frontend
-import { api } from '@bluelight-hub/shared/client';
-
-const einsaetze = await api.einsatz.findAll();
+  ↓ (regeneriert 475 Modelle + 52 API-Klassen)
+@bluelight-hub/shared/client
+  ↓ (Import im Frontend-Feature)
+TanStack Query Hook
+  ↓ (Query-Key-Factory)
+React-Komponente
 ```
+
+**Untersagt:** manuelle `fetch()`-Aufrufe, manuelle Response-Type-Definitionen, Bypass des Shared-Clients. Verstoß gegen AC-Regel in `CLAUDE.md`.
 
 ---
 
-*Dokumentation generiert am 2026-01-04*
+## 4.10 Quick-Reference-Dateien
+
+| Pfad                                                                               | Inhalt                        |
+| ---------------------------------------------------------------------------------- | ----------------------------- |
+| `packages/backend/src/modules/common/decorators/api-wrapped-response.decorator.ts` | Wrapper-Decorators            |
+| `packages/shared/openapitools.json`                                                | Generator-Konfiguration       |
+| `packages/shared/scripts/generate-openapi-client.mjs`                              | Generator-Script              |
+| `packages/frontend/src/shared/api/fetchWithRefresh.ts`                             | Fetch-Wrapper mit Token-Refresh |
+| `packages/frontend/src/shared/api/api.ts`                                          | API-Instanzen pro Tag         |
+| `packages/frontend/src/shared/lib/server-access-token.ts`                          | Token-Accessor                |
+| `packages/shared/ARCHITECTURE.md`                                                  | Schema-Lifecycle              |
+| `packages/shared/INTEGRATION_EXAMPLES.md`                                          | Form + DTO-Beispiele          |
+| `docs/api-versioning.md`                                                           | Versionierungs-Strategie      |

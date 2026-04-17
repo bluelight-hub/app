@@ -1,657 +1,337 @@
-# Frontend-Architektur
+# 3 — Frontend-Architektur
 
-> **Package:** @bluelight-hub/frontend
-> **Pfad:** `packages/frontend/`
-> **Framework:** React 19 + Vite + Tauri 2
+> React 19 + Vite 6 + Tauri 2 · TanStack-Ökosystem · MapLibre GL mit Custom Drawing-Engine · Atomic-Design-Shared-UI
 
 ---
 
-## 1. Technologie-Stack
-
-### 1.1 Core
-
-| Technologie | Version | Zweck |
-|-------------|---------|-------|
-| React | 19.1.0 | UI Library |
-| Vite | 6.3.5 | Build Tool |
-| Tauri | 2.5.1 | Desktop Framework |
-| TypeScript | 5.8.3 | Type Safety |
-
-### 1.2 TanStack Ecosystem
-
-| Library | Zweck |
-|---------|-------|
-| @tanstack/react-router | File-based Routing |
-| @tanstack/react-query | Server State Management |
-| @tanstack/react-store | Client State Management |
-| @tanstack/react-form | Form State + Validation |
-| @tanstack/pacer | Debouncing/Throttling |
-
-### 1.3 Styling
-
-| Technologie | Verwendung |
-|-------------|------------|
-| Tailwind CSS 4.x | Utility-First CSS |
-| Headless UI | Accessible UI Primitives |
-| Heroicons | Icon Library |
-| motion (Framer) | Animationen |
-
----
-
-## 2. Projekt-Struktur
+## 3.1 High-Level-Übersicht
 
 ```
-packages/frontend/src/
-├── features/           # Feature-basierte Module
-│   ├── einsatz/
-│   ├── etb/
-│   ├── kraefte/
-│   ├── lagekarte/
-│   ├── auth/
-│   └── admin/
-├── shared/             # Geteilte Komponenten
-│   ├── ui/
-│   ├── hooks/
-│   ├── api/
-│   └── lib/
-├── routes/             # TanStack Router (file-based)
-├── provider/           # App Providers
-├── services/           # App Services
-└── types/              # TypeScript Typen
+packages/frontend/
+├── src-tauri/               # Rust-Shell (Desktop + Mobile)
+│   ├── src/                 # Custom Rust-Commands (Audio, Tray)
+│   ├── capabilities/
+│   ├── icons/
+│   └── tauri.conf.json
+└── src/
+    ├── features/            # 22 Feature-Module (Domain-orientiert)
+    ├── shared/
+    │   ├── ui/              # Atomic Design: 46 Atoms · 30 Molecules · 22 Organisms
+    │   ├── api/             # fetchWithRefresh, serverStore, Configuration
+    │   └── lib/             # cn, MGRS, date-fns-Wrapper
+    ├── routes/              # 72 Route-Dateien → routeTree.gen.ts
+    ├── provider/            # QueryProvider, ThemeProvider, RouterProvider
+    ├── services/            # Cross-Feature-Services (z. B. Audio)
+    ├── queryKeys.ts         # Zentrale Query-Key-Typen (ergänzt Feature-Factories)
+    ├── index.tailwind.css
+    └── main.tsx
 ```
 
 ---
 
-## 3. Feature-Architektur
+## 3.2 Tech-Stack (vollständig)
 
-Jedes Feature ist ein selbständiges Modul:
+### 3.2.1 TanStack-Ökosystem
+
+| Paket                           | Version | Zweck                                                      |
+| ------------------------------- | ------- | ---------------------------------------------------------- |
+| `@tanstack/react-router`        | 1.168   | File-based Routing, Devtools                               |
+| `@tanstack/react-query`         | 5.99    | Server-State (543+ `useQuery` / `useMutation`-Aufrufe)     |
+| `@tanstack/react-store`         | 0.10    | Client-State (57 `createStore`-Deklarationen)              |
+| `@tanstack/react-form`          | 1.29    | Formularverarbeitung                                       |
+| `@tanstack/zod-form-adapter`    | —       | Zod-Integration für `react-form`                           |
+| `@tanstack/react-table`         | 8.21    | Datentabellen (Befehl, ETB, Kräfte)                        |
+| `@tanstack/react-virtual`       | 3.13    | Virtualisierung großer Listen                              |
+| `@tanstack/pacer`               | 0.20    | Request-Optimierung / Rate-Limiting                        |
+| `@tanstack/react-devtools`      | 0.10    | Dev-Overlay                                                |
+
+### 3.2.2 UI & Styling
+
+- **Tailwind CSS 4.2** + `@tailwindcss/vite`
+- **Headless UI 2.2** — zugängliche, ungestylte Komponenten
+- **class-variance-authority 0.7** — Variant-Engine
+- `clsx` + `tailwind-merge` via `cn()`-Utility (`shared/lib/cn.ts`)
+- **Font:** Inter, Montserrat, Nunito (`@fontsource-variable`)
+- **Themes:** `next-themes` (Dark / Light)
+- **Icons:** `@heroicons/react`, `@phosphor-icons/react` (Grep im Code)
+
+### 3.2.3 Karten & GIS
+
+> **Hinweis (Memory):** Die Lagekarte nutzt **MapLibre GL + Mapbox-Draw**, nicht Leaflet.PM. Siehe `memory/project_mapgl_migration.md`.
+
+| Paket                           | Zweck                                               |
+| ------------------------------- | --------------------------------------------------- |
+| `maplibre-gl 5.22`              | Kartenbibliothek (OSM-basiert)                      |
+| `react-map-gl 8.1`              | React-Wrapper für MapLibre                          |
+| `@mapbox/mapbox-gl-draw 1.5`    | Drawing-Engine (mit 9 Custom Modi)                  |
+| `@turf/turf 7.3`                | Geospatial-Operationen (bbox, polygon, intersects)  |
+| `mgrs 2.1`                      | Military Grid Reference System                      |
+
+**9 Custom Draw-Modi** (features/lagekarte/drawing/):
+`simple-select`, `direct-select`, `draw-arrow`, `draw-circle`, `draw-ellipse`, `draw-rectangle`, `draw-freehand`, `continuous-point`, `gams` (GAMS-Zonen).
+
+Zusätzlich: Hatch-Patterns (Canvas-basiert), DWD WMS-Layer, NINA GeoJSON-Layer, Snap-Control, WebSocket-Live-Sync für kollaborative Karten­änderungen.
+
+### 3.2.4 Tauri 2 Integration
+
+**Plugins** (`packages/frontend/src-tauri/`):
+
+- `tauri-plugin-http` — HTTP-Requests unter Umgehung von CORS
+- `tauri-plugin-store` — Key-Value-Store (verschlüsselt, siehe `docs/frontend-tauri-plugin-store-setup.md`)
+- `tauri-plugin-deep-link` — Custom Scheme `bluelight://`
+- `tauri-plugin-notification` — Native Benachrichtigungen
+- `tauri-plugin-single-instance` — Nur eine App-Instanz (Desktop)
+- `tauri-plugin-shell` — Shell-Kommandos
+- `tauri-plugin-barcode-scanner` — nur Mobile (iOS / Android)
+- `tauri-plugin-log`
+
+**Custom Rust-Commands:**
+
+- `play_sound(volume: f32, path: String)` — Audio-Wiedergabe für Erinnerungen via **Rodio**
+- `test_audio()` — Audio-Test aus UI
+- `update_tray_badge(count: u32)` / `clear_tray_badge()` — System-Tray-Badge
+
+**System-Tray:** Custom Tray mit Kontextmenü (Story 1.9).
+
+### 3.2.5 Weitere Libraries
+
+| Paket                         | Zweck                                                |
+| ----------------------------- | ---------------------------------------------------- |
+| `socket.io-client 4.8`        | WebSocket zum Backend-Gateway                        |
+| `sonner 2.0`                  | Toast-Notifications                                  |
+| `recharts 3.8`                | Statistiken, Dashboards                              |
+| `date-fns 4.1`                | Datum-Utilities                                      |
+| `react-datepicker 9.1`        | Datumspicker                                         |
+| `@dnd-kit/*`                  | Drag-and-Drop (Sortierung, Karten-Elemente)          |
+| `cmdk 1.1`                    | Command-Palette                                      |
+| `dompurify 3.3`               | HTML-Sanitization                                    |
+| `consola 3.4`                 | Strukturiertes Logging                               |
+| `jsqr 1.4`                    | QR-Code-Parser                                       |
+
+### 3.2.6 Testing
+
+| Paket                         | Zweck                                    |
+| ----------------------------- | ---------------------------------------- |
+| `vitest 4.1`                  | Test-Runner (Vite-native)                |
+| `@testing-library/react 16.3` | RTL                                      |
+| `jsdom 29`                    | DOM-Simulation                           |
+| `@vitest/coverage-v8`         | Coverage-Reports (LCOV → Codecov)        |
+| `@vitest/ui`                  | UI-Mode                                  |
+
+---
+
+## 3.3 Feature-Module (22)
+
+Alle Features unter `packages/frontend/src/features/`. Einheitliche Struktur (mit Abweichungen bei komplexen Features).
+
+| Feature              | Subfolder | Fachlicher Zweck                                                              |
+| -------------------- | --------- | ----------------------------------------------------------------------------- |
+| **admin**            | 5         | Admin-Konsole: Benutzer, Tokens, Invites, Templates, Konfiguration            |
+| **alarmierung**      | 6         | Alert-Dispatch und Benachrichtigungen                                         |
+| **aufbewahrung**     | 2         | Archivierung und Daten-Retention                                              |
+| **auth**             | 7         | Authentifizierung, Authorization, Guards                                      |
+| **befehl**           | 6         | Befehl-Erstellung, Quittierung, Kommentare                                    |
+| **einsatz**          | 8         | Kernmodul: Einsatzmanagement und Koordination                                 |
+| **etb**              | 9         | Einsatztagebuch mit Offline-Persistence                                       |
+| **funkverkehr**      | 7         | Funkprotokoll, Kanalplan, Live-Sync via WebSocket (ADR-006)                   |
+| **gefahrenmatrix**   | 3         | Gefahrenanalyse-Matrix (ADR-010)                                              |
+| **kategorien**       | 3         | Taxonomie (Einsatz, Notizen)                                                  |
+| **kraefte**          | 5         | Ressourcenmanagement: Personal, Fahrzeuge, Einheiten                          |
+| **lagekarte**        | 7         | MapGL mit Custom Drawing-Engine                                               |
+| **monitoring**       | 2         | Live-Überwachung, Dashboards                                                  |
+| **notizen**          | 5         | Freitext-Notizen und Pinnwand                                                 |
+| **operative-roles**  | 2         | Rollen & Permissions im Einsatz                                               |
+| **reminders**        | 9         | Erinnerungssystem mit Audio-Alerts (Tauri)                                    |
+| **server**           | 9         | Server-Discovery, Setup-Wizard, Multi-Server                                  |
+| **settings**         | 3         | Benutzereinstellungen (Audio, Sprache)                                        |
+| **system**           | 2         | System-Health, Healthchecks                                                   |
+| **taktische-zeichen**| 3         | Tactical Symbols (Standard-Bibliothek, Custom Rendering)                      |
+| **templates**        | 3         | Befehl- und Führungsrhythmus-Templates                                        |
+| **workspace**        | 5         | Multi-Workspace-Support (Feature-Tree, ADR-004)                               |
+
+**Feature-Struktur (Beispiel `einsatz/`):**
 
 ```
 features/einsatz/
-├── api/                # TanStack Query Hooks
-│   ├── queries.ts      # useEinsaetze, useEinsatzById
-│   └── mutations.ts    # useCreateEinsatz
-├── stores/             # TanStack Store
-│   └── active-einsatz.store.ts
-├── ui/                 # Atomic Design
-│   ├── atoms/          # Basis-Komponenten
-│   ├── molecules/      # Kombinierte Komponenten
-│   ├── organisms/      # Komplexe Komponenten
-│   └── pages/          # Route-Komponenten
-├── constants/          # Feature-Konstanten
-└── utils/              # Feature-Utilities
+├── api/             # useEinsaetzeQuery, useEinsatzDetailsQuery, Mutations, queries.ts (Query-Keys)
+├── ui/
+│   ├── atoms/       # Feature-spezifische Atoms
+│   ├── molecules/
+│   ├── organisms/   # SingleEinsatzDashboard, …
+│   └── pages/       # Route-gebundene Seiten
+├── contexts/        # React-Contexte
+├── constants/
+├── stores/          # TanStack Store (UI-State)
+├── schemas/         # Zod-Form-Schemas
+├── utils/
+└── hooks/
 ```
+
+Besonders komplex:
+- **etb/** mit `persistence/`, `services/`, `types/` (Offline-Fähigkeit)
+- **lagekarte/** mit `drawing/`, `detail-providers/`
+- **reminders/** mit eigenen `services/` für Tauri-Audio-Bindings
+- **server/** mit `services/` für Server-Discovery
 
 ---
 
-## 4. State Management
+## 3.4 Routing (TanStack Router)
 
-### 4.1 Server State (TanStack Query)
+- **File-based:** 72 Route-Dateien in `packages/frontend/src/routes/`, automatisch generierte `routeTree.gen.ts`.
+- **Top-Level-Routes:**
+  - `/` — Startseite
+  - `/auth` — Login / Register (öffentlich)
+  - `/admin-login`, `/admin/…` — Admin-Konsole (10+ Sub-Routes)
+  - `/app/…` — geschützte App (Auth-Guard)
+  - `/server/…` — Server-Setup
 
-```typescript
-// features/einsatz/api/queries.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@bluelight-hub/shared/client';
-import { QUERY_KEYS } from '@/queryKeys';
+- **Nested Layouts:** `/app/einsatz/$einsatzId/…` (parametrisch) mit 10+ Sub-Tabs:
+  - **Führung** (befehle, etb, pinnwand, protokoll, berichte, rollen, rhythmus)
+  - **Übersicht** (karte, statistik)
+  - **Kräfte** (personal, fahrzeuge, einheiten, dashboard)
+  - **Patienten** (triage, transport)
+  - **Logistik** (material, verbrauch, nachschub)
+  - **Sicherheit** (hygiene, gefahren, eigenschutz)
+  - **Kommunikation** (funk, alarmierung, meldungen)
+  - **Betreuung** (unterkunft, verpflegung, betroffene)
+  - **Drohne** (steuerung, luftbilder, live-feed)
+  - **Befehl** (Detailbefehle)
 
-export const useEinsaetze = () => {
-  return useQuery({
-    queryKey: QUERY_KEYS.einsatz.list(),
-    queryFn: () => api.einsatz.findAll(),
-  });
-};
+- **Auth-Guards:** `/app/*` und `/admin/*` sind via `auth/guards/` geschützt. `/auth`, `/server/setup` sind öffentlich.
 
-export const useCreateEinsatz = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: CreateEinsatzDto) => api.einsatz.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.all });
-    },
-  });
-};
-```
+---
 
-### 4.2 Query Keys Factory
+## 3.5 State-Management
 
-```typescript
-// queryKeys.ts
-export const QUERY_KEYS = {
-  einsatz: {
+### 3.5.1 Server-State (TanStack Query)
+
+- **Query-Key-Factories** liegen pro Feature in `*/api/queries.ts`:
+  ```ts
+  export const EINSATZ_QUERY_KEYS = {
     all: ['einsatz'] as const,
-    list: () => [...QUERY_KEYS.einsatz.all, 'list'] as const,
-    detail: (id: string) => [...QUERY_KEYS.einsatz.all, 'detail', id] as const,
-  },
-  etb: {
-    byEinsatz: (einsatzId: string) => ['etb', 'einsatz', einsatzId] as const,
-  },
-  kraefte: {
-    fahrzeuge: (einsatzId: string) => ['kraefte', 'fahrzeuge', einsatzId] as const,
-    personen: (einsatzId: string) => ['kraefte', 'personen', einsatzId] as const,
-  },
-} as const;
-```
+    lists: () => [...EINSATZ_QUERY_KEYS.all, 'list'] as const,
+    list: (filters) => [...EINSATZ_QUERY_KEYS.lists(), filters] as const,
+    details: () => [...EINSATZ_QUERY_KEYS.all, 'detail'] as const,
+    detail: (id) => [...EINSATZ_QUERY_KEYS.details(), id] as const,
+  };
+  ```
+- **543+ Vorkommen** von `useQuery` / `useMutation` feature-weit.
+- **Granulare Invalidierung** nach Feature-Scope.
 
-### 4.3 Client State (TanStack Store)
+### 3.5.2 Client-State (TanStack Store)
 
-```typescript
-// features/einsatz/stores/active-einsatz.store.ts
-import { Store } from '@tanstack/store';
+- **57 `createStore()`**-Deklarationen über Features.
+- Typische Verwendung:
+  - UI-State (Modal-Sichtbarkeit, ausgeklappte Panels, Tab-Auswahl)
+  - Filter, Sortierung, View-Präferenzen
+  - Persistent Stores (ETB Offline-Log, Map-Layers, Workspace-Registry)
+- **227 Custom Hooks** kapseln die Stores.
 
-interface ActiveEinsatzState {
-  activeEinsatzId: string | null;
-  viewMode: 'dashboard' | 'detail';
-}
+### 3.5.3 Hybrid-Ansatz
 
-export const activeEinsatzStore = new Store<ActiveEinsatzState>({
-  activeEinsatzId: null,
-  viewMode: 'dashboard',
-});
-
-// Verwendung mit Hook
-import { useStore } from '@tanstack/react-store';
-
-const activeId = useStore(activeEinsatzStore, (s) => s.activeEinsatzId);
-```
+| Kategorie            | Technologie                                                   |
+| -------------------- | ------------------------------------------------------------- |
+| Server-Daten         | TanStack Query (Cache, Refetch, Optimistic Updates)           |
+| UI-State             | TanStack Store + Custom Hooks                                 |
+| Persistente Config   | `localStorage` + TanStack Store (Hydration)                   |
+| Offline-Queue        | Eigene Store-Implementierung im ETB-Feature (`persistence/`)  |
+| WebSocket-Stream     | `socket.io-client` → Store-Updates → Query-Invalidation       |
 
 ---
 
-## 5. Platform Storage Abstraction (Port-Adapter Pattern)
-
-### 5.1 Übersicht
-
-Bluelight Hub läuft auf **zwei Platforms** (Desktop/Tauri + Web/Browser) und benötigt plattformübergreifenden Storage für Server-Konfigurationen, UI-Präferenzen und Session-Daten.
-
-**Pattern:** Port-Adapter (Hexagonal Architecture) mit Factory Singleton
-
-**Vorteile:**
-- ✅ **Platform-Agnostisch:** Features kennen keine Platform-Details
-- ✅ **Testbar:** Mock `IStoragePort` in Unit Tests
-- ✅ **Erweiterbar:** Neue Platforms ohne Breaking Changes
-- ✅ **Type Safe:** TypeScript Generics für Storage-Operationen
-
-**Architektur-Entscheidung:** Siehe [ADR-010: Platform Storage Adapter Pattern](./ADR-010-platform-storage-adapter-pattern.md)
-
-### 5.2 Komponenten
-
-#### Port Interface (`IStoragePort`)
-
-```typescript
-// packages/frontend/src/shared/services/storage/IStoragePort.ts
-export interface IStoragePort {
-  /**
-   * Retrieves a value from storage
-   * @returns The stored value or null if not found
-   */
-  get<T>(key: string): Promise<T | null>;
-
-  /**
-   * Stores a value in storage
-   */
-  set<T>(key: string, value: T): Promise<void>;
-
-  /**
-   * Removes a value from storage
-   */
-  remove(key: string): Promise<void>;
-
-  /**
-   * Clears all storage (use with caution!)
-   */
-  clear(): Promise<void>;
-}
-```
-
-#### Adapters (Platform-Specific)
-
-**Tauri Storage Adapter** (Desktop):
-
-```typescript
-// packages/frontend/src/shared/services/storage/adapters/TauriStorageAdapter.ts
-import { invoke } from '@tauri-apps/api/core';
-import type { IStoragePort } from '../IStoragePort';
-
-export class TauriStorageAdapter implements IStoragePort {
-  async get<T>(key: string): Promise<T | null> {
-    const value = await invoke<string | null>('plugin:store|get', { key });
-    return value ? JSON.parse(value) : null;
-  }
-
-  async set<T>(key: string, value: T): Promise<void> {
-    await invoke('plugin:store|set', { key, value: JSON.stringify(value) });
-  }
-
-  async remove(key: string): Promise<void> {
-    await invoke('plugin:store|delete', { key });
-  }
-
-  async clear(): Promise<void> {
-    await invoke('plugin:store|clear');
-  }
-}
-```
-
-**Web Storage Adapter** (Browser):
-
-```typescript
-// packages/frontend/src/shared/services/storage/adapters/WebStorageAdapter.ts
-import type { IStoragePort } from '../IStoragePort';
-
-export class WebStorageAdapter implements IStoragePort {
-  async get<T>(key: string): Promise<T | null> {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : null;
-  }
-
-  async set<T>(key: string, value: T): Promise<void> {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
-
-  async remove(key: string): Promise<void> {
-    localStorage.removeItem(key);
-  }
-
-  async clear(): Promise<void> {
-    localStorage.clear();
-  }
-}
-```
-
-#### Factory Singleton
-
-```typescript
-// packages/frontend/src/shared/services/storage/storage-factory.ts
-import type { IStoragePort } from './IStoragePort';
-import { TauriStorageAdapter } from './adapters/TauriStorageAdapter';
-import { WebStorageAdapter } from './adapters/WebStorageAdapter';
-
-let storageInstance: IStoragePort | null = null;
-
-/**
- * Platform Detection (Tauri-spezifisch)
- */
-function isTauriEnvironment(): boolean {
-  return '__TAURI_INTERNALS__' in window;
-}
-
-/**
- * Factory Singleton: Erstellt Platform-spezifischen Storage Adapter
- * @returns IStoragePort-Implementierung basierend auf Runtime-Platform
- */
-export function getStorageAdapter(): IStoragePort {
-  if (storageInstance === null) {
-    storageInstance = isTauriEnvironment()
-      ? new TauriStorageAdapter()
-      : new WebStorageAdapter();
-  }
-
-  return storageInstance;
-}
-
-/**
- * ONLY FOR TESTING: Reset Singleton
- * ⚠️ NEVER use in production code!
- */
-export function resetStorageAdapter(): void {
-  if (import.meta.env.MODE !== 'test') {
-    throw new Error('resetStorageAdapter() is only allowed in test mode');
-  }
-  storageInstance = null;
-}
-```
-
-### 5.3 Feature Usage
-
-**TanStack Query Mutation:**
-
-```typescript
-// features/admin/api/mutations.ts
-import { getStorageAdapter } from '@/shared/services/storage/storage-factory';
-import { useMutation } from '@tanstack/react-query';
-
-export const useSaveServerConfig = () => {
-  const storage = getStorageAdapter();
-
-  return useMutation({
-    mutationFn: async (servers: ServerConfig[]) => {
-      await storage.set('bluelight:servers', servers);
-    },
-  });
-};
-```
-
-**Direct Usage (Service):**
-
-```typescript
-// services/session-manager.service.ts
-import { getStorageAdapter } from '@/shared/services/storage/storage-factory';
-
-export class SessionManager {
-  private storage = getStorageAdapter();
-
-  async saveUserPreferences(prefs: UserPreferences): Promise<void> {
-    await this.storage.set('bluelight:user-prefs', prefs);
-  }
-
-  async loadUserPreferences(): Promise<UserPreferences | null> {
-    return await this.storage.get<UserPreferences>('bluelight:user-prefs');
-  }
-}
-```
-
-### 5.4 Storage Keys Convention
-
-**Namespace-Prefix:** Alle Keys mit `bluelight:` prefixen
-
-```typescript
-// constants/storage-keys.ts
-export const STORAGE_KEYS = {
-  SERVERS: 'bluelight:servers',
-  ACTIVE_SERVER_ID: 'bluelight:active-server-id',
-  USER_PREFS: 'bluelight:user-prefs',
-  SESSION_TOKEN: 'bluelight:session-token',
-} as const;
-```
-
-**Usage:**
-
-```typescript
-import { STORAGE_KEYS } from '@/constants/storage-keys';
-
-const servers = await storage.get<ServerConfig[]>(STORAGE_KEYS.SERVERS);
-```
-
-### 5.5 Testing
-
-**Mock Storage in Tests:**
-
-```typescript
-// __tests__/my-feature.test.ts
-import { vi } from 'vitest';
-import type { IStoragePort } from '@/shared/services/storage/IStoragePort';
-
-const mockStorage: IStoragePort = {
-  get: vi.fn(),
-  set: vi.fn(),
-  remove: vi.fn(),
-  clear: vi.fn(),
-};
-
-vi.mock('@/shared/services/storage/storage-factory', () => ({
-  getStorageAdapter: () => mockStorage,
-}));
-
-test('should save server config', async () => {
-  mockStorage.set = vi.fn().mockResolvedValue(undefined);
-
-  await saveServerConfig({ url: 'https://api.example.com' });
-
-  expect(mockStorage.set).toHaveBeenCalledWith(
-    'bluelight:servers',
-    expect.any(Array)
-  );
-});
-```
-
-### 5.6 Platform Differences
-
-| Feature | Tauri (Desktop) | Web (Browser) |
-|---------|-----------------|---------------|
-| **Storage Backend** | `tauri-plugin-store` (File-based JSON) | `localStorage` (Browser API) |
-| **Encryption** | Stronghold Plugin (geplant) | Web Crypto API (geplant) |
-| **Persistenz** | Unbegrenzt (File System) | ~5-10 MB, evictable |
-| **Performance** | ~5-20ms (Disk I/O) | <5ms (Memory) |
-| **Offline** | ✅ Vollständig | ✅ Vollständig |
-| **Cross-Origin** | N/A | Same-Origin Policy |
-
-**Hinweis:** Verschlüsselung für Tokens/Secrets siehe [ADR-001: Platform Storage Strategy](./ADR-001-platform-storage-strategy.md)
-
----
-
-## 6. Routing (TanStack Router)
-
-### 6.1 File-based Routes
-
-```
-routes/
-├── __root.tsx          # Root Layout
-├── index.tsx           # Home Route (/)
-├── app/
-│   ├── index.tsx       # /app
-│   ├── einsatz/
-│   │   ├── index.tsx   # /app/einsatz
-│   │   └── $id.tsx     # /app/einsatz/:id
-│   └── etb/
-│       └── $einsatzId.tsx
-└── admin/
-    ├── index.tsx
-    └── users.tsx
-```
-
-### 6.2 Route Definition
-
-```typescript
-// routes/app/einsatz/$id.tsx
-import { createFileRoute } from '@tanstack/react-router';
-
-export const Route = createFileRoute('/app/einsatz/$id')({
-  component: EinsatzDetailPage,
-  loader: ({ params }) => loadEinsatzData(params.id),
-  pendingComponent: LoadingSpinner,
-  errorComponent: ErrorBoundary,
-});
-```
-
----
-
-## 7. Forms (TanStack Form + Zod)
-
-### 7.1 Form Setup
-
-```typescript
-import { useForm } from '@tanstack/react-form';
-import { zodValidator } from '@tanstack/zod-form-adapter';
-import { createEinsatzSchema } from '../schemas/einsatz.schema';
-
-export const EinsatzForm = () => {
+## 3.6 Forms (TanStack Form + Zod)
+
+- **Library:** `@tanstack/react-form` + `zodValidator()` aus `@tanstack/zod-form-adapter`.
+- **Validation-Source:** Zod-Schemas in `features/*/schemas/*.schema.ts` (20+ Dateien) **und** geteilte Schemas aus `@bluelight-hub/shared/schemas` (Auth, Invite-Codes, Server-URL).
+- **Beispiel:**
+  ```tsx
   const form = useForm({
-    defaultValues: { nummer: '', stichwort: '' },
     validatorAdapter: zodValidator(),
-    validators: {
-      onChange: createEinsatzSchema,
-    },
-    onSubmit: async ({ value }) => {
-      await createMutation.mutateAsync(value);
-    },
+    defaultValues: { ... },
+    onSubmit: async ({ value }) => { /* Mutation */ },
   });
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }}>
-      <form.Field name="nummer">
-        {(field) => (
-          <Input
-            value={field.state.value}
-            onChange={(e) => field.handleChange(e.target.value)}
-            error={field.state.meta.errors[0]}
-          />
-        )}
-      </form.Field>
-      <Button type="submit">Erstellen</Button>
-    </form>
-  );
-};
-```
-
-### 7.2 Zod Schema
-
-```typescript
-// schemas/einsatz.schema.ts
-import { z } from 'zod';
-
-export const createEinsatzSchema = z.object({
-  nummer: z.string().min(1, 'Nummer erforderlich'),
-  stichwort: z.string().min(1, 'Stichwort erforderlich'),
-  adresse: z.object({
-    strasse: z.string().optional(),
-    ort: z.string().optional(),
-  }).optional(),
-});
-```
+  ```
+- **Legacy:** Einzelne Formulare nutzen noch `react-hook-form` (Migration in Arbeit).
+- **Fehlertexte:** Konsequent deutsch in Schemas.
 
 ---
 
-## 8. API Integration
+## 3.7 UI-Komponenten (Atomic Design)
 
-### 8.1 Generierter API Client
+Zentrales Shared-UI in `packages/frontend/src/shared/ui/`:
 
-```typescript
-// Importiert von @bluelight-hub/shared/client
-import { api } from '@bluelight-hub/shared/client';
+| Ebene      | Anzahl | Beispiele                                                                 |
+| ---------- | -----: | ------------------------------------------------------------------------- |
+| Atoms      |     46 | Button, Input, Select, Spinner, Badge, IconWrapper, `cn()`                |
+| Molecules  |     30 | FormField, DataTable, ModalBase, CardBase, Navbar, Sidebar                |
+| Organisms  |     22 | CommandPalette, MainLayout, KartenZeichenSidebar, FullscreenCloseButton   |
+| Templates  |      k.A. | PageLayout-Varianten, DetailView-Template                               |
+| Headless   |      6 | ConfirmProvider, `useConfirm`, Provider in `/shared/ui/headless/`         |
 
-// Typsichere API-Aufrufe
-const einsaetze = await api.einsatz.findAll();
-const einsatz = await api.einsatz.findById({ id: 'abc123' });
-```
-
-### 8.2 Workflow
-
-1. Backend: Endpoint mit NestJS + Swagger erstellen
-2. `pnpm run generate-api` ausführen
-3. Frontend: Generierten Client mit TanStack Query verwenden
+**Styling-Pattern:** Tailwind + CVA (Varianten) + `cn()` für dynamische Klassen.
 
 ---
 
-## 9. Atomic Design
+## 3.8 Tauri-Integration (`src-tauri/`)
 
-### 9.1 Hierarchie
-
-| Level | Beschreibung | Beispiele |
-|-------|--------------|-----------|
-| **Atoms** | Basis-Elemente | Button, Input, Badge |
-| **Molecules** | Kombinationen | FormField, Card, Alert |
-| **Organisms** | Komplexe Sections | EinsatzForm, DataTable |
-| **Templates** | Page Layouts | DashboardLayout |
-| **Pages** | Route-Komponenten | EinsatzDetailPage |
-
-### 9.2 Komponenten-Struktur
-
-```typescript
-// shared/ui/atoms/Button.tsx
-import { cn } from '@/lib/utils';
-import { cva, type VariantProps } from 'class-variance-authority';
-
-const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md font-medium',
-  {
-    variants: {
-      variant: {
-        default: 'bg-primary text-white hover:bg-primary/90',
-        outline: 'border border-input bg-background hover:bg-accent',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-      },
-      size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-9 px-3',
-        lg: 'h-11 px-8',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  }
-);
-
-export const Button = ({ className, variant, size, ...props }) => (
-  <button className={cn(buttonVariants({ variant, size }), className)} {...props} />
-);
-```
+- **Zielplattformen:** macOS (arm64 + x64), Windows, Linux, iOS, Android.
+- **Deep-Linking:** Scheme `bluelight://…` — Single-Instance-Handler leitet an Router weiter.
+- **Store-Backend:** siehe `docs/frontend-tauri-plugin-store-setup.md` (Stronghold-basiert, typisierte Singleton-Accessor).
+- **CSP:** im Development `null`, Production konfiguriert.
+- **Ressourcen:** MP3-Sounds im `sounds/`-Ordner, ausgeliefert als Tauri-Resource.
 
 ---
 
-## 10. Tauri Integration
+## 3.9 API-Integration
 
-### 10.1 Native Features
-
-| Plugin | Zweck |
-|--------|-------|
-| `tauri-plugin-os` | OS-Erkennung |
-| `tauri-plugin-shell` | Shell-Befehle |
-| `tauri-plugin-updater` | Auto-Updates |
-| `tauri-plugin-deep-link` | URL-Handling |
-| `tauri-plugin-dialog` | Native Dialoge |
-| `tauri-plugin-clipboard-manager` | Zwischenablage |
-
-### 10.2 Tauri API Nutzung
-
-```typescript
-import { invoke } from '@tauri-apps/api/core';
-import { platform } from '@tauri-apps/plugin-os';
-
-// Rust-Funktion aufrufen
-const result = await invoke('my_rust_function', { arg: 'value' });
-
-// OS-Info abrufen
-const currentPlatform = await platform(); // 'macos' | 'windows' | 'linux'
-```
+- Generierter Client aus `@bluelight-hub/shared` (OpenAPI Generator `typescript-fetch`, 52 API-Klassen, 475 Modelle).
+- **Direkte Nutzung** in Feature-Hooks: `api.einsatz().einsatzControllerFindAllVAlpha({...})` (siehe Kapitel 4 & 9).
+- **Fetch-Wrapper:** `packages/frontend/src/shared/api/fetchWithRefresh.ts` mit Token-Refresh-Queue, Cookie-basierter Auth (`credentials: 'include'`).
+- **Token-Speicherung:** `shared/lib/server-access-token.ts` (zentraler Accessor).
 
 ---
 
-## 11. Testing
+## 3.10 Internationalisierung (i18n)
 
-### 11.1 Vitest Setup
+**Aktuell nicht implementiert.** Alle UI-Strings sind deutsch hardcodiert. Keine i18next/react-intl-Integration. Deutsche Begriffe (`führung`, `befehl`, `einsatz`) auch als Identifier in Routen und Dateinamen.
 
-```typescript
-// vite.config.ts
-export default defineConfig({
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    coverage: {
-      provider: 'v8',
-    },
-  },
-});
-```
-
-### 11.2 Component Testing
-
-```typescript
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const renderWithProviders = (ui: React.ReactElement) => {
-  const queryClient = new QueryClient();
-  return render(
-    <QueryClientProvider client={queryClient}>
-      {ui}
-    </QueryClientProvider>
-  );
-};
-
-test('should render einsatz list', async () => {
-  renderWithProviders(<EinsatzList />);
-  expect(await screen.findByText('Einsätze')).toBeInTheDocument();
-});
-```
+> Einführung wäre ein nicht-triviales Refactoring — aktuell nicht eingeplant.
 
 ---
 
-## 12. Wichtige Regeln
+## 3.11 Testing
 
-### NIEMALS:
-- Andere CSS Frameworks (nur Tailwind!)
-- Redux oder andere State Libraries
-- Manuelle API Helper (nur generierter Client!)
-- HTML Forms (nur TanStack Form!)
-
-### IMMER:
-- TanStack Ecosystem für State/Forms/Routing
-- Tailwind CSS + Headless UI für Styling
-- Generierter API Client aus `@bluelight-hub/shared`
-- Feature-basierte Modul-Struktur
+- **Framework:** Vitest + React Testing Library (jsdom)
+- **Test-Dateien:** ≈ 354 (`*.spec.ts(x)`, `*.test.ts(x)`), ≈ 1.474 Test-Cases
+- **Performance-Tests** (`test:performance`):
+  - `BefehlsListeMitEingabe.performance.spec.tsx`
+  - `SingleEinsatzDashboard.performance.spec.tsx`
+  - `EtbEntryList.performance.spec.tsx`
+- **Lagekarte Drawing-Modi:** 11+ Tests (Custom Modes sind stark getestet)
+- **ETB Offline-Store:** Persistence-Tests
+- **Coverage:** LCOV → Codecov-Upload via CI
 
 ---
 
-*Dokumentation generiert am 2026-01-05*
+## 3.12 Performance- und Review-Gates
+
+Frontend-Ring-2-Gates definieren verbindliche Schwellen — `docs/frontend/ring-2-performance-gates.md` und `ring-2-review-gates.md`:
+
+- **Bundle-Size, LCP, INP, CLS** Schwellwerte (spezifische Zahlen in der Spec).
+- **Review-Checklisten:** Unit Tests, A11y, TypeScript-Strictness.
+- **Design Tokens:** Tailwind-Farb-/Spacing-Kontrakt in `ring-1-design-tokens.md`.
+
+---
+
+## 3.13 Frontend Code-Review-Checkliste
+
+- [ ] Keine manuellen `fetch()`-Calls — stattdessen generierter Client via `api.<tag>().<operation>(...)`.
+- [ ] Alle Formulare nutzen `@tanstack/react-form` + Zod-Schema.
+- [ ] Server-State → TanStack Query · UI-State → TanStack Store.
+- [ ] Query-Keys als Factory pro Feature (`FEATURE_QUERY_KEYS`).
+- [ ] Komponenten nutzen Shared-UI-Atomic-Elemente (keine duplizierten Inputs/Buttons).
+- [ ] Tailwind-Klassen über `cn()` zusammengeführt.
+- [ ] Deutsche UI-Strings mit korrekten Umlauten.
+- [ ] Tauri-Calls nur via Plugin-APIs (keine Custom IPC ohne Rust-Command-Review).
+- [ ] MapLibre statt Leaflet (siehe Memory-Notiz).
+- [ ] Ring-2-Performance-Gates eingehalten (Bundle, LCP, INP, CLS).
