@@ -40,4 +40,32 @@ describe('useSplitViewUrlSync', () => {
     renderHook(() => useSplitViewUrlSync({ split: undefined, focus: undefined }));
     expect(navigateMock).not.toHaveBeenCalled();
   });
+
+  it('Race-Guard: initialer Mount mit URL-Focus löscht den Param nicht', () => {
+    // Regression: vor dem Fix hat Store→URL im selben Flush mit altem
+    // state={focus:null} einen navigate({focus: undefined}) abgesetzt,
+    // obwohl URL→Store gerade focus=cell gesetzt hat. Endlosschleife.
+    renderHook(({ split, focus }) => useSplitViewUrlSync({ split, focus }), {
+      initialProps: { split: true as boolean | undefined, focus: 'cell:BRAND:MENSCHEN' as string | undefined },
+    });
+    expect(splitViewStore.state.focus).toEqual({ kind: 'cell', gefahrentyp: 'BRAND', schutzobjekt: 'MENSCHEN' });
+    // Kein navigate-Call, der focus=undefined schreiben würde.
+    expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  it('Race-Guard: Cell-Click im Store nach URL-getriebenem Mount löst genau einen navigate aus', () => {
+    const { rerender } = renderHook(({ split, focus }) => useSplitViewUrlSync({ split, focus }), {
+      initialProps: { split: true as boolean | undefined, focus: 'cell:BRAND:MENSCHEN' as string | undefined },
+    });
+    navigateMock.mockClear();
+
+    // Simuliert User-Action: Matrix-Cell-Klick ändert Store-Focus. URL-Props bleiben (alt) → rerender.
+    act(() => {
+      splitViewActions.setFocus({ kind: 'cell', gefahrentyp: 'EXPLOSION', schutzobjekt: 'UMWELT' });
+    });
+    rerender({ split: true, focus: 'cell:BRAND:MENSCHEN' });
+
+    // Genau ein navigate-Call mit dem neuen Focus; kein zweiter mit undefined.
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+  });
 });
