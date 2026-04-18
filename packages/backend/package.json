@@ -93,7 +93,7 @@
   },
   "devDependencies": {
     "@compodoc/compodoc": "^1.2.1",
-    "@nestjs/cli": "^11.0.19",
+    "@nestjs/cli": "^11.0.21",
     "@nestjs/testing": "^11.1.19",
     "@swc/jest": "^0.2.39",
     "@types/bcrypt": "^6.0.0",
@@ -104,7 +104,7 @@
     "@types/multer": "^2.1.0",
     "@types/node": "^25.6.0",
     "@types/passport-jwt": "^4.0.1",
-    "@types/pdfkit": "^0.17.5",
+    "@types/pdfkit": "^0.17.6",
     "@types/supertest": "^7.2.0",
     "@types/ua-parser-js": "^0.7.39",
     "artillery": "^2.0.30",

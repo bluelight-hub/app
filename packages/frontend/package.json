@@ -83,7 +83,7 @@
   },
   "devDependencies": {
     "@tanstack/devtools-vite": "^0.6.0",
-    "@tanstack/router-plugin": "^1.167.20",
+    "@tanstack/router-plugin": "^1.167.22",
     "@tauri-apps/cli": "^2.10.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -96,7 +96,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/ui": "^4.1.4",
-    "baseline-browser-mapping": "^2.10.18",
+    "baseline-browser-mapping": "^2.10.20",
     "globals": "^17.5.0",
     "jsdom": "^29.0.2",
     "typescript": "^5.9.3",
