@@ -57,7 +57,7 @@
     "cmdk": "^1.1.1",
     "consola": "^3.4.2",
     "date-fns": "^4.1.0",
-    "dompurify": "^3.3.3",
+    "dompurify": "^3.4.0",
     "jsqr": "^1.4.0",
     "maplibre-gl": "^5.22.0",
     "mgrs": "^2.1.0",
