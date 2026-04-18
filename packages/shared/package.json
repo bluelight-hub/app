@@ -1,6 +1,6 @@
 {
   "name": "@bluelight-hub/shared",
-  "version": "1.0.0-alpha.102",
+  "version": "1.0.0-alpha.103",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",

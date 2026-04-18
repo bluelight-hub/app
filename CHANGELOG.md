@@ -1,3 +1,59 @@
+## Gefahrenzonen auf der Lagekarte
+
+Die Lagekarte bietet nun die Möglichkeit, Gefahrenzonen direkt auf der Karte zu zeichnen und zu verwalten. Gefahrenzonen werden farblich nach ihrer Warnstufe (KEINE, NIEDRIG, MITTEL, HOCH, AKUT) dargestellt und sind mit der Gefahrenmatrix verknüpft.
+
+- Gefahrenzonen können als Polygon oder Kreis direkt auf der Karte gezeichnet werden (Tastenkürzel: `g`)
+- Beim Zeichnen wird direkt der Gefahrentyp und das bedrohte Schutzobjekt ausgewählt
+- Die Warnstufe wird automatisch aus der Gefahrenmatrix übernommen
+- Zonen werden in Echtzeit zwischen allen Teilnehmern synchronisiert
+- Klick auf eine Zone zeigt Details und erlaubt das Bearbeiten oder Löschen
+- Rückgängig-Funktion für versehentlich gelöschte Zonen (Tastenkürzel: `Cmd+Z`, 30 Sekunden Zeit)
+
+## Gefahrenmatrix & Lagekarte im Split-View
+
+Die neue Split-View-Ansicht zeigt Gefahrenmatrix und Lagekarte gleichzeitig und verbindet beide Ansichten nahtlos miteinander.
+
+- Split-View mit Tastenkürzel `Cmd+Shift+G` aktivierbar (ab 1280px Breite)
+- Klick auf eine Matrixzelle zeigt die zugehörigen Zonen auf der Karte
+- Klick auf eine Zone auf der Karte springt zur entsprechenden Matrixzelle
+- Kleine Badges in der Matrix zeigen an, wie viele Zonen räumlich verortet sind
+- Warnung bei Matrixzellen mit Warnstufe, aber ohne Verortung auf der Karte
+- Automatische Anpassung bei kleinen Bildschirmen
+
+## AKUT-Warnungen in Echtzeit
+
+Bei kritischen Gefahrenlagen werden alle Teilnehmer sofort über AKUT-Bewertungen informiert.
+
+- Sofortige Benachrichtigung mit Ton bei AKUT-Warnstufe in der Gefahrenmatrix
+- Dreistufige Eskalation: Toast-Benachrichtigung → Bestätigungs-Dialog → Audio-Signal
+- Ton kann optional deaktiviert werden
+- Änderungen werden in Echtzeit über alle Clients synchronisiert
+
+## Gefahren-Werkzeuge
+
+Alle Werkzeuge für Gefahrenzonen, GAMS-Symbole und Gefahren-Zeichnungen sind jetzt in einer einheitlichen Seitenleiste zusammengefasst.
+
+- Neue zentrale Seitenleiste für alle Gefahren-Werkzeuge (Zonen / GAMS / Symbole)
+- Öffnen über Warn-Icon in der Karten-Toolbar
+- Übersichtlichere Bedienung durch Tabs statt einzelner Buttons
+
+## Onboarding & Hilfestellung
+
+Neue Nutzer erhalten eine interaktive Tour durch die Gefahrenzonen-Funktionen.
+
+- Vierstufige Einführung erklärt das Zusammenspiel von Matrix und Karte
+- Navigation mit Tastatur und Maus möglich
+- Tour wird beim ersten Öffnen der Split-View automatisch angezeigt
+
+## Dokumentation & Entwicklung
+
+- Umfassende Projektdokumentation aktualisiert (Datenmodell, Testing, DevOps, Integrationen)
+- Neue Architekturentscheidung zur Verknüpfung von Gefahrenzonen und Matrix (ADR-010)
+- Design-System-Dokumentation erweitert
+- Performance-Verbesserungen auf der Lagekarte bei vielen taktischen Zeichen
+- Fehlerhafte Console-Logs aus Drittbibliothek entfernt
+- Docker-Build-Prozess korrigiert
+
 ## Workspace-Navigation & Sidebar
 
 Die Sidebar wurde grundlegend überarbeitet und in zwei klare Bereiche unterteilt: **Navigation** (scrollbar, oben) und **Schnellaktionen** (fixiert, unten). Die Command Palette ist nun kompakt am unteren Rand verankert und zeigt in schmaler Ansicht nur das Icon plus ⌘K-Shortcut.
