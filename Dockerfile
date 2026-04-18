@@ -9,6 +9,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY packages/backend/package.json ./packages/backend/
 COPY packages/frontend/package.json ./packages/frontend/
 COPY packages/shared/package.json ./packages/shared/
+# Patches werden von pnpm via patchedDependencies (package.json) beim Install benötigt.
+COPY patches ./patches
 
 # Install all workspace dependencies (dev + prod)
 RUN pnpm install --frozen-lockfile
