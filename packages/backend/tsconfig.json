@@ -25,6 +25,7 @@
     "noFallthroughCasesInSwitch": true,
     "useUnknownInCatchVariables": true,
     "resolveJsonModule": true,
+    "noUncheckedSideEffectImports": false,
     "paths": {
       "@/*": ["./src/*"],
       "@domain/*": ["./src/domain/*"],
