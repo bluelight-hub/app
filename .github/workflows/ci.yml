@@ -167,13 +167,24 @@ jobs:
       # Threshold-Enforcement pro Shard deaktiviert — jeder Shard sieht nur
       # einen Teil der Tests, daher ist seine Coverage unvollständig. Codecov
       # merged die Shards zentral, die Threshold-Prüfung passiert dort.
+      #
+      # `pnpm exec jest` (statt `pnpm test:unit -- …`) verhindert, dass pnpm
+      # `--shard` hinter ein `--` hängt. Sonst interpretiert Jest das Flag als
+      # positional Test-Pfad-Pattern → "No tests found".
       - name: Run backend unit tests (sharded)
         env:
           JWT_SECRET: test-secret
           JWT_REFRESH_SECRET: test-refresh-secret
           NODE_ENV: test
           SHARD_INDEX: ${{ matrix.shard }}
-        run: pnpm --filter @bluelight-hub/backend test:unit -- --shard="$SHARD_INDEX/3" --coverageThreshold='{}'
+        run: |
+          pnpm --filter @bluelight-hub/backend exec jest \
+            --coverage \
+            --testPathIgnorePatterns='\.integration\.spec\.ts$' \
+            --testPathIgnorePatterns='\.e2e\.spec\.ts$' \
+            --testPathIgnorePatterns='\.smoke\.spec\.ts$' \
+            --shard="$SHARD_INDEX/3" \
+            --coverageThreshold='{}'
 
       - uses: actions/upload-artifact@v7
         if: failure()
