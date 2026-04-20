@@ -270,10 +270,11 @@ export class LagekarteController {
           cb(null, uploadDir);
         },
         filename: (req, uploadedFile, cb) => {
-          const reqEinsatzId = req.params.einsatzId || 'unknown';
+          const rawEinsatzId = req.params.einsatzId;
+          const reqEinsatzId = typeof rawEinsatzId === 'string' ? rawEinsatzId : 'unknown';
           const timestamp = Date.now();
           // Sanitize: Prevent path traversal
-          const sanitizedEinsatzId = reqEinsatzId.replace(/[^a-zA-Z0-9_-]/g, '');
+          const sanitizedEinsatzId = (reqEinsatzId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '');
           // Use correct extension based on MIME type
           const extension = uploadedFile.mimetype === 'image/jpeg' ? 'jpg' : 'png';
           cb(null, `${sanitizedEinsatzId}_${timestamp}.${extension}`);
