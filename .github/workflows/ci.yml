@@ -135,13 +135,17 @@ jobs:
       - name: Check circular dependencies
         run: pnpm --filter @bluelight-hub/backend lint:deps:core
 
-  # Linux backend unit tests (fast lane, no DB)
+  # Linux backend unit tests (fast lane, no DB) — split across shards
   linux-backend-unit:
-    name: Linux Backend Unit
+    name: Linux Backend Unit (Shard ${{ matrix.shard }}/3)
     needs: [detect-changes]
     if: needs.detect-changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v6
 
@@ -160,17 +164,21 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter @bluelight-hub/backend prisma:generate
 
-      - name: Run backend unit tests with coverage
+      # Threshold-Enforcement pro Shard deaktiviert — jeder Shard sieht nur
+      # einen Teil der Tests, daher ist seine Coverage unvollständig. Codecov
+      # merged die Shards zentral, die Threshold-Prüfung passiert dort.
+      - name: Run backend unit tests (sharded)
         env:
           JWT_SECRET: test-secret
           JWT_REFRESH_SECRET: test-refresh-secret
           NODE_ENV: test
-        run: pnpm --filter @bluelight-hub/backend test:unit
+          SHARD_INDEX: ${{ matrix.shard }}
+        run: pnpm --filter @bluelight-hub/backend test:unit -- --shard="$SHARD_INDEX/3" --coverageThreshold='{}'
 
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: test-artifacts-linux-backend-unit
+          name: test-artifacts-linux-backend-unit-shard-${{ matrix.shard }}
           path: |
             packages/backend/coverage/
             **/trace.zip
@@ -180,7 +188,7 @@ jobs:
         with:
           files: packages/backend/coverage/lcov.info
           flags: backend-unit
-          name: codecov-linux-backend-unit
+          name: codecov-linux-backend-unit-shard-${{ matrix.shard }}
           fail_ci_if_error: false
 
   # Linux backend database tests split across shards

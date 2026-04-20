@@ -2,8 +2,8 @@ module.exports = {
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   roots: ['<rootDir>/src', '<rootDir>/test'],
-  // Limit parallelism to prevent DB connection pool exhaustion
-  maxWorkers: 1, // Serial execution for DB-heavy integration tests
+  // DB-Integration-Tests erzwingen seriellen Lauf via `--runInBand` in `test:db`.
+  // Unit-Tests nutzen den Jest-Default (50% der Cores), damit CI parallel läuft.
   testMatch: [
     '**/domain/**/*.spec.ts',
     '**/infrastructure/**/*.spec.ts',
