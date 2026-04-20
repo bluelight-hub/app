@@ -911,6 +911,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             ],
             "description": "Das Einsatztagebuch (null wenn noch nicht erstellt)",
             "nullable": true,
+            "type": "object",
           },
           "lagekarte": {
             "allOf": [
@@ -920,6 +921,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             ],
             "description": "Die Lagekarte (null wenn noch nicht erstellt)",
             "nullable": true,
+            "type": "object",
           },
         },
         "required": [
