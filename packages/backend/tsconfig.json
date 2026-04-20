@@ -10,7 +10,6 @@
     "target": "ES2024",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
@@ -27,11 +26,11 @@
     "useUnknownInCatchVariables": true,
     "resolveJsonModule": true,
     "paths": {
-      "@/*": ["src/*"],
-      "@domain/*": ["src/domain/*"],
-      "@application/*": ["src/application/*"],
-      "@infrastructure/*": ["src/infrastructure/*"],
-      "@prisma/client": ["src/generated/prisma"]
+      "@/*": ["./src/*"],
+      "@domain/*": ["./src/domain/*"],
+      "@application/*": ["./src/application/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
+      "@prisma/client": ["./src/generated/prisma"]
     }
   },
   "include": ["src/**/*", "prisma/**/*", "prisma.config.ts"],
