@@ -6,7 +6,7 @@
 
 ## Projekt-Überblick
 
-Bluelight Hub ist eine **Web + Tauri Desktop App** für Blaulicht-Organisationen (Katastrophenschutz).
+Bluelight Hub ist eine **Web + Tauri Desktop App** für **weiße Hilfsorganisationen** im Sanitätsdienst und Katastrophenschutz (DRK, JUH, MHD, ASB, DLRG). **Explizit nicht für Feuerwehr** — fachliche Annahmen, Terminologie, Rollen- und Zeichen-Modelle orientieren sich am Sanitäts-/KatS-Kontext der weißen HiOrgs. (FW-/THW-Zeichen werden im Taktische-Zeichen-Katalog aus Interop-Gründen unterstützt, bestimmen aber nicht die Zielgruppe.)
 
 | Package          | Stack                        | Beschreibung                                                             |
 | ---------------- | ---------------------------- | ------------------------------------------------------------------------ |

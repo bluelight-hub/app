@@ -1,6 +1,6 @@
 # Bluelight Hub — Dokumentationsindex
 
-> **Projekt:** Bluelight Hub — Einsatzverwaltung für Blaulicht-Organisationen (Katastrophenschutz, Rettungsdienst, Feuerwehr)
+> **Projekt:** Bluelight Hub — Einsatzverwaltung für **weiße Hilfsorganisationen** (DRK, JUH, MHD, ASB, DLRG) im Sanitätsdienst und Katastrophenschutz. **Explizit nicht für Feuerwehr.**
 > **Version:** siehe `CHANGELOG.md` (aktuell: `1.0.0-alpha.102`)
 > **Generiert:** 2026-04-17
 > **Quelle:** Projekt-Scan v1.2.0 (Exhaustive, Agent-basiert)
@@ -73,7 +73,15 @@ pnpm run generate-api                                  # OpenAPI-Client regeneri
 
 ## Fachlicher Kontext
 
-Bluelight Hub unterstützt **Blaulicht-Organisationen** (DRK, Feuerwehr, Rettungsdienst, THW) bei der strukturierten Dokumentation und Koordination von Einsätzen:
+### Zielgruppe
+
+Bluelight Hub richtet sich **explizit an weiße Hilfsorganisationen** (DRK, JUH, MHD, ASB, DLRG) im Sanitätsdienst und Katastrophenschutz. Die Fachdomäne — Rollen, Einheitenstruktur, Führungsrhythmus, ETB-Kontexte, Kräfte-Modell und Default-Taktische-Zeichen — ist auf diesen Einsatzbereich zugeschnitten (Sanitätsdienst, Betreuungsdienst, SEG, KatS-Zug, Führungsgruppen).
+
+**Nicht die Zielgruppe:** Feuerwehr (kein Brandschutz-/Technische-Hilfeleistung-Fokus, keine FwDV-konforme Einsatzabwicklung), Polizei, Bundeswehr. FW-/THW-Zeichen im Taktische-Zeichen-Katalog existieren ausschließlich für Interoperabilität auf der Lagekarte (überörtliche Einsätze mit gemischten Kräften) und prägen weder Rollen-Modell noch Workflows.
+
+### Fachliche Fähigkeiten
+
+Bluelight Hub unterstützt die strukturierte Dokumentation und Koordination von Einsätzen:
 
 - **Einsatz-Management** — Erstellen, Aktualisieren, Archivieren (inkl. 10-Jahre-Aufbewahrung, GoBD-konform)
 - **Einsatztagebuch (ETB)** — Event-sourced Logbuch mit Snapshot-Optimierung, Discriminated-Union-Kontexte (ADR-005)

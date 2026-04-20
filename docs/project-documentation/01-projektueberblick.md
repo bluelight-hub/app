@@ -6,7 +6,27 @@
 
 ## 1.1 Fachlicher Kontext
 
-**Bluelight Hub** ist eine Einsatzverwaltungs-Plattform für **Blaulicht-Organisationen** (Katastrophenschutz, DRK, Feuerwehr, Rettungsdienst, THW). Die Software begleitet einen Einsatz von der Alarmierung über die Führung bis zur rechtssicheren Archivierung.
+**Bluelight Hub** ist eine Einsatzverwaltungs-Plattform **explizit für die „weißen Hilfsorganisationen"** (DRK, JUH, MHD, ASB, DLRG) im Sanitätsdienst und Katastrophenschutz. Die Software begleitet einen Einsatz von der Alarmierung über die Führung bis zur rechtssicheren Archivierung.
+
+### 1.1.1 Zielgruppe & Abgrenzung
+
+| Zielgruppe (Primärfokus)                               | **Nicht** Zielgruppe                        |
+| ------------------------------------------------------ | ------------------------------------------- |
+| **DRK** (Deutsches Rotes Kreuz)                        | Feuerwehr (BF, FF, WF)                      |
+| **JUH** (Johanniter-Unfall-Hilfe)                      | Polizei / BOS-Sicherheit                    |
+| **MHD** (Malteser Hilfsdienst)                         | Bundeswehr                                  |
+| **ASB** (Arbeiter-Samariter-Bund)                      | THW (als Primär-Nutzer; Interop unterstützt) |
+| **DLRG** (Deutsche Lebens-Rettungs-Gesellschaft)       | Kommerzielle Rettungsdienste ohne KatS-Bezug |
+
+**Einsatzszenarien, die die Fachdomäne prägen:**
+
+- Sanitätsdienstliche Absicherung (San-Dienst bei Veranstaltungen, MANV-Vorhaltung)
+- Schnelle Einsatzgruppen (SEG Sanität, SEG Betreuung, SEG Transport)
+- Betreuungsdienst (Notunterkünfte, Evakuierung, Verpflegung)
+- KatS-Züge / Verbandsführung im (über-)örtlichen Katastrophenschutz
+- Ehrenamtliche Einsatzkräfte mit HiOrg-internen Qualifikations- und Rollenmodellen
+
+> **Warum diese Abgrenzung architekturrelevant ist:** Rollen (`Führungskraft`/`Einsatzkraft`/`Externe`, operative Rollen im Einsatz), ETB-Kontexte (ADR-005: Text/Funkspruch/Patient/Einsatzmittel/Notiz), Kräfte-Modell (Fahrzeug/Person/Einheit mit Qualifikationen), HiOrg-Server-Integration (OAuth2 + Qualifikations-Import) und die Default-Befüllung des Taktische-Zeichen-Katalogs orientieren sich an weißen HiOrgs. Es gibt bewusst **kein** FwDV-/FFS-Modell, **keine** Brandbekämpfungs-Workflows, **keine** THW-Fachzug-Strukturen. FW-/THW-Taktische-Zeichen sind im Katalog enthalten, aber ausschließlich für die Lagekarten-Interoperabilität bei überörtlichen Einsätzen mit gemischten Kräften — sie bestimmen weder Datenmodell noch User-Journeys.
 
 ### Kern-Fähigkeiten
 
