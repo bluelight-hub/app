@@ -268,13 +268,17 @@ jobs:
             packages/backend/coverage/
             **/trace.zip
 
-  # Linux frontend tests
+  # Linux frontend tests — split across shards (Performance-Gates laufen separat)
   linux-frontend:
-    name: Linux Frontend Tests
+    name: Linux Frontend (Shard ${{ matrix.shard }}/3)
     needs: [detect-changes]
     if: needs.detect-changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v6
 
@@ -293,20 +297,23 @@ jobs:
       - name: Build shared package
         run: pnpm --filter @bluelight-hub/shared build
 
-      - name: Run frontend tests with coverage
+      - name: Run frontend tests (sharded)
         env:
           NODE_ENV: test
-        run: pnpm --filter @bluelight-hub/frontend exec vitest --run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml
-
-      - name: Run frontend performance gates
-        env:
-          NODE_ENV: test
-        run: pnpm --filter @bluelight-hub/frontend test:performance
+          SHARD_INDEX: ${{ matrix.shard }}
+        run: |
+          pnpm --filter @bluelight-hub/frontend exec vitest \
+            --run \
+            --coverage \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile="test-report.junit.shard-$SHARD_INDEX.xml" \
+            --shard="$SHARD_INDEX/3"
 
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: test-artifacts-linux-frontend
+          name: test-artifacts-linux-frontend-shard-${{ matrix.shard }}
           path: |
             packages/frontend/test-results/
             packages/frontend/coverage/
@@ -317,7 +324,7 @@ jobs:
         with:
           files: packages/frontend/coverage/lcov.info
           flags: frontend
-          name: codecov-linux-frontend
+          name: codecov-linux-frontend-shard-${{ matrix.shard }}
           fail_ci_if_error: false
 
       - name: Upload frontend test results to Codecov
@@ -325,7 +332,45 @@ jobs:
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: packages/frontend/test-report.junit.xml
+          files: packages/frontend/test-report.junit.shard-${{ matrix.shard }}.xml
+
+  # Frontend performance gates — timing-sensitiv, daher isoliert ohne Shard-Konkurrenz
+  linux-frontend-performance:
+    name: Linux Frontend Performance
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @bluelight-hub/shared build
+
+      - name: Run frontend performance gates
+        env:
+          NODE_ENV: test
+        run: pnpm --filter @bluelight-hub/frontend test:performance
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: test-artifacts-linux-frontend-performance
+          path: |
+            packages/frontend/test-results/
+            **/trace.zip
 
   # Lightweight Checks (Lint + Docs, non-blocking)
   lightweight-checks:
@@ -390,7 +435,7 @@ jobs:
   # Summary job for branch protection
   summary:
     name: CI Pipeline Summary
-    needs: [detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-frontend, docker-build]
+    needs: [detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-frontend, linux-frontend-performance, docker-build]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -402,6 +447,7 @@ jobs:
           backend_unit="${{ needs.linux-backend-unit.result }}"
           backend_db="${{ needs.linux-backend-db.result }}"
           frontend="${{ needs.linux-frontend.result }}"
+          frontend_perf="${{ needs.linux-frontend-performance.result }}"
           docker="${{ needs.docker-build.result }}"
           if [[ "$changes" != "success" ]]; then
             echo "❌ Change detection failed: $changes"
@@ -415,6 +461,7 @@ jobs:
              [[ "$backend_unit" != "success" && "$backend_unit" != "skipped" ]] || \
              [[ "$backend_db" != "success" && "$backend_db" != "skipped" ]] || \
              [[ "$frontend" != "success" && "$frontend" != "skipped" ]] || \
+             [[ "$frontend_perf" != "success" && "$frontend_perf" != "skipped" ]] || \
              [[ "$docker" != "success" && "$docker" != "skipped" ]]; then
             echo "❌ One or more jobs failed"
             echo "Repository Hygiene: $hygiene"
@@ -422,6 +469,7 @@ jobs:
             echo "Linux Backend Unit: $backend_unit"
             echo "Linux Backend DB: $backend_db"
             echo "Linux Frontend: $frontend"
+            echo "Linux Frontend Performance: $frontend_perf"
             echo "Docker: $docker"
             exit 1
           fi
@@ -439,6 +487,7 @@ jobs:
           backend_unit="${{ needs.linux-backend-unit.result }}"
           backend_db="${{ needs.linux-backend-db.result }}"
           frontend="${{ needs.linux-frontend.result }}"
+          frontend_perf="${{ needs.linux-frontend-performance.result }}"
           docker="${{ needs.docker-build.result }}"
 
           status_icon() {
@@ -451,13 +500,15 @@ jobs:
 
           echo "| Repository Hygiene | $(status_icon "$hygiene") $hygiene |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Quality (Build + Lint) | $(status_icon "$quality") $quality |" >> $GITHUB_STEP_SUMMARY
-          echo "| Linux Backend Unit | $(status_icon "$backend_unit") $backend_unit |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux Backend Unit (3 Shards) | $(status_icon "$backend_unit") $backend_unit |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Backend DB (3 Shards) | $(status_icon "$backend_db") $backend_db |" >> $GITHUB_STEP_SUMMARY
-          echo "| Linux Frontend Tests | $(status_icon "$frontend") $frontend |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux Frontend Tests (3 Shards) | $(status_icon "$frontend") $frontend |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux Frontend Performance | $(status_icon "$frontend_perf") $frontend_perf |" >> $GITHUB_STEP_SUMMARY
           echo "| Docker Build | $(status_icon "$docker") $docker |" >> $GITHUB_STEP_SUMMARY
           echo "| Lightweight Checks | ℹ️ non-blocking |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Linux Test Strategy" >> $GITHUB_STEP_SUMMARY
           echo "- Alle verpflichtenden Tests laufen auf Linux" >> $GITHUB_STEP_SUMMARY
-          echo "- Backend DB-Tests sind in 3 Shards parallelisiert" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend Unit + DB und Frontend Tests jeweils 3-fach gesharded" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend Performance-Gates isoliert in eigenem Job" >> $GITHUB_STEP_SUMMARY
           echo "- Docker: $docker" >> $GITHUB_STEP_SUMMARY
