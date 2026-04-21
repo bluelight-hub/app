@@ -235,3 +235,4 @@ gha-creds-*.json
 
 # BMAD-Method CLI-Tooling (lokal installiert, nicht ins Repo)
 _bmad/
+_bmad-output/
