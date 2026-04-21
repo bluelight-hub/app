@@ -120,28 +120,28 @@ Regel:
 
 | Token | Wert | Zweck |
 | --- | --- | --- |
-| `spacing-cluster` | `0.75rem` | enge Abstände innerhalb kleiner Gruppen |
-| `spacing-panel` | `1.5rem` | Innenabstand von Cards und Panels |
-| `spacing-shell` | `2rem` | größere Shell-Abstände |
-| `spacing-control-x` | `1rem` | horizontales Control-Padding |
-| `spacing-control-y` | `0.625rem` | vertikales Control-Padding |
+| `spacing-cluster` | `0.5rem` | enge Abstände innerhalb kleiner Gruppen |
+| `spacing-panel` | `1rem` | Innenabstand von Cards und Panels |
+| `spacing-shell` | `1.25rem` | größere Shell-Abstände |
+| `spacing-control-x` | `0.75rem` | horizontales Control-Padding |
+| `spacing-control-y` | `0.5rem` | vertikales Control-Padding |
 
 ### Density-Unterstufen
 
 | Token | Wert | Einsatz |
 | --- | --- | --- |
 | `spacing-density-0` | `0.25rem` | feinste Unterstufe, Mikroabstände |
-| `spacing-density-1` | `0.5rem` | kompakte Control-Abstände |
-| `spacing-density-2` | `0.75rem` | Standard-Cluster |
-| `spacing-density-3` | `1rem` | mittlere Innenabstände |
-| `spacing-density-4` | `1.5rem` | Panel-Innenabstand |
+| `spacing-density-1` | `0.375rem` | kompakte Control-Abstände |
+| `spacing-density-2` | `0.5rem` | Standard-Cluster |
+| `spacing-density-3` | `0.75rem` | mittlere Innenabstände |
+| `spacing-density-4` | `1rem` | Panel-Innenabstand |
 
 ### Radius- und Shadow-Tokens
 
 | Token | Wert | Zweck |
 | --- | --- | --- |
-| `radius-control` | `0.875rem` | Buttons, Links, kleine Controls |
-| `radius-panel` | `1.25rem` | Panels, Layout-Container |
+| `radius-control` | `0.375rem` | Buttons, Links, kleine Controls |
+| `radius-panel` | `0.5rem` | Panels, Layout-Container |
 | `radius-pill` | `9999px` | Chips, Status-Pills |
 | `shadow-panel` | weicher tiefer Panel-Schatten | Layout- und Content-Container |
 | `shadow-raised` | kompakter Shadow | Header, Navigation, aktive Controls |
@@ -149,10 +149,44 @@ Regel:
 
 ### Density-Regeln
 
-- Ring 1 folgt einem 8px-System mit 4px-Unterstufen.
-- `spacing-cluster` für kurze, dichte Gruppen.
-- `spacing-panel` für Standard-Container.
-- `spacing-shell` nur für große Shell-Atemräume und nicht für jede Card.
+- Ring 1 folgt einem 4px-Raster (Basis `0.25rem`), das sich über Density-Unterstufen bis `1rem` staffelt.
+- `spacing-cluster` (`0.5rem`) für kurze, dichte Gruppen.
+- `spacing-panel` (`1rem`) für Standard-Container.
+- `spacing-shell` (`1.25rem`) nur für größere Shell-Atemräume, nicht für jede Card.
+
+## Warnstufen-Tokens (Issue #627)
+
+Warnstufen sind ein operativer Kernzustand (Gefahrenmatrix → Karte). Tokens gibt es pro Stufe in vier Slots: `-fill` (Map-Füllung), `-stroke` (Map-Kontur), `-text` (UI-Kontrast) und — nur für die Stufe `akut` — `-glow` (Aufmerksamkeits-Signal).
+
+| Stufe   | Fill (Light / Dark)                                    | Stroke (Light / Dark) | Text (Light / Dark) |
+| ------- | ------------------------------------------------------ | --------------------- | ------------------- |
+| keine   | `rgba(144,160,184,.15)` / `rgba(160,180,200,.2)`       | `#90a0b8` / `#b0bfd0` | `#54667d` / `#c4d0e0` |
+| niedrig | `rgba(62,116,204,.22)` / `rgba(110,160,230,.3)`        | `#3e74cc` / `#6ea0e6` | `#1f4d92` / `#a8c4ea` |
+| mittel  | `rgba(209,138,0,.35)` / `rgba(240,180,60,.4)`          | `#d18a00` / `#f0b43c` | `#7a4a00` / `#f0d090` |
+| hoch    | `rgba(208,100,24,.45)` / `rgba(240,140,60,.5)`         | `#d06418` / `#f08c3c` | `#8a3a00` / `#f0b890` |
+| akut    | `rgba(176,32,32,.55)` / `rgba(220,70,70,.6)`           | `#b02020` / `#dc4646` | `#7a0000` / `#f0b0b0` |
+
+Zusatzsignal `akut`: `--ring-1-color-warnstufe-akut-glow` (Light `rgba(224,64,64,.55)` / Dark `rgba(255,90,90,.7)`) speist die Ring-Pulse-Animation `animate-warnstufe-akut-pulse`. Reduced-Motion-Variante ersetzt den Puls durch einen statischen Doppel-Ring aus Stroke + Glow.
+
+**Dreifach-Signal-Regel:** Warnstufe wird an der UI **nie nur über Farbe** kommuniziert — immer Kombination aus Fill/Stroke, Text-Label und (bei `akut`) Motion/Ring. Die Tokens sind Pflicht-Eintrittstor, Komponenten wie `WarnstufeChip` oder die Map-Layer greifen ausschließlich auf sie zu.
+
+## Motion-Tokens
+
+`index.tailwind.css` definiert operative Animations-Primitiven, die alle `prefers-reduced-motion: reduce`-Fallbacks haben:
+
+| Klasse                         | Einsatz                                                  | Reduced-Motion-Ersatz                 |
+| ------------------------------ | -------------------------------------------------------- | ------------------------------------- |
+| `animate-card-entry`           | Card/Panel-Eintritt                                       | statisch (opacity 1, kein Transform)  |
+| `animate-pulse-fast`           | Alarm Stufe 1                                             | deckend + `shadow-alarm-glow-reduced` |
+| `animate-pulse-urgent`         | Alarm Stufe 2 (60 s ohne Reaktion)                        | deckend + `shadow-alarm-urgent-reduced` |
+| `animate-pulse-audio-failed`   | Audio-Ausfall (0,5 s)                                     | deckend + `shadow-alarm-audio-failed-reduced` |
+| `animate-border-glow(-urgent)` | Alarm-Rand                                                | statischer Shadow                     |
+| `animate-highlight-new/updated`| ETB-/Live-Updates (grün/amber)                            | deaktiviert                           |
+| `animate-warnstufe-akut-pulse` | Gefahrenzone AKUT                                         | statischer Doppel-Ring                |
+| `animate-gefahrenmatrix-cell-pulse` | Deep-Link-Fokus auf Matrix-Zelle                      | einmaliger 300-ms-Border-Flash        |
+| `animate-floating-pill-entrance/exit` | FloatingPill Ein-/Ausblendung                      | statisch                              |
+
+Regel: Neue Motion wird **nur** über `index.tailwind.css` ergänzt, nie lokal pro Komponente. Jede neue Animation braucht einen Reduced-Motion-Fallback im selben Block.
 
 ## Anwendungsbeispiele
 
