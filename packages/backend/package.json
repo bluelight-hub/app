@@ -37,9 +37,9 @@
     "lint:deps:core": "madge --circular --extensions ts src/domain/ src/application/",
     "lint:arch": "oxlint src/domain src/application && oxfmt --check src/domain src/application",
     "check:arch": "pnpm lint:deps:core && pnpm lint:arch",
-    "admin:reset": "tsx src/main-cli.ts",
-    "cli:archive": "tsx src/main-cli-archive.ts",
-    "cli:invite-once": "tsx src/main-cli-invite-once.ts",
+    "admin:reset": "ts-node -r tsconfig-paths/register src/main-cli.ts",
+    "cli:archive": "ts-node -r tsconfig-paths/register src/main-cli-archive.ts",
+    "cli:invite-once": "ts-node -r tsconfig-paths/register src/main-cli-invite-once.ts",
     "test:perf": "artillery run artillery/artillery-performance.yml --output artillery/results/results.json",
     "test:perf:quick": "artillery run artillery/artillery-quick.yml --output artillery/results/quick-results.json",
     "test:perf:ci": "artillery run artillery/artillery-performance.yml --output artillery/results/ci-results.json --quiet",
@@ -118,6 +118,7 @@
     "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }
