@@ -41,6 +41,7 @@ pnpm run generate-api                                  # OpenAPI-Client regeneri
 | 7   | [Testing & Qualität](./07-testing-und-qualitaet.md)                | Jest + Vitest, Artillery-Performance, Coverage-Targets, OXC-Linting, Madge            |
 | 8   | [DevOps & Deployment](./08-devops-und-deployment.md)               | CI/CD (GitHub Actions), semantic-release + Gitmoji, Docker, Tauri-Cross-Build         |
 | 9   | [Integrationen & externe Systeme](./09-integrationen-und-extern.md) | HiOrg-Server (OAuth2), Nominatim, HIBP, WebSocket-Events, Shared API-Client           |
+| 10  | [UI/UX & Design-System](./10-ui-ux-design-system.md)               | Leitbild, Ring-Modell, Design-Tokens, Shell-Vertrag, Komponenten-Do/Don't — Einstieg in `docs/frontend/` |
 | ADR | [Architecture Decision Records](../adr/)                           | 10 ADRs (API-Versionierung, Funkkanal-Aggregat, Gefahrenzone-Matrix, u. a.)           |
 
 ---
