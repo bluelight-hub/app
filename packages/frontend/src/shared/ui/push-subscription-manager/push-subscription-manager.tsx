@@ -4,7 +4,6 @@ import { getApi } from '@/shared/api/api';
 import { useIsTauri } from '@/shared/hooks/useIsTauri';
 import { logger } from '@/shared/lib/logger';
 import { notificationService } from '@/features/reminders/services';
-import { registerServiceWorker } from './register-service-worker';
 
 /**
  * Wandelt den Base64url-kodierten VAPID-Public-Key in das von
@@ -19,6 +18,21 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
     output[i] = raw.charCodeAt(i);
   }
   return output;
+}
+
+/**
+ * Loggt den Erfolg einer Subscription-Registrierung mit schonend extrahiertem
+ * Endpoint-Host — ohne den Rest der URL zu persistieren und ohne dass ein
+ * malformed Endpoint den Log-Pfad in den outer catch schickt.
+ */
+function logSubscriptionSuccess(endpoint: string): void {
+  let host: string | undefined;
+  try {
+    host = new URL(endpoint).host;
+  } catch {
+    host = undefined;
+  }
+  logger.info('[push] subscription registered', host ? { endpointHost: host } : {});
 }
 
 /**
@@ -39,27 +53,40 @@ export function PushSubscriptionManager(): null {
   const { isTauri } = useIsTauri();
   const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
   const hasSubscribedRef = useRef(false);
+  const inFlightRef = useRef(false);
 
   useEffect(() => {
-    if (isTauri || !vapidPublicKey || hasSubscribedRef.current) {
+    if (isTauri || !vapidPublicKey || hasSubscribedRef.current || inFlightRef.current) {
       return;
     }
 
     let cancelled = false;
+    inFlightRef.current = true;
 
     const subscribe = async () => {
-      const permission = await notificationService.checkPermission();
-      if (permission !== 'granted') {
-        logger.debug('[push] skip subscription — permission not granted', { permission });
-        return;
-      }
-
-      const registration = await registerServiceWorker();
-      if (!registration || cancelled) {
-        return;
-      }
-
       try {
+        const permission = await notificationService.checkPermission();
+        if (permission !== 'granted') {
+          logger.debug('[push] skip subscription — permission not granted', { permission });
+          return;
+        }
+
+        // Single-Source Service-Worker-Registration läuft in `main.tsx`.
+        // Hier konsumieren wir nur die bereits aktive Registration.
+        if (typeof navigator === 'undefined' || !navigator.serviceWorker) {
+          logger.debug('[push] skip subscription — no ServiceWorker support');
+          return;
+        }
+        const registration = await navigator.serviceWorker.ready;
+        if (cancelled) {
+          return;
+        }
+
+        if (!registration.pushManager) {
+          logger.warn('[push] PushManager not supported by browser');
+          return;
+        }
+
         const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
@@ -84,9 +111,11 @@ export function PushSubscriptionManager(): null {
         });
 
         hasSubscribedRef.current = true;
-        logger.info('[push] subscription registered', { endpointHost: new URL(payload.endpoint).host });
+        logSubscriptionSuccess(payload.endpoint);
       } catch (error) {
         logger.warn('[push] subscription registration failed', { error });
+      } finally {
+        inFlightRef.current = false;
       }
     };
 

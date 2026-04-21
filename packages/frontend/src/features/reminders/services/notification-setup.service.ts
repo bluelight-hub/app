@@ -55,7 +55,12 @@ const legacyBefehlSchema = z.object({
   einsatzId: z.string().min(1),
 });
 
-const notificationExtraSchema = z.union([typedErinnerungSchema, typedBefehlSchema, typedCriticalSchema, legacyBefehlSchema, legacyErinnerungSchema]);
+// Typed Payloads nutzen `discriminatedUnion` auf `type` — robust gegen
+// Feld-Kollisionen (z. B. ein legacy-Befehl-Payload mit versehentlichem
+// `eventId`-Feld würde sonst als critical fehlklassifiziert).
+const typedNotificationSchema = z.discriminatedUnion('type', [typedErinnerungSchema, typedBefehlSchema, typedCriticalSchema]);
+
+const notificationExtraSchema = z.union([typedNotificationSchema, legacyBefehlSchema, legacyErinnerungSchema]);
 
 /** Channel ID für Erinnerungen */
 export const ERINNERUNG_CHANNEL_ID = 'erinnerungen';
@@ -137,6 +142,13 @@ interface PendingCriticalNavigation {
  * registriert wurde, wird die Navigation in einer Queue gespeichert und
  * automatisch verarbeitet sobald setNavigateCallback() aufgerufen wird.
  */
+/**
+ * Max Einträge in den pending-Navigation-Queues — verhindert unbegrenzten
+ * Memory-Aufbau, wenn ein Callback nie registriert wird. Bei Überlauf werden
+ * die ältesten Einträge verdrängt (FIFO), nicht die neusten.
+ */
+const MAX_PENDING_NAVIGATIONS = 20;
+
 class NotificationSetupService {
   private isInitialized = false;
   private navigateCallback: NavigateToErinnerungCallback | null = null;
@@ -146,6 +158,17 @@ class NotificationSetupService {
   private pendingNavigations: PendingNavigation[] = [];
   private pendingBefehlNavigations: PendingBefehlNavigation[] = [];
   private pendingCriticalNavigations: PendingCriticalNavigation[] = [];
+
+  /**
+   * Fügt einem Queue-Array einen Eintrag hinzu und verdrängt älteste Einträge
+   * beim Überschreiten von `MAX_PENDING_NAVIGATIONS`.
+   */
+  private enqueuePending<T>(queue: T[], entry: T): void {
+    queue.push(entry);
+    while (queue.length > MAX_PENDING_NAVIGATIONS) {
+      queue.shift();
+    }
+  }
 
   /**
    * Initialisiert Notification Channels und Action Types
@@ -212,13 +235,18 @@ class NotificationSetupService {
     if (this.pendingNavigations.length > 0) {
       logger.info(`[NotificationSetup] Processing ${this.pendingNavigations.length} pending navigation(s)`);
 
-      for (const pending of this.pendingNavigations) {
-        logger.info('[NotificationSetup] Executing pending navigation:', pending);
-        callback(pending.einsatzId, pending.erinnerungId);
-      }
-
-      // Queue leeren nach Verarbeitung
+      // Queue zuerst leeren, dann abarbeiten — so verlieren spätere Callback-Throws
+      // nicht die restlichen Einträge, und ein erneuter Flush ist idempotent.
+      const batch = this.pendingNavigations;
       this.pendingNavigations = [];
+      for (const pending of batch) {
+        logger.info('[NotificationSetup] Executing pending navigation:', pending);
+        try {
+          callback(pending.einsatzId, pending.erinnerungId);
+        } catch (error) {
+          logger.error('[NotificationSetup] Pending erinnerung callback threw', { error, pending });
+        }
+      }
     }
   }
 
@@ -237,12 +265,16 @@ class NotificationSetupService {
     if (this.pendingBefehlNavigations.length > 0) {
       logger.info(`[NotificationSetup] Processing ${this.pendingBefehlNavigations.length} pending befehl navigation(s)`);
 
-      for (const pending of this.pendingBefehlNavigations) {
-        logger.info('[NotificationSetup] Executing pending befehl navigation:', pending);
-        callback(pending.einsatzId, pending.befehlId);
-      }
-
+      const batch = this.pendingBefehlNavigations;
       this.pendingBefehlNavigations = [];
+      for (const pending of batch) {
+        logger.info('[NotificationSetup] Executing pending befehl navigation:', pending);
+        try {
+          callback(pending.einsatzId, pending.befehlId);
+        } catch (error) {
+          logger.error('[NotificationSetup] Pending befehl callback threw', { error, pending });
+        }
+      }
     }
   }
 
@@ -257,12 +289,16 @@ class NotificationSetupService {
     if (this.pendingCriticalNavigations.length > 0) {
       logger.info(`[NotificationSetup] Processing ${this.pendingCriticalNavigations.length} pending critical navigation(s)`);
 
-      for (const pending of this.pendingCriticalNavigations) {
-        logger.info('[NotificationSetup] Executing pending critical navigation:', pending);
-        callback(pending.url, pending.eventId);
-      }
-
+      const batch = this.pendingCriticalNavigations;
       this.pendingCriticalNavigations = [];
+      for (const pending of batch) {
+        logger.info('[NotificationSetup] Executing pending critical navigation:', pending);
+        try {
+          callback(pending.url, pending.eventId);
+        } catch (error) {
+          logger.error('[NotificationSetup] Pending critical callback threw', { error, pending });
+        }
+      }
     }
   }
 
@@ -450,39 +486,66 @@ class NotificationSetupService {
 
         const data = parseResult.data;
 
-        // Anhand der geparsten extra Daten entscheiden ob Erinnerung, Befehl oder kritisch
-        if ('eventId' in data) {
-          // Critical-Event Navigation (Story 1.2)
-          const { url, eventId } = data;
-
-          if (this.navigateCriticalCallback) {
-            logger.info('[NotificationSetup] Navigating for critical event:', { url, eventId });
-            this.navigateCriticalCallback(url, eventId);
-          } else {
-            logger.info('[NotificationSetup] Critical callback not ready, queueing navigation:', { url, eventId });
-            this.pendingCriticalNavigations.push({ url, eventId });
+        // Typed Payloads (mit `type`-Feld) werden via discriminatedUnion sicher
+        // unterschieden; legacy Payloads (ohne `type`) fallen auf strukturelle
+        // Checks zurück. Das verhindert Fehlklassifikation bei zufällig
+        // kollidierenden Feldnamen.
+        if ('type' in data) {
+          switch (data.type) {
+            case 'critical': {
+              const { url, eventId } = data;
+              if (this.navigateCriticalCallback) {
+                logger.info('[NotificationSetup] Navigating for critical event:', { url, eventId });
+                this.navigateCriticalCallback(url, eventId);
+              } else {
+                logger.info('[NotificationSetup] Critical callback not ready, queueing navigation:', { url, eventId });
+                this.enqueuePending(this.pendingCriticalNavigations, { url, eventId });
+              }
+              return;
+            }
+            case 'befehl': {
+              const { einsatzId, befehlId } = data;
+              if (this.navigateBefehlCallback) {
+                logger.info('[NotificationSetup] Navigating to befehl:', { einsatzId, befehlId });
+                this.navigateBefehlCallback(einsatzId, befehlId);
+              } else {
+                logger.info('[NotificationSetup] Befehl callback not ready, queueing navigation:', { einsatzId, befehlId });
+                this.enqueuePending(this.pendingBefehlNavigations, { einsatzId, befehlId });
+              }
+              return;
+            }
+            case 'erinnerung': {
+              const { einsatzId, erinnerungId } = data;
+              if (this.navigateCallback) {
+                logger.info('[NotificationSetup] Navigating to erinnerung:', { einsatzId, erinnerungId });
+                this.navigateCallback(einsatzId, erinnerungId);
+              } else {
+                logger.info('[NotificationSetup] Callback not ready, queueing navigation:', { einsatzId, erinnerungId });
+                this.enqueuePending(this.pendingNavigations, { einsatzId, erinnerungId });
+              }
+              return;
+            }
           }
-        } else if ('befehlId' in data) {
-          // Befehl Navigation
-          const { einsatzId, befehlId } = data;
+        }
 
+        // Legacy Payloads ohne `type`-Feld.
+        if ('befehlId' in data) {
+          const { einsatzId, befehlId } = data;
           if (this.navigateBefehlCallback) {
-            logger.info('[NotificationSetup] Navigating to befehl:', { einsatzId, befehlId });
+            logger.info('[NotificationSetup] Navigating to befehl (legacy):', { einsatzId, befehlId });
             this.navigateBefehlCallback(einsatzId, befehlId);
           } else {
-            logger.info('[NotificationSetup] Befehl callback not ready, queueing navigation:', { einsatzId, befehlId });
-            this.pendingBefehlNavigations.push({ einsatzId, befehlId });
+            logger.info('[NotificationSetup] Befehl callback not ready, queueing navigation (legacy):', { einsatzId, befehlId });
+            this.enqueuePending(this.pendingBefehlNavigations, { einsatzId, befehlId });
           }
         } else {
-          // Erinnerung Navigation
           const { einsatzId, erinnerungId } = data;
-
           if (this.navigateCallback) {
-            logger.info('[NotificationSetup] Navigating to erinnerung:', { einsatzId, erinnerungId });
+            logger.info('[NotificationSetup] Navigating to erinnerung (legacy):', { einsatzId, erinnerungId });
             this.navigateCallback(einsatzId, erinnerungId);
           } else {
-            logger.info('[NotificationSetup] Callback not ready, queueing navigation:', { einsatzId, erinnerungId });
-            this.pendingNavigations.push({ einsatzId, erinnerungId });
+            logger.info('[NotificationSetup] Callback not ready, queueing navigation (legacy):', { einsatzId, erinnerungId });
+            this.enqueuePending(this.pendingNavigations, { einsatzId, erinnerungId });
           }
         }
       });

@@ -299,7 +299,10 @@ class NotificationService {
   async sendCriticalNotification(options: CriticalNotificationOptions): Promise<NotificationResult> {
     const { title, body, eventId, url } = options;
 
-    if (this.permissionStatus === 'unknown') {
+    // Gecachter Status kann zur Laufzeit veralten, wenn der User OS-seitig die
+    // Permission verändert hat. Wir re-checken bei jedem nicht-granted-Cache,
+    // nicht nur bei 'unknown'.
+    if (this.permissionStatus !== 'granted') {
       await this.checkPermission();
     }
 
@@ -500,14 +503,20 @@ class NotificationService {
       const { sendNotification: tauriSendNotification } = await import('@tauri-apps/plugin-notification');
       const { CRITICAL_CHANNEL_ID, CRITICAL_ACTION_TYPE_ID } = await import('./notification-setup.service');
 
-      tauriSendNotification({
-        title,
-        body,
-        channelId: CRITICAL_CHANNEL_ID,
-        actionTypeId: CRITICAL_ACTION_TYPE_ID,
-        extra: { type: 'critical', eventId, url },
-        autoCancel: false,
-      });
+      // Plugin-API ist zwar synchron in den Types, kann aber in neueren
+      // Versionen ein Promise zurückgeben. `await` verhindert unhandled
+      // rejections und signalisiert Erfolg erst, wenn das OS die Notification
+      // tatsächlich angenommen hat.
+      await Promise.resolve(
+        tauriSendNotification({
+          title,
+          body,
+          channelId: CRITICAL_CHANNEL_ID,
+          actionTypeId: CRITICAL_ACTION_TYPE_ID,
+          extra: { type: 'critical', eventId, url },
+          autoCancel: false,
+        }),
+      );
 
       logger.debug('Tauri Critical Notification gesendet:', { title, body, eventId, url });
 
@@ -617,10 +626,28 @@ class NotificationService {
    * Nutzt `tag: eventId` für Replace-Semantik bei doppelter Zustellung und
    * `requireInteraction: true`, damit der User das Event nicht übersieht.
    */
-  private sendWebCriticalNotification(title: string, body: string, eventId: string, url?: string): NotificationResult {
+  private async sendWebCriticalNotification(title: string, body: string, eventId: string, url?: string): Promise<NotificationResult> {
     try {
       if (typeof Notification === 'undefined') {
         return { success: false, error: 'Web Notifications nicht verfügbar' };
+      }
+
+      const safeUrl = this.isSafeSameOriginUrl(url) ? url : undefined;
+
+      // Chrome/Edge werfen `TypeError: Illegal constructor` bei `new Notification(...)`,
+      // wenn ein ServiceWorker die Page kontrolliert. In dem Fall lieber die
+      // SW-Registration-API nutzen (dieselbe, die auch der Background-Push ruft).
+      if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          body,
+          icon: '/favicon.ico',
+          tag: eventId,
+          requireInteraction: true,
+          data: { eventId, url: safeUrl },
+        });
+        logger.debug('Web Critical Notification via SW gesendet:', { title, body, eventId, url: safeUrl });
+        return { success: true };
       }
 
       const notification = new Notification(title, {
@@ -631,13 +658,16 @@ class NotificationService {
       });
 
       notification.onclick = () => {
+        if (typeof window === 'undefined') {
+          return;
+        }
         window.focus();
-        if (url && typeof window !== 'undefined') {
-          window.location.href = url;
+        if (safeUrl) {
+          window.location.href = safeUrl;
         }
       };
 
-      logger.debug('Web Critical Notification gesendet:', { title, body, eventId, url });
+      logger.debug('Web Critical Notification gesendet:', { title, body, eventId, url: safeUrl });
 
       return { success: true };
     } catch (error) {
@@ -645,6 +675,32 @@ class NotificationService {
       logger.error('Fehler beim Senden der Web Critical Notification:', error);
 
       return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
+   * Prüft, ob eine URL für `window.location.href` sicher ist (same-origin, http/https).
+   * Verwirft `javascript:`, `data:`, protocol-relative (`//evil.com`) und Cross-Origin.
+   * Review-Follow-up Story 1.2 (Open-Redirect/XSS-Guard vor Notification-Click-Navigation).
+   */
+  private isSafeSameOriginUrl(url: string | undefined): url is string {
+    if (!url || typeof url !== 'string') {
+      return false;
+    }
+    if (url.startsWith('//')) {
+      return false;
+    }
+    if (typeof window === 'undefined' || !window.location) {
+      return false;
+    }
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        return false;
+      }
+      return parsed.origin === window.location.origin;
+    } catch {
+      return false;
     }
   }
 

@@ -4,6 +4,7 @@ import { isTauri } from '@tauri-apps/api/core';
 import { logger } from '@/shared/lib/logger';
 import { notificationService, sendCriticalNotification } from '@/features/reminders/services';
 import { eventIdLru } from './event-id-lru';
+import { isSafeNotificationUrl } from './is-safe-notification-url';
 
 /**
  * Client-lokale Priorität einer kritischen Notification (Story 1.2 AC4).
@@ -29,19 +30,22 @@ export interface CriticalNotificationPayload {
  * (Story 1.2 AC4, AC5, AC7).
  *
  * Runtime-Pfade:
- * - **Tauri**: `plugin-notification.sendNotification(...)` im Critical-Channel.
- * - **Browser mit `granted`**: `registration.showNotification(...)` über den
+ * - **Tauri mit granted**: `plugin-notification.sendNotification(...)` im Critical-Channel.
+ * - **Browser mit granted**: `registration.showNotification(...)` über den
  *   registrierten Service-Worker — damit Foreground-Banner und Background-Push
  *   identisch aussehen.
- * - **Browser mit `denied`**: Sonner-Toast-Fallback (Interim bis Story 3.3 den
- *   SeverityBanner liefert). Es wird **kein** Permission-Re-Prompt ausgelöst.
+ * - **Tauri ODER Browser mit denied**: Sonner-Toast-Fallback (Interim bis
+ *   Story 3.3 den SeverityBanner liefert). Es wird **kein** Permission-
+ *   Re-Prompt ausgelöst.
  *
  * Dedup: Ein page-scoped LRU (~200 Einträge) filtert parallele Dispatches über
- * Web-Push + WebSocket anhand der `eventId`.
+ * Web-Push + WebSocket anhand der `eventId`. Bei Dispatch-Fehler wird der
+ * Eintrag aus dem LRU wieder entfernt, damit ein Retry möglich bleibt.
  */
 export function useCriticalNotification(): (payload: CriticalNotificationPayload) => Promise<void> {
   return useCallback(async (payload: CriticalNotificationPayload) => {
     const { title, body, eventId, url, priority = 'critical' } = payload;
+    const safeUrl = isSafeNotificationUrl(url) ? url : undefined;
 
     if (eventIdLru.has(eventId)) {
       logger.debug('[push] dedup critical notification', { eventId });
@@ -49,47 +53,56 @@ export function useCriticalNotification(): (payload: CriticalNotificationPayload
     }
     eventIdLru.add(eventId);
 
-    if (isTauri()) {
-      await sendCriticalNotification({ title, body, eventId, url });
-      return;
-    }
+    try {
+      const permission = await notificationService.checkPermission();
 
-    const permission = await notificationService.checkPermission();
-
-    if (permission === 'granted') {
-      try {
-        if (typeof navigator !== 'undefined' && navigator.serviceWorker?.ready) {
-          const registration = await navigator.serviceWorker.ready;
-          await registration.showNotification(title, {
-            body,
-            data: { eventId, url },
-            tag: eventId,
-          });
+      if (permission === 'granted') {
+        if (isTauri()) {
+          await sendCriticalNotification({ title, body, eventId, url: safeUrl });
           return;
         }
-        await sendCriticalNotification({ title, body, eventId, url });
-      } catch (error) {
-        logger.warn('[push] showNotification failed, falling back to native Notification', { error });
-        await sendCriticalNotification({ title, body, eventId, url });
-      }
-      return;
-    }
 
-    // TODO(story-3-3): migrate sonner fallback to <SeverityBanner>
-    const toastFn = priority === 'info' ? toast.info : priority === 'warning' ? toast.warning : toast.error;
-    toastFn(title, {
-      description: body,
-      duration: Number.POSITIVE_INFINITY,
-      action: url
-        ? {
-            label: 'Öffnen',
-            onClick: () => {
-              if (typeof window !== 'undefined') {
-                window.location.href = url;
-              }
-            },
+        try {
+          if (typeof navigator !== 'undefined' && navigator.serviceWorker?.ready) {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification(title, {
+              body,
+              data: { eventId, url: safeUrl },
+              tag: eventId,
+            });
+            return;
           }
-        : undefined,
-    });
+          await sendCriticalNotification({ title, body, eventId, url: safeUrl });
+        } catch (error) {
+          logger.warn('[push] showNotification failed, falling back to native Notification', { error });
+          await sendCriticalNotification({ title, body, eventId, url: safeUrl });
+        }
+        return;
+      }
+
+      // Permission nicht granted (Tauri ohne Grant oder Browser denied) →
+      // TODO(story-3-3): migrate sonner fallback to <SeverityBanner>
+      const toastFn = priority === 'info' ? toast.info : priority === 'warning' ? toast.warning : toast.error;
+      toastFn(title, {
+        id: eventId,
+        description: body,
+        duration: Number.POSITIVE_INFINITY,
+        action: safeUrl
+          ? {
+              label: 'Öffnen',
+              onClick: () => {
+                if (typeof window !== 'undefined') {
+                  window.location.href = safeUrl;
+                }
+              },
+            }
+          : undefined,
+      });
+    } catch (error) {
+      // Dispatch fehlgeschlagen — LRU-Eintrag zurücknehmen, damit Retry funktioniert.
+      eventIdLru.remove(eventId);
+      logger.warn('[push] dispatch failed, rolling back lru entry', { eventId, error });
+      throw error;
+    }
   }, []);
 }

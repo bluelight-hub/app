@@ -16,9 +16,8 @@ vi.mock('@/features/reminders/services', () => ({
   },
 }));
 
-const { pushSubscriptionRegisterMock, registerServiceWorkerMock } = vi.hoisted(() => ({
+const { pushSubscriptionRegisterMock } = vi.hoisted(() => ({
   pushSubscriptionRegisterMock: vi.fn(),
-  registerServiceWorkerMock: vi.fn(),
 }));
 
 vi.mock('@/shared/api/api', () => ({
@@ -27,10 +26,6 @@ vi.mock('@/shared/api/api', () => ({
       pushSubscriptionControllerRegisterV1: pushSubscriptionRegisterMock,
     }),
   }),
-}));
-
-vi.mock('../register-service-worker', () => ({
-  registerServiceWorker: registerServiceWorkerMock,
 }));
 
 import { isTauri } from '@tauri-apps/api/core';
@@ -42,6 +37,17 @@ const isTauriMock = vi.mocked(isTauri);
 const checkPermissionMock = vi.mocked(notificationService.checkPermission);
 
 const VAPID_KEY = 'BLKxyrN6ao3PUCpHb-BOmSbnJQu0AV7eDRog9J4J92d17YKBAJcl-Yv2XNwPhgyBdyQMG1ZLV-Q-dFsmd_rXW9w';
+
+type ServiceWorkerRegistrationStub = {
+  pushManager?: { subscribe: ReturnType<typeof vi.fn> } | undefined;
+};
+
+function stubServiceWorker(registration: ServiceWorkerRegistrationStub | null): void {
+  Object.defineProperty(navigator, 'serviceWorker', {
+    value: registration ? { ready: Promise.resolve(registration) } : undefined,
+    configurable: true,
+  });
+}
 
 describe('PushSubscriptionManager', () => {
   beforeEach(() => {
@@ -62,7 +68,6 @@ describe('PushSubscriptionManager', () => {
 
     expect(container).toBeEmptyDOMElement();
     expect(checkPermissionMock).not.toHaveBeenCalled();
-    expect(registerServiceWorkerMock).not.toHaveBeenCalled();
     expect(pushSubscriptionRegisterMock).not.toHaveBeenCalled();
   });
 
@@ -75,7 +80,6 @@ describe('PushSubscriptionManager', () => {
     await Promise.resolve();
 
     expect(container).toBeEmptyDOMElement();
-    expect(registerServiceWorkerMock).not.toHaveBeenCalled();
     expect(pushSubscriptionRegisterMock).not.toHaveBeenCalled();
   });
 
@@ -87,9 +91,7 @@ describe('PushSubscriptionManager', () => {
       toJSON: () => ({ endpoint: 'https://push.example/abc', keys: { p256dh: 'p', auth: 'a' } }),
     };
     const subscribeMock = vi.fn().mockResolvedValue(subscription);
-    registerServiceWorkerMock.mockResolvedValue({
-      pushManager: { subscribe: subscribeMock },
-    });
+    stubServiceWorker({ pushManager: { subscribe: subscribeMock } });
     pushSubscriptionRegisterMock.mockResolvedValue(undefined);
 
     render(<PushSubscriptionManager />);
@@ -105,14 +107,27 @@ describe('PushSubscriptionManager', () => {
     expect(subscribeMock).toHaveBeenCalledWith(expect.objectContaining({ userVisibleOnly: true }));
   });
 
-  it('schweigt bei denied Permission (kein SW, kein subscribe, kein Toast)', async () => {
+  it('schweigt bei denied Permission (kein subscribe, kein Toast)', async () => {
     isTauriMock.mockReturnValue(false);
     checkPermissionMock.mockResolvedValue('denied');
+    const subscribeMock = vi.fn();
+    stubServiceWorker({ pushManager: { subscribe: subscribeMock } });
 
     render(<PushSubscriptionManager />);
 
     await waitFor(() => expect(checkPermissionMock).toHaveBeenCalled());
-    expect(registerServiceWorkerMock).not.toHaveBeenCalled();
+    expect(subscribeMock).not.toHaveBeenCalled();
+    expect(pushSubscriptionRegisterMock).not.toHaveBeenCalled();
+  });
+
+  it('warnt, wenn PushManager im Browser nicht verfügbar ist, und sendet keine Registration', async () => {
+    isTauriMock.mockReturnValue(false);
+    checkPermissionMock.mockResolvedValue('granted');
+    stubServiceWorker({});
+
+    render(<PushSubscriptionManager />);
+
+    await waitFor(() => expect(logger.warn).toHaveBeenCalledWith('[push] PushManager not supported by browser'));
     expect(pushSubscriptionRegisterMock).not.toHaveBeenCalled();
   });
 
@@ -122,9 +137,7 @@ describe('PushSubscriptionManager', () => {
     const subscription = {
       toJSON: () => ({ endpoint: 'https://push.example/xyz', keys: { p256dh: 'p', auth: 'a' } }),
     };
-    registerServiceWorkerMock.mockResolvedValue({
-      pushManager: { subscribe: vi.fn().mockResolvedValue(subscription) },
-    });
+    stubServiceWorker({ pushManager: { subscribe: vi.fn().mockResolvedValue(subscription) } });
     pushSubscriptionRegisterMock.mockRejectedValue(new Error('Too Many Requests'));
 
     render(<PushSubscriptionManager />);
@@ -145,9 +158,7 @@ describe('PushSubscriptionManager', () => {
     const subscription = {
       toJSON: () => ({ endpoint: 'https://push.example/once', keys: { p256dh: 'p', auth: 'a' } }),
     };
-    registerServiceWorkerMock.mockResolvedValue({
-      pushManager: { subscribe: vi.fn().mockResolvedValue(subscription) },
-    });
+    stubServiceWorker({ pushManager: { subscribe: vi.fn().mockResolvedValue(subscription) } });
     pushSubscriptionRegisterMock.mockResolvedValue(undefined);
 
     const { rerender } = render(<PushSubscriptionManager />);

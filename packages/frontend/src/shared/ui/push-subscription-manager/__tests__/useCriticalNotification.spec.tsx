@@ -44,8 +44,9 @@ describe('useCriticalNotification', () => {
     eventIdLru.clear();
   });
 
-  it('dispatcht in Tauri-Runtime via sendCriticalNotification ohne Service-Worker', async () => {
+  it('dispatcht in Tauri-Runtime mit granted via sendCriticalNotification ohne Service-Worker', async () => {
     isTauriMock.mockReturnValue(true);
+    checkPermissionMock.mockResolvedValue('granted');
     sendCriticalMock.mockResolvedValue({ success: true });
 
     const showNotification = vi.fn();
@@ -62,8 +63,36 @@ describe('useCriticalNotification', () => {
 
     expect(sendCriticalMock).toHaveBeenCalledWith({ title: 'Alarm', body: 'Test', eventId: 'evt-tauri-1', url: undefined });
     expect(showNotification).not.toHaveBeenCalled();
-    expect(checkPermissionMock).not.toHaveBeenCalled();
     expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('fällt in Tauri-Runtime ohne Permission auf Sonner-Toast zurück (AC3 Tauri-denied)', async () => {
+    isTauriMock.mockReturnValue(true);
+    checkPermissionMock.mockResolvedValue('denied');
+
+    const requestSpy = vi.fn();
+    Object.defineProperty(window, 'Notification', {
+      value: { requestPermission: requestSpy, permission: 'denied' },
+      configurable: true,
+    });
+
+    const { result } = renderHook(() => useCriticalNotification());
+
+    await act(async () => {
+      await result.current({ title: 'PSA-Hochstufung', body: 'Tauri ohne Grant', eventId: 'evt-tauri-denied', url: '/app/psa' });
+    });
+
+    expect(sendCriticalMock).not.toHaveBeenCalled();
+    expect(requestSpy).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(
+      'PSA-Hochstufung',
+      expect.objectContaining({
+        id: 'evt-tauri-denied',
+        description: 'Tauri ohne Grant',
+        duration: Number.POSITIVE_INFINITY,
+        action: expect.objectContaining({ label: 'Öffnen' }),
+      }),
+    );
   });
 
   it('ruft im Browser bei granted den Service-Worker showNotification mit tag=eventId auf', async () => {
