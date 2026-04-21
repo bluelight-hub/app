@@ -1,0 +1,29 @@
+# Bluelight Hub — Team-wide BMad Overrides
+# ==========================================
+# Upgrade-safe: wird bei `bmad install`/`update` NICHT überschrieben.
+# Siehe: https://docs.bmad-method.org/how-to/customize-bmad/
+#
+# Diese Datei ist committed (Team-Policy). Persönliche Overrides gehören in
+# `_bmad/custom/config.user.toml` (gitignored).
+
+[modules.bmm]
+# Story-Key-Präfix-Konvention
+# ---------------------------
+# Story-IDs `1.1`, `1.2`, ... wiederholen sich pro PRD. Um globale Eindeutigkeit
+# über mehrere Issue-/Branch-Scopes zu erreichen, prefixen wir Story-Keys mit
+# der GitHub-Issue-Nummer aus dem Branch-Namen:
+#
+#   Branch  `415-eigenschutz-...`  →  Prefix `415`  →  Key `415-1-1-...`
+#
+# Epic-Keys (`epic-1`..`epic-N`) bleiben OHNE Präfix — Scope ist bereits durch
+# den Branch impliziert.
+#
+# Volle Konvention inkl. Edge-Cases siehe project_conventions-Datei.
+story_key_prefix_source = "branch-gh-issue"
+
+# Wenn Branch kein `<zahl>-` Prefix hat → HALT mit Fehler (erzwingt Issue-Branch-Disziplin).
+story_key_prefix_fallback = ""
+
+# Datei mit der vollständigen Projekt-Konvention (wird von Skills als Persistent-Fact geladen,
+# sobald der Resolver in BMM-Workflows integriert ist; bis dahin manuell referenzieren).
+project_conventions = "file:{project-root}/_bmad/custom/project-conventions.md"

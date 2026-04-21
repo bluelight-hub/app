@@ -234,5 +234,14 @@ gha-creds-*.json
 .superpowers
 
 # BMAD-Method CLI-Tooling (lokal installiert, nicht ins Repo)
-_bmad/
+_bmad/*
 _bmad-output/
+# Ausnahme: Team-Overrides nach offizieller BMad-Customize-Konvention
+# https://docs.bmad-method.org/how-to/customize-bmad/
+# Nur Toml/Markdown werden committed; installer-generated YAMLs bleiben ignored.
+!_bmad/custom/
+_bmad/custom/*
+!_bmad/custom/*.toml
+!_bmad/custom/*.md
+# Persönliche Overrides bleiben gitignored
+_bmad/custom/*.user.toml
