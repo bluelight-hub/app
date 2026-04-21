@@ -41,6 +41,14 @@ export class EventIdLru {
     return this.entries.size;
   }
 
+  /**
+   * Entfernt einen Eintrag wieder — genutzt für Rollback, wenn ein Dispatch
+   * nach `add()` fehlschlägt und der User einen Retry sehen soll.
+   */
+  remove(id: string): void {
+    this.entries.delete(id);
+  }
+
   clear(): void {
     this.entries.clear();
   }

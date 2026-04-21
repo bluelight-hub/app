@@ -9,7 +9,7 @@ import { logger } from '@/shared/lib/logger';
 import { initializeNotificationSetup, requestNotificationPermission } from '@/features/reminders/services';
 import { initSeenAssignmentsStore } from '@/features/reminders/stores';
 import { initEtbOfflineStore } from '@/features/etb/stores';
-import { PushSubscriptionManager, registerServiceWorker } from '@/shared/ui/push-subscription-manager';
+import { eventIdLru, PushSubscriptionManager, registerServiceWorker } from '@/shared/ui/push-subscription-manager';
 
 // Initialize notification system (channels, action types) and request permission
 // Runs async in background - errors are logged but don't block app startup
@@ -21,6 +21,19 @@ initializeNotificationSetup()
 
 // Register platform service-worker for Web-Push (Story 1.2). No-op in Tauri.
 registerServiceWorker().catch((error) => logger.warn('[App-Startup] Service-Worker Registration fehlgeschlagen', { error }));
+
+// AC5: Wenn der SW einen Push zugestellt hat, postet er `push-delivered` an die
+// Page. Wir füllen den Page-LRU damit, damit ein kurz danach via WebSocket
+// ankommendes Event denselben `eventId` nicht nochmal als Foreground-Banner
+// dispatched (Story 1.2 Review D1, 2026-04-21).
+if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    const data = event.data as { type?: string; eventId?: string } | null;
+    if (data?.type === 'push-delivered' && typeof data.eventId === 'string' && data.eventId.length > 0) {
+      eventIdLru.add(data.eventId);
+    }
+  });
+}
 
 // Initialize seen assignments store (Story 3.7) - Loads persisted data from Tauri Store
 initSeenAssignmentsStore().catch((error) => logger.error('[App-Startup] Seen Assignments Store Init fehlgeschlagen', { error }));
