@@ -37,6 +37,13 @@ const typedBefehlSchema = z.object({
   einsatzId: z.string().min(1),
 });
 
+/** Critical-Event Notification aus Story 1.2 (PSA, Vorfall o. ä.) */
+const typedCriticalSchema = z.object({
+  type: z.literal('critical'),
+  eventId: z.string().min(1),
+  url: z.string().min(1).optional(),
+});
+
 // Fallback-Schemas ohne type-Feld (Rueckwaertskompatibilitaet)
 const legacyErinnerungSchema = z.object({
   erinnerungId: z.string().min(1),
@@ -48,7 +55,7 @@ const legacyBefehlSchema = z.object({
   einsatzId: z.string().min(1),
 });
 
-const notificationExtraSchema = z.union([typedErinnerungSchema, typedBefehlSchema, legacyBefehlSchema, legacyErinnerungSchema]);
+const notificationExtraSchema = z.union([typedErinnerungSchema, typedBefehlSchema, typedCriticalSchema, legacyBefehlSchema, legacyErinnerungSchema]);
 
 /** Channel ID für Erinnerungen */
 export const ERINNERUNG_CHANNEL_ID = 'erinnerungen';
@@ -68,6 +75,15 @@ export const BEFEHL_ACTION_TYPE_ID = 'befehl-action';
 /** Action ID für "Öffnen" Button bei Befehlen */
 export const BEFEHL_ACTION_OPEN_ID = 'open-befehl';
 
+/** Channel ID für kritische Plattform-Events (Story 1.2) */
+export const CRITICAL_CHANNEL_ID = 'critical-events';
+
+/** Action Type ID für kritische Benachrichtigungen */
+export const CRITICAL_ACTION_TYPE_ID = 'critical-action';
+
+/** Action ID für "Öffnen" Button bei kritischen Benachrichtigungen */
+export const CRITICAL_ACTION_OPEN_ID = 'open-critical';
+
 /**
  * Callback-Typ für Navigation bei Erinnerung-Notification-Klick
  */
@@ -77,6 +93,13 @@ export type NavigateToErinnerungCallback = (einsatzId: string, erinnerungId: str
  * Callback-Typ für Navigation bei Befehl-Notification-Klick
  */
 export type NavigateToBefehlCallback = (einsatzId: string, befehlId: string) => void;
+
+/**
+ * Callback-Typ für Navigation bei kritischer Notification (Story 1.2)
+ *
+ * `url` kann leer sein — dann soll der Callback nur das Fenster fokussieren.
+ */
+export type NavigateToCriticalCallback = (url: string | undefined, eventId: string) => void;
 
 /**
  * Pending Navigation Eintrag für Erinnerungen
@@ -97,6 +120,14 @@ interface PendingBefehlNavigation {
 }
 
 /**
+ * Pending Navigation Eintrag für kritische Events (Story 1.2)
+ */
+interface PendingCriticalNavigation {
+  url: string | undefined;
+  eventId: string;
+}
+
+/**
  * Notification Setup Service
  *
  * Singleton für einmalige Initialisierung beim App-Start.
@@ -110,9 +141,11 @@ class NotificationSetupService {
   private isInitialized = false;
   private navigateCallback: NavigateToErinnerungCallback | null = null;
   private navigateBefehlCallback: NavigateToBefehlCallback | null = null;
+  private navigateCriticalCallback: NavigateToCriticalCallback | null = null;
   private actionListenerUnsubscribe: (() => void) | null = null;
   private pendingNavigations: PendingNavigation[] = [];
   private pendingBefehlNavigations: PendingBefehlNavigation[] = [];
+  private pendingCriticalNavigations: PendingCriticalNavigation[] = [];
 
   /**
    * Initialisiert Notification Channels und Action Types
@@ -138,6 +171,7 @@ class NotificationSetupService {
 
       await this.createErinnerungChannel();
       await this.createBefehlChannel();
+      await this.createCriticalChannel();
       await this.registerActionTypes();
       await this.registerActionHandler();
 
@@ -213,6 +247,26 @@ class NotificationSetupService {
   }
 
   /**
+   * Registriert Callback für Navigation bei kritischer Notification (Story 1.2)
+   *
+   * Verarbeitet gequeuete Navigationen analog zu Erinnerung/Befehl.
+   */
+  setNavigateCriticalCallback(callback: NavigateToCriticalCallback): void {
+    this.navigateCriticalCallback = callback;
+
+    if (this.pendingCriticalNavigations.length > 0) {
+      logger.info(`[NotificationSetup] Processing ${this.pendingCriticalNavigations.length} pending critical navigation(s)`);
+
+      for (const pending of this.pendingCriticalNavigations) {
+        logger.info('[NotificationSetup] Executing pending critical navigation:', pending);
+        callback(pending.url, pending.eventId);
+      }
+
+      this.pendingCriticalNavigations = [];
+    }
+  }
+
+  /**
    * Erstellt Notification Channel mit High Importance
    *
    * Android/Desktop: Notifications werden prominent angezeigt
@@ -283,6 +337,38 @@ class NotificationSetupService {
   }
 
   /**
+   * Erstellt Critical-Events Notification Channel mit High Importance (Story 1.2).
+   *
+   * Analog zu Erinnerung-/Befehl-Channel, für plattformweite kritische Events
+   * (PSA-Hochstufung, Vorfall-Meldung).
+   */
+  private async createCriticalChannel(): Promise<void> {
+    try {
+      const { createChannel, Importance, Visibility } = await import('@tauri-apps/plugin-notification');
+
+      await createChannel({
+        id: CRITICAL_CHANNEL_ID,
+        name: 'Kritische Ereignisse',
+        description: 'Kritische Plattform-Events (z. B. PSA-Hochstufung, Vorfall-Meldung)',
+        importance: Importance.High,
+        visibility: Visibility.Public,
+        vibration: true,
+        lights: true,
+      });
+
+      logger.info('[NotificationSetup] Critical channel created with High Importance');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('already exists') || errorMessage.includes('not allowed') || errorMessage.includes('not found')) {
+        logger.debug('[NotificationSetup] Critical channel API not available on this platform (expected on macOS)');
+        return;
+      }
+      logger.error('[NotificationSetup] Failed to create critical channel:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Registriert Action Types für Notification-Buttons
    *
    * **Hinweis:** Nicht auf allen Plattformen verfügbar (z.B. nicht auf macOS).
@@ -307,6 +393,16 @@ class NotificationSetupService {
           actions: [
             {
               id: BEFEHL_ACTION_OPEN_ID,
+              title: 'Öffnen',
+              foreground: true,
+            },
+          ],
+        },
+        {
+          id: CRITICAL_ACTION_TYPE_ID,
+          actions: [
+            {
+              id: CRITICAL_ACTION_OPEN_ID,
               title: 'Öffnen',
               foreground: true,
             },
@@ -354,8 +450,19 @@ class NotificationSetupService {
 
         const data = parseResult.data;
 
-        // Anhand der geparsten extra Daten entscheiden ob Erinnerung oder Befehl Navigation
-        if ('befehlId' in data) {
+        // Anhand der geparsten extra Daten entscheiden ob Erinnerung, Befehl oder kritisch
+        if ('eventId' in data) {
+          // Critical-Event Navigation (Story 1.2)
+          const { url, eventId } = data;
+
+          if (this.navigateCriticalCallback) {
+            logger.info('[NotificationSetup] Navigating for critical event:', { url, eventId });
+            this.navigateCriticalCallback(url, eventId);
+          } else {
+            logger.info('[NotificationSetup] Critical callback not ready, queueing navigation:', { url, eventId });
+            this.pendingCriticalNavigations.push({ url, eventId });
+          }
+        } else if ('befehlId' in data) {
           // Befehl Navigation
           const { einsatzId, befehlId } = data;
 
@@ -402,4 +509,5 @@ export const notificationSetupService = new NotificationSetupService();
 export const initializeNotificationSetup = () => notificationSetupService.initialize();
 export const setNotificationNavigateCallback = (callback: NavigateToErinnerungCallback) => notificationSetupService.setNavigateCallback(callback);
 export const setNotificationNavigateBefehlCallback = (callback: NavigateToBefehlCallback) => notificationSetupService.setNavigateBefehlCallback(callback);
+export const setNotificationNavigateCriticalCallback = (callback: NavigateToCriticalCallback) => notificationSetupService.setNavigateCriticalCallback(callback);
 export const cleanupNotificationSetup = () => notificationSetupService.cleanup();

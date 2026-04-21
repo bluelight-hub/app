@@ -241,6 +241,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get alarmierungEmpfaenger() {
     return this._client.alarmierungEmpfaenger;
   }
+  get pushSubscription() {
+    return this._client.pushSubscription;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

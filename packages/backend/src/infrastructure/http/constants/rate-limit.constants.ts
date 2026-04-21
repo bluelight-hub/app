@@ -78,3 +78,15 @@ export const ADMIN_MUTATION_RATE_LIMIT = {
   limit: 10,
   ttl: 60000, // 60 Sekunden
 } as const;
+
+/**
+ * Rate Limit für Push-Subscription-Registrierung.
+ *
+ * 10 Requests pro Minute deckt legitime Client-Flows (initial + Wiederverbindungs-
+ * Retries) ab; höhere Raten deuten auf defekten oder missbrauchenden Client.
+ * Kombiniert mit Per-User-Subscription-Cap (siehe `PrismaPushSubscriptionRepository`).
+ */
+export const PUSH_SUBSCRIPTION_RATE_LIMIT = {
+  limit: 10,
+  ttl: 60000,
+} as const;

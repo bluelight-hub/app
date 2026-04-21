@@ -9,6 +9,23 @@ import { isTauri } from '@tauri-apps/api/core';
 export type NotificationPermissionStatus = 'granted' | 'denied' | 'unknown' | 'not-supported';
 
 /**
+ * Optionen für das Senden einer kritischen Plattform-Notification (Story 1.2).
+ *
+ * Wird von `useCriticalNotification` aufgerufen, wenn Foreground-Events
+ * außerhalb des Service-Workers (z. B. via WebSocket) eintreffen.
+ */
+export interface CriticalNotificationOptions {
+  /** Notification-Titel (nicht leer) */
+  title: string;
+  /** Notification-Body */
+  body: string;
+  /** Eindeutige Event-ID — Pflicht für Dedup/Tag-Semantik */
+  eventId: string;
+  /** Optionaler Deep-Link für Notification-Click */
+  url?: string;
+}
+
+/**
  * Optionen für das Senden einer Befehl-Benachrichtigung
  */
 export interface BefehlNotificationOptions {
@@ -273,6 +290,32 @@ class NotificationService {
   }
 
   /**
+   * Sendet eine kritische Plattform-Notification (Story 1.2).
+   *
+   * Wird aus `useCriticalNotification` aufgerufen, wenn ein Critical-Event im
+   * Foreground eintrifft (z. B. via WebSocket). Nutzt den dedizierten
+   * Critical-Channel (High Importance, Heads-up).
+   */
+  async sendCriticalNotification(options: CriticalNotificationOptions): Promise<NotificationResult> {
+    const { title, body, eventId, url } = options;
+
+    if (this.permissionStatus === 'unknown') {
+      await this.checkPermission();
+    }
+
+    if (this.permissionStatus !== 'granted') {
+      logger.warn('Keine Berechtigung für kritische Benachrichtigungen', { status: this.permissionStatus, title });
+      return { success: false, error: `Keine Berechtigung: ${this.permissionStatus}` };
+    }
+
+    if (isTauri() && this.tauriPluginAvailable) {
+      return this.sendTauriCriticalNotification(title, body, eventId, url);
+    }
+
+    return this.sendWebCriticalNotification(title, body, eventId, url);
+  }
+
+  /**
    * Sendet eine Befehl-Benachrichtigung
    *
    * Wird aufgerufen wenn ein neuer Befehl via WebSocket empfangen wird.
@@ -447,6 +490,37 @@ class NotificationService {
   }
 
   /**
+   * Sendet Tauri Native Notification für kritische Plattform-Events (Story 1.2).
+   *
+   * Nutzt den Critical-Channel (High Importance) und registriert Action Type
+   * für Deep-Link-Navigation via `url`.
+   */
+  private async sendTauriCriticalNotification(title: string, body: string, eventId: string, url?: string): Promise<NotificationResult> {
+    try {
+      const { sendNotification: tauriSendNotification } = await import('@tauri-apps/plugin-notification');
+      const { CRITICAL_CHANNEL_ID, CRITICAL_ACTION_TYPE_ID } = await import('./notification-setup.service');
+
+      tauriSendNotification({
+        title,
+        body,
+        channelId: CRITICAL_CHANNEL_ID,
+        actionTypeId: CRITICAL_ACTION_TYPE_ID,
+        extra: { type: 'critical', eventId, url },
+        autoCancel: false,
+      });
+
+      logger.debug('Tauri Critical Notification gesendet:', { title, body, eventId, url });
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      logger.error('Fehler beim Senden der Tauri Critical Notification:', error);
+
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
    * Sendet Tauri Native Notification für Befehle
    *
    * Nutzt den "befehle" Channel für hohe Priorität und
@@ -538,6 +612,43 @@ class NotificationService {
   }
 
   /**
+   * Sendet Web Notification für kritische Plattform-Events (Story 1.2).
+   *
+   * Nutzt `tag: eventId` für Replace-Semantik bei doppelter Zustellung und
+   * `requireInteraction: true`, damit der User das Event nicht übersieht.
+   */
+  private sendWebCriticalNotification(title: string, body: string, eventId: string, url?: string): NotificationResult {
+    try {
+      if (typeof Notification === 'undefined') {
+        return { success: false, error: 'Web Notifications nicht verfügbar' };
+      }
+
+      const notification = new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        tag: eventId,
+        requireInteraction: true,
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        if (url && typeof window !== 'undefined') {
+          window.location.href = url;
+        }
+      };
+
+      logger.debug('Web Critical Notification gesendet:', { title, body, eventId, url });
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      logger.error('Fehler beim Senden der Web Critical Notification:', error);
+
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
    * Sendet Web Notification für Befehle
    *
    * Nutzt eindeutigen Tag um Erinnerung- und Befehl-Notifications zu trennen.
@@ -617,3 +728,4 @@ export const sendAssignmentNotification = (title: string, assignedByName: string
   notificationService.sendAssignmentNotification(title, assignedByName, erinnerungId, einsatzId);
 export const isNotificationSupported = () => notificationService.isSupported();
 export const sendBefehlNotification = (options: BefehlNotificationOptions) => notificationService.sendBefehlNotification(options);
+export const sendCriticalNotification = (options: CriticalNotificationOptions) => notificationService.sendCriticalNotification(options);

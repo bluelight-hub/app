@@ -9,6 +9,7 @@ import { logger } from '@/shared/lib/logger';
 import { initializeNotificationSetup, requestNotificationPermission } from '@/features/reminders/services';
 import { initSeenAssignmentsStore } from '@/features/reminders/stores';
 import { initEtbOfflineStore } from '@/features/etb/stores';
+import { PushSubscriptionManager, registerServiceWorker } from '@/shared/ui/push-subscription-manager';
 
 // Initialize notification system (channels, action types) and request permission
 // Runs async in background - errors are logged but don't block app startup
@@ -17,6 +18,9 @@ initializeNotificationSetup()
   .catch((error) => {
     logger.error('[App-Startup] Notification Setup fehlgeschlagen', { error });
   });
+
+// Register platform service-worker for Web-Push (Story 1.2). No-op in Tauri.
+registerServiceWorker().catch((error) => logger.warn('[App-Startup] Service-Worker Registration fehlgeschlagen', { error }));
 
 // Initialize seen assignments store (Story 3.7) - Loads persisted data from Tauri Store
 initSeenAssignmentsStore().catch((error) => logger.error('[App-Startup] Seen Assignments Store Init fehlgeschlagen', { error }));
@@ -43,6 +47,7 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <StrictMode>
     <QueryProvider>
+      <PushSubscriptionManager />
       <RouterProvider router={router} />
     </QueryProvider>
   </StrictMode>,

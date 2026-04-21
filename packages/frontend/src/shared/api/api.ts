@@ -49,6 +49,7 @@ import {
   UsersApi,
   WarnungenApi,
   TaktischeZeichenApi,
+  PushNotificationsApi,
 } from '@bluelight-hub/shared/client';
 import { fetchWithRefresh } from './fetchWithRefresh';
 
@@ -168,6 +169,7 @@ class BackendApi {
   private readonly taktischeZeichenApi: TaktischeZeichenApi;
   private readonly funkkanalApi: FunkkanalApi;
   private readonly alarmierungApi: AlarmierungApi;
+  private readonly pushNotificationsApi: PushNotificationsApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -231,6 +233,7 @@ class BackendApi {
     this.taktischeZeichenApi = new TaktischeZeichenApi(this.configuration);
     this.funkkanalApi = new FunkkanalApi(this.configuration);
     this.alarmierungApi = new AlarmierungApi(this.configuration);
+    this.pushNotificationsApi = new PushNotificationsApi(this.configuration);
   }
 
   /**
@@ -657,6 +660,18 @@ class BackendApi {
    */
   alarmierung(): AlarmierungApi {
     return this.alarmierungApi;
+  }
+
+  /**
+   * Gibt die gecachte PushNotifications-API-Instanz zurück (Story 1.1 + 1.2)
+   *
+   * Deckt Web-Push-Subscription-Registrierung unter
+   * `users/me/push-subscriptions` ab.
+   *
+   * @returns Die PushNotifications-API-Instanz für Web-Push-Subscriptions
+   */
+  pushNotifications(): PushNotificationsApi {
+    return this.pushNotificationsApi;
   }
 }
 

@@ -54,6 +54,7 @@ import { TaktischeZeichenModule } from './modules/taktische-zeichen/taktische-ze
 import { FunkkanalInfrastructureModule } from '@infrastructure/funkkanal/funkkanal-infrastructure.module';
 import { AlarmierungInfrastructureModule } from '@infrastructure/alarmierung/alarmierung-infrastructure.module';
 import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
+import { PushNotificationsModule } from './modules/push-notifications/push-notifications.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -150,6 +151,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     AlarmierungInfrastructureModule, // Alarmierung Infrastructure (Issue #408, Wave 1)
     AlarmierungModule, // Alarmierung HTTP Layer (Issue #408, Wave 1 / Task 5)
     WebsocketModule, // Einsatz-Events WebSocket-Gateway + Publisher (Issue #407, Task 18)
+    PushNotificationsModule, // Plattform Push-Notifications (Story 1.1, ADR-011)
   ],
   controllers: [AppController],
   providers: [

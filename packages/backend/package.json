@@ -89,6 +89,7 @@
     "prom-client": "^15.1.3",
     "rxjs": "^7.8.2",
     "socket.io": "^4.8.3",
+    "web-push": "^3.6.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -107,6 +108,7 @@
     "@types/pdfkit": "^0.17.6",
     "@types/supertest": "^7.2.0",
     "@types/ua-parser-js": "^0.7.39",
+    "@types/web-push": "^3.6.4",
     "artillery": "^2.0.30",
     "globals": "^17.5.0",
     "jest": "^30.3.0",

@@ -58,6 +58,9 @@ export const SERVER_CONFIG_REPOSITORY = Symbol('IServerConfigRepository');
 /** Repository Token für IEinsatzTeilnehmerRepository (Story 115) */
 export const EINSATZ_TEILNEHMER_REPOSITORY = Symbol('IEinsatzTeilnehmerRepository');
 
+/** Repository Token für IPushSubscriptionRepository (Story 1.1 Plattform, ADR-011) */
+export const PUSH_SUBSCRIPTION_REPOSITORY = Symbol('IPushSubscriptionRepository');
+
 /**
  * DI Token für IErinnerungRepository Port.
  *
