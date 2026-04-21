@@ -45,6 +45,7 @@ export * from './NavigationApi';
 export * from './NotizenApi';
 export * from './POIDEPRECATEDApi';
 export * from './PermissionsApi';
+export * from './PushNotificationsApi';
 export * from './RollenBesetzungApi';
 export * from './TaktischeZeichenApi';
 export * from './UserManagementApi';

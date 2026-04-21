@@ -44,6 +44,7 @@ apis/NavigationApi.ts
 apis/NotizenApi.ts
 apis/POIDEPRECATEDApi.ts
 apis/PermissionsApi.ts
+apis/PushNotificationsApi.ts
 apis/RollenBesetzungApi.ts
 apis/TaktischeZeichenApi.ts
 apis/UserManagementApi.ts
@@ -208,6 +209,7 @@ models/CreateKategorieDto.ts
 models/CreateLagekarteDto.ts
 models/CreateNotizDto.ts
 models/CreatePoiDto.ts
+models/CreatePushSubscriptionDto.ts
 models/CreateQualifikationDto.ts
 models/CreateRollenDefinitionDto.ts
 models/CreateStammFahrzeugDto.ts
@@ -419,6 +421,9 @@ models/PositionDto.ts
 models/ProfileControllerUpdateProfileV1200Response.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
+models/PushSubscriptionControllerRegisterV1201Response.ts
+models/PushSubscriptionDto.ts
+models/PushSubscriptionKeysDto.ts
 models/QualifikationDto.ts
 models/QualifikationMappingItemDto.ts
 models/QualifikationMappingsResponseDto.ts

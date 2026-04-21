@@ -250,6 +250,11 @@ model User {
   taktischeZeichenCreated TaktischesZeichen[] @relation("TaktischesZeichenCreator")
   taktischeZeichenUpdated TaktischesZeichen[] @relation("TaktischesZeichenUpdater")
 
+  // ========================================
+  // Push-Notifications Relations (Story 1.1 Plattform, ADR-011)
+  // ========================================
+  pushSubscriptions PushSubscription[]
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -2505,4 +2510,29 @@ model AlarmierungEmpfaenger {
   @@index([personId])
   @@index([einheitId])
   @@map("alarmierung_empfaenger")
+}
+
+// ============================================================================
+// Push-Notifications (Story 1.1 Plattform, ADR-011)
+// ============================================================================
+//
+// Web-Push Subscription einer User-Session/Geräts.
+// Persistiert endpoint + VAPID-Keys, um Notifications via web-push@^3 zu senden.
+// User-scoped (eine Subscription gilt über alle Einsätze hinweg) — siehe ADR-011.
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique @db.Text
+  p256dh    String   @db.Text
+  auth      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  // Indexes
+  @@index([userId], map: "idx_push_subscription_user_id")
+  @@map("push_subscription")
 }
