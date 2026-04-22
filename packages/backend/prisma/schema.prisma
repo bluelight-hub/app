@@ -360,6 +360,12 @@ model Einsatz {
   // Alarmierungen Relation (1:N, Issue #408)
   alarmierungen Alarmierung[]
 
+  // Eigenschutz Relations (1:N, Issue #415 / Story 1.4)
+  gefaehrdungsbeurteilungen Gefaehrdungsbeurteilung[]
+  psaProfilZuweisungen      PsaProfilZuweisung[]
+  sicherheitsregeln         Sicherheitsregel[]
+  sicherungsposten          Sicherungsposten[]
+
   // Indexes
   @@unique([nummer])
   @@index([status, createdAt])
@@ -2347,6 +2353,9 @@ model Gefahrenzone {
   einsatz         Einsatz                 @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
   matrixZelle     GefahrenmatrixBewertung @relation(fields: [einsatzId, gefahrentyp, schutzobjekt], references: [einsatzId, gefahrentyp, schutzobjekt], onDelete: Restrict)
 
+  // Eigenschutz Relations (Issue #415 / Story 1.4) — Gefährdungsbeurteilungen referenzieren optional eine Gefahrenzone
+  gefaehrdungsbeurteilungen Gefaehrdungsbeurteilung[]
+
   @@index([einsatzId])
   @@index([einsatzId, gefahrentyp, schutzobjekt])
   @@map("gefahrenzonen")
@@ -2535,4 +2544,340 @@ model PushSubscription {
   // Indexes
   @@index([userId], map: "idx_push_subscription_user_id")
   @@map("push_subscription")
+}
+
+// ============================================================================
+// Eigenschutz-Modul (Issue #415, Story 1.4)
+// ============================================================================
+// Schema-Additions gemäß _bmad-output/planning-artifacts/architecture.md
+// §Prisma Schema-Additions (Zeilen 1312–1616).
+//
+// 7 Enums + 14 Models. Kein Prisma-Enum `EigenschutzRolle`: Eigenschutz-Rollen
+// werden als `RollenDefinition`-Seed-Records angelegt und über
+// `EinsatzRollenbesetzung.rollenName` mit Präfix `^Eigenschutz: ` geprüft
+// (Story 1.3 EinsatzScopeGuard, Story 1.5 EigenschutzRolleGuard).
+
+enum PsaProfil {
+  BASIS
+  INFEKTION
+  VU
+  CBRN_PATIENT
+  VOLLSCHUTZ
+}
+
+enum Eintrittswahrscheinlichkeit {
+  SELTEN
+  GELEGENTLICH
+  HAEUFIG
+  OFT
+  STAENDIG
+}
+
+enum Schadensausmass {
+  VERNACHLAESSIGBAR
+  GERING
+  MITTEL
+  HOCH
+  KATASTROPHAL
+}
+
+enum Risikoklasse {
+  GRUEN
+  GELB
+  ORANGE
+  ROT
+}
+
+enum Ampelstatus {
+  GRUEN
+  GELB
+  ROT
+}
+
+enum SyncConflictEntityType {
+  GEFAEHRDUNGSBEURTEILUNG_ITEM
+  PSA_PROFIL_ZUWEISUNG
+}
+
+enum SyncConflictResolution {
+  SERVER_WINS
+  LOCAL_WINS
+  MERGED
+}
+
+/// Gefährdungsbeurteilung — Haupt-Entität pro Einsatz+Einheit (State + Version-Chain Pattern, §B1).
+/// `items` ist JSON-Array der aktuellen Gefährdungen; Historie lebt in `GefaehrdungsbeurteilungVersion`.
+model Gefaehrdungsbeurteilung {
+  id                    String   @id @default(cuid())
+  einsatzId             String   @map("einsatz_id")
+  einheitId             String   @map("einheit_id")
+  gefahrenzoneId        String?  @map("gefahrenzone_id")
+  vorlageId             String?  @map("vorlage_id")
+  items                 Json
+  version               Int      @default(1)
+  erstelltAm            DateTime @default(now()) @map("erstellt_am")
+  erstelltVonUserId     String   @map("erstellt_von_user_id")
+  aktualisiertAm        DateTime @updatedAt @map("aktualisiert_am")
+  aktualisiertVonUserId String   @map("aktualisiert_von_user_id")
+
+  einsatz      Einsatz                         @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  gefahrenzone Gefahrenzone?                   @relation(fields: [gefahrenzoneId], references: [id], onDelete: SetNull)
+  vorlage      GefaehrdungsbeurteilungVorlage? @relation(fields: [vorlageId], references: [id], onDelete: SetNull)
+  versionen    GefaehrdungsbeurteilungVersion[]
+
+  @@unique([einsatzId, einheitId])
+  @@index([einsatzId])
+  @@map("gefaehrdungsbeurteilungen")
+}
+
+/// Version-Chain für Gefährdungsbeurteilung — append-only. `eventId @unique` verhindert Doppel-Outbox-Processing.
+model GefaehrdungsbeurteilungVersion {
+  id               String    @id @default(cuid())
+  gefBeurteilungId String    @map("gef_beurteilung_id")
+  version          Int
+  items            Json
+  changedFields    Json      @map("changed_fields")
+  gueltigVon       DateTime  @map("gueltig_von")
+  gueltigBis       DateTime? @map("gueltig_bis")
+  changedByUserId  String    @map("changed_by_user_id")
+  begruendung      String?   @db.VarChar(500)
+  eventId          String?   @unique @map("event_id")
+
+  gefBeurteilung Gefaehrdungsbeurteilung @relation(fields: [gefBeurteilungId], references: [id], onDelete: Cascade)
+  // HINWEIS: FK kommt vom Vorfall auf diese Version (siehe EigenschutzVorfall.gefBeurteilungVersionId)
+  vorfaelle      EigenschutzVorfall[]
+
+  @@unique([gefBeurteilungId, version])
+  @@index([gefBeurteilungId, gueltigVon])
+  @@map("gefaehrdungsbeurteilung_versionen")
+}
+
+/// Vorlagen-Tabelle — Seeds für Szenarien (MANV, VU, Großveranstaltung, Betreuung, CBRN). `slug @unique` für idempotente Upserts.
+model GefaehrdungsbeurteilungVorlage {
+  id                String   @id @default(cuid())
+  slug              String   @unique @db.VarChar(100)
+  name              String   @db.VarChar(200)
+  szenario          String   @db.VarChar(80)
+  items             Json
+  version           Int      @default(1)
+  aktiv             Boolean  @default(true)
+  erstelltAm        DateTime @default(now()) @map("erstellt_am")
+  erstelltVonUserId String?  @map("erstellt_von_user_id")
+
+  nutzerBeurteilungen Gefaehrdungsbeurteilung[]
+
+  @@map("gefaehrdungsbeurteilung_vorlagen")
+}
+
+/// PSA-Profil-Zuweisung pro Einsatz+Einheit. `propagationGroupId` gruppiert Multi-Select-Bulk-Änderungen (FR18, Story 3.2).
+model PsaProfilZuweisung {
+  id                 String    @id @default(cuid())
+  einsatzId          String    @map("einsatz_id")
+  einheitId          String    @map("einheit_id")
+  profil             PsaProfil
+  gueltigVon         DateTime  @map("gueltig_von")
+  gueltigBis         DateTime? @map("gueltig_bis")
+  aktiviertVonUserId String    @map("aktiviert_von_user_id")
+  begruendung        String    @db.VarChar(500)
+  propagationGroupId String    @map("propagation_group_id")
+  version            Int       @default(1)
+
+  einsatz Einsatz @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([einsatzId, einheitId, gueltigBis])
+  @@index([propagationGroupId])
+  @@map("psa_profil_zuweisungen")
+}
+
+/// Quittungs-Tabelle PSA — FR18/Story 3.4. Ein Empfänger quittiert pro `propagationGroupId` + `einheitId` höchstens einmal.
+model PsaProfilQuittung {
+  id                 String   @id @default(cuid())
+  propagationGroupId String   @map("propagation_group_id")
+  einsatzId          String   @map("einsatz_id")
+  einheitId          String   @map("einheit_id")
+  quittiertAm        DateTime @default(now()) @map("quittiert_am")
+  quittiertVonUserId String   @map("quittiert_von_user_id")
+  lueckeGemeldet     Boolean  @default(false) @map("luecke_gemeldet")
+  lueckeNotiz        String?  @map("luecke_notiz") @db.VarChar(1000)
+
+  @@unique([propagationGroupId, einheitId])
+  @@index([einsatzId, einheitId])
+  @@map("psa_profil_quittungen")
+}
+
+/// Sicherheitsregel — einheitId optional (null = gilt für gesamten Einsatz).
+model Sicherheitsregel {
+  id                    String   @id @default(cuid())
+  einsatzId             String   @map("einsatz_id")
+  einheitId             String?  @map("einheit_id")
+  titel                 String   @db.VarChar(200)
+  inhalt                String   @db.Text
+  version               Int      @default(1)
+  erstelltAm            DateTime @default(now()) @map("erstellt_am")
+  erstelltVonUserId     String   @map("erstellt_von_user_id")
+  aktualisiertAm        DateTime @updatedAt @map("aktualisiert_am")
+  aktualisiertVonUserId String   @map("aktualisiert_von_user_id")
+
+  einsatz    Einsatz                    @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  versionen  SicherheitsregelVersion[]
+  quittungen SicherheitsregelQuittung[]
+
+  @@index([einsatzId])
+  @@map("sicherheitsregeln")
+}
+
+model SicherheitsregelVersion {
+  id              String    @id @default(cuid())
+  regelId         String    @map("regel_id")
+  version         Int
+  titel           String    @db.VarChar(200)
+  inhalt          String    @db.Text
+  gueltigVon      DateTime  @map("gueltig_von")
+  gueltigBis      DateTime? @map("gueltig_bis")
+  changedByUserId String    @map("changed_by_user_id")
+  eventId         String?   @unique @map("event_id")
+
+  regel Sicherheitsregel @relation(fields: [regelId], references: [id], onDelete: Cascade)
+
+  @@unique([regelId, version])
+  @@map("sicherheitsregel_versionen")
+}
+
+/// Quittungs-Tabelle Sicherheitsregel — FR25/Story 2.7. Ein Empfänger quittiert pro `regelId` + `einheitId` höchstens einmal.
+model SicherheitsregelQuittung {
+  id                 String   @id @default(cuid())
+  regelId            String   @map("regel_id")
+  einheitId          String   @map("einheit_id")
+  quittiertAm        DateTime @default(now()) @map("quittiert_am")
+  quittiertVonUserId String   @map("quittiert_von_user_id")
+
+  regel Sicherheitsregel @relation(fields: [regelId], references: [id], onDelete: Cascade)
+
+  @@unique([regelId, einheitId])
+  @@map("sicherheitsregel_quittungen")
+}
+
+/// Sicherungsposten — `standort` ist GeoJSON-Point, `personal` ist Array {name, rolle}.
+model Sicherungsposten {
+  id                     String   @id @default(cuid())
+  einsatzId              String   @map("einsatz_id")
+  einheitId              String?  @map("einheit_id")
+  bezeichnung            String   @db.VarChar(200)
+  standort               Json
+  zustaendigkeitsbereich String?  @db.Text
+  personal               Json
+  abloesezeiten          String?  @db.VarChar(500)
+  version                Int      @default(1)
+  erstelltAm             DateTime @default(now()) @map("erstellt_am")
+  erstelltVonUserId      String   @map("erstellt_von_user_id")
+  aktualisiertAm         DateTime @updatedAt @map("aktualisiert_am")
+  aktualisiertVonUserId  String   @map("aktualisiert_von_user_id")
+  geloescht              Boolean  @default(false)
+
+  einsatz   Einsatz                   @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  versionen SicherungspostenVersion[]
+
+  @@index([einsatzId])
+  @@map("sicherungsposten")
+}
+
+model SicherungspostenVersion {
+  id              String    @id @default(cuid())
+  postenId        String    @map("posten_id")
+  version         Int
+  payload         Json
+  gueltigVon      DateTime  @map("gueltig_von")
+  gueltigBis      DateTime? @map("gueltig_bis")
+  changedByUserId String    @map("changed_by_user_id")
+  eventId         String?   @unique @map("event_id")
+
+  posten Sicherungsposten @relation(fields: [postenId], references: [id], onDelete: Cascade)
+
+  @@unique([postenId, version])
+  @@map("sicherungsposten_versionen")
+}
+
+/// Vorfall-Meldung. `kontextSnapshot` ist authoritative Quelle für den historischen Stand (§B2).
+/// FK auf `GefaehrdungsbeurteilungVersion` ist RESTRICT — Vorfall-Snapshot muss unveränderlich bleiben.
+model EigenschutzVorfall {
+  id                      String   @id @default(cuid())
+  einsatzId               String   @map("einsatz_id")
+  einheitId               String   @map("einheit_id")
+  vorfallZeit             DateTime @map("vorfall_zeit")
+  was                     String   @db.Text
+  wann                    DateTime
+  wo                      String   @db.VarChar(500)
+  beteiligte              Json
+  massnahmen              String   @db.Text
+  unfallkasseRelevant     Boolean  @default(false) @map("unfallkasse_relevant")
+  kontextSnapshot         Json     @map("kontext_snapshot")
+  gefBeurteilungVersionId String?  @map("gef_beurteilung_version_id")
+  erfasstAm               DateTime @default(now()) @map("erfasst_am")
+  erfasstVonUserId        String   @map("erfasst_von_user_id")
+
+  // Policy (Story 1.4 Review): Einsätze sollen NICHT hart löschbar sein. Falls doch (Maintenance, GDPR-Forget),
+  // kaskadiert der Delete konsistent bis zum Vorfall — NICHT RESTRICT, da sonst der Einsatz-Delete am Vorfall-FK bricht.
+  // Der `kontextSnapshot Json` bleibt erhalten, solange der Vorfall selbst nicht gelöscht wird.
+  gefBeurteilungVersion GefaehrdungsbeurteilungVersion? @relation(fields: [gefBeurteilungVersionId], references: [id], onDelete: Cascade)
+
+  @@index([einsatzId, einheitId])
+  @@index([einsatzId, unfallkasseRelevant])
+  @@index([vorfallZeit])
+  @@map("eigenschutz_vorfaelle")
+}
+
+/// Telemetry-Event-Log (CBRN-Moment, Story 3.11). `eventName` ist String (TS-Union-Type in Application-Layer), kein DB-Enum.
+model EigenschutzTelemetryEvent {
+  id         String   @id @default(cuid())
+  einsatzId  String   @map("einsatz_id")
+  userId     String   @map("user_id")
+  sessionId  String   @map("session_id") @db.VarChar(80)
+  eventName  String   @map("event_name") @db.VarChar(80)
+  payload    Json
+  clientTime DateTime @map("client_time")
+  serverTime DateTime @default(now()) @map("server_time")
+
+  @@index([einsatzId, eventName])
+  @@index([einsatzId, serverTime])
+  @@map("eigenschutz_telemetry_events")
+}
+
+/// Read-Model für Ampel-Dashboard (Story 6.1, §B9). Composite-PK auf (einsatzId, einheitId).
+model AmpelProjection {
+  einsatzId                  String      @map("einsatz_id")
+  einheitId                  String      @map("einheit_id")
+  status                     Ampelstatus
+  aktivePsaProfile           PsaProfil[] @map("aktive_psa_profile")
+  offeneGefaehrdungenHoch    Int         @map("offene_gefaehrdungen_hoch")
+  ausstehendePsaQuittungen   Int         @map("ausstehende_psa_quittungen")
+  ausstehendeRegelQuittungen Int         @map("ausstehende_regel_quittungen")
+  offeneVorfaelle            Int         @map("offene_vorfaelle")
+  ungeloesteRueckmeldungen   Int         @map("ungeloeste_rueckmeldungen")
+  letzteAenderungAm          DateTime    @map("letzte_aenderung_am")
+  letzteAenderungVonUserId   String?     @map("letzte_aenderung_von_user_id")
+
+  @@id([einsatzId, einheitId])
+  @@index([einsatzId])
+  @@map("ampel_projections")
+}
+
+/// Sync-Konflikt-Tabelle (Story 3.9/3.10). `resolvedAt`/`resolvedByUserId`/`resolution` bleiben null bis zur Auflösung.
+model SyncConflict {
+  id                   String                  @id @default(cuid())
+  einsatzId            String                  @map("einsatz_id")
+  einheitId            String?                 @map("einheit_id")
+  entityType           SyncConflictEntityType  @map("entity_type")
+  entityId             String                  @map("entity_id")
+  fieldPath            String                  @map("field_path") @db.VarChar(200)
+  localPayload         Json                    @map("local_payload")
+  serverVersion        Int                     @map("server_version")
+  localExpectedVersion Int                     @map("local_expected_version")
+  reportedAt           DateTime                @default(now()) @map("reported_at")
+  reportedByUserId     String                  @map("reported_by_user_id")
+  resolvedAt           DateTime?               @map("resolved_at")
+  resolvedByUserId     String?                 @map("resolved_by_user_id")
+  resolution           SyncConflictResolution?
+
+  @@index([einsatzId, resolvedAt])
+  @@map("sync_conflicts")
 }
