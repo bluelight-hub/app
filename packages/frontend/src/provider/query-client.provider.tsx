@@ -44,7 +44,14 @@ export function createAppQueryClient(): QueryClient {
   const queryClient = new QueryClient({
     queryCache: new QueryCache({
       onError: async (error, query) => {
-        await handleQueryError(error, query);
+        // Zero-Toast-Policy (Architecture §J, UX-DR21): Queries mit
+        // `meta: { silentError: true }` unterdrücken den globalen Toast.
+        // 401-Token-Refresh bleibt davon unberührt, damit Session-Recovery
+        // auch bei stumm-geschalteten Queries greift.
+        const silent = query.meta?.silentError === true;
+        if (!silent) {
+          await handleQueryError(error, query);
+        }
 
         const status = (error as { response?: { status?: number } })?.response?.status;
         if (status === 401) {

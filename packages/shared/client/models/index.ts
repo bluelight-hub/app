@@ -174,6 +174,8 @@ export * from './DetailedHealthDto';
 export * from './DisconnectResponseDto';
 export * from './DmoDetailsDto';
 export * from './DwdWarnungDto';
+export * from './EigenschutzHealthControllerGetHealthVAlpha200Response';
+export * from './EigenschutzHealthDto';
 export * from './EinheitCreatedResponseDto';
 export * from './EinsatzBeitrittControllerCreateVAlpha201Response';
 export * from './EinsatzBeitrittControllerFindAllVAlpha200Response';

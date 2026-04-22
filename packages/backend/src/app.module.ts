@@ -55,6 +55,7 @@ import { FunkkanalInfrastructureModule } from '@infrastructure/funkkanal/funkkan
 import { AlarmierungInfrastructureModule } from '@infrastructure/alarmierung/alarmierung-infrastructure.module';
 import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
 import { PushNotificationsModule } from './modules/push-notifications/push-notifications.module';
+import { EigenschutzModule } from './modules/eigenschutz/eigenschutz.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -152,6 +153,7 @@ import { PushNotificationsModule } from './modules/push-notifications/push-notif
     AlarmierungModule, // Alarmierung HTTP Layer (Issue #408, Wave 1 / Task 5)
     WebsocketModule, // Einsatz-Events WebSocket-Gateway + Publisher (Issue #407, Task 18)
     PushNotificationsModule, // Plattform Push-Notifications (Story 1.1, ADR-011)
+    EigenschutzModule, // Eigenschutz-Feature-Slice: Health-Endpoint + Guard-Kette (Story 1.6)
   ],
   controllers: [AppController],
   providers: [
