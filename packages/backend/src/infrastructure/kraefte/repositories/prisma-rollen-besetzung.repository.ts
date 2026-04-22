@@ -232,6 +232,64 @@ export class PrismaRollenBesetzungRepository implements IRollenBesetzungReposito
   }
 
   /**
+   * Lädt alle AKTIVEN Rollenbesetzungen eines Users in einem Einsatz.
+   *
+   * **Use Case (Story 1.3 / ADR-012):** Membership-Check für `EinsatzScopeGuard`.
+   *
+   * **Prisma-Query:** Relationaler Filter über den 3-stufigen Join-Pfad
+   * `EinsatzRollenbesetzung → EinsatzPerson (person) → StammPerson (stamm) → User (userAccount)`.
+   * Bei fehlenden Stamm-/UserAccount-Referenzen (null-FKs) filtert Prisma
+   * natürlicherweise leer → kein expliziter null-Handling nötig.
+   *
+   * @param userId - User ID (String aus JWT-sub)
+   * @param einsatzId - Einsatz ID (String aus Request-Path)
+   * @param tx - Optional: Transaction Context
+   * @returns Result<RollenBesetzung[]> - Leeres Array wenn keine aktive Besetzung
+   */
+  async findActiveByUserIdAndEinsatzId(userId: string, einsatzId: string, tx?: TransactionContext): Promise<Result<RollenBesetzung[]>> {
+    const client = getTransactionClient(tx, this.prisma);
+
+    try {
+      const entities = await client.einsatzRollenbesetzung.findMany({
+        where: {
+          einsatzId,
+          freigegebenAm: null,
+          person: {
+            stamm: {
+              userAccount: { id: userId },
+            },
+          },
+        },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      const aggregates: RollenBesetzung[] = [];
+      for (const entity of entities) {
+        const result = PrismaRollenBesetzungMapper.toDomain(entity);
+        if (result.isFailure) {
+          this.logger.warn(`Failed to map RollenBesetzung ${entity.id}: ${result.error}`, 'RollenBesetzungRepository');
+          continue;
+        }
+        if (result.value) {
+          aggregates.push(result.value);
+        }
+      }
+
+      return Result.ok(aggregates);
+    } catch (error) {
+      // AC6-Kontrakt: Ungültige / non-CUID-einsatzId darf nicht als 500 zum
+      // Client leaken — Guard mappt "leeres Ergebnis" auf 403 (keine Enumeration-
+      // Vuln). P2023 (Inconsistent Column Data, z. B. bei zu langen Strings) und
+      // P2009 (Validation Error) sind hier äquivalent zu „Einsatz nicht gefunden".
+      if (isPrismaError(error, 'P2023') || isPrismaError(error, 'P2009')) {
+        this.logger.warn(`[findActiveByUserIdAndEinsatzId] Prisma validation rejected einsatzId — treating as no-membership`, 'RollenBesetzungRepository');
+        return Result.ok([]);
+      }
+      return this.handlePrismaError(error, 'findActiveByUserIdAndEinsatzId');
+    }
+  }
+
+  /**
    * Löscht RollenBesetzung (Rolle freigeben).
    *
    * **Use Case:** Rolle freigeben bei Neu-Besetzung oder manueller Freigabe

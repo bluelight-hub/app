@@ -93,4 +93,35 @@ export interface IRollenBesetzungRepository {
    * @returns Result<void> - Success oder Failure mit Fehlermeldung
    */
   delete(id: RollenBesetzungId, tx?: TransactionContext): Promise<Result<void>>;
+
+  /**
+   * Findet alle AKTIVEN Rollenbesetzungen für einen User in einem konkreten Einsatz.
+   *
+   * **Use Case (Story 1.3 / ADR-012):** `EinsatzScopeGuard` prüft Membership —
+   * "ist dieser User aktuell in diesem Einsatz aktiv besetzt?".
+   *
+   * **Join-Pfad (3 Stufen, da es KEINEN direkten User↔Rollenbesetzung-FK gibt):**
+   * ```
+   * User.stammpersonId → StammPerson.id
+   *                            ↑
+   *                            └── EinsatzPerson.stammId
+   *                                         ↑
+   *                                         └── EinsatzRollenbesetzung.personId
+   * ```
+   *
+   * **Soft-Delete-Filter:** Nur Besetzungen mit `freigegebenAm IS NULL` —
+   * das Schema hat **kein** `gueltigBis`-Feld, "aktiv" = nicht freigegeben.
+   *
+   * **Edge-Cases, die natürlicherweise ein leeres Result liefern (KEIN Throw):**
+   * - User.stammpersonId = null (User ohne StammPerson-Bindung)
+   * - EinsatzPerson.stammId = null (externer Helfer, keine User-Bindung möglich)
+   * - Unbekannte / ungültige einsatzId (kein FK-Match → Prisma filtert leer)
+   * - Alle Besetzungen sind freigegeben
+   *
+   * @param userId - Die User-ID (String, nicht Value-Object — der Guard hat nur den JWT-sub)
+   * @param einsatzId - Die Einsatz-ID (String, nicht Value-Object — aus Request-Path)
+   * @param tx - Optionaler Transaction Context
+   * @returns Result<RollenBesetzung[]> - Leeres Array wenn keine aktive Besetzung
+   */
+  findActiveByUserIdAndEinsatzId(userId: string, einsatzId: string, tx?: TransactionContext): Promise<Result<RollenBesetzung[]>>;
 }
