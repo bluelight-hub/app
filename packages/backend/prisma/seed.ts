@@ -2,7 +2,7 @@ import '@dotenvx/dotenvx/config';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Logger } from '@nestjs/common';
-import { EinsatzEinheitTyp, EtbKategorie, FahrzeugtypKategorie, PrismaClient, QualifikationKategorie } from '../src/generated/prisma/client';
+import { EinsatzEinheitTyp, Eintrittswahrscheinlichkeit, EtbKategorie, FahrzeugtypKategorie, PrismaClient, QualifikationKategorie, Schadensausmass } from '../src/generated/prisma/client';
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -63,6 +63,11 @@ async function main() {
   // Kräfte-Management Basis-Konfiguration (Story 1.0)
   // MUSS in allen Umgebungen laufen - dies sind essentielle Stammdaten
   await seedKraefteConfig(systemUser.id);
+
+  // Eigenschutz-Modul Stammdaten (Issue #415, Story 1.4)
+  // Eigenschutz: Seeds sind Stammdaten (Vorlagen + Rollen), keine Dev-Daten.
+  // Kein deleteMany nötig, solange keine Dev-Daten auf Eigenschutz-FKs referenzieren.
+  await seedEigenschutzConfig(systemUser.id);
 
   // Stammdaten (Story 2.0) - MUSS nach seedKraefteConfig laufen (braucht Fahrzeugtypen + Qualifikationen)
   // MUSS in allen Umgebungen laufen - Stammdaten sind essentielle Entwicklungsdaten
@@ -219,6 +224,240 @@ async function seedKraefteConfig(systemUserId: string): Promise<void> {
   logger.log(`Created ${funkStatusConfig.length} FunkStatus-Konfigurationen`);
 
   logger.log('Kräfte-Config Seed completed');
+}
+
+/**
+ * Erstellt Eigenschutz-Stammdaten (Issue #415, Story 1.4).
+ *
+ * Seed-Inhalt:
+ * 1. 4 RollenDefinitionen mit Präfix `Eigenschutz: ` für EinsatzScopeGuard + EigenschutzRolleGuard
+ * 2. 5 GefaehrdungsbeurteilungVorlagen für die MVP-Szenarien (MANV, VU, Großveranstaltung, Betreuung, CBRN)
+ *
+ * Beide nutzen das Upsert-Pattern für Idempotenz bei mehrfacher Ausführung.
+ *
+ * ⚠️ WICHTIG — Beispielcharakter der Vorlagen:
+ * Die 5 Gefährdungsbeurteilungs-Vorlagen enthalten fachlich formulierte Handlungsanweisungen
+ * (PSNV-Einsatznachsorge, CSA-Tragezeiten, HV-Batterie-Warnungen, Bindemittel bei Säure-Austritt).
+ * Diese Inhalte sind an DIN/DGUV/TRBS-Vokabular angelehnt, aber NICHT durch einen
+ * Sicherheitsbeauftragten (SiBe) einer konkreten Organisation fachlich freigegeben.
+ * Vor produktivem Einsatz MÜSSEN die Vorlagen durch den SiBe der einsetzenden
+ * Hilfsorganisation (DRK/JUH/MHD/ASB/DLRG) geprüft und ggf. angepasst werden.
+ *
+ * @param systemUserId - User ID für Audit-Trail (createdBy / erstelltVonUserId)
+ */
+async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
+  logger.log('Creating Eigenschutz-Stammdaten (Issue #415)...');
+  logger.warn('Eigenschutz-Vorlagen: Beispielinhalte — vor produktivem Einsatz durch SiBe fachlich freigeben.');
+
+  // --- 4 Eigenschutz-RollenDefinitionen (AC5) ---
+  // Präfix `Eigenschutz: ` ist Pflicht für das Regex-Matching im EigenschutzRolleGuard (Story 1.5).
+  // sortOrder ≥ 100 trennt Eigenschutz-Rollen visuell von den Kräfte-Führungsrollen (1–10).
+  const eigenschutzRollen = [
+    {
+      name: 'Eigenschutz: Sicherheitsbeauftragter',
+      funkrufname: 'SiBe',
+      beschreibung: 'Verantwortlich für Gefährdungsbeurteilung, PSA-Profile, Sicherheitsregeln und Sicherungsposten im Einsatz (FR44–FR46, Eigenschutz-Pilot)',
+      sortOrder: 100,
+    },
+    {
+      name: 'Eigenschutz: Abschnittsleiter',
+      funkrufname: 'EALtr',
+      beschreibung: 'Empfängt kritische Bekanntgaben (PSA, Sicherheitsregeln) und quittiert für seinen Abschnitt (FR18, FR25)',
+      sortOrder: 101,
+    },
+    {
+      name: 'Eigenschutz: Einheitsführer',
+      funkrufname: 'EF',
+      beschreibung: 'Empfängt Bekanntgaben auf Einheits-Ebene und meldet Ausrüstungslücken zurück (FR20, Phase 2: FR21)',
+      sortOrder: 102,
+    },
+    {
+      name: 'Eigenschutz: Nachbereitung',
+      funkrufname: 'Nachber.',
+      beschreibung: 'Filtert Vorfälle und exportiert Unfallkassen-Meldungen (FR31–FR36, FR47)',
+      sortOrder: 103,
+    },
+  ];
+
+  for (const r of eigenschutzRollen) {
+    await prisma.rollenDefinition.upsert({
+      where: { name: r.name },
+      create: { ...r, createdBy: systemUserId },
+      update: {},
+    });
+  }
+  logger.log(`Created ${eigenschutzRollen.length} Eigenschutz-RollenDefinitionen`);
+
+  // --- 5 GefaehrdungsbeurteilungVorlagen (AC6) ---
+  // Items werden in Story 2.1 deep-kopiert (Item-Kopie, kein Live-Link → PRD-Mitigation „Vorlagen-Drift").
+  // Inhaltlich realistische Gefährdungen für weiße Hilfsorganisationen (DRK/JUH/MHD/ASB/DLRG).
+  const vorlagen = [
+    {
+      slug: 'manv',
+      name: 'MANV — Massenanfall von Verletzten',
+      szenario: 'MANV',
+      items: [
+        {
+          titel: 'Eigenverletzung durch spitze/scharfe Gegenstände',
+          beschreibung: 'An Schadensstellen (Glas, Metallsplitter, medizinische Kanülen) besteht erhöhtes Risiko für Schnitt- und Stichverletzungen während Triage und Erstversorgung.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          defaultSchaden: Schadensausmass.GERING,
+          schutzmassnahmen: 'Schnittschutz-Handschuhe tragen, Kanülen sofort sicher entsorgen, unübersichtliches Gelände mit Flutlicht ausleuchten.',
+        },
+        {
+          titel: 'Infektionsrisiko durch Blut und Körperflüssigkeiten',
+          beschreibung: 'Bei Sichtung und Behandlung zahlreicher Patienten kommen Einsatzkräfte mit Blut, Speichel, Erbrochenem und Wundsekreten in Kontakt (Hepatitis-, HIV-Risiko).',
+          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          defaultSchaden: Schadensausmass.MITTEL,
+          schutzmassnahmen: 'Einmalhandschuhe bei jedem Patienten wechseln, Schutzbrille bei Spritzrisiko, Impfstatus Hepatitis-B prüfen, Meldekette für Nadelstich-Verletzungen klären.',
+        },
+        {
+          titel: 'Psychische Belastung durch Triage-Entscheidungen',
+          beschreibung: 'Sichtungskategorie IV (abwartende Behandlung) bei überlebensfähigen Patienten belastet Einsatzkräfte langfristig; Risiko für akute Belastungsreaktionen und PTBS.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          defaultSchaden: Schadensausmass.HOCH,
+          schutzmassnahmen: 'PSNV-Einsatznachsorge verpflichtend anbieten, Partnerarbeit statt Alleinentscheidung, regelmäßige Ablösung nach 30–45 min an der Sichtungsstelle.',
+        },
+      ],
+    },
+    {
+      slug: 'vu-patientenversorgung',
+      name: 'VU — Verkehrsunfall-Patientenversorgung',
+      szenario: 'Verkehrsunfall',
+      items: [
+        {
+          titel: 'Fließender Verkehr an der Unfallstelle',
+          beschreibung: 'Unfallstelle ist nicht vollständig gesperrt; anrauschende Fahrzeuge gefährden Einsatzkräfte auf der Fahrbahn, insbesondere bei schlechter Sicht, Nässe oder Nacht.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          schutzmassnahmen:
+            'Warnweste der Klasse 3 pflicht, Absperrung mit Warndreieck/Verkehrsleitkegel stromaufwärts, Polizei zur Fahrbahnsperrung anfordern, niemals mit dem Rücken zum fließenden Verkehr arbeiten.',
+        },
+        {
+          titel: 'Treibstoff- und Betriebsmittel-Austritt',
+          beschreibung: 'Aus beschädigten Tanks, Leitungen oder Batterien treten Kraftstoffe, Öle oder Säure aus. Rutsch-, Brand- und Inhalationsgefahr.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          defaultSchaden: Schadensausmass.HOCH,
+          schutzmassnahmen:
+            'Brandschutz (Feuerwehr) vor Patientenrettung zuerst anfordern, Zündquellen fernhalten (kein Licht, kein Funkgerät direkt am Fahrzeug), Bindemittel bereithalten, bei Säure-Kontakt sofort spülen.',
+        },
+        {
+          titel: 'Hochvolt-Risiko bei Elektro- und Hybrid-Fahrzeugen',
+          beschreibung:
+            'Beschädigte HV-Batterien (400–800 V DC) können Einsatzkräfte durch Berührungsspannung tödlich verletzen; thermisches Durchgehen (Thermal Runaway) mit toxischen Rauchgasen möglich.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          schutzmassnahmen:
+            'Fahrzeug-Typ erkennen (Rettungsdatenblatt), HV-Abschaltung durch Feuerwehr abwarten, Mindestabstand zu beschädigten Batterien halten, bei Rauchentwicklung sofort Atemschutzkräfte anfordern.',
+        },
+      ],
+    },
+    {
+      slug: 'sanitaetsdienst-grossveranstaltung',
+      name: 'Sanitätsdienst-Großveranstaltung',
+      szenario: 'Großveranstaltung',
+      items: [
+        {
+          titel: 'Menschenmengen-Dynamik (Gedränge, Panik)',
+          beschreibung:
+            'Bei Massen-Events können Dichtephänomene, Paniksituationen oder Fluchtbewegungen entstehen; Einsatzkräfte können im Gedränge erdrückt, getrampelt oder von der Einsatzstelle abgeschnitten werden.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.SELTEN,
+          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          schutzmassnahmen:
+            'Feste Sanitäts-Standorte mit Fluchtweg planen, permanenter Funkkontakt zur Einsatzleitung, bei kritischer Dichte sofort Rückzug; keine Hilfeleistung im laufenden Gedränge.',
+        },
+        {
+          titel: 'Temperatur- und Wetterexposition über Schichtdauer',
+          beschreibung: 'Lange Standzeiten (8–12 h) bei Hitze, Kälte oder Dauerregen führen zu Hitzschlag, Erschöpfung, Unterkühlung oder Erfrierungen; besonders kritisch bei PSA-Tragezwang.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          defaultSchaden: Schadensausmass.MITTEL,
+          schutzmassnahmen:
+            'Witterungs-angepasste Kleidung, Trink-/Ruhe-Rhythmus 45/15 min, Beschattete/beheizte Ruhepausen, Hitzeschutz-Regel ab 28 °C, Ablösung bei Frühsymptomen Hitzschlag/Hypothermie.',
+        },
+        {
+          titel: 'Aggressives oder alkoholisiertes Publikum',
+          beschreibung: 'Verbale Übergriffe, Bedrohungen und tätliche Angriffe gegen Sanitätspersonal durch enthemmte oder intoxikierte Besucher sind auf Festen regelmäßig zu erwarten.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          defaultSchaden: Schadensausmass.MITTEL,
+          schutzmassnahmen:
+            'Immer im Team arbeiten (4-Augen-Prinzip), Security/Polizei-Verbindung vor Ort, deeskalierende Gesprächsführung im Einsatzbriefing schulen, Rückzugsraum definiert und gesichert halten.',
+        },
+      ],
+    },
+    {
+      slug: 'betreuungseinsatz',
+      name: 'Betreuungseinsatz',
+      szenario: 'Betreuung',
+      items: [
+        {
+          titel: 'Psychosoziale Belastung durch Betroffenen-Kontakt',
+          beschreibung: 'Lange Gespräche mit Angehörigen, Evakuierten und traumatisierten Personen übertragen emotionale Belastung auf Einsatzkräfte; Risiko sekundärer Traumatisierung.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          defaultSchaden: Schadensausmass.MITTEL,
+          schutzmassnahmen: 'Rotation zwischen Betreuungs- und Back-Office-Aufgaben, PSNV-Einsatznachsorge nach Schicht, klare Pausenregelung, Supervision durch Einsatzleitung.',
+        },
+        {
+          titel: 'Hygienerisiken in temporären Unterkünften',
+          beschreibung:
+            'Notunterkünfte (Sporthallen, Zelte) haben eingeschränkte Hygiene-Infrastruktur; Infektionsgefahr durch Tröpfcheninfektion, Kontakt- und Schmierinfektion (Norovirus, Influenza, Läuse).',
+          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          defaultSchaden: Schadensausmass.MITTEL,
+          schutzmassnahmen:
+            'Händedesinfektion vor und nach Betroffenen-Kontakt, FFP2-Maske bei respiratorischen Symptomen, Betroffene mit Infekt-Verdacht isolieren, Schutzkleidung bei Reinigungsarbeiten.',
+        },
+        {
+          titel: 'Langdauernde Schichten ohne Ablösung',
+          beschreibung: 'Betreuungslagen laufen oft über 24–72 h; Übermüdung führt zu reduzierter Urteilsfähigkeit, Fehlentscheidungen und Unfallrisiko bei Fahrten.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          defaultSchaden: Schadensausmass.MITTEL,
+          schutzmassnahmen: 'Max. 12 h Schichtdauer (Ausnahme dokumentieren), Schlafmöglichkeit sicherstellen, nach >10 h keine Fahrten mehr, Ablöse-Planung vom Schichtbeginn an vorhalten.',
+        },
+      ],
+    },
+    {
+      slug: 'cbrn-patientenversorgung',
+      name: 'CBRN — Patientenversorgung bei Kontamination',
+      szenario: 'CBRN',
+      items: [
+        {
+          titel: 'Kontamination durch chemische, biologische oder radiologische Stoffe',
+          beschreibung: 'Kontaminierte Patienten, Flächen und Geräte übertragen Schadstoffe auf Einsatzkräfte; akute Vergiftung, verzögerte Symptome (Strahlung) oder Infektion möglich.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.SELTEN,
+          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          schutzmassnahmen:
+            'Arbeit ausschließlich in der Weißen Zone nach Dekontamination, bei Grenzübertritt Vollschutz (Schutzanzug, Atemschutz, doppelte Handschuhe), Dosimeter bei radiologischer Lage, striktes One-Way-Prinzip Schmutz/Sauber.',
+        },
+        {
+          titel: 'Unzureichende Eigen-PSA ohne Vollschutz',
+          beschreibung:
+            'Einsatz in der Grauen oder Schwarzen Zone ohne CBRN-Vollschutz oder mit undichter PSA ist lebensgefährlich; Eindringen von Noxen durch Mikrorisse, Handschuhübergänge oder Maskenlecks.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          schutzmassnahmen:
+            'PSA-Dichtheitsprüfung (Maskensitz, Anzug-Naht-Check) vor Zonen-Eintritt, nur geschulte Kräfte in Grau/Schwarz, Buddy-Prinzip mit Buddy-Check, max. Tragezeit CSA beachten.',
+        },
+        {
+          titel: 'Kreuz-Kontamination zwischen Patienten und Helfern',
+          beschreibung: 'Unsachgemäßer Patientenkontakt oder Geräte-Wiederverwendung zwischen Zonen schleppt Schadstoffe in saubere Bereiche und kontaminiert Behandlungsplätze und Fahrzeuge.',
+          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          defaultSchaden: Schadensausmass.HOCH,
+          schutzmassnahmen:
+            'Einweg-Material bevorzugen, kontaminierte Ausrüstung farblich markieren (rot = Schmutz), Dekon-Stufe zwischen Zonen pflichtig, Transport erst nach vollständiger Dekontamination des Patienten und der Trage.',
+        },
+      ],
+    },
+  ];
+
+  for (const v of vorlagen) {
+    await prisma.gefaehrdungsbeurteilungVorlage.upsert({
+      where: { slug: v.slug },
+      create: { ...v, erstelltVonUserId: systemUserId },
+      update: {},
+    });
+  }
+  logger.log(`Created ${vorlagen.length} Eigenschutz-Vorlagen`);
+
+  logger.log('Eigenschutz-Config Seed completed');
 }
 
 /**
