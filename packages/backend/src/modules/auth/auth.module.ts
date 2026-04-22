@@ -5,9 +5,11 @@ import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { InfrastructureCommonModule } from '@/infrastructure/common.module';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
+import { KraefteInfrastructureModule } from '@/infrastructure/kraefte/kraefte-infrastructure.module';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './auth.service';
 import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
+import { EinsatzScopeGuard } from './guards/einsatz-scope.guard';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
@@ -16,6 +18,11 @@ import { ExchangeInviteHandler } from '@/application/auth/commands/exchange-invi
 import { InviteCodeInfrastructureModule } from '@/infrastructure/invite-code/invite-code-infrastructure.module';
 import { PasswordModule } from '@/infrastructure/password/password.module';
 import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-access-token/server-access-token-infrastructure.module';
+
+// Seiteneffekt-Import: Declaration-Merging für `Express.Request.einsatzContext`.
+// Datei wird hier einmalig importiert, damit die globale Typ-Augmentation in
+// allen Controller-Tests / TSC-Builds greift.
+import './interfaces/einsatz-request-context';
 
 /**
  * Authentifizierungsmodul für BlueLight Hub
@@ -44,6 +51,9 @@ import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-a
     ServerAccessTokenInfrastructureModule,
     // Password Validation für Admin-Setup und Passwort-Prüfungen
     PasswordModule,
+    // Kräfte-Repositories für EinsatzScopeGuard (Story 1.3 / ADR-012).
+    // Stellt `KRAEFTE_REPOSITORIES.ROLLEN_BESETZUNG` für den Membership-Check bereit.
+    KraefteInfrastructureModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -57,8 +67,11 @@ import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-a
     JwtRefreshStrategy,
     AdminJwtStrategy,
     AdminJwtAuthGuard,
+    // Plattform-Pattern (ADR-012): Membership-Check für einsatz-scoped Routen.
+    // Bewusst KEIN APP_GUARD — wird pro Controller via @UseGuards eingesetzt.
+    EinsatzScopeGuard,
     ExchangeInviteHandler,
   ],
-  exports: [AuthService, JwtModule, AdminJwtAuthGuard],
+  exports: [AuthService, JwtModule, AdminJwtAuthGuard, EinsatzScopeGuard],
 })
 export class AuthModule {}
