@@ -1,6 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createAppQueryClient } from './query-client.provider';
+import * as errorHandlerModule from '@/shared/lib/errors/error-handler';
 
 function createResponseError(status: number, url: string) {
   return {
@@ -39,5 +40,40 @@ describe('createAppQueryClient', () => {
     expect(shouldRetry(0, createResponseError(503, 'https://localhost:3091/api/v-alpha/einsaetze'))).toBe(false);
     expect(shouldRetry(1, createResponseError(502, 'https://localhost:3091/api/v-alpha/einsaetze'))).toBe(true);
     expect(shouldRetry(2, createResponseError(502, 'https://localhost:3091/api/v-alpha/einsaetze'))).toBe(false);
+  });
+
+  describe('Zero-Toast-Policy: meta.silentError (Story 1.6 AC8)', () => {
+    it('skippt handleQueryError, wenn query.meta.silentError === true', async () => {
+      const spy = vi.spyOn(errorHandlerModule, 'handleQueryError').mockResolvedValue(undefined);
+      const client = createAppQueryClient();
+
+      await expect(
+        client.fetchQuery({
+          queryKey: ['silent-test'],
+          queryFn: () => Promise.reject(createResponseError(403, 'https://localhost:3091/api/v-alpha/silent')),
+          retry: false,
+          meta: { silentError: true },
+        }),
+      ).rejects.toBeDefined();
+
+      expect(spy).not.toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it('ruft handleQueryError weiterhin, wenn meta.silentError fehlt oder false ist', async () => {
+      const spy = vi.spyOn(errorHandlerModule, 'handleQueryError').mockResolvedValue(undefined);
+      const client = createAppQueryClient();
+
+      await expect(
+        client.fetchQuery({
+          queryKey: ['loud-test'],
+          queryFn: () => Promise.reject(createResponseError(500, 'https://localhost:3091/api/v-alpha/loud')),
+          retry: false,
+        }),
+      ).rejects.toBeDefined();
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+    });
   });
 });

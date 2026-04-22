@@ -15,6 +15,7 @@ apis/AufbewahrungApi.ts
 apis/AuthApi.ts
 apis/BefehleApi.ts
 apis/ETBApi.ts
+apis/EigenschutzApi.ts
 apis/EinsatzApi.ts
 apis/EinsatzBeitrittApi.ts
 apis/EinsatzEinheitenApi.ts
@@ -226,6 +227,8 @@ models/DetailedHealthDto.ts
 models/DisconnectResponseDto.ts
 models/DmoDetailsDto.ts
 models/DwdWarnungDto.ts
+models/EigenschutzHealthControllerGetHealthVAlpha200Response.ts
+models/EigenschutzHealthDto.ts
 models/EinheitCreatedResponseDto.ts
 models/EinsatzBeitrittControllerCreateVAlpha201Response.ts
 models/EinsatzBeitrittControllerFindAllVAlpha200Response.ts

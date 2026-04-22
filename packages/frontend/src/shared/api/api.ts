@@ -22,6 +22,7 @@ import {
   EinsatzEinheitenApi,
   EinsatzFahrzeugeApi,
   EinsatzPersonenApi,
+  EigenschutzApi,
   EinsatzTeilnehmerApi,
   ErinnerungApi,
   FunkkanalApi,
@@ -170,6 +171,7 @@ class BackendApi {
   private readonly funkkanalApi: FunkkanalApi;
   private readonly alarmierungApi: AlarmierungApi;
   private readonly pushNotificationsApi: PushNotificationsApi;
+  private readonly eigenschutzApi: EigenschutzApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -234,6 +236,7 @@ class BackendApi {
     this.funkkanalApi = new FunkkanalApi(this.configuration);
     this.alarmierungApi = new AlarmierungApi(this.configuration);
     this.pushNotificationsApi = new PushNotificationsApi(this.configuration);
+    this.eigenschutzApi = new EigenschutzApi(this.configuration);
   }
 
   /**
@@ -672,6 +675,18 @@ class BackendApi {
    */
   pushNotifications(): PushNotificationsApi {
     return this.pushNotificationsApi;
+  }
+
+  /**
+   * Gibt die gecachte Eigenschutz-API-Instanz zurück (Story 1.6).
+   *
+   * Deckt derzeit nur den Modul-Health-Endpoint ab; Epic 2–5 ergänzt
+   * fachliche Endpoints (Gefährdungsbeurteilung, PSA, Sicherheitsregeln etc.).
+   *
+   * @returns Die Eigenschutz-API-Instanz für Modul-Health + spätere Feature-Endpoints
+   */
+  eigenschutz(): EigenschutzApi {
+    return this.eigenschutzApi;
   }
 }
 

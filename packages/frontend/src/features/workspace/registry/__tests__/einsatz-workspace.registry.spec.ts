@@ -98,4 +98,32 @@ describe('einsatz workspace registry', () => {
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht/karte', 'einsatz-42')).toBe(true);
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht/statistik', 'einsatz-42')).toBe(false);
   });
+
+  describe('Eigenschutz-Flip (Story 1.6 AC1)', () => {
+    it('markiert die sicherheit.eigenschutz-SubPage als sichtbar', () => {
+      const sicherheit = EINSATZ_WORKSPACE_MODULES.find((module) => module.id === 'sicherheit');
+      const eigenschutz = sicherheit?.subPages.find((page) => page.id === 'eigenschutz');
+
+      expect(eigenschutz).toBeDefined();
+      expect(eigenschutz?.visibility.default).toBe('visible');
+      expect(eigenschutz?.href).toBe('/app/einsatz/$einsatzId/sicherheit/eigenschutz');
+    });
+
+    it('bewahrt Label, Icon und Description der Eigenschutz-SubPage', () => {
+      const sicherheit = EINSATZ_WORKSPACE_MODULES.find((module) => module.id === 'sicherheit');
+      const eigenschutz = sicherheit?.subPages.find((page) => page.id === 'eigenschutz');
+
+      expect(eigenschutz?.label).toBe('Eigenschutz');
+      expect(eigenschutz?.description).toBe('Arbeitsschutz');
+      expect(eigenschutz?.icon).toBeDefined();
+    });
+
+    it('macht die Route für Direktaufrufe erreichbar (kein Redirect-Bypass)', () => {
+      expect(isWorkspaceRouteAccessible('/app/einsatz/e-123/sicherheit/eigenschutz', 'e-123')).toBe(true);
+    });
+
+    it('lässt getCanonicalWorkspaceRoute unverändert auf der Übersicht', () => {
+      expect(getCanonicalWorkspaceRoute()).toBe('/app/einsatz/$einsatzId/übersicht');
+    });
+  });
 });

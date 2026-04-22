@@ -16,6 +16,7 @@ export * from './AufbewahrungApi';
 export * from './AuthApi';
 export * from './BefehleApi';
 export * from './ETBApi';
+export * from './EigenschutzApi';
 export * from './EinsatzApi';
 export * from './EinsatzBeitrittApi';
 export * from './EinsatzEinheitenApi';

@@ -176,7 +176,6 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
         href: '/app/einsatz/$einsatzId/sicherheit/eigenschutz',
         icon: PiShieldWarning,
         description: 'Arbeitsschutz',
-        visibility: disabled(LATER_RING_REASON),
       }),
       createSubPage(2, {
         id: 'hygiene',
