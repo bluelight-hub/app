@@ -298,24 +298,24 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
       szenario: 'MANV',
       items: [
         {
-          titel: 'Eigenverletzung durch spitze/scharfe Gegenstände',
-          beschreibung: 'An Schadensstellen (Glas, Metallsplitter, medizinische Kanülen) besteht erhöhtes Risiko für Schnitt- und Stichverletzungen während Triage und Erstversorgung.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
-          defaultSchaden: Schadensausmass.GERING,
+          title: 'Eigenverletzung durch spitze/scharfe Gegenstände',
+          description: 'An Schadensstellen (Glas, Metallsplitter, medizinische Kanülen) besteht erhöhtes Risiko für Schnitt- und Stichverletzungen während Triage und Erstversorgung.',
+          eintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          schaden: Schadensausmass.GERING,
           schutzmassnahmen: 'Schnittschutz-Handschuhe tragen, Kanülen sofort sicher entsorgen, unübersichtliches Gelände mit Flutlicht ausleuchten.',
         },
         {
-          titel: 'Infektionsrisiko durch Blut und Körperflüssigkeiten',
-          beschreibung: 'Bei Sichtung und Behandlung zahlreicher Patienten kommen Einsatzkräfte mit Blut, Speichel, Erbrochenem und Wundsekreten in Kontakt (Hepatitis-, HIV-Risiko).',
-          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
-          defaultSchaden: Schadensausmass.MITTEL,
+          title: 'Infektionsrisiko durch Blut und Körperflüssigkeiten',
+          description: 'Bei Sichtung und Behandlung zahlreicher Patienten kommen Einsatzkräfte mit Blut, Speichel, Erbrochenem und Wundsekreten in Kontakt (Hepatitis-, HIV-Risiko).',
+          eintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          schaden: Schadensausmass.MITTEL,
           schutzmassnahmen: 'Einmalhandschuhe bei jedem Patienten wechseln, Schutzbrille bei Spritzrisiko, Impfstatus Hepatitis-B prüfen, Meldekette für Nadelstich-Verletzungen klären.',
         },
         {
-          titel: 'Psychische Belastung durch Triage-Entscheidungen',
-          beschreibung: 'Sichtungskategorie IV (abwartende Behandlung) bei überlebensfähigen Patienten belastet Einsatzkräfte langfristig; Risiko für akute Belastungsreaktionen und PTBS.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
-          defaultSchaden: Schadensausmass.HOCH,
+          title: 'Psychische Belastung durch Triage-Entscheidungen',
+          description: 'Sichtungskategorie IV (abwartende Behandlung) bei überlebensfähigen Patienten belastet Einsatzkräfte langfristig; Risiko für akute Belastungsreaktionen und PTBS.',
+          eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          schaden: Schadensausmass.HOCH,
           schutzmassnahmen: 'PSNV-Einsatznachsorge verpflichtend anbieten, Partnerarbeit statt Alleinentscheidung, regelmäßige Ablösung nach 30–45 min an der Sichtungsstelle.',
         },
       ],
@@ -326,27 +326,27 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
       szenario: 'Verkehrsunfall',
       items: [
         {
-          titel: 'Fließender Verkehr an der Unfallstelle',
-          beschreibung: 'Unfallstelle ist nicht vollständig gesperrt; anrauschende Fahrzeuge gefährden Einsatzkräfte auf der Fahrbahn, insbesondere bei schlechter Sicht, Nässe oder Nacht.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
-          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          title: 'Fließender Verkehr an der Unfallstelle',
+          description: 'Unfallstelle ist nicht vollständig gesperrt; anrauschende Fahrzeuge gefährden Einsatzkräfte auf der Fahrbahn, insbesondere bei schlechter Sicht, Nässe oder Nacht.',
+          eintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          schaden: Schadensausmass.KATASTROPHAL,
           schutzmassnahmen:
             'Warnweste der Klasse 3 pflicht, Absperrung mit Warndreieck/Verkehrsleitkegel stromaufwärts, Polizei zur Fahrbahnsperrung anfordern, niemals mit dem Rücken zum fließenden Verkehr arbeiten.',
         },
         {
-          titel: 'Treibstoff- und Betriebsmittel-Austritt',
-          beschreibung: 'Aus beschädigten Tanks, Leitungen oder Batterien treten Kraftstoffe, Öle oder Säure aus. Rutsch-, Brand- und Inhalationsgefahr.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
-          defaultSchaden: Schadensausmass.HOCH,
+          title: 'Treibstoff- und Betriebsmittel-Austritt',
+          description: 'Aus beschädigten Tanks, Leitungen oder Batterien treten Kraftstoffe, Öle oder Säure aus. Rutsch-, Brand- und Inhalationsgefahr.',
+          eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          schaden: Schadensausmass.HOCH,
           schutzmassnahmen:
             'Brandschutz (Feuerwehr) vor Patientenrettung zuerst anfordern, Zündquellen fernhalten (kein Licht, kein Funkgerät direkt am Fahrzeug), Bindemittel bereithalten, bei Säure-Kontakt sofort spülen.',
         },
         {
-          titel: 'Hochvolt-Risiko bei Elektro- und Hybrid-Fahrzeugen',
-          beschreibung:
+          title: 'Hochvolt-Risiko bei Elektro- und Hybrid-Fahrzeugen',
+          description:
             'Beschädigte HV-Batterien (400–800 V DC) können Einsatzkräfte durch Berührungsspannung tödlich verletzen; thermisches Durchgehen (Thermal Runaway) mit toxischen Rauchgasen möglich.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
-          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          schaden: Schadensausmass.KATASTROPHAL,
           schutzmassnahmen:
             'Fahrzeug-Typ erkennen (Rettungsdatenblatt), HV-Abschaltung durch Feuerwehr abwarten, Mindestabstand zu beschädigten Batterien halten, bei Rauchentwicklung sofort Atemschutzkräfte anfordern.',
         },
@@ -358,27 +358,27 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
       szenario: 'Großveranstaltung',
       items: [
         {
-          titel: 'Menschenmengen-Dynamik (Gedränge, Panik)',
-          beschreibung:
+          title: 'Menschenmengen-Dynamik (Gedränge, Panik)',
+          description:
             'Bei Massen-Events können Dichtephänomene, Paniksituationen oder Fluchtbewegungen entstehen; Einsatzkräfte können im Gedränge erdrückt, getrampelt oder von der Einsatzstelle abgeschnitten werden.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.SELTEN,
-          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          eintritt: Eintrittswahrscheinlichkeit.SELTEN,
+          schaden: Schadensausmass.KATASTROPHAL,
           schutzmassnahmen:
             'Feste Sanitäts-Standorte mit Fluchtweg planen, permanenter Funkkontakt zur Einsatzleitung, bei kritischer Dichte sofort Rückzug; keine Hilfeleistung im laufenden Gedränge.',
         },
         {
-          titel: 'Temperatur- und Wetterexposition über Schichtdauer',
-          beschreibung: 'Lange Standzeiten (8–12 h) bei Hitze, Kälte oder Dauerregen führen zu Hitzschlag, Erschöpfung, Unterkühlung oder Erfrierungen; besonders kritisch bei PSA-Tragezwang.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
-          defaultSchaden: Schadensausmass.MITTEL,
+          title: 'Temperatur- und Wetterexposition über Schichtdauer',
+          description: 'Lange Standzeiten (8–12 h) bei Hitze, Kälte oder Dauerregen führen zu Hitzschlag, Erschöpfung, Unterkühlung oder Erfrierungen; besonders kritisch bei PSA-Tragezwang.',
+          eintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          schaden: Schadensausmass.MITTEL,
           schutzmassnahmen:
             'Witterungs-angepasste Kleidung, Trink-/Ruhe-Rhythmus 45/15 min, Beschattete/beheizte Ruhepausen, Hitzeschutz-Regel ab 28 °C, Ablösung bei Frühsymptomen Hitzschlag/Hypothermie.',
         },
         {
-          titel: 'Aggressives oder alkoholisiertes Publikum',
-          beschreibung: 'Verbale Übergriffe, Bedrohungen und tätliche Angriffe gegen Sanitätspersonal durch enthemmte oder intoxikierte Besucher sind auf Festen regelmäßig zu erwarten.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
-          defaultSchaden: Schadensausmass.MITTEL,
+          title: 'Aggressives oder alkoholisiertes Publikum',
+          description: 'Verbale Übergriffe, Bedrohungen und tätliche Angriffe gegen Sanitätspersonal durch enthemmte oder intoxikierte Besucher sind auf Festen regelmäßig zu erwarten.',
+          eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          schaden: Schadensausmass.MITTEL,
           schutzmassnahmen:
             'Immer im Team arbeiten (4-Augen-Prinzip), Security/Polizei-Verbindung vor Ort, deeskalierende Gesprächsführung im Einsatzbriefing schulen, Rückzugsraum definiert und gesichert halten.',
         },
@@ -390,26 +390,26 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
       szenario: 'Betreuung',
       items: [
         {
-          titel: 'Psychosoziale Belastung durch Betroffenen-Kontakt',
-          beschreibung: 'Lange Gespräche mit Angehörigen, Evakuierten und traumatisierten Personen übertragen emotionale Belastung auf Einsatzkräfte; Risiko sekundärer Traumatisierung.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
-          defaultSchaden: Schadensausmass.MITTEL,
+          title: 'Psychosoziale Belastung durch Betroffenen-Kontakt',
+          description: 'Lange Gespräche mit Angehörigen, Evakuierten und traumatisierten Personen übertragen emotionale Belastung auf Einsatzkräfte; Risiko sekundärer Traumatisierung.',
+          eintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          schaden: Schadensausmass.MITTEL,
           schutzmassnahmen: 'Rotation zwischen Betreuungs- und Back-Office-Aufgaben, PSNV-Einsatznachsorge nach Schicht, klare Pausenregelung, Supervision durch Einsatzleitung.',
         },
         {
-          titel: 'Hygienerisiken in temporären Unterkünften',
-          beschreibung:
+          title: 'Hygienerisiken in temporären Unterkünften',
+          description:
             'Notunterkünfte (Sporthallen, Zelte) haben eingeschränkte Hygiene-Infrastruktur; Infektionsgefahr durch Tröpfcheninfektion, Kontakt- und Schmierinfektion (Norovirus, Influenza, Läuse).',
-          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
-          defaultSchaden: Schadensausmass.MITTEL,
+          eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          schaden: Schadensausmass.MITTEL,
           schutzmassnahmen:
             'Händedesinfektion vor und nach Betroffenen-Kontakt, FFP2-Maske bei respiratorischen Symptomen, Betroffene mit Infekt-Verdacht isolieren, Schutzkleidung bei Reinigungsarbeiten.',
         },
         {
-          titel: 'Langdauernde Schichten ohne Ablösung',
-          beschreibung: 'Betreuungslagen laufen oft über 24–72 h; Übermüdung führt zu reduzierter Urteilsfähigkeit, Fehlentscheidungen und Unfallrisiko bei Fahrten.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
-          defaultSchaden: Schadensausmass.MITTEL,
+          title: 'Langdauernde Schichten ohne Ablösung',
+          description: 'Betreuungslagen laufen oft über 24–72 h; Übermüdung führt zu reduzierter Urteilsfähigkeit, Fehlentscheidungen und Unfallrisiko bei Fahrten.',
+          eintritt: Eintrittswahrscheinlichkeit.HAEUFIG,
+          schaden: Schadensausmass.MITTEL,
           schutzmassnahmen: 'Max. 12 h Schichtdauer (Ausnahme dokumentieren), Schlafmöglichkeit sicherstellen, nach >10 h keine Fahrten mehr, Ablöse-Planung vom Schichtbeginn an vorhalten.',
         },
       ],
@@ -420,27 +420,27 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
       szenario: 'CBRN',
       items: [
         {
-          titel: 'Kontamination durch chemische, biologische oder radiologische Stoffe',
-          beschreibung: 'Kontaminierte Patienten, Flächen und Geräte übertragen Schadstoffe auf Einsatzkräfte; akute Vergiftung, verzögerte Symptome (Strahlung) oder Infektion möglich.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.SELTEN,
-          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          title: 'Kontamination durch chemische, biologische oder radiologische Stoffe',
+          description: 'Kontaminierte Patienten, Flächen und Geräte übertragen Schadstoffe auf Einsatzkräfte; akute Vergiftung, verzögerte Symptome (Strahlung) oder Infektion möglich.',
+          eintritt: Eintrittswahrscheinlichkeit.SELTEN,
+          schaden: Schadensausmass.KATASTROPHAL,
           schutzmassnahmen:
             'Arbeit ausschließlich in der Weißen Zone nach Dekontamination, bei Grenzübertritt Vollschutz (Schutzanzug, Atemschutz, doppelte Handschuhe), Dosimeter bei radiologischer Lage, striktes One-Way-Prinzip Schmutz/Sauber.',
         },
         {
-          titel: 'Unzureichende Eigen-PSA ohne Vollschutz',
-          beschreibung:
+          title: 'Unzureichende Eigen-PSA ohne Vollschutz',
+          description:
             'Einsatz in der Grauen oder Schwarzen Zone ohne CBRN-Vollschutz oder mit undichter PSA ist lebensgefährlich; Eindringen von Noxen durch Mikrorisse, Handschuhübergänge oder Maskenlecks.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
-          defaultSchaden: Schadensausmass.KATASTROPHAL,
+          eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          schaden: Schadensausmass.KATASTROPHAL,
           schutzmassnahmen:
             'PSA-Dichtheitsprüfung (Maskensitz, Anzug-Naht-Check) vor Zonen-Eintritt, nur geschulte Kräfte in Grau/Schwarz, Buddy-Prinzip mit Buddy-Check, max. Tragezeit CSA beachten.',
         },
         {
-          titel: 'Kreuz-Kontamination zwischen Patienten und Helfern',
-          beschreibung: 'Unsachgemäßer Patientenkontakt oder Geräte-Wiederverwendung zwischen Zonen schleppt Schadstoffe in saubere Bereiche und kontaminiert Behandlungsplätze und Fahrzeuge.',
-          defaultEintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
-          defaultSchaden: Schadensausmass.HOCH,
+          title: 'Kreuz-Kontamination zwischen Patienten und Helfern',
+          description: 'Unsachgemäßer Patientenkontakt oder Geräte-Wiederverwendung zwischen Zonen schleppt Schadstoffe in saubere Bereiche und kontaminiert Behandlungsplätze und Fahrzeuge.',
+          eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
+          schaden: Schadensausmass.HOCH,
           schutzmassnahmen:
             'Einweg-Material bevorzugen, kontaminierte Ausrüstung farblich markieren (rot = Schmutz), Dekon-Stufe zwischen Zonen pflichtig, Transport erst nach vollständiger Dekontamination des Patienten und der Trage.',
         },

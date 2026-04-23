@@ -5,3 +5,4 @@
  * die konsistente Validierung zwischen Frontend und Backend garantieren.
  */
 export * from './auth/index.js';
+export * from './eigenschutz/index.js';

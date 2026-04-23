@@ -158,6 +158,9 @@ import { AlarmierungErstelltEvent } from '@domain/events/alarmierung-erstellt.ev
 import { AlarmierungZeitpunktFmsGesetztEvent } from '@domain/events/alarmierung-zeitpunkt-fms-gesetzt.event';
 import { AlarmierungZeitpunktKorrigiertEvent } from '@domain/events/alarmierung-zeitpunkt-korrigiert.event';
 import { NachalarmierungErstelltEvent } from '@domain/events/nachalarmierung-erstellt.event';
+// Eigenschutz Events (Story 2.1+)
+import { GefaehrdungsbeurteilungErstelltEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-erstellt.event';
+import { GefaehrdungsbeurteilungAktualisiertEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
 import type { AlarmierungEmpfaengerRef } from '@domain/aggregates/alarmierung/alarmierung-empfaenger-ref';
@@ -427,6 +430,10 @@ export class EventDeserializer {
       ['alarmierung.zeitpunkt_fms_gesetzt', deserializeAlarmierungZeitpunktFmsGesetzt],
       ['alarmierung.abgeschlossen', deserializeAlarmierungAbgeschlossen],
       ['alarmierung.nachalarmierung_erstellt', deserializeNachalarmierungErstellt],
+
+      // ===== EIGENSCHUTZ EVENTS (Story 2.1+) =====
+      ['eigenschutz.gefaehrdungsbeurteilung_erstellt', deserializeGefaehrdungsbeurteilungErstellt],
+      ['eigenschutz.gefaehrdungsbeurteilung_aktualisiert', deserializeGefaehrdungsbeurteilungAktualisiert],
     ]);
   }
 
@@ -2574,5 +2581,71 @@ function deserializeNachalarmierungErstellt(payload: Record<string, unknown>): R
     bezeichnung: data.bezeichnung,
     ursprungAlarmierungId: makeAlarmierungId(data.ursprungAlarmierungId),
   });
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== EIGENSCHUTZ DESERIALIZERS (Story 2.1) =====
+
+function deserializeGefaehrdungsbeurteilungErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const gefaehrdungsbeurteilungId = payload.gefaehrdungsbeurteilungId;
+  if (typeof einsatzId !== 'string' || typeof userId !== 'string' || typeof einheitId !== 'string' || typeof gefaehrdungsbeurteilungId !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.gefaehrdungsbeurteilung_erstellt');
+  }
+  const vorlageId = payload.vorlageId == null ? null : String(payload.vorlageId);
+  const itemCount = typeof payload.itemCount === 'number' ? payload.itemCount : 0;
+  const event = new GefaehrdungsbeurteilungErstelltEvent(einsatzId, userId, einheitId, gefaehrdungsbeurteilungId, vorlageId, itemCount, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeGefaehrdungsbeurteilungAktualisiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const gefaehrdungsbeurteilungId = payload.gefaehrdungsbeurteilungId;
+  const fromVersion = payload.fromVersion;
+  const toVersion = payload.toVersion;
+  const changedFieldsRaw = payload.changedFields;
+
+  if (
+    typeof einsatzId !== 'string' ||
+    typeof userId !== 'string' ||
+    typeof einheitId !== 'string' ||
+    typeof gefaehrdungsbeurteilungId !== 'string' ||
+    !Number.isInteger(fromVersion) ||
+    !Number.isInteger(toVersion) ||
+    typeof changedFieldsRaw !== 'object' ||
+    changedFieldsRaw === null
+  ) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
+  }
+
+  // Versionen müssen monoton steigend und korrekt inkrementiert sein — alles
+  // andere wäre ein korruptes Outbox-Event. Silent-Fallback wäre ein Audit-
+  // Trail-Bruch, darum hier hart rejecten.
+  if ((fromVersion as number) < 1 || (toVersion as number) !== (fromVersion as number) + 1) {
+    return Result.fail<DomainEvent>('Invalid version progression for eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
+  }
+
+  // changedFields dürfen NICHT silent auf 0 fallen: eine korrumpierte Zeile
+  // würde als „keine Änderungen" replay-en und Audit-Reports verfälschen.
+  const cf = changedFieldsRaw as Record<string, unknown>;
+  const isNonNegativeInt = (x: unknown): x is number => Number.isInteger(x) && (x as number) >= 0;
+  if (!isNonNegativeInt(cf.added) || !isNonNegativeInt(cf.removed) || !isNonNegativeInt(cf.updated)) {
+    return Result.fail<DomainEvent>('Invalid changedFields for eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
+  }
+
+  const event = new GefaehrdungsbeurteilungAktualisiertEvent(
+    einsatzId,
+    userId,
+    einheitId,
+    gefaehrdungsbeurteilungId,
+    fromVersion as number,
+    toVersion as number,
+    { added: cf.added as number, removed: cf.removed as number, updated: cf.updated as number },
+    aggregateId,
+  );
   return Result.ok<DomainEvent>(event);
 }

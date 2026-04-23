@@ -197,6 +197,25 @@ describe('Architecture Rules', () => {
       // User Events die noch fehlen
       'user.locked',
       'user.unlocked',
+      // Eigenschutz Events (Story 1.7 Framework-Phase) — Namespace ist pre-allocated,
+      // konkrete Event-Klassen + 4-Stellen-Registrierung liefern Epic 2-5 Stories pro
+      // Event. Die Konsistenz-Spec `eigenschutz-event-registry.spec.ts` prüft im
+      // Gegenzug fail-loudly auf "0 oder 4 Stellen, niemals 1-3".
+      // Story 2.1 registriert `gefaehrdungsbeurteilung_erstellt` vollständig an allen
+      // 4 Stellen und entfernt den Eintrag aus dieser Liste. Story 2.2 macht das
+      // gleiche für `gefaehrdungsbeurteilung_aktualisiert`.
+      'eigenschutz.psa_profil_geaendert',
+      'eigenschutz.sicherheitsregel_ausgerufen',
+      'eigenschutz.sicherheitsregel_quittiert',
+      'eigenschutz.sicherungsposten_eingerichtet',
+      'eigenschutz.sicherungsposten_aktualisiert',
+      'eigenschutz.vorfall_gemeldet',
+      'eigenschutz.vorfall_exportiert',
+      'eigenschutz.quittung_abgegeben',
+      'eigenschutz.luecke_gemeldet',
+      'eigenschutz.quittung_ueberfaellig',
+      'eigenschutz.konflikt_erkannt',
+      'eigenschutz.konflikt_aufgeloest',
     ];
 
     /**
@@ -282,6 +301,20 @@ describe('Architecture Rules', () => {
       // If an event is added to EVENT_NAMES but not in deserializer or knownMissingEvents,
       // the test above will fail
       expect(knownMissingEvents.length).toBeGreaterThan(0);
+    });
+
+    it('eigenschutz-Einträge in knownMissingEvents sind Teilmenge von EVENT_NAMES.EIGENSCHUTZ (Drift-Schutz)', () => {
+      // Story 1.7 hatte alle 14 Eigenschutz-Events in der knownMissingEvents-Liste.
+      // Story 2.1 registriert `gefaehrdungsbeurteilung_erstellt` vollständig und entfernt
+      // ihn daraus. Weitere Epic-2-5-Stories ziehen sukzessive nach. Der Drift-Schutz
+      // hier stellt sicher, dass kein TYPO in die Allowlist rutscht — jede verbleibende
+      // Ausnahme MUSS ein echter EVENT_NAMES.EIGENSCHUTZ-Wert sein.
+      const definedEigenschutzEvents = new Set(getAllEventNamesFromConstants().filter((name) => name.startsWith('eigenschutz.')));
+      const knownEigenschutzEvents = knownMissingEvents.filter((name) => name.startsWith('eigenschutz.'));
+
+      for (const name of knownEigenschutzEvents) {
+        expect(definedEigenschutzEvents.has(name)).toBe(true);
+      }
     });
   });
 });

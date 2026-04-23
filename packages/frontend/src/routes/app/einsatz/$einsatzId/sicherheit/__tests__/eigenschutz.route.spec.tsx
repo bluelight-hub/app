@@ -45,6 +45,10 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
       };
     },
     useNavigate: () => mockNavigate,
+    // Story 2.1: Nach dem Umbau zu Layout-Route rendert die Komponente bei
+    // grünem Health-Check `<Outlet />`. Ohne `<RouterProvider>` crasht der
+    // echte Outlet in Tests — deshalb stubben wir ihn hier isoliert.
+    Outlet: () => <div data-testid="outlet" />,
   };
 });
 
@@ -73,11 +77,14 @@ describe('Eigenschutz Route (Story 1.6)', () => {
     mockUseParams.mockReturnValue({ einsatzId: 'einsatz-1' });
   });
 
-  it('(a) rendert EigenschutzEntryPage bei erfolgreichem Health-Query', () => {
+  it('(a) rendert Outlet bei erfolgreichem Health-Query (Layout-Route seit Story 2.1)', () => {
     mockHealth.state = { data: { status: 'ready' }, isPending: false, error: null };
     renderRoute();
 
-    expect(screen.getByTestId('entry-page')).toBeInTheDocument();
+    // Die Route ist jetzt eine Layout-Route: nach erfolgreichem Health-Check
+    // rendert sie `<Outlet />`, damit Child-Routen (Index → EntryPage,
+    // /gefaehrdungen → GefaehrdungenPage) sichtbar werden.
+    expect(screen.getByTestId('outlet')).toBeInTheDocument();
   });
 
   it('(b) rendert EmptyState bei 403 ohne Toast-Aktion', () => {

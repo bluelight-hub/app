@@ -68,3 +68,8 @@ export * from './alarmierung-empfaenger-hinzugefuegt-etb-event.adapter';
 export * from './alarmierung-zeitpunkt-korrigiert-etb-event.adapter';
 export * from './alarmierung-abgeschlossen-etb-event.adapter';
 export * from './fms-alarmierung-zeitpunkt.adapter';
+// Eigenschutz Events (Story 2.1+) — der Slug-Proxy re-exportiert den Feature-
+// Slice-Adapter und wird von der Konsistenz-Spec `eigenschutz-event-registry.spec.ts`
+// über das `./eigenschutz-…`-Import-Pattern als Registry-Stelle 4 gezählt.
+export * from './eigenschutz-gefaehrdungsbeurteilung-erstellt-event.adapter';
+export * from './eigenschutz-gefaehrdungsbeurteilung-aktualisiert-event.adapter';

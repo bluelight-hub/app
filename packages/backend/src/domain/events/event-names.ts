@@ -51,6 +51,57 @@ export const EVENT_NAMES = {
   },
 
   /**
+   * Eigenschutz Bounded Context Events (Story 1.7 / Epic 2–5).
+   *
+   * Die 14 Namen sind pre-allocated nach Architecture §B13 (Event-Katalog
+   * MVP, `architecture.md:734-751`). Story 1.7 liefert nur das Framework
+   * (Basisklasse + Namespace + Konsistenz-Spec); konkrete Event-Klassen und
+   * die vollständige 4-Stellen-Registrierung (Serializer-Switch,
+   * Deserializer-Map, AdaptersModule-Provider, Adapters-Barrel) liefern
+   * Epic 2.1 – Epic 5 pro Event.
+   *
+   * **Konsistenz-Invariante:** Die Spec
+   * `infrastructure/outbox/__tests__/eigenschutz-event-registry.spec.ts`
+   * prüft für jeden dieser Namen, dass die Registrierung entweder **0 oder 4
+   * Stellen** umfasst — niemals 1, 2 oder 3 (NFR-I3-Härtung, ADR-006-Scope).
+   *
+   * **Broadcast-Scope (ADR-006):** Alle Eigenschutz-Events werden per
+   * WebSocket an den Room `einsatz:{einsatzId}` ausgeliefert; die
+   * Basisklasse `EigenschutzDomainEvent` erzwingt dafür das Pflichtfeld
+   * `einsatzId`.
+   */
+  EIGENSCHUTZ: {
+    /** Event: Neue Gefährdungsbeurteilung angelegt (auch aus Vorlage) */
+    GEFAEHRDUNGSBEURTEILUNG_ERSTELLT: 'eigenschutz.gefaehrdungsbeurteilung_erstellt',
+    /** Event: Gefährdungsbeurteilung aktualisiert (Item add/change/remove; neue Version) */
+    GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT: 'eigenschutz.gefaehrdungsbeurteilung_aktualisiert',
+    /** Event: PSA-Profil einer Einheit wurde aktiviert/deaktiviert (kritisch) */
+    PSA_PROFIL_GEAENDERT: 'eigenschutz.psa_profil_geaendert',
+    /** Event: Sicherheitsregel ausgerufen/aktualisiert */
+    SICHERHEITSREGEL_AUSGERUFEN: 'eigenschutz.sicherheitsregel_ausgerufen',
+    /** Event: Sicherheitsregel wurde quittiert (Abschnittsleiter) */
+    SICHERHEITSREGEL_QUITTIERT: 'eigenschutz.sicherheitsregel_quittiert',
+    /** Event: Sicherungsposten eingerichtet (CRUD-Create) */
+    SICHERUNGSPOSTEN_EINGERICHTET: 'eigenschutz.sicherungsposten_eingerichtet',
+    /** Event: Sicherungsposten aktualisiert (CRUD-Update) */
+    SICHERUNGSPOSTEN_AKTUALISIERT: 'eigenschutz.sicherungsposten_aktualisiert',
+    /** Event: Vorfall gemeldet (mit Kontext-Snapshot) */
+    VORFALL_GEMELDET: 'eigenschutz.vorfall_gemeldet',
+    /** Event: Vorfall exportiert (Unfallkassen-Export) */
+    VORFALL_EXPORTIERT: 'eigenschutz.vorfall_exportiert',
+    /** Event: Abschnittsleiter bestätigt PSA-Änderung / Regel (Quittung) */
+    QUITTUNG_ABGEGEBEN: 'eigenschutz.quittung_abgegeben',
+    /** Event: Rück-Eskalation — fehlende Ausrüstung gemeldet */
+    LUECKE_GEMELDET: 'eigenschutz.luecke_gemeldet',
+    /** Event: Scheduler — Quittung seit > 5 min offen (Eskalation) */
+    QUITTUNG_UEBERFAELLIG: 'eigenschutz.quittung_ueberfaellig',
+    /** Event: Sync-Konflikt auf kritischem Eigenschutz-Feld erkannt */
+    KONFLIKT_ERKANNT: 'eigenschutz.konflikt_erkannt',
+    /** Event: Sync-Konflikt wurde manuell aufgelöst (Sicherheitsbeauftragter) */
+    KONFLIKT_AUFGELOEST: 'eigenschutz.konflikt_aufgeloest',
+  },
+
+  /**
    * Einsatztagebuch (ETB) Bounded Context Events
    */
   ETB: {
@@ -385,6 +436,7 @@ export const EVENT_NAMES = {
  */
 export type EventName =
   | (typeof EVENT_NAMES.EINSATZ)[keyof typeof EVENT_NAMES.EINSATZ]
+  | (typeof EVENT_NAMES.EIGENSCHUTZ)[keyof typeof EVENT_NAMES.EIGENSCHUTZ]
   | (typeof EVENT_NAMES.ETB)[keyof typeof EVENT_NAMES.ETB]
   | (typeof EVENT_NAMES.LAGEKARTE)[keyof typeof EVENT_NAMES.LAGEKARTE]
   | (typeof EVENT_NAMES.USER)[keyof typeof EVENT_NAMES.USER]
