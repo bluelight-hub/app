@@ -1,4 +1,5 @@
 import { Result } from '@domain/common/result';
+import type { GefaehrdungItemFieldKey } from '../events/gefaehrdungsbeurteilung-aktualisiert.event';
 import {
   EINTRITTSWAHRSCHEINLICHKEIT_WERTE,
   GEFAEHRDUNG_ITEM_LIMITS,
@@ -150,5 +151,40 @@ export class GefaehrdungItem {
    */
   clone(): GefaehrdungItem {
     return new GefaehrdungItem(structuredClone(this.props));
+  }
+
+  /**
+   * Liefert `true`, wenn dieses Item auf den fünf Diff-Feldern (siehe
+   * `GefaehrdungItemFieldKey`) bit-identisch zu `other` ist. Die Felder
+   * `id` und `risikoklasse` werden bewusst nicht verglichen — `id` ist
+   * Identitätsträger (nicht Diff-Material), `risikoklasse` ist server-
+   * abgeleitet aus `(eintritt, schaden)` und damit redundant.
+   */
+  equalsContent(other: GefaehrdungItem): boolean {
+    return this.diffFields(other).length === 0;
+  }
+
+  /**
+   * Liefert die Liste der Diff-Felder, deren Werte sich zwischen `this` und
+   * `other` unterscheiden. Strikter Vergleich auf den normalisierten Werten
+   * aus `create()` — `undefined` und Leerstring werden dort bereits auf
+   * `undefined` kollabiert, also gilt für den Diff `===`-Gleichheit.
+   *
+   * **Ordering-Contract (verbindlich für Consumer):** Die Ausgabe folgt einer
+   * festen Deklarationsreihenfolge — `title`, `description`, `eintritt`,
+   * `schaden`, `schutzmassnahmen`. Event-Deserializer-Tests, Audit-Report-
+   * Snapshots (Story 2.4 Timeline, Story 6.1 Ampel) und die Event-Payload-
+   * Round-Trip-Tests assertieren auf exakte Array-Equality, nicht auf
+   * Set-Equality. Änderungen an dieser Reihenfolge sind ein Breaking-Change
+   * und müssen durch alle dependent Tests begleitet werden.
+   */
+  diffFields(other: GefaehrdungItem): GefaehrdungItemFieldKey[] {
+    const fields: GefaehrdungItemFieldKey[] = [];
+    if (this.props.title !== other.props.title) fields.push('title');
+    if (this.props.description !== other.props.description) fields.push('description');
+    if (this.props.eintritt !== other.props.eintritt) fields.push('eintritt');
+    if (this.props.schaden !== other.props.schaden) fields.push('schaden');
+    if (this.props.schutzmassnahmen !== other.props.schutzmassnahmen) fields.push('schutzmassnahmen');
+    return fields;
   }
 }

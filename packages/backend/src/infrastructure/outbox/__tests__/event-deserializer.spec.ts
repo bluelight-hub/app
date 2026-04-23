@@ -2383,4 +2383,100 @@ describe('EventDeserializer', () => {
       }
     });
   });
+
+  // ===== EIGENSCHUTZ: Gefaehrdungsbeurteilung Aktualisiert (Story 2.3 AC7) =====
+
+  describe('GefaehrdungsbeurteilungAktualisiert (Story 2.3)', () => {
+    const VALID_PAYLOAD = {
+      einsatzId: 'clw3h8x9y0000qwertyui00002',
+      userId: 'clw3h8x9y0000qwertyui00099',
+      einheitId: 'clw3h8x9y0000qwertyui00050',
+      gefaehrdungsbeurteilungId: 'clw3h8x9y0000qwertyui00077',
+      fromVersion: 3,
+      toVersion: 4,
+      changedFields: {
+        added: ['clw3h8x9y0000qwertyui00201'],
+        removed: [] as string[],
+        updated: [{ id: 'clw3h8x9y0000qwertyui00202', fields: ['title', 'schutzmassnahmen'] }],
+        unchanged: 2,
+      },
+    };
+
+    it('deserialisiert einen validen Payload mit der neuen Per-Item-Shape', () => {
+      const serialized = createSerializedEvent('eigenschutz.gefaehrdungsbeurteilung_aktualisiert', VALID_PAYLOAD, VALID_PAYLOAD.gefaehrdungsbeurteilungId);
+      const result = deserializer.deserialize(serialized);
+
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as import('@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event').GefaehrdungsbeurteilungAktualisiertEvent;
+      expect(event.fromVersion).toBe(3);
+      expect(event.toVersion).toBe(4);
+      expect(event.changedFields).toEqual(VALID_PAYLOAD.changedFields);
+    });
+
+    it('rejected Payload mit toVersion === fromVersion (keine Monotonie)', () => {
+      const serialized = createSerializedEvent('eigenschutz.gefaehrdungsbeurteilung_aktualisiert', { ...VALID_PAYLOAD, toVersion: VALID_PAYLOAD.fromVersion });
+      const result = deserializer.deserialize(serialized);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('version progression');
+    });
+
+    it('rejected Payload mit fromVersion < 1', () => {
+      const serialized = createSerializedEvent('eigenschutz.gefaehrdungsbeurteilung_aktualisiert', { ...VALID_PAYLOAD, fromVersion: 0, toVersion: 1 });
+      const result = deserializer.deserialize(serialized);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('version progression');
+    });
+
+    it('rejected Payload mit nicht-Array added', () => {
+      const serialized = createSerializedEvent('eigenschutz.gefaehrdungsbeurteilung_aktualisiert', {
+        ...VALID_PAYLOAD,
+        changedFields: { ...VALID_PAYLOAD.changedFields, added: 2 as unknown as string[] },
+      });
+      const result = deserializer.deserialize(serialized);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('changedFields');
+    });
+
+    it('rejected Payload mit unchanged < 0', () => {
+      const serialized = createSerializedEvent('eigenschutz.gefaehrdungsbeurteilung_aktualisiert', {
+        ...VALID_PAYLOAD,
+        changedFields: { ...VALID_PAYLOAD.changedFields, unchanged: -1 },
+      });
+      const result = deserializer.deserialize(serialized);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('changedFields');
+    });
+
+    it('rejected Payload mit malformed updated-Entry (ohne fields-Array)', () => {
+      const serialized = createSerializedEvent('eigenschutz.gefaehrdungsbeurteilung_aktualisiert', {
+        ...VALID_PAYLOAD,
+        changedFields: {
+          ...VALID_PAYLOAD.changedFields,
+          updated: [{ id: 'clw3h8x9y0000qwertyui00202' }] as unknown as Array<{ id: string; fields: string[] }>,
+        },
+      });
+      const result = deserializer.deserialize(serialized);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('changedFields');
+    });
+
+    it('rejected Payload mit unbekanntem Feld-Key im updated-Entry', () => {
+      const serialized = createSerializedEvent('eigenschutz.gefaehrdungsbeurteilung_aktualisiert', {
+        ...VALID_PAYLOAD,
+        changedFields: {
+          ...VALID_PAYLOAD.changedFields,
+          updated: [{ id: 'clw3h8x9y0000qwertyui00202', fields: ['risikoklasse'] }],
+        },
+      });
+      const result = deserializer.deserialize(serialized);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('changedFields');
+    });
+  });
 });

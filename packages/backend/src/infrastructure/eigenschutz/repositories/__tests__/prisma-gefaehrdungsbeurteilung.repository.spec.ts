@@ -666,13 +666,153 @@ describe('PrismaGefaehrdungsbeurteilungRepository - Integration Tests', () => {
       // When: Update gegen nicht-existente DB-Row.
       const result = await prisma.$transaction(async (tx) => repository.updateItems(aggregate, testUserId, tx));
 
-      // Then: Kein Success, Repo fängt P2025 und liefert Result.fail.
+      // Then: updateMany matcht 0 Rows → ConflictDetected-Sentinel.
       expect(result.isSuccess).toBe(false);
       expect(result.isFailure).toBe(true);
-      expect(typeof result.error).toBe('string');
+      expect(result.error).toBe('ConflictDetected:Gefaehrdungsbeurteilung');
       // Keine Row in der DB entstanden.
       const count = await prisma.gefaehrdungsbeurteilung.count({ where: { id: aggregate.id.value } });
       expect(count).toBe(0);
     });
+
+    it('(Story 2.3 AC2) DB-Level-Lost-Update: zwei TXs mit identischem expectedVersion — zweite bekommt ConflictDetected, auch wenn In-Memory-Check bei beiden passt', async () => {
+      if (!databaseAvailable) return;
+      // Given: Initial-Aggregate (version=1) in der DB.
+      const initial = Gefaehrdungsbeurteilung.create({
+        einsatzId: testEinsatzId,
+        einheitId: testEinheitId,
+        createdBy: testUserId,
+        items: [makeItem('Init-Item')],
+      }).value as Gefaehrdungsbeurteilung;
+
+      const saveInit = await prisma.$transaction(async (tx) => repository.save(initial, tx));
+      expect(saveInit.isSuccess).toBe(true);
+
+      // Beide Tx laden ihre eigene Aggregate-Instanz (beide sehen version=1).
+      // Das simuliert zwei unabhängige Handler-Instanzen, die parallel den
+      // Client-Request verarbeiten — der In-Memory-`assertVersion(1)`-Check
+      // passiert bei beiden, der DB-Lost-Update-Schutz ist das einzige Gate.
+      const loadA = await prisma.$transaction(async (tx) => repository.findById(initial.id.value, tx));
+      const loadB = await prisma.$transaction(async (tx) => repository.findById(initial.id.value, tx));
+      const aggA = loadA.value as Gefaehrdungsbeurteilung;
+      const aggB = loadB.value as Gefaehrdungsbeurteilung;
+      expect(aggA.version).toBe(1);
+      expect(aggB.version).toBe(1);
+
+      // Beide mutieren in-memory auf version=2; assertVersion(1) passiert.
+      expect(aggA.updateItems([makeItem('A-Update')], 1, testUserId).isSuccess).toBe(true);
+      expect(aggB.updateItems([makeItem('B-Update')], 1, testUserId).isSuccess).toBe(true);
+
+      // When: Tx A schreibt zuerst — erfolgreich (count=1 auf WHERE version=1).
+      const resultA = await prisma.$transaction(async (tx) => repository.updateItems(aggA, testUserId, tx));
+      expect(resultA.isSuccess).toBe(true);
+
+      // Then: Tx B versucht mit identischem `expectedVersion` zu schreiben —
+      // `updateMany` matched 0 Rows (DB ist bereits auf version=2), Repo
+      // liefert ConflictDetected (nicht silent success, nicht Crash).
+      const resultB = await prisma.$transaction(async (tx) => repository.updateItems(aggB, testUserId, tx));
+      expect(resultB.isFailure).toBe(true);
+      expect(resultB.error).toBe('ConflictDetected:Gefaehrdungsbeurteilung');
+
+      // DB-State: version=2 mit A-Update (nicht B-Update, nicht Mix).
+      const row = await prisma.gefaehrdungsbeurteilung.findUnique({ where: { id: initial.id.value } });
+      expect(row?.version).toBe(2);
+      const persistedItems = row?.items as unknown as Array<Record<string, unknown>>;
+      expect(persistedItems).toHaveLength(1);
+      expect(persistedItems[0]?.title).toBe('A-Update');
+    });
+  });
+});
+
+// ========================================
+// Mock-basierte Unit-Tests für updateItems — DB-Concurrency-Pfade
+// ========================================
+//
+// Story 2.3 (Task 2 / AC2): Das Repository muss auf DB-Ebene sowohl
+// `count === 0` (Lost-Update-Race) als auch `count > 1` (Invariant-Bruch)
+// sauber als Result.fail melden, **nicht** als silent success. Der
+// Integration-Test oben deckt `count === 0` über eine nicht-existente ID ab;
+// für `count > 1` ist das de-facto unmöglich über echte DB-Wege (das
+// `@@unique` auf `id` garantiert Unique-Rows). Deswegen mocken wir hier den
+// `updateMany`-Return-Wert deterministisch, um den Defense-in-Depth-Branch
+// abzusichern.
+describe('PrismaGefaehrdungsbeurteilungRepository.updateItems — Mock-basierte Concurrency-Tests', () => {
+  const createMockLogger = (): ILogger => ({
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  });
+
+  /**
+   * Baut ein frisches Aggregate mit bereits angewendetem `updateItems`-Domain-
+   * Schritt (→ Version = 2). So kann das Repository unter Test einen
+   * realistischen Prod-Flow sehen, ohne echte DB-Row zu benötigen.
+   */
+  const buildUpdatedAggregate = (): Gefaehrdungsbeurteilung => {
+    const itemA = makeItem('Initial-Item');
+    const aggregate = Gefaehrdungsbeurteilung.create({
+      einsatzId: 'clw3h8x9y0000qwertyui00002',
+      einheitId: 'clw3h8x9y0000qwertyui00050',
+      createdBy: 'clw3h8x9y0000qwertyui00099',
+      items: [itemA],
+    }).value as Gefaehrdungsbeurteilung;
+    const domainRes = aggregate.updateItems([makeItem('Neu')], 1, 'clw3h8x9y0000qwertyui00099');
+    if (domainRes.isFailure) throw new Error(`Domain-Update schlug fehl: ${domainRes.error}`);
+    return aggregate;
+  };
+
+  /**
+   * Erzeugt einen Mock-TransactionClient, dessen `updateMany` einen
+   * konfigurierbaren `{ count }`-Wert zurückliefert.
+   */
+  const mockTxWithCount = (count: number) =>
+    ({
+      gefaehrdungsbeurteilung: {
+        updateMany: jest.fn().mockResolvedValue({ count }),
+      },
+    }) as never;
+
+  it('count === 1 (Happy-Path) → Result.ok', async () => {
+    const logger = createMockLogger();
+    const repo = new PrismaGefaehrdungsbeurteilungRepository({} as never, logger);
+    const aggregate = buildUpdatedAggregate();
+
+    const result = await repo.updateItems(aggregate, 'clw3h8x9y0000qwertyui00099', mockTxWithCount(1));
+
+    expect(result.isSuccess).toBe(true);
+    expect(logger.error).not.toHaveBeenCalled();
+  });
+
+  it('count === 0 (Lost-Update-Race) → Result.fail(ConflictDetected:Gefaehrdungsbeurteilung) + logger.warn', async () => {
+    const logger = createMockLogger();
+    const repo = new PrismaGefaehrdungsbeurteilungRepository({} as never, logger);
+    const aggregate = buildUpdatedAggregate();
+
+    const result = await repo.updateItems(aggregate, 'clw3h8x9y0000qwertyui00099', mockTxWithCount(0));
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toBe('ConflictDetected:Gefaehrdungsbeurteilung');
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Concurrent updateItems'), expect.objectContaining({ gefaehrdungsbeurteilungId: aggregate.id.value, expectedPreviousVersion: 1 }));
+    expect(logger.error).not.toHaveBeenCalled();
+  });
+
+  it('count > 1 (Invariant-Anomaly) → Result.fail(Invariant:UpdateCountAnomaly) + logger.error', async () => {
+    const logger = createMockLogger();
+    const repo = new PrismaGefaehrdungsbeurteilungRepository({} as never, logger);
+    const aggregate = buildUpdatedAggregate();
+
+    const result = await repo.updateItems(aggregate, 'clw3h8x9y0000qwertyui00099', mockTxWithCount(2));
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toBe('Invariant:UpdateCountAnomaly');
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('updateMany count > 1'),
+      expect.objectContaining({
+        gefaehrdungsbeurteilungId: aggregate.id.value,
+        expectedPreviousVersion: 1,
+        count: 2,
+      }),
+    );
   });
 });

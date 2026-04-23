@@ -17,23 +17,26 @@ import { UpdateGefaehrdungsbeurteilungItemsCommand } from './update-gefaehrdungs
 /**
  * Sentinel-Error-Codes, die der Controller auf HTTP-Status mappt. Der
  * Conflict-Sentinel kommt aus der Domain (Aggregate) und wird hier
- * weitergereicht.
+ * weitergereicht; `ValidationFailed:` annotiert VO-Errors (leerer Titel etc.),
+ * damit der Controller sie eindeutig als `ItemValidation`-422 rendert und
+ * nicht als Catch-all-422 mit unerkannter Roh-Message (AC11, Story 2.3).
  */
 export const UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES = {
   BEURTEILUNG_NOT_FOUND: 'NotFound:Beurteilung',
   CONFLICT_DETECTED: GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED,
   INFRASTRUCTURE_ERROR: 'InfrastructureError:Eigenschutz',
+  VALIDATION_FAILED_PREFIX: 'ValidationFailed',
 } as const;
 
 /**
  * Prefix-Set für alle Sentinel-Fehler, die der Controller semantisch auf
- * spezifische HTTP-Statuscodes mappt (409, 404, 422, …). Fehler **ohne**
+ * spezifische HTTP-Statuscodes mappt (409, 404, 422, 500). Fehler **ohne**
  * einen dieser Prefixes kommen aus dem Infrastructure-Layer (Prisma, DB,
  * Transaktion) und werden vom Handler mit `InfrastructureError:` annotiert,
  * damit der Controller sie sauber auf HTTP 500 mappen kann, statt sie als
  * `ItemValidation`-422 zu verschleiern (echter DB-Ausfall ↛ 422).
  */
-const RECOGNIZED_SENTINEL_PREFIXES = ['NotFound:', 'BusinessRule:', 'ConflictDetected:', 'InfrastructureError:'] as const;
+const RECOGNIZED_SENTINEL_PREFIXES = ['NotFound:', 'BusinessRule:', 'ConflictDetected:', 'InfrastructureError:', 'ValidationFailed:', 'Invariant:'] as const;
 
 function wrapInfrastructureError(error: string | undefined, fallback: string): string {
   const message = error ?? fallback;
@@ -44,10 +47,35 @@ function wrapInfrastructureError(error: string | undefined, fallback: string): s
 }
 
 /**
+ * Wandelt einen rohen VO-Error (z. B. „Titel ist erforderlich") in einen
+ * `ValidationFailed:<message>`-Sentinel um. So kann der Controller den Fall
+ * deterministisch auf HTTP 422 mit `rule: 'ItemValidation'` mappen, ohne auf
+ * einen Catch-all angewiesen zu sein (AC11). VO-Errors kommen ohne Präfix
+ * aus `GefaehrdungItem.create`; bereits-präfixte Errors (Aggregate-Sentinels
+ * wie `BusinessRule:DuplicateItemId`) werden unverändert durchgereicht.
+ */
+function wrapValidationError(error: string | undefined, fallback: string): string {
+  const message = error ?? fallback;
+  if (RECOGNIZED_SENTINEL_PREFIXES.some((prefix) => message.startsWith(prefix))) {
+    return message;
+  }
+  return `${UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES.VALIDATION_FAILED_PREFIX}:${message}`;
+}
+
+/**
+ * Hängt den aktuellen DB-Versionsstand als `:current=<n>`-Suffix an den
+ * ConflictDetected-Sentinel an. So kann der Controller die HTTP-409-Response
+ * mit `context.currentVersion + context.attemptedVersion` anreichern (AC10),
+ * ohne eine separate Daten-Struktur durch den Result-Typ zu schleusen.
+ */
+function encodeConflictSentinel(currentVersion: number): string {
+  return `${GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED}:current=${currentVersion}`;
+}
+
+/**
  * Zusatzkontext, den der Controller bei einem 409 in die Error-Response packt.
- * Der Handler hängt die Werte über das `Result.error`-Feld NICHT mit — stattdessen
- * werden `currentVersion` + `attemptedVersion` auf dem Aggregate bzw. Command
- * abgelesen, sobald der Controller den ConflictDetected-Sentinel erkennt.
+ * `currentVersion` entstammt dem `:current=<n>`-Suffix (siehe `encodeConflictSentinel`);
+ * `attemptedVersion` reicht der Controller aus dem Request-Body durch.
  */
 export interface ConflictDetectedContext {
   currentVersion: number;
@@ -95,25 +123,58 @@ export class UpdateGefaehrdungsbeurteilungItemsHandler extends TransactionalComm
     }
 
     // Step 2 — Neue Items als VOs (Backend berechnet risikoklasse autoritativ).
+    // Raw VO-Error wird mit `ValidationFailed:`-Präfix verpackt, damit der
+    // Controller den Fall deterministisch (via Whitelist) auf 422 mapped.
     const newItems: GefaehrdungItem[] = [];
     for (const itemProps of command.items) {
       const itemResult = GefaehrdungItem.create(itemProps);
       if (itemResult.isFailure || !itemResult.value) {
-        return Result.fail<string>(itemResult.error ?? 'Ungültiges Item');
+        return Result.fail<string>(wrapValidationError(itemResult.error, 'Ungültiges Item'));
       }
       newItems.push(itemResult.value);
     }
 
     // Step 3 — Aggregate mutieren (inkrementiert Version, emittiert Event).
+    // Bei ConflictDetected hängen wir `aggregate.version` als `:current=<n>`
+    // an, damit der 409-Context im Controller sowohl `currentVersion` als
+    // auch `attemptedVersion` trägt (AC10).
     const updateResult = aggregate.updateItems(newItems, command.expectedVersion, command.userId);
     if (updateResult.isFailure) {
-      return Result.fail<string>(updateResult.error ?? 'Update fehlgeschlagen');
+      const errorMessage = updateResult.error ?? 'Update fehlgeschlagen';
+      if (errorMessage === GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED) {
+        return Result.fail<string>(encodeConflictSentinel(aggregate.version));
+      }
+      return Result.fail<string>(errorMessage);
     }
 
-    // Step 4 — Aggregate zurückschreiben.
+    // Step 4 — Aggregate zurückschreiben. Repo kann DB-seitig einen
+    // Lost-Update-Konflikt melden (zwei parallele TXs); in dem Fall reloaden
+    // wir die aktuelle Version für den 409-Context (AC2 + AC10).
     const saveResult = await this.beurteilungRepo.updateItems(aggregate, command.userId, tx);
     if (saveResult.isFailure) {
-      return Result.fail<string>(wrapInfrastructureError(saveResult.error, 'Beurteilung konnte nicht aktualisiert werden'));
+      const saveError = saveResult.error ?? 'Beurteilung konnte nicht aktualisiert werden';
+      if (saveError === GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED) {
+        // Reload bewusst OHNE `tx`: eine frische Connection aus dem Prisma-
+        // Pool liest den committed State des konkurrenten Writers unabhängig
+        // vom Isolation-Level-Snapshot der Transaktion, die gleich rollbackt
+        // (unter REPEATABLE READ / SERIALIZABLE würde `tx` den pre-conflict
+        // Snapshot sehen und `aggregate.version - 1 === expectedVersion`
+        // zurückgeben — Banner-Message wäre unsinnig).
+        const reload = await this.beurteilungRepo.findById(command.gefaehrdungsbeurteilungId);
+        if (reload.isSuccess && reload.value) {
+          return Result.fail<string>(encodeConflictSentinel(reload.value.version));
+        }
+        // Reload fehlgeschlagen oder Aggregate zwischenzeitlich gelöscht —
+        // wir liefern den Sentinel ohne `:current=<n>`-Suffix; der Controller
+        // mappt 409 mit `currentVersion: undefined`, Frontend rendert den
+        // Fallback-Text ohne konkrete Versionsnummer.
+        this.logger.warn('Conflict-Reload nach DB-Level-409 fehlgeschlagen — 409 ohne currentVersion', {
+          gefaehrdungsbeurteilungId: command.gefaehrdungsbeurteilungId,
+          reloadError: reload.isFailure ? reload.error : 'aggregate-not-found',
+        });
+        return Result.fail<string>(GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED);
+      }
+      return Result.fail<string>(wrapInfrastructureError(saveError, 'Beurteilung konnte nicht aktualisiert werden'));
     }
 
     // Step 5 — Version-Row anhängen + Vorversion schließen.

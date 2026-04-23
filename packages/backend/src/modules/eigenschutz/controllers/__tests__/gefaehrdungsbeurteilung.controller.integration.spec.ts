@@ -70,4 +70,55 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // eigener Einheit. POST gegen /einsaetze/A/.../gefaehrdungsbeurteilungen
     // mit einheitId aus B. Erwartung: 404, kein Existenz-Leak.
   });
+
+  // ===== Story 2.3 — Version-Chain-Invarianten =====
+  // AC2 (DB-Level-Lost-Update-Schutz) ist seit Code-Review 2026-04-23 auf
+  // Repo-Integration-Ebene aktiv getestet — siehe
+  // `prisma-gefaehrdungsbeurteilung.repository.spec.ts` („(Story 2.3 AC2)"-Test).
+  // Der hier skizzierte HTTP-Level-Test bleibt deferred, weil er zusätzlich
+  // den Handler-Reload + Controller-Mapping abdecken würde, was Auth-Setup
+  // voraussetzt; die Kern-DB-Invariante (zwei TXs, zweite bekommt Conflict)
+  // ist bereits on-level.
+  //
+  // AC8/AC9/AC12 bleiben HTTP-Level-deferred (siehe `deferred-work.md` —
+  // „code review of story-2.3"); die Repo-/Aggregate-Specs decken die
+  // Invarianten ab.
+
+  it.skip('(Story 2.3 AC2) DB-Level Lost-Update-Schutz: zwei TXs mit identischer expectedVersion → 2. bekommt 409 (HTTP-Level — Repo-Level aktiv)', () => {
+    // Integration-Test benötigt: zwei parallel ausgeführte `UpdateItems`-
+    // Commands gegen dieselbe Beurteilung mit identischem `expectedVersion`.
+    // Erwartung: Erster Request 200, zweiter Request 409 mit
+    // `context.currentVersion = N+1` (gelesen aus DB nach Reload im Handler)
+    // und `context.attemptedVersion = N` (aus dem zweiten Request-Body).
+    //
+    // Repo-Level-Coverage existiert bereits (ohne Auth + HTTP). Dieser
+    // Test ergänzt den Handler-Reload-Pfad (D1-Fix) + Controller-Mapping.
+  });
+
+  it.skip('(Story 2.3 AC9) Chain-Intervall-Invariante: 3 sequenzielle Updates → V_N.gueltigBis === V_{N+1}.gueltigVon', () => {
+    // Integration-Test benötigt: Drei sequenzielle POST /items mit
+    // eskalierender `expectedVersion`. Nachher direkte SELECT-Abfrage
+    // auf `gefaehrdungsbeurteilung_versionen` nach gefBeurteilungId
+    // sortiert nach version; Assertion:
+    //   SELECT gueltigVon, gueltigBis FROM ... WHERE id=? ORDER BY version;
+    //   rows[0].gueltigBis === rows[1].gueltigVon (Date-Gleichheit exakt)
+    //   rows[1].gueltigBis === rows[2].gueltigVon
+    //   rows[2].gueltigBis IS NULL
+  });
+
+  it.skip('(Story 2.3 AC8) Outbox-Retry-Idempotenz: zweiter saveNewVersion-Call mit identischem eventId ist Noop', () => {
+    // Integration-Test benötigt: manueller zweiter Aufruf von
+    // `versionRepo.saveNewVersion(args)` mit identischem `eventId`.
+    // Erwartung: Row-Count in `gefaehrdungsbeurteilung_versionen` bleibt
+    // konstant, `Result.ok`-Rückgabe, `logger.warn`-Eintrag zu duplicate
+    // eventId.
+  });
+
+  it.skip('(Story 2.3 AC12) Remove-All: 3 Items → [] → beide Version-Zeilen persistiert, Aggregate-Items leer', () => {
+    // Integration-Test benötigt: Happy-Path Create mit 3 Items,
+    // gefolgt von POST /items mit items=[], expectedVersion=1.
+    // Erwartung: aggregate.items=[], aggregate.version=2, beide
+    // Version-Zeilen in der Chain, `changedFields.removed` enthält
+    // alle drei ursprünglichen IDs.
+  });
 });

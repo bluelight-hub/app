@@ -1,4 +1,18 @@
-import { Body, ConflictException, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, NotFoundException, Param, Post, UnprocessableEntityException, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  ConflictException,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Post,
+  UnprocessableEntityException,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
@@ -35,6 +49,8 @@ import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Controller für Gefährdungsbeurteilungs-Endpunkte (Story 415-2-1, Task 5).
@@ -75,6 +91,7 @@ export class GefaehrdungsbeurteilungController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
@@ -147,11 +164,11 @@ export class GefaehrdungsbeurteilungController {
   /**
    * Aktualisiert die Items einer bestehenden Gefährdungsbeurteilung (Story 2.2).
    *
-   * **Optimistic-Concurrency:** Der Body enthält `expectedVersion`; ein
-   * Mismatch führt zu HTTP 409 mit `context.attemptedVersion`, damit das
-   * Frontend den Konflikt-Banner rendern kann (Zero-Toast-Policy UX-DR21).
-   * Die aktuelle Version wird vom Frontend via GET nachgeladen; der Context
-   * braucht sie deshalb nicht.
+   * **Optimistic-Concurrency (Story 2.3, AC10):** Der Body enthält
+   * `expectedVersion`; ein Mismatch führt zu HTTP 409 mit `context.currentVersion`
+   * **und** `context.attemptedVersion`. Das Frontend rendert einen Banner mit
+   * der konkreten aktuellen Version („Version 5 wurde bereits gespeichert"),
+   * konsistent zur Zero-Toast-Policy UX-DR21.
    */
   @Post('gefaehrdungsbeurteilungen/:id/items')
   @HttpCode(HttpStatus.OK)
@@ -161,7 +178,7 @@ export class GefaehrdungsbeurteilungController {
   @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'id', type: String, description: 'Beurteilungs-ID (CUID)' })
   @ApiNotFoundResponse({ description: 'Beurteilung existiert nicht oder gehört zu einem anderen Einsatz (`context.resource`)' })
-  @ApiConflictResponse({ description: 'Optimistic-Concurrency-Mismatch — `context.attemptedVersion`' })
+  @ApiConflictResponse({ description: 'Optimistic-Concurrency-Mismatch — `context.currentVersion` (Server-Stand) + `context.attemptedVersion` (Client-Annahme).' })
   @ApiUnprocessableEntityResponse({ description: 'Business-Rule-Verletzung oder Item-Validation (`context.rule`)' })
   @ApiWrappedResponse(GefaehrdungsbeurteilungDto, {
     description: 'Aktualisierte Gefährdungsbeurteilung mit inkrementierter Version.',
@@ -267,18 +284,29 @@ export class GefaehrdungsbeurteilungController {
   }
 
   /**
-   * Mapped Sentinel-Strings des UpdateItems-Handlers auf HTTP-Exceptions.
-   * Der Conflict-Sentinel trägt `attemptedVersion` aus dem Request-Body in
-   * den Context; das Frontend reloadet das Aggregate via GET, um
-   * `currentVersion` selbst zu ermitteln.
+   * Mapped Sentinel-Strings des UpdateItems-Handlers auf HTTP-Exceptions —
+   * Whitelist-Pattern (Story 2.3, AC11): nur explizit präfixte Sentinels
+   * werden auf spezifische HTTP-Codes gemappt. Alles andere → 500 mit
+   * `context.rule = 'Unexpected'` + Logger-Signal (Monitoring darf echte
+   * DB-Ausfälle nicht als 422-Validation-Fehler verschleiert bekommen).
+   *
+   * Der 409-Context trägt neben `attemptedVersion` (aus dem Request-Body)
+   * auch `currentVersion` aus dem `:current=<n>`-Suffix, das der Handler
+   * an den ConflictDetected-Sentinel anhängt (AC10).
    */
   private mapUpdateItemsError(error: string, attemptedVersion: number): ConflictException | NotFoundException | UnprocessableEntityException | InternalServerErrorException {
-    if (error === GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED) {
+    if (error.startsWith(GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED)) {
+      // Suffix-Anchor: Der Sentinel hat die Form `ConflictDetected:…:current=<n>`
+      // am Ende. Ohne `$` würde die Regex auch `current=` irgendwo in der Mitte
+      // matchen (z. B. bei doppeltem Encoding oder wenn eine Debug-Message das
+      // Token embedded) — was zu einer falschen `currentVersion` führen könnte.
+      const match = error.match(/:current=(\d+)$/);
+      const currentVersion = match?.[1] !== undefined ? Number.parseInt(match[1], 10) : undefined;
       return new ConflictException({
         statusCode: 409,
         error: 'Conflict',
-        message: error,
-        context: { attemptedVersion },
+        message: GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED,
+        context: { currentVersion, attemptedVersion },
       });
     }
     if (error === UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES.BEURTEILUNG_NOT_FOUND) {
@@ -307,26 +335,45 @@ export class GefaehrdungsbeurteilungController {
         context: { rule },
       });
     }
-    if (error.startsWith('InfrastructureError:')) {
-      // DB-/Prisma-/Transaktions-Fehler → 500. Der Handler annotiert
-      // unbekannte Fehler aus Repo-Calls mit diesem Prefix, damit sie hier
-      // sauber von Item-Validation-Fehlern zu unterscheiden sind (echte
-      // Outages dürfen nicht als 422 an Monitoring/Alerting vorbeilaufen).
+    if (error.startsWith('ValidationFailed:')) {
+      // Item-Validation-Fehler aus VO (z. B. „Titel ist erforderlich") —
+      // Handler hat den Raw-Error mit `ValidationFailed:`-Prefix verpackt,
+      // damit wir ihn ohne Catch-all als 422 mappen können.
+      return new UnprocessableEntityException({
+        statusCode: 422,
+        error: 'Unprocessable Entity',
+        message: error,
+        context: { rule: 'ItemValidation' },
+      });
+    }
+    if (error.startsWith('InfrastructureError:') || error.startsWith('Invariant:')) {
+      // DB-/Prisma-/Transaktions-Fehler ODER Aggregate-Invariante-Bruch →
+      // beide sind 500. `Invariant:` ist ein Server-Programmierfehler
+      // (z. B. DiffSumMismatch), der per Design nicht Client-provozierbar ist.
       return new InternalServerErrorException({
         statusCode: 500,
         error: 'Internal Server Error',
         message: error,
-        context: { layer: 'infrastructure' },
+        context: { layer: error.startsWith('Invariant:') ? 'domain' : 'infrastructure' },
       });
     }
-    // Item-Validation-Fehler (z. B. „Titel ist erforderlich") kommen ohne
-    // Sentinel-Präfix aus dem VO — wir mappen auf 422, damit das Frontend
-    // die Nachricht inline anzeigen kann.
-    return new UnprocessableEntityException({
-      statusCode: 422,
-      error: 'Unprocessable Entity',
+    // Unerkannter Fehler — weder vom Handler annotiert noch mit bekanntem
+    // Präfix. Das deutet auf einen Plumbing-Bug (z. B. ein neu hinzugekommenes
+    // Sentinel ohne Mapping) oder einen durchgerutschten Prisma-Raw-Fehler hin.
+    // Monitoring soll das als 5xx-Spike sehen, nicht als 422 verschleiert.
+    //
+    // PII-Scrubbing: Der rohe `error`-String kann Prisma-Fehler-Messages mit
+    // Row-/Column-Werten enthalten (z. B. bei Constraint-Violations). Wir
+    // loggen daher nur den Sentinel-Prefix + `attemptedVersion`; der volle
+    // Error-String wird ausschließlich im HTTP-Response-Body zurückgegeben
+    // (dort erwartet/gewollt) und NICHT ins Log-Aggregation-Target.
+    const errorCategory = error.split(':')[0] ?? 'unknown';
+    this.logger.error('Unexpected update error', { errorCategory, attemptedVersion });
+    return new InternalServerErrorException({
+      statusCode: 500,
+      error: 'Internal Server Error',
       message: error,
-      context: { rule: 'ItemValidation' },
+      context: { rule: 'Unexpected' },
     });
   }
 

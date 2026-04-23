@@ -1,16 +1,15 @@
 import { AggregateRoot } from '@domain/common/aggregate-root';
 import { EntityId } from '@domain/common/entity-id';
 import { Result } from '@domain/common/result';
-import { GefaehrdungsbeurteilungAktualisiertEvent, type GefaehrdungsbeurteilungAktualisiertChangedFields } from '../events/gefaehrdungsbeurteilung-aktualisiert.event';
+import { GefaehrdungsbeurteilungAktualisiertEvent, type GefaehrdungItemFieldKey, type GefaehrdungsbeurteilungAktualisiertChangedFields } from '../events/gefaehrdungsbeurteilung-aktualisiert.event';
 import { GefaehrdungsbeurteilungErstelltEvent } from '../events/gefaehrdungsbeurteilung-erstellt.event';
 import { GefaehrdungItem } from '../value-objects/gefaehrdung-item.vo';
 
 /**
  * Sentinel-Error aus `updateItems`, wenn der Client mit einer veralteten
  * `expectedVersion` kam. Der Controller mappt diesen Präfix auf HTTP 409 mit
- * `context.attemptedVersion`. `currentVersion` wird vom Frontend via GET
- * nachgeladen; der Optimistic-Rollback im Hook stellt den alten Cache wieder
- * her, `onSettled`-Invalidate liefert danach die Server-Wahrheit.
+ * `context.currentVersion` + `context.attemptedVersion`. Die aktuelle Version
+ * hängt der Handler als `:current=<n>`-Suffix an (siehe Story 2.3, AC10).
  */
 export const GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED = 'ConflictDetected:Gefaehrdungsbeurteilung';
 
@@ -19,6 +18,15 @@ export const GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED = 'ConflictDetected:Gefae
  * derselben `id` enthält. Der Controller mappt dies auf HTTP 422.
  */
 export const GEFAEHRDUNGSBEURTEILUNG_DUPLICATE_ITEM_ID = 'BusinessRule:DuplicateItemId';
+
+/**
+ * Sentinel-Error aus `updateItems`, wenn die Audit-Quersumme nach dem Diff
+ * nicht aufgeht (`unchanged + updated.length + added.length !== newItems.length`).
+ * Ein solcher Zustand bedeutet einen Aggregate-internen Programmierfehler;
+ * der Controller mappt den `Invariant:`-Prefix auf HTTP 500 (`context.layer = 'domain'`),
+ * da ein externer Client diesen Fall per Design nicht provozieren kann.
+ */
+export const GEFAEHRDUNGSBEURTEILUNG_DIFF_SUM_MISMATCH = 'Invariant:DiffSumMismatch';
 
 /**
  * Type-Safe Identifier für `Gefaehrdungsbeurteilung`. Nutzt die generische
@@ -131,6 +139,26 @@ export class Gefaehrdungsbeurteilung extends AggregateRoot<Gefaehrdungsbeurteilu
    * verwendet ausschließlich `create` oder lädt via Repository.
    */
   static reconstitute(props: ReconstituteGefaehrdungsbeurteilungProps): Gefaehrdungsbeurteilung {
+    // Invariant-Parität zu `create()`: auch ein rehydriertes Aggregate darf
+    // keine leeren Pflicht-Felder tragen. Eine korrupte DB-Row darf nicht
+    // silent in-memory weiterleben — lieber hart werfen, damit der Mapper-
+    // Pfad den Fehler an die Observability durchreicht.
+    if (!props.einsatzId || props.einsatzId.trim().length === 0) {
+      throw new Error('Gefaehrdungsbeurteilung.reconstitute: einsatzId ist erforderlich');
+    }
+    if (!props.einheitId || props.einheitId.trim().length === 0) {
+      throw new Error('Gefaehrdungsbeurteilung.reconstitute: einheitId ist erforderlich');
+    }
+    if (!props.createdBy || props.createdBy.trim().length === 0) {
+      throw new Error('Gefaehrdungsbeurteilung.reconstitute: createdBy ist erforderlich');
+    }
+    if (!Array.isArray(props.items)) {
+      throw new Error('Gefaehrdungsbeurteilung.reconstitute: items muss ein Array sein');
+    }
+    if (!Number.isInteger(props.version) || props.version < 1) {
+      throw new Error(`Gefaehrdungsbeurteilung.reconstitute: version muss Integer ≥ 1 sein (erhalten: ${String(props.version)})`);
+    }
+
     const idResult = GefaehrdungsbeurteilungId.create(props.id);
     if (idResult.isFailure || !idResult.value) {
       throw new Error(`Gefaehrdungsbeurteilung.reconstitute: ungültige ID ${props.id} (${idResult.error ?? 'unknown'})`);
@@ -160,10 +188,11 @@ export class Gefaehrdungsbeurteilung extends AggregateRoot<Gefaehrdungsbeurteilu
     return this._gefahrenzoneId;
   }
   get items(): readonly GefaehrdungItem[] {
-    // Defensive-Copy: externe Mutation des internen Arrays würde Aggregate-
-    // Kapselung brechen, ohne ein Domain-Event auszulösen (TS-`readonly`
-    // schützt nur Compile-Zeit, nicht Runtime).
-    return [...this._items];
+    // Defensive-Copy + Runtime-Freeze: `readonly` schützt nur zur Compile-Zeit;
+    // ein Type-Cast würde den internen Array mutierbar machen. `Object.freeze`
+    // wirft bei Mutations-Versuchen im strict mode / schluckt sie im sloppy mode,
+    // sodass ein Caller das Aggregate nie unbemerkt korrumpieren kann.
+    return Object.freeze([...this._items]);
   }
   get version(): number {
     return this._version;
@@ -174,18 +203,22 @@ export class Gefaehrdungsbeurteilung extends AggregateRoot<Gefaehrdungsbeurteilu
 
   /**
    * Ersetzt die `items`-Liste atomar, inkrementiert die Version und emittiert
-   * ein `GefaehrdungsbeurteilungAktualisiertEvent`. Basis für Story 2.2
-   * (expliziter POST-Endpoint), Story 2.5 (Auto-Save) und Story 2.3
-   * (Version-Chain-Semantik).
+   * ein `GefaehrdungsbeurteilungAktualisiertEvent`.
    *
    * **Optimistic-Concurrency (Architecture §E):** `expectedVersion` muss exakt
-   * der aktuellen Aggregate-Version entsprechen. Ein Mismatch bedeutet, dass
-   * ein anderer Client zwischendurch gespeichert hat — der Handler mappt das
-   * auf HTTP 409.
+   * der aktuellen Aggregate-Version entsprechen. Ein Mismatch liefert
+   * `GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED`; der Handler ergänzt diesen
+   * Sentinel um `:current=<n>`, damit der Controller HTTP 409 mit beiden
+   * Versionen im Context rendern kann (Story 2.3, AC10).
    *
-   * **Diff-Berechnung:** `changedFields` ist ein zusammenfassendes Diff
-   * (added/removed/updated) auf Basis der Item-IDs. Items ohne ID gelten als
-   * neu angelegt. Inhaltliche Feld-Diffs pro Item sind Story-2.3-Scope.
+   * **Diff-Berechnung (Story 2.3, AC3–AC5):** `computeItemsDiff` liefert
+   * strukturiertes Per-Item-Diff mit `added: string[]`, `removed: string[]`,
+   * `updated: Array<{id, fields[]}>` und `unchanged: number`. Items ohne
+   * client-seitige `id` tragen im `added`-Array den synthetischen Eintrag
+   * `"generated:<sortIndex>"`. Der Diff enforced die Audit-Quersumme
+   * `unchanged + updated.length + added.length === newItems.length` — wird
+   * sie verletzt, liefert `updateItems` `Invariant:DiffSumMismatch` statt
+   * einem korrupten Event.
    */
   updateItems(newItems: GefaehrdungItem[], expectedVersion: number, userId: string): Result<void> {
     if (!Array.isArray(newItems)) {
@@ -196,8 +229,8 @@ export class Gefaehrdungsbeurteilung extends AggregateRoot<Gefaehrdungsbeurteilu
     }
 
     // Duplikat-ID-Guard: ohne diesen Check würde `computeItemsDiff` doppelte
-    // IDs im Set kollabieren, aber `updated++` mehrfach hochzählen — falsche
-    // `changedFields`-Metriken + widersprüchlicher JSONB-State.
+    // IDs im Set kollabieren und zu widersprüchlichem JSONB-State führen. Der
+    // Guard läuft VOR dem Diff-Compute (AC4 — Story 2.3).
     const seenIds = new Set<string>();
     for (const item of newItems) {
       if (!item.id) continue;
@@ -207,7 +240,11 @@ export class Gefaehrdungsbeurteilung extends AggregateRoot<Gefaehrdungsbeurteilu
       seenIds.add(item.id);
     }
 
-    const changedFields = this.computeItemsDiff(this._items, newItems);
+    const diffResult = this.computeItemsDiff(this._items, newItems);
+    if (diffResult.isFailure || !diffResult.value) {
+      return Result.fail<void>(diffResult.error ?? GEFAEHRDUNGSBEURTEILUNG_DIFF_SUM_MISMATCH);
+    }
+    const changedFields = diffResult.value;
     const fromVersion = this._version;
     const toVersion = this._version + 1;
 
@@ -221,28 +258,58 @@ export class Gefaehrdungsbeurteilung extends AggregateRoot<Gefaehrdungsbeurteilu
     return Result.ok();
   }
 
-  private computeItemsDiff(oldItems: readonly GefaehrdungItem[], newItems: readonly GefaehrdungItem[]): GefaehrdungsbeurteilungAktualisiertChangedFields {
-    const oldIds = new Set<string>();
+  private computeItemsDiff(oldItems: readonly GefaehrdungItem[], newItems: readonly GefaehrdungItem[]): Result<GefaehrdungsbeurteilungAktualisiertChangedFields> {
+    const oldById = new Map<string, GefaehrdungItem>();
     for (const item of oldItems) {
-      if (item.id) oldIds.add(item.id);
-    }
-    const newIds = new Set<string>();
-    for (const item of newItems) {
-      if (item.id) newIds.add(item.id);
+      if (item.id) oldById.set(item.id, item);
     }
 
-    let added = 0;
-    let updated = 0;
+    const added: string[] = [];
+    const updated: Array<{ id: string; fields: GefaehrdungItemFieldKey[] }> = [];
+    let unchanged = 0;
+    const seenNewIds = new Set<string>();
+    let generatedCounter = 0;
+
     for (const item of newItems) {
-      if (!item.id || !oldIds.has(item.id)) added++;
-      else updated++;
+      if (!item.id) {
+        // ID-lose Items sind neu angelegt — wir reservieren einen stabilen
+        // Index-basierten Token, damit Consumer (Ampel-Projection, Timeline)
+        // Zählungen eindeutig auflösen können.
+        added.push(`generated:${generatedCounter}`);
+        generatedCounter += 1;
+        continue;
+      }
+      seenNewIds.add(item.id);
+      const oldItem = oldById.get(item.id);
+      if (!oldItem) {
+        added.push(item.id);
+        continue;
+      }
+      const fields = oldItem.diffFields(item);
+      if (fields.length === 0) {
+        unchanged += 1;
+      } else {
+        updated.push({ id: item.id, fields });
+      }
     }
 
-    let removed = 0;
+    const removed: string[] = [];
     for (const item of oldItems) {
-      if (item.id && !newIds.has(item.id)) removed++;
+      if (item.id && !seenNewIds.has(item.id)) {
+        removed.push(item.id);
+      }
     }
 
-    return { added, removed, updated };
+    const changedFields: GefaehrdungsbeurteilungAktualisiertChangedFields = { added, removed, updated, unchanged };
+
+    // Audit-Quersumme: jedes `newItems`-Element landet entweder in `added`,
+    // `updated` oder `unchanged`. Eine Verletzung ist immer ein Programmier-
+    // fehler im Aggregate selbst (nicht durch Client-Input erreichbar) —
+    // wir rejecten defensiv, damit die Event-Payload immer konsistent bleibt.
+    if (added.length + updated.length + unchanged !== newItems.length) {
+      return Result.fail<GefaehrdungsbeurteilungAktualisiertChangedFields>(GEFAEHRDUNGSBEURTEILUNG_DIFF_SUM_MISMATCH);
+    }
+
+    return Result.ok(changedFields);
   }
 }

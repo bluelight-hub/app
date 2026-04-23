@@ -1,6 +1,72 @@
 import { api } from '@/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
 import type { CreateGefaehrdungsbeurteilungInput, Gefaehrdungsbeurteilung, GefaehrdungsbeurteilungVorlage, UpdateGefaehrdungsbeurteilungItemsInput } from '../schemas/gefaehrdungsbeurteilung.schema';
+
+/**
+ * Zod-Guard für den 409-Response-Body-Context (Story 2.3, AC13).
+ *
+ * Wir konsumieren nur die Felder, die wir dem Banner zeigen; fehlende oder
+ * malformed Felder (z. B. `currentVersion: "five"` aus einem älteren
+ * Backend-Stand oder einem Proxy-Rewrite) führen zum Fallback-Text und
+ * werfen KEINEN Runtime-Fehler. `.safeParse()` bleibt immer non-throwing.
+ *
+ * `currentVersion` ist explizit optional: im Reload-Failure-Pfad (Handler
+ * konnte nach dem DB-Level-Conflict die aktuelle Version nicht re-lesen)
+ * liefert das Backend legitim nur `attemptedVersion`. Wir wollen die valide
+ * `attemptedVersion` NICHT verlieren, nur weil das komplette Objekt als
+ * „invalid" abgewiesen würde.
+ */
+const GefaehrdungsbeurteilungConflictContextSchema = z.object({
+  currentVersion: z.number().int().positive().optional(),
+  attemptedVersion: z.number().int().nonnegative().optional(),
+});
+
+/**
+ * Dünne Error-Subclass für den 409-Konflikt bei
+ * `useUpdateGefaehrdungsbeurteilungItems` (Story 2.3, AC13).
+ *
+ * Trägt `currentVersion` (kann `undefined` sein bei älterem Backend ohne
+ * Context-Enrichment) und `attemptedVersion` (aus dem Request-Input), damit
+ * das UI einen präziseren Banner-Text rendern kann. Der ursprüngliche
+ * Fetch-Error bleibt unter `originalError` erhalten, falls Debugging im
+ * Sentry- oder Konsolen-Kontext nötig wird.
+ */
+export class GefaehrdungsbeurteilungConflictError extends Error {
+  readonly statusCode = 409;
+  constructor(
+    readonly currentVersion: number | undefined,
+    readonly attemptedVersion: number | undefined,
+    readonly originalError: unknown,
+  ) {
+    super('ConflictDetected:Gefaehrdungsbeurteilung');
+    this.name = 'GefaehrdungsbeurteilungConflictError';
+  }
+}
+
+/**
+ * Extrahiert aus einem beliebigen Fetch-Error einen
+ * `GefaehrdungsbeurteilungConflictError`, wenn der Response-Status 409 ist.
+ * Andere Statuscodes (z. B. 422, 500) liefern `null` — dann soll der
+ * aufrufende Hook den Original-Error unverändert weiterwerfen.
+ *
+ * Der Context wird per Zod validiert; bei fehlendem/malformed Context
+ * fällt `currentVersion` auf `undefined` zurück (Banner nutzt dann den
+ * generischen Fallback-Text).
+ */
+export function extractConflictError(error: unknown, attemptedVersion: number): GefaehrdungsbeurteilungConflictError | null {
+  const status = (error as { response?: { status?: number } } | null)?.response?.status;
+  if (status !== 409) return null;
+  const dataCandidate = (error as { response?: { data?: unknown } } | null)?.response?.data;
+  const rawContext = (dataCandidate as { context?: unknown } | null)?.context;
+  // Graceful Handling von non-Objekt-Kontext (String, Array, null, undefined):
+  // safeParse würde das gesamte Objekt verwerfen; wir wollen die valide
+  // `attemptedVersion` aus dem Request-Input trotzdem bewahren.
+  const contextToValidate = rawContext !== null && typeof rawContext === 'object' && !Array.isArray(rawContext) ? rawContext : {};
+  const parsed = GefaehrdungsbeurteilungConflictContextSchema.safeParse(contextToValidate);
+  const currentVersion = parsed.success ? parsed.data.currentVersion : undefined;
+  return new GefaehrdungsbeurteilungConflictError(currentVersion, attemptedVersion, error);
+}
 
 /**
  * Query-Key-Factory für das Eigenschutz-Feature (Story 1.6 + 2.1).
@@ -184,23 +250,31 @@ export function useUpdateGefaehrdungsbeurteilungItems(einsatzId: string, id: str
     // Sonner-Toast würde zu Doppel-Benachrichtigung führen.
     meta: { silentError: true },
     mutationFn: async (input): Promise<Gefaehrdungsbeurteilung> => {
-      const response = await api.eigenschutz().gefaehrdungsbeurteilungControllerUpdateItemsVAlpha({
-        einsatzId,
-        id,
-        updateGefaehrdungsbeurteilungItemsDto: {
-          items: input.items.map((item) => ({
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            eintritt: item.eintritt,
-            schaden: item.schaden,
-            // risikoklasse wird vom Backend autoritativ berechnet — kein Client-Feld.
-            schutzmassnahmen: item.schutzmassnahmen,
-          })),
-          expectedVersion: input.expectedVersion,
-        },
-      });
-      return response.data as Gefaehrdungsbeurteilung;
+      try {
+        const response = await api.eigenschutz().gefaehrdungsbeurteilungControllerUpdateItemsVAlpha({
+          einsatzId,
+          id,
+          updateGefaehrdungsbeurteilungItemsDto: {
+            items: input.items.map((item) => ({
+              id: item.id,
+              title: item.title,
+              description: item.description,
+              eintritt: item.eintritt,
+              schaden: item.schaden,
+              // risikoklasse wird vom Backend autoritativ berechnet — kein Client-Feld.
+              schutzmassnahmen: item.schutzmassnahmen,
+            })),
+            expectedVersion: input.expectedVersion,
+          },
+        });
+        return response.data as Gefaehrdungsbeurteilung;
+      } catch (error) {
+        // AC13: 409 → typsierter Error mit currentVersion-Hinweis.
+        // Andere Fehler (422, 500, Network) werden unverändert durchgereicht.
+        const conflict = extractConflictError(error, input.expectedVersion);
+        if (conflict) throw conflict;
+        throw error;
+      }
     },
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: detailKey });
