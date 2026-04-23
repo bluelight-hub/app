@@ -11,6 +11,7 @@
  */
 
 import { EventSerializer, type SerializedEvent } from '../event-serializer';
+import { GefaehrdungsbeurteilungAktualisiertEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event';
 
 // Einsatz Events
 import { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
@@ -599,6 +600,69 @@ describe('EventSerializer', () => {
       const parsed = JSON.parse(json);
       expect(parsed.eventName).toBe('einsatz.created');
       expect(parsed.payload.alarmstichwort).toBe('Wohnungsbrand');
+    });
+  });
+
+  // ===== EIGENSCHUTZ: Gefaehrdungsbeurteilung Aktualisiert (Story 2.3 AC7) =====
+
+  describe('GefaehrdungsbeurteilungAktualisiert (Story 2.3)', () => {
+    const EINSATZ_ID = 'clw3h8x9y0000qwertyui00002';
+    const EINHEIT_ID = 'clw3h8x9y0000qwertyui00050';
+    const USER_ID = 'clw3h8x9y0000qwertyui00099';
+    const BEURTEILUNG_ID = 'clw3h8x9y0000qwertyui00077';
+
+    it('serialisiert einen validen Per-Item-Diff-Payload (Round-Trip-Grundlage)', () => {
+      const event = new GefaehrdungsbeurteilungAktualisiertEvent(EINSATZ_ID, USER_ID, EINHEIT_ID, BEURTEILUNG_ID, 1, 2, {
+        added: ['clw3h8x9y0000qwertyui00201'],
+        removed: ['clw3h8x9y0000qwertyui00202'],
+        updated: [{ id: 'clw3h8x9y0000qwertyui00203', fields: ['title'] }],
+        unchanged: 0,
+      });
+
+      const serialized = serializer.serialize(event);
+
+      expect(serialized.eventName).toBe('eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
+      expect(serialized.payload.fromVersion).toBe(1);
+      expect(serialized.payload.toVersion).toBe(2);
+      expect(serialized.payload.changedFields).toEqual({
+        added: ['clw3h8x9y0000qwertyui00201'],
+        removed: ['clw3h8x9y0000qwertyui00202'],
+        updated: [{ id: 'clw3h8x9y0000qwertyui00203', fields: ['title'] }],
+        unchanged: 0,
+      });
+    });
+
+    it('wirft bei toVersion !== fromVersion + 1 (AC7 symmetrisch)', () => {
+      const event = new GefaehrdungsbeurteilungAktualisiertEvent(EINSATZ_ID, USER_ID, EINHEIT_ID, BEURTEILUNG_ID, 1, 1, {
+        added: [],
+        removed: [],
+        updated: [],
+        unchanged: 0,
+      });
+
+      expect(() => serializer.serialize(event)).toThrow('Invalid GefaehrdungsbeurteilungAktualisiert');
+    });
+
+    it('wirft bei unchanged < 0 (AC7 symmetrisch)', () => {
+      const event = new GefaehrdungsbeurteilungAktualisiertEvent(EINSATZ_ID, USER_ID, EINHEIT_ID, BEURTEILUNG_ID, 1, 2, {
+        added: [],
+        removed: [],
+        updated: [],
+        unchanged: -1,
+      });
+
+      expect(() => serializer.serialize(event)).toThrow('Invalid GefaehrdungsbeurteilungAktualisiert');
+    });
+
+    it('wirft bei malformed updated-Entry (AC7 symmetrisch)', () => {
+      const event = new GefaehrdungsbeurteilungAktualisiertEvent(EINSATZ_ID, USER_ID, EINHEIT_ID, BEURTEILUNG_ID, 1, 2, {
+        added: [],
+        removed: [],
+        updated: [{ id: '', fields: ['title'] }],
+        unchanged: 0,
+      });
+
+      expect(() => serializer.serialize(event)).toThrow('Invalid GefaehrdungsbeurteilungAktualisiert');
     });
   });
 

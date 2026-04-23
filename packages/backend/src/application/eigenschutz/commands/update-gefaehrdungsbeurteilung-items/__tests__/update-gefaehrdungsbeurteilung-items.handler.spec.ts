@@ -106,7 +106,7 @@ describe('UpdateGefaehrdungsbeurteilungItemsHandler', () => {
 
     const versionArgs = versionRepo.saveNewVersion.mock.calls[0][0];
     expect(versionArgs.version).toBe(2);
-    expect(versionArgs.changedFields).toEqual({ added: 1, removed: 0, updated: 0 });
+    expect(versionArgs.changedFields).toEqual({ added: ['generated:0'], removed: [], updated: [], unchanged: 0 });
     expect(versionArgs.items).toHaveLength(1);
     expect(versionArgs.eventId).toBeTruthy();
   });
@@ -120,7 +120,7 @@ describe('UpdateGefaehrdungsbeurteilungItemsHandler', () => {
 
     const versionArgs = versionRepo.saveNewVersion.mock.calls[0][0];
     expect(versionArgs.items).toEqual([]);
-    expect(versionArgs.changedFields).toEqual({ added: 0, removed: 1, updated: 0 });
+    expect(versionArgs.changedFields).toEqual({ added: [], removed: ['clw3h8x9y0000qwertyuiaaaaa'], updated: [], unchanged: 0 });
   });
 
   it('(Happy-Path Mixed) zählt Add + Edit + Remove im Diff', async () => {
@@ -139,7 +139,12 @@ describe('UpdateGefaehrdungsbeurteilungItemsHandler', () => {
     expect(result.isSuccess).toBe(true);
 
     const versionArgs = versionRepo.saveNewVersion.mock.calls[0][0];
-    expect(versionArgs.changedFields).toEqual({ added: 1, removed: 1, updated: 1 });
+    expect(versionArgs.changedFields).toEqual({
+      added: ['generated:0'],
+      removed: [idB],
+      updated: [{ id: idA, fields: ['title'] }],
+      unchanged: 0,
+    });
   });
 
   it('(409 ConflictDetected) bei Version-Mismatch — keine Persistenz, Sentinel im Error', async () => {
@@ -148,7 +153,10 @@ describe('UpdateGefaehrdungsbeurteilungItemsHandler', () => {
     const result = await handler.execute(buildCommand({ expectedVersion: 1 }));
 
     expect(result.isFailure).toBe(true);
-    expect(result.error).toBe(UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES.CONFLICT_DETECTED);
+    // Story 2.3 AC10: Handler hängt aktuellen `aggregate.version` als `:current=<n>`
+    // ans ConflictDetected-Sentinel — der Controller parst das für den 409-Context.
+    expect(result.error?.startsWith(UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES.CONFLICT_DETECTED)).toBe(true);
+    expect(result.error).toBe(`${UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES.CONFLICT_DETECTED}:current=3`);
     expect(beurteilungRepo.updateItems).not.toHaveBeenCalled();
     expect(versionRepo.saveNewVersion).not.toHaveBeenCalled();
     expect(outboxRepo.save).not.toHaveBeenCalled();
@@ -174,15 +182,35 @@ describe('UpdateGefaehrdungsbeurteilungItemsHandler', () => {
     expect(beurteilungRepo.updateItems).not.toHaveBeenCalled();
   });
 
-  it('(400) wenn ein Item ungültig ist (leerer Titel) — kein Repo-Call', async () => {
+  it('(400) wenn ein Item ungültig ist (leerer Titel) — kein Repo-Call, ValidationFailed:-Präfix (Story 2.3 AC11)', async () => {
     beurteilungRepo.findById.mockResolvedValue(Result.ok(buildAggregate()));
 
     const result = await handler.execute(buildCommand({ items: [{ title: '' }] }));
 
     expect(result.isFailure).toBe(true);
+    expect(result.error?.startsWith('ValidationFailed:')).toBe(true);
     expect(result.error).toContain('Titel');
     expect(beurteilungRepo.updateItems).not.toHaveBeenCalled();
     expect(versionRepo.saveNewVersion).not.toHaveBeenCalled();
+  });
+
+  it('(409 DB-Level ConflictDetected) Repo-Fail triggert findById-Reload für currentVersion (Story 2.3 AC2 + AC10)', async () => {
+    // Zwei parallele TXs: In-Memory-Check passt (expectedVersion = 1 matcht),
+    // aber das DB-seitige `updateMany` schlägt wegen `version`-Mismatch fehl.
+    // Der Handler soll `findById` erneut aufrufen, um die aktuelle DB-Version
+    // für den 409-Context zu ermitteln.
+    const aggregate = buildAggregate({ version: 1 });
+    beurteilungRepo.findById.mockResolvedValueOnce(Result.ok(aggregate));
+    beurteilungRepo.updateItems.mockResolvedValue(Result.fail(UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES.CONFLICT_DETECTED));
+    beurteilungRepo.findById.mockResolvedValueOnce(Result.ok(buildAggregate({ version: 5 })));
+
+    const result = await handler.execute(buildCommand());
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toBe(`${UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES.CONFLICT_DETECTED}:current=5`);
+    expect(beurteilungRepo.findById).toHaveBeenCalledTimes(2);
+    expect(versionRepo.saveNewVersion).not.toHaveBeenCalled();
+    expect(outboxRepo.save).not.toHaveBeenCalled();
   });
 
   it('(Event-Binding) bindet Version-Zeile an dieselbe eventId wie das Outbox-Event', async () => {

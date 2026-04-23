@@ -27,7 +27,15 @@ vi.mock('@/shared', () => ({
   },
 }));
 
-import { EIGENSCHUTZ_QUERY_KEYS, useCreateGefaehrdungsbeurteilung, useGefaehrdungsbeurteilung, useGefaehrdungsbeurteilungVorlagen, useUpdateGefaehrdungsbeurteilungItems } from '../queries';
+import {
+  EIGENSCHUTZ_QUERY_KEYS,
+  GefaehrdungsbeurteilungConflictError,
+  extractConflictError,
+  useCreateGefaehrdungsbeurteilung,
+  useGefaehrdungsbeurteilung,
+  useGefaehrdungsbeurteilungVorlagen,
+  useUpdateGefaehrdungsbeurteilungItems,
+} from '../queries';
 
 function makeWrapper() {
   const client = new QueryClient({
@@ -343,7 +351,10 @@ describe('useUpdateGefaehrdungsbeurteilungItems (Story 2.2 AC10)', () => {
 
     const { result } = renderHook(() => useUpdateGefaehrdungsbeurteilungItems('e-1', 'b-7'), { wrapper });
     const payload = { items: [{ title: 'Neu', eintritt: 'HAEUFIG' as const, schaden: 'HOCH' as const }], expectedVersion: 1 };
-    await expect(result.current.mutateAsync(payload)).rejects.toMatchObject({ response: { status: 409 } });
+    // Story 2.3 AC13: Der 409-Error wird auf `GefaehrdungsbeurteilungConflictError`
+    // gemappt (typsiert, trägt `currentVersion` + `attemptedVersion`), statt den
+    // rohen Fetch-Error weiterzureichen.
+    await expect(result.current.mutateAsync(payload)).rejects.toBeInstanceOf(GefaehrdungsbeurteilungConflictError);
 
     await waitFor(() => {
       const cached = client.getQueryData(EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung('e-1', 'b-7')) as typeof existing;
@@ -352,11 +363,87 @@ describe('useUpdateGefaehrdungsbeurteilungItems (Story 2.2 AC10)', () => {
     });
   });
 
-  it('(Error-Propagation) 409 wird NICHT silent — die Mutation wirft den Error durch', async () => {
-    mockUpdateItems.mockRejectedValueOnce({ response: { status: 409 } });
+  it('(Error-Propagation) 409 wird NICHT silent — die Mutation wirft den typsierten ConflictError durch', async () => {
+    mockUpdateItems.mockRejectedValueOnce({
+      response: { status: 409, data: { context: { currentVersion: 5, attemptedVersion: 1 } } },
+    });
     const { wrapper } = makeWrapper();
     const { result } = renderHook(() => useUpdateGefaehrdungsbeurteilungItems('e-1', 'b-7'), { wrapper });
     const payload = { items: [], expectedVersion: 1 };
-    await expect(result.current.mutateAsync(payload)).rejects.toMatchObject({ response: { status: 409 } });
+    await expect(result.current.mutateAsync(payload)).rejects.toMatchObject({
+      statusCode: 409,
+      currentVersion: 5,
+      attemptedVersion: 1,
+    });
+  });
+});
+
+describe('extractConflictError (Story 2.3 AC13)', () => {
+  it('extrahiert currentVersion + attemptedVersion aus validem 409-Context', () => {
+    const raw = {
+      response: {
+        status: 409,
+        data: {
+          statusCode: 409,
+          error: 'Conflict',
+          message: 'ConflictDetected:Gefaehrdungsbeurteilung',
+          context: { currentVersion: 5, attemptedVersion: 3 },
+        },
+      },
+    };
+    const extracted = extractConflictError(raw, 3);
+
+    expect(extracted).toBeInstanceOf(GefaehrdungsbeurteilungConflictError);
+    expect(extracted?.currentVersion).toBe(5);
+    expect(extracted?.attemptedVersion).toBe(3);
+    expect(extracted?.statusCode).toBe(409);
+    expect(extracted?.originalError).toBe(raw);
+  });
+
+  it('fallbackt auf undefined currentVersion, wenn der Context das Feld nicht hat (älteres Backend)', () => {
+    const raw = {
+      response: {
+        status: 409,
+        data: {
+          statusCode: 409,
+          error: 'Conflict',
+          message: 'ConflictDetected:Gefaehrdungsbeurteilung',
+          // `attemptedVersion` allein reicht nicht fürs Schema → safeParse schlägt fehl.
+          context: { attemptedVersion: 3 },
+        },
+      },
+    };
+    const extracted = extractConflictError(raw, 3);
+
+    expect(extracted).toBeInstanceOf(GefaehrdungsbeurteilungConflictError);
+    expect(extracted?.currentVersion).toBeUndefined();
+    // attemptedVersion kommt aus dem Input, nicht aus dem Context → bleibt erhalten.
+    expect(extracted?.attemptedVersion).toBe(3);
+  });
+
+  it('fallbackt auf undefined currentVersion bei invaliden Typen (Zod-Guard non-throwing)', () => {
+    const raw = {
+      response: {
+        status: 409,
+        data: {
+          context: { currentVersion: 'five', attemptedVersion: 3 },
+        },
+      },
+    };
+    const extracted = extractConflictError(raw, 3);
+
+    expect(extracted).toBeInstanceOf(GefaehrdungsbeurteilungConflictError);
+    expect(extracted?.currentVersion).toBeUndefined();
+  });
+
+  it('liefert null bei Nicht-409-Fehlern, damit der Hook den Original-Error weiterwirft', () => {
+    const raw422 = { response: { status: 422, data: { message: 'ValidationFailed:title' } } };
+    const raw500 = { response: { status: 500 } };
+    const rawNetwork = new Error('network boom');
+
+    expect(extractConflictError(raw422, 3)).toBeNull();
+    expect(extractConflictError(raw500, 3)).toBeNull();
+    expect(extractConflictError(rawNetwork, 3)).toBeNull();
+    expect(extractConflictError(null, 3)).toBeNull();
   });
 });

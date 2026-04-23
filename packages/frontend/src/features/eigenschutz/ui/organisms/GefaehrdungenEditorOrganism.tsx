@@ -17,7 +17,7 @@
  */
 
 import { useEigenschutzPermissions } from '@/features/eigenschutz/hooks/useEigenschutzPermissions';
-import { EIGENSCHUTZ_QUERY_KEYS, useUpdateGefaehrdungsbeurteilungItems } from '@/features/eigenschutz/api/queries';
+import { EIGENSCHUTZ_QUERY_KEYS, GefaehrdungsbeurteilungConflictError, useUpdateGefaehrdungsbeurteilungItems } from '@/features/eigenschutz/api/queries';
 import { GEFAEHRDUNG_ITEM_LIMITS, type Gefaehrdungsbeurteilung, type GefaehrdungItem } from '@bluelight-hub/shared/schemas';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { SeverityBanner } from '@/shared/ui/molecules/severity-banner.molecule';
@@ -69,7 +69,15 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
   const saveDisabled = permissionMissing || hasInvalidItem || mutation.isPending;
   const saveTitle = permissionMissing ? `Fehlende Berechtigung: ${requiredPermission}` : undefined;
 
-  const conflictDetected = getHttpStatus(mutation.error) === 409;
+  // AC13: Unterscheide typsierten ConflictError (mit `currentVersion`) vom
+  // rohen 409-Fetch-Error. Fallback-Pfad deckt Alt-Backends + den Edge-Case
+  // ab, dass ein Upstream-Proxy den Context rewrites.
+  const conflictError = mutation.error instanceof GefaehrdungsbeurteilungConflictError ? mutation.error : null;
+  const conflictDetected = conflictError !== null || getHttpStatus(mutation.error) === 409;
+  const bannerTitle =
+    conflictError?.currentVersion !== undefined
+      ? `Version ${conflictError.currentVersion} wurde bereits von jemand anderem gespeichert. Lade die aktuelle Version neu, um fortzufahren.`
+      : 'Jemand anders hat bereits Änderungen gespeichert — bitte neu laden.';
 
   const handleSave = useCallback(() => {
     if (saveDisabled) return;
@@ -125,7 +133,7 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
       {conflictDetected ? (
         <SeverityBanner
           variant="warning"
-          title="Jemand anders hat bereits Änderungen gespeichert — bitte neu laden."
+          title={bannerTitle}
           description="Der Save-Versuch wurde nicht übernommen, damit keine fremden Änderungen überschrieben werden."
           action={{ label: 'Neu laden', onClick: handleReload }}
           data-testid="gefaehrdungen-editor-conflict-banner"

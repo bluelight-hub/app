@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { EIGENSCHUTZ_ROLE_KEY } from '@/modules/auth/decorators/requires-eigenschutz-rolle.decorator';
 import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
+import { LOGGER } from '@infrastructure/di-tokens';
 import { GefaehrdungsbeurteilungController } from '../gefaehrdungsbeurteilung.controller';
 
 /**
@@ -52,6 +53,10 @@ describe('GefaehrdungsbeurteilungController', () => {
       providers: [
         { provide: CommandBus, useValue: commandBus },
         { provide: QueryBus, useValue: queryBus },
+        {
+          provide: LOGGER,
+          useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() },
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -324,15 +329,33 @@ describe('GefaehrdungsbeurteilungController', () => {
       expect(queryBus.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('(409 Conflict) wirft ConflictException mit attemptedVersion im Context', async () => {
+    it('(409 Conflict) wirft ConflictException mit currentVersion + attemptedVersion (Story 2.3 AC10)', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail(`${GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED}:current=12`));
+      const promise = controller.updateItems(EINSATZ_ID, BEURTEILUNG_ID, buildBody({ expectedVersion: 7 }), USER);
+      await expect(promise).rejects.toBeInstanceOf(ConflictException);
+      try {
+        await promise;
+      } catch (error) {
+        const body = (error as ConflictException).getResponse() as { statusCode: number; context: { currentVersion: number; attemptedVersion: number } };
+        expect(body.statusCode).toBe(409);
+        expect(body.context.currentVersion).toBe(12);
+        expect(body.context.attemptedVersion).toBe(7);
+      }
+    });
+
+    it('(409 Conflict ohne current=) setzt currentVersion=undefined als Fallback (Abwärtskompatibilität)', async () => {
+      // Defensiv: Sollte der Handler das Suffix einmal nicht setzen, bleibt
+      // der Controller funktional — das Frontend rendert dann den generischen
+      // Fallback-Banner-Text.
       commandBus.execute.mockResolvedValue(Result.fail(GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED));
       const promise = controller.updateItems(EINSATZ_ID, BEURTEILUNG_ID, buildBody({ expectedVersion: 7 }), USER);
       await expect(promise).rejects.toBeInstanceOf(ConflictException);
       try {
         await promise;
       } catch (error) {
-        const body = (error as ConflictException).getResponse() as { statusCode: number; context: { attemptedVersion: number } };
+        const body = (error as ConflictException).getResponse() as { statusCode: number; context: { currentVersion?: number; attemptedVersion: number } };
         expect(body.statusCode).toBe(409);
+        expect(body.context.currentVersion).toBeUndefined();
         expect(body.context.attemptedVersion).toBe(7);
       }
     });
@@ -350,8 +373,8 @@ describe('GefaehrdungsbeurteilungController', () => {
       }
     });
 
-    it('(422 ItemValidation) wirft UnprocessableEntity für Item-Validation-Fehler', async () => {
-      commandBus.execute.mockResolvedValue(Result.fail('Titel ist erforderlich'));
+    it('(422 ItemValidation) wirft UnprocessableEntity für ValidationFailed:-präfixte Fehler', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('ValidationFailed:Titel ist erforderlich'));
       const promise = controller.updateItems(EINSATZ_ID, BEURTEILUNG_ID, buildBody(), USER);
       await expect(promise).rejects.toBeInstanceOf(UnprocessableEntityException);
       try {
@@ -360,6 +383,60 @@ describe('GefaehrdungsbeurteilungController', () => {
         const body = (error as UnprocessableEntityException).getResponse() as { statusCode: number; context: { rule: string } };
         expect(body.statusCode).toBe(422);
         expect(body.context.rule).toBe('ItemValidation');
+      }
+    });
+
+    it('(422 BusinessRule DuplicateItemId) wirft UnprocessableEntity mit rule-Context (Story 2.3 AC4)', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('BusinessRule:DuplicateItemId'));
+      const promise = controller.updateItems(EINSATZ_ID, BEURTEILUNG_ID, buildBody(), USER);
+      await expect(promise).rejects.toBeInstanceOf(UnprocessableEntityException);
+      try {
+        await promise;
+      } catch (error) {
+        const body = (error as UnprocessableEntityException).getResponse() as { statusCode: number; context: { rule: string } };
+        expect(body.statusCode).toBe(422);
+        expect(body.context.rule).toBe('DuplicateItemId');
+      }
+    });
+
+    it('(500 Unexpected) unerkannte Error-Strings landen als Internal Server Error (Story 2.3 AC11)', async () => {
+      // Whitelist-Semantik: ohne bekanntes Sentinel-Präfix KEIN Catch-all-422.
+      // Monitoring muss echte DB-Ausfälle als 5xx-Spike sehen.
+      commandBus.execute.mockResolvedValue(Result.fail('random db outage'));
+      const promise = controller.updateItems(EINSATZ_ID, BEURTEILUNG_ID, buildBody(), USER);
+      await expect(promise).rejects.toBeInstanceOf(InternalServerErrorException);
+      try {
+        await promise;
+      } catch (error) {
+        const body = (error as InternalServerErrorException).getResponse() as { statusCode: number; context: { rule: string } };
+        expect(body.statusCode).toBe(500);
+        expect(body.context.rule).toBe('Unexpected');
+      }
+    });
+
+    it('(500 InfrastructureError) präfixte Infra-Fehler landen im 500-Branch', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('InfrastructureError:Eigenschutz:Prisma-Timeout'));
+      const promise = controller.updateItems(EINSATZ_ID, BEURTEILUNG_ID, buildBody(), USER);
+      await expect(promise).rejects.toBeInstanceOf(InternalServerErrorException);
+      try {
+        await promise;
+      } catch (error) {
+        const body = (error as InternalServerErrorException).getResponse() as { statusCode: number; context: { layer: string } };
+        expect(body.statusCode).toBe(500);
+        expect(body.context.layer).toBe('infrastructure');
+      }
+    });
+
+    it('(500 Invariant) Aggregate-Invarianz-Bruch landet im 500-Branch (Story 2.3 AC3)', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('Invariant:DiffSumMismatch'));
+      const promise = controller.updateItems(EINSATZ_ID, BEURTEILUNG_ID, buildBody(), USER);
+      await expect(promise).rejects.toBeInstanceOf(InternalServerErrorException);
+      try {
+        await promise;
+      } catch (error) {
+        const body = (error as InternalServerErrorException).getResponse() as { statusCode: number; context: { layer: string } };
+        expect(body.statusCode).toBe(500);
+        expect(body.context.layer).toBe('domain');
       }
     });
 

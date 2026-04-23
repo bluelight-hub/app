@@ -121,4 +121,122 @@ describe('GefaehrdungItem (Story 2.1 — Value Object)', () => {
     const item = GefaehrdungItem.create({ title: 'T', schutzmassnahmen: '  PSA tragen  ' }).value!;
     expect(item.schutzmassnahmen).toBe('PSA tragen');
   });
+
+  describe('equalsContent + diffFields (Story 2.3 AC5)', () => {
+    const ITEM_ID = 'clw3h8x9y0000qwertyuiddddd';
+
+    it('(a) zwei Items mit identischen Feldern: equalsContent=true und diffFields=[]', () => {
+      const a = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'Stolperfalle',
+        description: 'Kabel am Boden',
+        eintritt: 'GELEGENTLICH',
+        schaden: 'MITTEL',
+        schutzmassnahmen: 'Kabelbrücke',
+      }).value!;
+      const b = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'Stolperfalle',
+        description: 'Kabel am Boden',
+        eintritt: 'GELEGENTLICH',
+        schaden: 'MITTEL',
+        schutzmassnahmen: 'Kabelbrücke',
+      }).value!;
+
+      expect(a.equalsContent(b)).toBe(true);
+      expect(a.diffFields(b)).toEqual([]);
+    });
+
+    it('(b) identische ID aber geänderter title → diffFields=["title"]', () => {
+      const alt = GefaehrdungItem.create({ id: ITEM_ID, title: 'Alter Titel' }).value!;
+      const neu = GefaehrdungItem.create({ id: ITEM_ID, title: 'Neuer Titel' }).value!;
+
+      expect(alt.equalsContent(neu)).toBe(false);
+      expect(alt.diffFields(neu)).toEqual(['title']);
+    });
+
+    it('(c) geändertes (eintritt, schaden): diffFields=["eintritt","schaden"] (NICHT risikoklasse)', () => {
+      // alt: SELTEN × MITTEL, neu: HAEUFIG × KATASTROPHAL — Risikoklasse ändert
+      // sich (GRUEN → ROT), darf aber NICHT im Diff auftauchen (Backend-abgeleitet).
+      const alt = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'Risiko',
+        eintritt: 'SELTEN',
+        schaden: 'MITTEL',
+      }).value!;
+      const neu = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'Risiko',
+        eintritt: 'HAEUFIG',
+        schaden: 'KATASTROPHAL',
+      }).value!;
+
+      const fields = alt.diffFields(neu);
+      expect(fields).toEqual(['eintritt', 'schaden']);
+      expect(fields).not.toContain('risikoklasse');
+      // Kontroll-Assertion: die abgeleitete Risikoklasse hat sich tatsächlich geändert.
+      expect(alt.risikoklasse).not.toBe(neu.risikoklasse);
+    });
+
+    it('(d) beide Items mit leerer description (→ normalisiert undefined): equalsContent=true', () => {
+      const a = GefaehrdungItem.create({ id: ITEM_ID, title: 'T' }).value!;
+      const b = GefaehrdungItem.create({ id: ITEM_ID, title: 'T', description: '' }).value!;
+
+      // Beide description sind nach Normalisierung undefined → kein Diff.
+      expect(a.description).toBeUndefined();
+      expect(b.description).toBeUndefined();
+      expect(a.equalsContent(b)).toBe(true);
+      expect(a.diffFields(b)).toEqual([]);
+    });
+
+    it('(e) description "text" vs undefined → diffFields enthält "description"', () => {
+      const mitBeschreibung = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'T',
+        description: 'Details',
+      }).value!;
+      const ohneBeschreibung = GefaehrdungItem.create({ id: ITEM_ID, title: 'T' }).value!;
+
+      expect(mitBeschreibung.diffFields(ohneBeschreibung)).toEqual(['description']);
+      expect(mitBeschreibung.equalsContent(ohneBeschreibung)).toBe(false);
+    });
+
+    it('(f) identische Schutzmaßnahmen → kein Diff', () => {
+      const a = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'T',
+        schutzmassnahmen: 'PSA tragen',
+      }).value!;
+      const b = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'T',
+        schutzmassnahmen: 'PSA tragen',
+      }).value!;
+
+      expect(a.equalsContent(b)).toBe(true);
+      expect(a.diffFields(b)).toEqual([]);
+    });
+
+    it('(g) alle fünf Diff-Felder unterschiedlich → alle fünf in diffFields (in fixer Reihenfolge)', () => {
+      const alt = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'Alt-Titel',
+        description: 'Alt-Beschreibung',
+        eintritt: 'SELTEN',
+        schaden: 'GERING',
+        schutzmassnahmen: 'Alt-Schutz',
+      }).value!;
+      const neu = GefaehrdungItem.create({
+        id: ITEM_ID,
+        title: 'Neu-Titel',
+        description: 'Neu-Beschreibung',
+        eintritt: 'HAEUFIG',
+        schaden: 'KATASTROPHAL',
+        schutzmassnahmen: 'Neu-Schutz',
+      }).value!;
+
+      expect(alt.diffFields(neu)).toEqual(['title', 'description', 'eintritt', 'schaden', 'schutzmassnahmen']);
+      expect(alt.equalsContent(neu)).toBe(false);
+    });
+  });
 });

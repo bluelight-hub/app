@@ -2600,6 +2600,24 @@ function deserializeGefaehrdungsbeurteilungErstellt(payload: Record<string, unkn
   return Result.ok<DomainEvent>(event);
 }
 
+const GEFAEHRDUNG_ITEM_FIELD_KEYS: ReadonlySet<string> = new Set(['title', 'description', 'eintritt', 'schaden', 'schutzmassnahmen']);
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((entry) => typeof entry === 'string');
+}
+
+function isFieldKey(value: unknown): value is 'title' | 'description' | 'eintritt' | 'schaden' | 'schutzmassnahmen' {
+  return typeof value === 'string' && GEFAEHRDUNG_ITEM_FIELD_KEYS.has(value);
+}
+
+function isUpdatedEntry(entry: unknown): entry is { id: string; fields: Array<'title' | 'description' | 'eintritt' | 'schaden' | 'schutzmassnahmen'> } {
+  if (typeof entry !== 'object' || entry === null) return false;
+  const candidate = entry as { id?: unknown; fields?: unknown };
+  if (typeof candidate.id !== 'string' || candidate.id.length === 0) return false;
+  if (!Array.isArray(candidate.fields)) return false;
+  return candidate.fields.every(isFieldKey);
+}
+
 function deserializeGefaehrdungsbeurteilungAktualisiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
@@ -2629,12 +2647,24 @@ function deserializeGefaehrdungsbeurteilungAktualisiert(payload: Record<string, 
     return Result.fail<DomainEvent>('Invalid version progression for eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
   }
 
-  // changedFields dürfen NICHT silent auf 0 fallen: eine korrumpierte Zeile
-  // würde als „keine Änderungen" replay-en und Audit-Reports verfälschen.
+  // changedFields-Shape (Story 2.3, AC3/AC7): Arrays mit stringbasierten IDs
+  // bzw. `{ id, fields[] }`-Einträgen plus `unchanged: number`. Silent-Fallback
+  // auf Defaults würde Audit-Reports verfälschen — darum harter Reject.
   const cf = changedFieldsRaw as Record<string, unknown>;
-  const isNonNegativeInt = (x: unknown): x is number => Number.isInteger(x) && (x as number) >= 0;
-  if (!isNonNegativeInt(cf.added) || !isNonNegativeInt(cf.removed) || !isNonNegativeInt(cf.updated)) {
+  if (!isStringArray(cf.added) || !isStringArray(cf.removed) || !Array.isArray(cf.updated) || !cf.updated.every(isUpdatedEntry) || !Number.isInteger(cf.unchanged) || (cf.unchanged as number) < 0) {
     return Result.fail<DomainEvent>('Invalid changedFields for eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
+  }
+
+  // Duplikat-IDs in `updated[]` wären ein korrupter Audit-Payload: pro Version
+  // darf ein Item genau einmal als „updated" erscheinen (sonst doppelte Feld-
+  // Listen pro ID). Aggregate und Serializer erzeugen dies nie, aber ein
+  // manipulierter Outbox-Payload soll hier hart rejectet werden.
+  const updatedIds = new Set<string>();
+  for (const entry of cf.updated as Array<{ id: string; fields: string[] }>) {
+    if (updatedIds.has(entry.id)) {
+      return Result.fail<DomainEvent>('Invalid changedFields for eigenschutz.gefaehrdungsbeurteilung_aktualisiert: duplicate updated.id');
+    }
+    updatedIds.add(entry.id);
   }
 
   const event = new GefaehrdungsbeurteilungAktualisiertEvent(
@@ -2644,7 +2674,12 @@ function deserializeGefaehrdungsbeurteilungAktualisiert(payload: Record<string, 
     gefaehrdungsbeurteilungId,
     fromVersion as number,
     toVersion as number,
-    { added: cf.added as number, removed: cf.removed as number, updated: cf.updated as number },
+    {
+      added: cf.added as string[],
+      removed: cf.removed as string[],
+      updated: cf.updated as Array<{ id: string; fields: Array<'title' | 'description' | 'eintritt' | 'schaden' | 'schutzmassnahmen'> }>,
+      unchanged: cf.unchanged as number,
+    },
     aggregateId,
   );
   return Result.ok<DomainEvent>(event);

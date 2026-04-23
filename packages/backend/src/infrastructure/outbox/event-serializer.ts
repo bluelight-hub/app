@@ -1756,14 +1756,47 @@ export class EventSerializer {
   }
 
   private serializeGefaehrdungsbeurteilungAktualisiert(event: GefaehrdungsbeurteilungAktualisiertEvent): Record<string, unknown> {
+    // Symmetrische Shape-Validation (Story 2.3, AC7): der Serializer rejected
+    // invalid payloads vor dem DB-Insert — damit niemals eine Zeile entsteht,
+    // die der Deserializer beim Round-Trip verwirft. Liefert das Aggregate
+    // einen korrupten `changedFields`-Payload, ist das ein Programmierfehler
+    // (keine Client-Input-Kategorie) — wir werfen hart, damit der Outbox-
+    // Insert fehlschlägt und der Handler das Event nicht persistiert.
+    //
+    // Die Field-Keys in `updated[i].fields` werden hier bewusst strikt gegen
+    // das bekannte Set validiert (wie der Deserializer) — sonst könnte ein
+    // Poison-Payload (z. B. `['risikoklasse']`) in die Outbox gelangen, beim
+    // Replay rejected werden und das Event permanent blockieren.
+    const ALLOWED_FIELD_KEYS: ReadonlySet<string> = new Set(['title', 'description', 'eintritt', 'schaden', 'schutzmassnahmen']);
+    const cf = event.changedFields;
+    const fromVersion = event.fromVersion;
+    const toVersion = event.toVersion;
+    if (
+      !Number.isInteger(fromVersion) ||
+      !Number.isInteger(toVersion) ||
+      fromVersion < 1 ||
+      toVersion !== fromVersion + 1 ||
+      !Array.isArray(cf.added) ||
+      !cf.added.every((entry) => typeof entry === 'string') ||
+      !Array.isArray(cf.removed) ||
+      !cf.removed.every((entry) => typeof entry === 'string') ||
+      !Array.isArray(cf.updated) ||
+      !cf.updated.every(
+        (entry) => typeof entry.id === 'string' && entry.id.length > 0 && Array.isArray(entry.fields) && entry.fields.every((field) => typeof field === 'string' && ALLOWED_FIELD_KEYS.has(field)),
+      ) ||
+      !Number.isInteger(cf.unchanged) ||
+      cf.unchanged < 0
+    ) {
+      throw new Error('Invalid GefaehrdungsbeurteilungAktualisiert event payload');
+    }
     return {
       einsatzId: event.einsatzId,
       userId: event.userId,
       einheitId: event.einheitId,
       gefaehrdungsbeurteilungId: event.gefaehrdungsbeurteilungId,
-      fromVersion: event.fromVersion,
-      toVersion: event.toVersion,
-      changedFields: event.changedFields,
+      fromVersion,
+      toVersion,
+      changedFields: cf,
     };
   }
 }

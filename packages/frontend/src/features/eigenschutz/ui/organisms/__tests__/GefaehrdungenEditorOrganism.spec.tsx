@@ -27,11 +27,32 @@ const { mocks } = vi.hoisted(() => ({
   },
 }));
 
+// Die Error-Klasse wird im Organism per `instanceof`-Check konsumiert
+// (Story 2.3 AC13). Da der gesamte Queries-Modul gemockt wird, MUSS die
+// Klasse auch im Mock exportiert werden — sonst wäre der Import `undefined`
+// und `instanceof` im Organism immer `false`. Definition via `vi.hoisted`,
+// damit die Klasse VOR dem hoisted `vi.mock`-Factory-Call verfügbar ist.
+const { GefaehrdungsbeurteilungConflictError } = vi.hoisted(() => {
+  class GefaehrdungsbeurteilungConflictError extends Error {
+    readonly statusCode = 409;
+    constructor(
+      readonly currentVersion: number | undefined,
+      readonly attemptedVersion: number | undefined,
+      readonly originalError: unknown,
+    ) {
+      super('ConflictDetected:Gefaehrdungsbeurteilung');
+      this.name = 'GefaehrdungsbeurteilungConflictError';
+    }
+  }
+  return { GefaehrdungsbeurteilungConflictError };
+});
+
 vi.mock('@/features/eigenschutz/api/queries', () => ({
   EIGENSCHUTZ_QUERY_KEYS: {
     gefaehrdungsbeurteilung: (einsatzId: string, id: string) => ['eigenschutz', einsatzId, 'beurteilungen', id],
   },
   useUpdateGefaehrdungsbeurteilungItems: () => mocks.updateMutation,
+  GefaehrdungsbeurteilungConflictError,
 }));
 
 vi.mock('@/features/eigenschutz/hooks/useEigenschutzPermissions', () => ({
@@ -111,6 +132,22 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
     renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
 
     expect(screen.queryByTestId('gefaehrdungen-editor-conflict-banner')).toBeNull();
+  });
+
+  it('(Story 2.3 AC13) rendert dynamischen Banner-Text mit currentVersion aus GefaehrdungsbeurteilungConflictError', () => {
+    mocks.updateMutation.error = new GefaehrdungsbeurteilungConflictError(5, 3, { response: { status: 409 } });
+    renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
+
+    const banner = screen.getByTestId('gefaehrdungen-editor-conflict-banner');
+    expect(banner).toHaveTextContent('Version 5 wurde bereits von jemand anderem gespeichert. Lade die aktuelle Version neu, um fortzufahren.');
+  });
+
+  it('(Story 2.3 AC13) fallbackt auf generischen Banner-Text, wenn currentVersion undefined ist (Alt-Backend)', () => {
+    mocks.updateMutation.error = new GefaehrdungsbeurteilungConflictError(undefined, 3, { response: { status: 409 } });
+    renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
+
+    const banner = screen.getByTestId('gefaehrdungen-editor-conflict-banner');
+    expect(banner).toHaveTextContent(/Jemand anders hat bereits Änderungen gespeichert/);
   });
 
   it('Ctrl+S triggert Save (UX-DR22)', () => {

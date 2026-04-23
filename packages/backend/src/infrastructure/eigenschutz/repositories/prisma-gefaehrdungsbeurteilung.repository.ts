@@ -151,6 +151,18 @@ export class PrismaGefaehrdungsbeurteilungRepository implements IGefaehrdungsbeu
         });
         return Result.fail<void>(GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED);
       }
+      if (result.count > 1) {
+        // Defense-in-Depth: Das `@@unique` auf `id` macht diesen Pfad de facto
+        // unmöglich. Sollte er dennoch eintreten (korrupte Daten, Migration
+        // ohne Constraint), ist das ein harter Invariant-Bruch — Monitoring-
+        // Signal via `logger.error`, Result.fail statt silent success.
+        this.logger.error('Unerwartetes updateMany count > 1 für Gefährdungsbeurteilung', {
+          gefaehrdungsbeurteilungId: aggregate.id.value,
+          expectedPreviousVersion,
+          count: result.count,
+        });
+        return Result.fail<void>('Invariant:UpdateCountAnomaly');
+      }
       return Result.ok<void>(undefined);
     } catch (error) {
       this.logger.error('Fehler beim Aktualisieren der Gefährdungsbeurteilung', {

@@ -232,7 +232,7 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
       expect(row?.items as unknown as unknown[]).toHaveLength(0);
     });
 
-    it('sollte bei doppeltem `eventId` Result.fail liefern (Unique-Constraint gegen Outbox-Doppler)', async () => {
+    it('sollte bei doppeltem `eventId` idempotent Result.ok liefern (Outbox-Retry, Story 2.3 AC8)', async () => {
       if (!databaseAvailable) return;
       // Given: Erste Version mit eventId X ist persistiert.
       const gbId = await insertGefaehrdungsbeurteilung();
@@ -254,7 +254,8 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
       );
       expect(first.isSuccess).toBe(true);
 
-      // When: Zweite Version mit SELBER eventId (Retry-Szenario).
+      // When: Zweite Version mit SELBER eventId (Retry-Szenario). Story 2.3
+      // fordert: P2002 auf `event_id` ist ein idempotenter Erfolg.
       let secondResult;
       try {
         secondResult = await prisma.$transaction(async (tx) =>
@@ -275,8 +276,9 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
         secondResult = { isSuccess: false, isFailure: true, error: (err as Error).message };
       }
 
-      // Then: Kein Success — nur eine Version mit dieser eventId in der DB.
-      expect(secondResult.isSuccess).toBe(false);
+      // Then: idempotent erfolgreich, DB enthält weiterhin nur eine Zeile mit
+      // dieser eventId (V1 bleibt, V2 wurde nicht persistiert).
+      expect(secondResult.isSuccess).toBe(true);
       const count = await prisma.gefaehrdungsbeurteilungVersion.count({ where: { eventId } });
       expect(count).toBe(1);
     });
@@ -319,7 +321,7 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
             gefBeurteilungId: gbId,
             version: 2,
             items: [makeItem('V2-Item-A'), makeItem('V2-Item-B')],
-            changedFields: { added: 1, removed: 0, updated: 1 },
+            changedFields: { added: ['itm-new'], removed: [], updated: [{ id: 'itm-upd', fields: ['title'] }], unchanged: 0 },
             gueltigVon: gueltigVonV2,
             changedByUserId: testUserId,
             eventId: eventIdV2,
@@ -389,7 +391,7 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
             gefBeurteilungId: gbId,
             version: 2,
             items: [makeItem('V2')],
-            changedFields: { added: 1, removed: 1, updated: 0 },
+            changedFields: { added: ['itm-new'], removed: ['itm-rem'], updated: [], unchanged: 0 },
             gueltigVon: gueltigVonV2,
             changedByUserId: testUserId,
             eventId: eventIdV2,
@@ -406,7 +408,7 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
             gefBeurteilungId: gbId,
             version: 3,
             items: [makeItem('V3')],
-            changedFields: { added: 1, removed: 1, updated: 0 },
+            changedFields: { added: ['itm-new'], removed: ['itm-rem'], updated: [], unchanged: 0 },
             gueltigVon: gueltigVonV3,
             changedByUserId: testUserId,
             eventId: eventIdV3,
@@ -462,7 +464,7 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
             gefBeurteilungId: gbId,
             version: 2,
             items: [makeItem('V2-first')],
-            changedFields: { added: 1, removed: 0, updated: 0 },
+            changedFields: { added: ['itm-new'], removed: [], updated: [], unchanged: 0 },
             gueltigVon: new Date('2026-04-22T10:00:00.000Z'),
             changedByUserId: testUserId,
             eventId: eventIdV2,
@@ -481,7 +483,7 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
               gefBeurteilungId: gbId,
               version: 3,
               items: [makeItem('V2-retry')],
-              changedFields: { added: 0, removed: 0, updated: 1 },
+              changedFields: { added: [], removed: [], updated: [{ id: 'itm-upd', fields: ['title'] }], unchanged: 0 },
               gueltigVon: new Date('2026-04-22T11:00:00.000Z'),
               changedByUserId: testUserId,
               eventId: eventIdV2,
@@ -500,6 +502,76 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
       expect(secondV2Result.isSuccess).toBe(true);
       const countWithEventId = await prisma.gefaehrdungsbeurteilungVersion.count({ where: { eventId: eventIdV2 } });
       expect(countWithEventId).toBe(1);
+    });
+
+    it('saveNewVersion: P2002 auf `(gefBeurteilungId, version)` bleibt Result.fail (echter Concurrency-Bug, Story 2.3 AC8)', async () => {
+      if (!databaseAvailable) return;
+      // Given: V1 initial, dann V2 mit einer version ist persistiert. Jetzt
+      // versuchen wir, eine weitere V2 mit ANDERER eventId anzulegen — das
+      // verletzt das `(gefBeurteilungId, version)`-Unique und MUSS als Fehler
+      // sichtbar bleiben (nicht als idempotenter Erfolg getarnt).
+      const gbId = await insertGefaehrdungsbeurteilung();
+
+      const init = await prisma.$transaction(async (tx) =>
+        repository.saveInitialVersion(
+          {
+            gefBeurteilungId: gbId,
+            version: 1,
+            items: [makeItem('V1')],
+            changedFields: { created: true },
+            gueltigVon: new Date('2026-04-22T09:00:00.000Z'),
+            changedByUserId: testUserId,
+            eventId: cuid(),
+          },
+          tx,
+        ),
+      );
+      expect(init.isSuccess).toBe(true);
+
+      const firstV2 = await prisma.$transaction(async (tx) =>
+        repository.saveNewVersion(
+          {
+            gefBeurteilungId: gbId,
+            version: 2,
+            items: [makeItem('V2-first')],
+            changedFields: { added: ['itm-new'], removed: [], updated: [], unchanged: 0 },
+            gueltigVon: new Date('2026-04-22T10:00:00.000Z'),
+            changedByUserId: testUserId,
+            eventId: cuid(),
+          },
+          tx,
+        ),
+      );
+      expect(firstV2.isSuccess).toBe(true);
+
+      // When: Zweiter V2-Write mit anderer eventId aber gleicher `version`.
+      let secondV2Result;
+      try {
+        secondV2Result = await prisma.$transaction(async (tx) =>
+          repository.saveNewVersion(
+            {
+              gefBeurteilungId: gbId,
+              version: 2,
+              items: [makeItem('V2-second')],
+              changedFields: { added: ['itm-new'], removed: [], updated: [], unchanged: 0 },
+              gueltigVon: new Date('2026-04-22T11:00:00.000Z'),
+              changedByUserId: testUserId,
+              eventId: cuid(),
+            },
+            tx,
+          ),
+        );
+      } catch (err) {
+        secondV2Result = { isSuccess: false, isFailure: true, error: (err as Error).message };
+      }
+
+      // Then: Kein Success — echter Concurrency-Bug, nicht als Idempotenz-
+      // Erfolg verschluckt. Genau eine V2-Zeile für dieses gbId in der DB.
+      expect(secondV2Result.isSuccess).toBe(false);
+      const v2Count = await prisma.gefaehrdungsbeurteilungVersion.count({
+        where: { gefBeurteilungId: gbId, version: 2 },
+      });
+      expect(v2Count).toBe(1);
     });
 
     it('changedFields wird als JSONB-Struktur persistiert', async () => {
@@ -546,6 +618,256 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
       const row = await prisma.gefaehrdungsbeurteilungVersion.findUnique({ where: { eventId: v2EventId } });
       expect(row).not.toBeNull();
       expect(row?.changedFields).toEqual(diff);
+    });
+  });
+});
+
+// ========================================
+// Mock-basierte Unit-Tests für P2002-Target-Narrowing (Story 2.3 AC8)
+// ========================================
+//
+// Hintergrund: Der Outbox-Retry-Pfad darf nur idempotent auf einen
+// `event_id`-Unique-Conflict reagieren. Ein Unique-Conflict auf
+// `(gefBeurteilungId, version)` ist ein echter Concurrency-Bug (zwei parallele
+// Writes auf dieselbe Versionsnummer) und MUSS als `Result.fail` bleiben,
+// damit der Fehler nicht verschluckt wird.
+//
+// Der Integration-Test oben deckt die `event_id`-Idempotenz über Postgres ab,
+// aber das `(gefBeurteilungId, version)`-Ende ist über echte DB-Wege schwer
+// gezielt auszulösen, ohne `event_id` gleichzeitig zu kollidieren. Deswegen
+// mocken wir hier den Prisma-Client deterministisch mit den exakten
+// `meta.target`-Shapes, die Prisma in Produktion liefert.
+describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrowing (Mock)', () => {
+  const createMockLoggerUnit = (): ILogger => ({
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  });
+
+  /**
+   * Baut einen P2002-Mock mit klassischem `meta.target`-Shape (ältere Prisma-
+   * Versionen / Nicht-Driver-Adapter-Treiber). `isPrismaP2002` prüft nur
+   * `code === 'P2002'`, kein instanceof-Check — daher reicht duck-typed
+   * Object.assign.
+   */
+  const buildP2002 = (target: unknown): Error =>
+    Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      clientVersion: 'mock',
+      meta: { target },
+    });
+
+  /**
+   * Baut einen P2002-Mock im Prisma-7-Driver-Adapter-Shape. Die relevanten
+   * Felder liegen tief in `meta.driverAdapterError.cause.*` — das ist der
+   * Shape, den der PostgreSQL-Treiber in Produktion tatsächlich liefert.
+   */
+  const buildP2002DriverAdapter = (cause: { fields?: string[]; originalMessage?: string }): Error =>
+    Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      clientVersion: 'mock',
+      meta: {
+        modelName: 'GefaehrdungsbeurteilungVersion',
+        driverAdapterError: {
+          name: 'DriverAdapterError',
+          cause: {
+            originalCode: '23505',
+            kind: 'UniqueConstraintViolation',
+            originalMessage: cause.originalMessage,
+            constraint: cause.fields ? { fields: cause.fields } : undefined,
+          },
+        },
+      },
+    });
+
+  /**
+   * Mock-TransactionClient für `saveInitialVersion`-Pfad: `create` wirft den
+   * konfigurierten Error.
+   */
+  const mockTxInitialReject = (error: unknown) =>
+    ({
+      gefaehrdungsbeurteilungVersion: {
+        create: jest.fn().mockRejectedValue(error),
+      },
+    }) as never;
+
+  /**
+   * Mock-TransactionClient für `saveNewVersion`-Pfad: `updateMany` passt
+   * erfolgreich (Chain-Closing), `create` wirft den konfigurierten Error.
+   */
+  const mockTxNewVersionReject = (error: unknown) =>
+    ({
+      gefaehrdungsbeurteilungVersion: {
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        create: jest.fn().mockRejectedValue(error),
+      },
+    }) as never;
+
+  const baseArgs = () => ({
+    gefBeurteilungId: 'clw3h8x9y0000qwertyui00001',
+    version: 2,
+    items: [makeItem('Mock-Item')],
+    changedFields: { added: [], removed: [], updated: [{ id: 'itm-upd', fields: ['title'] }], unchanged: 0 },
+    gueltigVon: new Date('2026-04-22T12:00:00.000Z'),
+    changedByUserId: 'clw3h8x9y0000qwertyui00099',
+    eventId: 'clw3h8x9y0000qwertyui00999',
+  });
+
+  describe('saveNewVersion', () => {
+    it('P2002 mit target=["gefaehrdungsbeurteilung_versionen_event_id_key"] → Result.ok (idempotent)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002(['gefaehrdungsbeurteilung_versionen_event_id_key']);
+
+      const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
+
+      expect(result.isSuccess).toBe(true);
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Idempotenter Retry'), expect.objectContaining({ eventId: baseArgs().eventId }));
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it('P2002 mit target als bare String "event_id" → Result.ok (defensive Prisma-Version-Abdeckung)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002('event_id');
+
+      const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
+
+      expect(result.isSuccess).toBe(true);
+      expect(logger.warn).toHaveBeenCalled();
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it('P2002 mit target=["gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key"] → Result.fail (echter Concurrency-Bug)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002(['gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key']);
+
+      const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Unique constraint failed');
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Fehler beim Speichern der neuen Version'), expect.objectContaining({ eventId: baseArgs().eventId }));
+    });
+
+    it('P2002 mit target=undefined (kein meta) → Result.fail (konservativ, kein Silent-Success)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002(undefined);
+
+      const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
+
+      expect(result.isFailure).toBe(true);
+      expect(logger.error).toHaveBeenCalled();
+    });
+
+    it('Nicht-Prisma-Error (z. B. Connection-Error) → Result.fail', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+
+      const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(new Error('Connection reset')));
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Connection reset');
+      expect(logger.error).toHaveBeenCalled();
+    });
+
+    it('Driver-Adapter-Shape P2002 mit constraint.fields=["event_id"] → Result.ok (Produktions-Shape)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002DriverAdapter({
+        fields: ['event_id'],
+        originalMessage: 'duplicate key value violates unique constraint "gefaehrdungsbeurteilung_versionen_event_id_key"',
+      });
+
+      const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
+
+      expect(result.isSuccess).toBe(true);
+      expect(logger.warn).toHaveBeenCalled();
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it('Driver-Adapter-Shape P2002 mit constraint.fields=["gef_beurteilung_id","version"] → Result.fail (Produktions-Shape)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002DriverAdapter({
+        fields: ['gef_beurteilung_id', 'version'],
+        originalMessage: 'duplicate key value violates unique constraint "gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key"',
+      });
+
+      const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Unique constraint failed');
+      expect(logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('saveInitialVersion', () => {
+    it('P2002 mit target=["gefaehrdungsbeurteilung_versionen_event_id_key"] → Result.ok (idempotent)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002(['gefaehrdungsbeurteilung_versionen_event_id_key']);
+
+      const result = await repo.saveInitialVersion({ ...baseArgs(), version: 1 }, mockTxInitialReject(err));
+
+      expect(result.isSuccess).toBe(true);
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Idempotenter Retry'), expect.objectContaining({ eventId: baseArgs().eventId }));
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it('P2002 mit target=["gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key"] → Result.fail (echter Concurrency-Bug)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002(['gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key']);
+
+      const result = await repo.saveInitialVersion({ ...baseArgs(), version: 1 }, mockTxInitialReject(err));
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Unique constraint failed');
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Fehler beim Speichern der Initial-Version'), expect.objectContaining({ eventId: baseArgs().eventId }));
+    });
+
+    it('Nicht-Prisma-Error → Result.fail (kein Idempotenz-Fang)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+
+      const result = await repo.saveInitialVersion({ ...baseArgs(), version: 1 }, mockTxInitialReject(new Error('Connection reset')));
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Connection reset');
+      expect(logger.error).toHaveBeenCalled();
+    });
+
+    it('Driver-Adapter-Shape P2002 mit constraint.fields=["event_id"] → Result.ok (Produktions-Shape)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002DriverAdapter({
+        fields: ['event_id'],
+        originalMessage: 'duplicate key value violates unique constraint "gefaehrdungsbeurteilung_versionen_event_id_key"',
+      });
+
+      const result = await repo.saveInitialVersion({ ...baseArgs(), version: 1 }, mockTxInitialReject(err));
+
+      expect(result.isSuccess).toBe(true);
+      expect(logger.warn).toHaveBeenCalled();
+      expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it('Driver-Adapter-Shape P2002 mit constraint.fields=["gef_beurteilung_id","version"] → Result.fail (Produktions-Shape)', async () => {
+      const logger = createMockLoggerUnit();
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      const err = buildP2002DriverAdapter({
+        fields: ['gef_beurteilung_id', 'version'],
+        originalMessage: 'duplicate key value violates unique constraint "gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key"',
+      });
+
+      const result = await repo.saveInitialVersion({ ...baseArgs(), version: 1 }, mockTxInitialReject(err));
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Unique constraint failed');
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 });
