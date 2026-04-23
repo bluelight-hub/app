@@ -1,9 +1,23 @@
-import { EigenschutzEntryPage, useEigenschutzHealth } from '@/features/eigenschutz';
+import { useEigenschutzHealth } from '@/features/eigenschutz';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Outlet, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { PiShieldWarning } from 'react-icons/pi';
 
+/**
+ * Layout-Route für den Eigenschutz-Bereich.
+ *
+ * **Story 1.6 + 2.1 Task 8:** Führt den Health-Check (Guard-Kette:
+ * JWT → Einsatz-Scope → Eigenschutz-Rolle) zentral durch und rendert
+ * je nach Status Spinner, EmptyState oder den `<Outlet />` für Child-
+ * Routen (`eigenschutz/index.tsx` → EntryPage, `eigenschutz.gefaehrdungen.tsx`
+ * → GefaehrdungenPage usw.).
+ *
+ * **Warum Layout-Route statt Leaf-Route:** Story 2.1 ergänzt die Dot-
+ * Notation-Child-Route `eigenschutz.gefaehrdungen.tsx`; TanStack Router
+ * behandelt `eigenschutz.tsx` dadurch automatisch als Parent. Ohne
+ * `<Outlet />` würden Child-Routes niemals sichtbar werden.
+ */
 export const Route = createFileRoute('/app/einsatz/$einsatzId/sicherheit/eigenschutz')(() => {
   return {
     component: EigenschutzRouteComponent,
@@ -68,5 +82,7 @@ function EigenschutzRouteComponent() {
     return <EmptyState icon={PiShieldWarning} title="Eigenschutz nicht verfügbar" description="Das Modul ist für diesen Einsatz noch nicht verdrahtet." />;
   }
 
-  return <EigenschutzEntryPage />;
+  // Guard-Kette grün → Child-Routen rendern (Index → EntryPage,
+  // /gefaehrdungen → GefaehrdungenPage, …).
+  return <Outlet />;
 }

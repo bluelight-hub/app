@@ -203,6 +203,7 @@ models/CreateErinnerungsvorlageDto.ts
 models/CreateFahrzeugtypDto.ts
 models/CreateFuehrungsrhythmusTemplateDto.ts
 models/CreateFunkkanalDto.ts
+models/CreateGefaehrdungsbeurteilungDto.ts
 models/CreateGefahrenzoneDto.ts
 models/CreateInviteDto.ts
 models/CreateInviteResponseDto.ts
@@ -331,6 +332,12 @@ models/FunkkanalControllerCreateVAlpha201Response.ts
 models/FunkkanalControllerListVAlpha200Response.ts
 models/FunkkanalResponseDto.ts
 models/FunkkanalResponseDtoDetails.ts
+models/GefaehrdungItemDto.ts
+models/GefaehrdungItemInputDto.ts
+models/GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response.ts
+models/GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response.ts
+models/GefaehrdungsbeurteilungDto.ts
+models/GefaehrdungsbeurteilungVorlageDto.ts
 models/GefahrenmatrixBewertungDto.ts
 models/GefahrenmatrixControllerGetVAlpha200Response.ts
 models/GefahrenmatrixControllerUpdateBewertungVAlpha200Response.ts
@@ -505,6 +512,7 @@ models/UpdateFuehrungsrhythmusTemplateDto.ts
 models/UpdateFunkStatusConfigDto.ts
 models/UpdateFunkkanalDto.ts
 models/UpdateFunkkanalDtoDetails.ts
+models/UpdateGefaehrdungsbeurteilungItemsDto.ts
 models/UpdateGefahrenmatrixDto.ts
 models/UpdateGefahrenzoneGeometryDto.ts
 models/UpdateNotizDto.ts

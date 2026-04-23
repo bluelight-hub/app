@@ -104,6 +104,9 @@ import type { FunkkanalReihenfolgeGeaendertEvent } from '@domain/events/funkkana
 import type { FunkkanalZuordnungErstelltEvent } from '@domain/events/funkkanal-zuordnung-erstellt.event';
 import type { FunkkanalZuordnungEntferntEvent } from '@domain/events/funkkanal-zuordnung-entfernt.event';
 import type { NotfallAlertRequestedEvent } from '@domain/events/notfall-alert-requested.event';
+// Eigenschutz Events (Story 2.1+)
+import type { GefaehrdungsbeurteilungErstelltEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-erstellt.event';
+import type { GefaehrdungsbeurteilungAktualisiertEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event';
 
 // Alarmierung Events (Issue #408)
 import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
@@ -498,6 +501,12 @@ export class EventSerializer {
         return this.serializeAlarmierungAbgeschlossen(event as unknown as AlarmierungAbgeschlossenEvent);
       case 'alarmierung.nachalarmierung_erstellt':
         return this.serializeNachalarmierungErstellt(event as unknown as NachalarmierungErstelltEvent);
+
+      // ===== EIGENSCHUTZ EVENTS (Story 2.1+) =====
+      case 'eigenschutz.gefaehrdungsbeurteilung_erstellt':
+        return this.serializeGefaehrdungsbeurteilungErstellt(event as unknown as GefaehrdungsbeurteilungErstelltEvent);
+      case 'eigenschutz.gefaehrdungsbeurteilung_aktualisiert':
+        return this.serializeGefaehrdungsbeurteilungAktualisiert(event as unknown as GefaehrdungsbeurteilungAktualisiertEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1730,6 +1739,31 @@ export class EventSerializer {
         bezeichnung: event.data.bezeichnung,
         ursprungAlarmierungId: event.data.ursprungAlarmierungId.value,
       },
+    };
+  }
+
+  // ===== EIGENSCHUTZ SERIALIZERS (Story 2.1) =====
+
+  private serializeGefaehrdungsbeurteilungErstellt(event: GefaehrdungsbeurteilungErstelltEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      gefaehrdungsbeurteilungId: event.gefaehrdungsbeurteilungId,
+      vorlageId: event.vorlageId,
+      itemCount: event.itemCount,
+    };
+  }
+
+  private serializeGefaehrdungsbeurteilungAktualisiert(event: GefaehrdungsbeurteilungAktualisiertEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      gefaehrdungsbeurteilungId: event.gefaehrdungsbeurteilungId,
+      fromVersion: event.fromVersion,
+      toVersion: event.toVersion,
+      changedFields: event.changedFields,
     };
   }
 }

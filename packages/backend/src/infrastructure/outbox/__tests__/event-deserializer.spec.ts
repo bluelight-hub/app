@@ -2283,7 +2283,10 @@ describe('EventDeserializer', () => {
       // + Funkkanal: Erstellt, Geaendert, Archiviert, Reihenfolge_Geaendert, Zuordnung_Erstellt, Zuordnung_Entfernt + NotfallAlertRequested (Issue #407)
       // + Alarmierung: Erstellt, EmpfaengerHinzugefuegt, EmpfaengerEntfernt, ZeitpunktKorrigiert, ZeitpunktFmsGesetzt, Abgeschlossen, NachalarmierungErstellt (Issue #408)
       // + Gefahrenzone: Erstellt, GeometryGeaendert, Geloescht (Issue #627)
-      expect(supportedTypes).toHaveLength(112);
+      // + Eigenschutz: GefaehrdungsbeurteilungErstellt (Story 2.1), GefaehrdungsbeurteilungAktualisiert (Story 2.2)
+      expect(supportedTypes).toHaveLength(114);
+      expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_erstellt');
+      expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');

@@ -244,6 +244,15 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get pushSubscription() {
     return this._client.pushSubscription;
   }
+  get gefaehrdungsbeurteilung() {
+    return this._client.gefaehrdungsbeurteilung;
+  }
+  get gefaehrdungsbeurteilungVersion() {
+    return this._client.gefaehrdungsbeurteilungVersion;
+  }
+  get gefaehrdungsbeurteilungVorlage() {
+    return this._client.gefaehrdungsbeurteilungVorlage;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

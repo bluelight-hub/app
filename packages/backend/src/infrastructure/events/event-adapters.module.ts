@@ -53,6 +53,8 @@ import {
   AlarmierungZeitpunktKorrigiertEtbEventAdapter,
   AlarmierungAbgeschlossenEtbEventAdapter,
   FmsAlarmierungZeitpunktAdapter,
+  EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
+  EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -200,6 +202,8 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     AlarmierungZeitpunktKorrigiertEtbEventAdapter, // Issue #408: AlarmierungZeitpunktKorrigiert → ETB-Eintrag
     AlarmierungAbgeschlossenEtbEventAdapter, // Issue #408: AlarmierungAbgeschlossen → ETB-Eintrag
     FmsAlarmierungZeitpunktAdapter, // Issue #408: FMS-Status → Alarmierung Auto-Population
+    EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter, // Story 2.1: GefaehrdungsbeurteilungErstellt Log-Adapter (4-Stellen-Registry)
+    EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter, // Story 2.2: GefaehrdungsbeurteilungAktualisiert Log-Adapter (4-Stellen-Registry)
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

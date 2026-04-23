@@ -62,8 +62,16 @@ export function createAppQueryClient(): QueryClient {
       },
     }),
     mutationCache: new MutationCache({
-      onError: async (error) => {
-        await handleQueryError(error);
+      onError: async (error, _variables, _context, mutation) => {
+        // Zero-Toast-Policy (Architecture §J, UX-DR21): Mutations mit
+        // `meta: { silentError: true }` unterdrücken den globalen Toast.
+        // Der Aufrufer (Hook-Konsument) rendert den Fehler dann inline —
+        // z. B. als Konflikt-Banner bei 409 (Story 2.2 AC10) ohne dass ein
+        // Toast parallel dazu erscheint.
+        const silent = mutation?.meta?.silentError === true;
+        if (!silent) {
+          await handleQueryError(error);
+        }
       },
     }),
     defaultOptions: {

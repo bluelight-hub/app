@@ -15,15 +15,47 @@
 
 import * as runtime from '../runtime';
 import type {
+  CreateGefaehrdungsbeurteilungDto,
   EigenschutzHealthControllerGetHealthVAlpha200Response,
+  GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response,
+  GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response,
+  UpdateGefaehrdungsbeurteilungItemsDto,
 } from '../models/index';
 import {
+    CreateGefaehrdungsbeurteilungDtoFromJSON,
+    CreateGefaehrdungsbeurteilungDtoToJSON,
     EigenschutzHealthControllerGetHealthVAlpha200ResponseFromJSON,
     EigenschutzHealthControllerGetHealthVAlpha200ResponseToJSON,
+    GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseFromJSON,
+    GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseToJSON,
+    GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseFromJSON,
+    GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseToJSON,
+    UpdateGefaehrdungsbeurteilungItemsDtoFromJSON,
+    UpdateGefaehrdungsbeurteilungItemsDtoToJSON,
 } from '../models/index';
 
 export interface EigenschutzHealthControllerGetHealthVAlphaRequest {
     einsatzId: string;
+}
+
+export interface GefaehrdungsbeurteilungControllerCreateBeurteilungVAlphaRequest {
+    einsatzId: string;
+    createGefaehrdungsbeurteilungDto: CreateGefaehrdungsbeurteilungDto;
+}
+
+export interface GefaehrdungsbeurteilungControllerGetBeurteilungVAlphaRequest {
+    einsatzId: string;
+    id: string;
+}
+
+export interface GefaehrdungsbeurteilungControllerListVorlagenVAlphaRequest {
+    einsatzId: string;
+}
+
+export interface GefaehrdungsbeurteilungControllerUpdateItemsVAlphaRequest {
+    einsatzId: string;
+    id: string;
+    updateGefaehrdungsbeurteilungItemsDto: UpdateGefaehrdungsbeurteilungItemsDto;
 }
 
 /**
@@ -61,6 +93,172 @@ export class EigenschutzApi extends runtime.BaseAPI {
      */
     async eigenschutzHealthControllerGetHealthVAlpha(requestParameters: EigenschutzHealthControllerGetHealthVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzHealthControllerGetHealthVAlpha200Response> {
         const response = await this.eigenschutzHealthControllerGetHealthVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Neue Gefährdungsbeurteilung für eine Einheit anlegen
+     */
+    async gefaehrdungsbeurteilungControllerCreateBeurteilungVAlphaRaw(requestParameters: GefaehrdungsbeurteilungControllerCreateBeurteilungVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling gefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha().'
+            );
+        }
+
+        if (requestParameters['createGefaehrdungsbeurteilungDto'] == null) {
+            throw new runtime.RequiredError(
+                'createGefaehrdungsbeurteilungDto',
+                'Required parameter "createGefaehrdungsbeurteilungDto" was null or undefined when calling gefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/gefaehrdungsbeurteilungen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateGefaehrdungsbeurteilungDtoToJSON(requestParameters['createGefaehrdungsbeurteilungDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Neue Gefährdungsbeurteilung für eine Einheit anlegen
+     */
+    async gefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha(requestParameters: GefaehrdungsbeurteilungControllerCreateBeurteilungVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response> {
+        const response = await this.gefaehrdungsbeurteilungControllerCreateBeurteilungVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Eine Gefährdungsbeurteilung per ID abrufen
+     */
+    async gefaehrdungsbeurteilungControllerGetBeurteilungVAlphaRaw(requestParameters: GefaehrdungsbeurteilungControllerGetBeurteilungVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling gefaehrdungsbeurteilungControllerGetBeurteilungVAlpha().'
+            );
+        }
+
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling gefaehrdungsbeurteilungControllerGetBeurteilungVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/gefaehrdungsbeurteilungen/{id}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Eine Gefährdungsbeurteilung per ID abrufen
+     */
+    async gefaehrdungsbeurteilungControllerGetBeurteilungVAlpha(requestParameters: GefaehrdungsbeurteilungControllerGetBeurteilungVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response> {
+        const response = await this.gefaehrdungsbeurteilungControllerGetBeurteilungVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Aktive Gefährdungsbeurteilungs-Vorlagen abrufen
+     */
+    async gefaehrdungsbeurteilungControllerListVorlagenVAlphaRaw(requestParameters: GefaehrdungsbeurteilungControllerListVorlagenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling gefaehrdungsbeurteilungControllerListVorlagenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/gefaehrdungsbeurteilungs-vorlagen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Aktive Gefährdungsbeurteilungs-Vorlagen abrufen
+     */
+    async gefaehrdungsbeurteilungControllerListVorlagenVAlpha(requestParameters: GefaehrdungsbeurteilungControllerListVorlagenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response> {
+        const response = await this.gefaehrdungsbeurteilungControllerListVorlagenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Items einer Gefährdungsbeurteilung aktualisieren (FR3, FR4)
+     */
+    async gefaehrdungsbeurteilungControllerUpdateItemsVAlphaRaw(requestParameters: GefaehrdungsbeurteilungControllerUpdateItemsVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling gefaehrdungsbeurteilungControllerUpdateItemsVAlpha().'
+            );
+        }
+
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling gefaehrdungsbeurteilungControllerUpdateItemsVAlpha().'
+            );
+        }
+
+        if (requestParameters['updateGefaehrdungsbeurteilungItemsDto'] == null) {
+            throw new runtime.RequiredError(
+                'updateGefaehrdungsbeurteilungItemsDto',
+                'Required parameter "updateGefaehrdungsbeurteilungItemsDto" was null or undefined when calling gefaehrdungsbeurteilungControllerUpdateItemsVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/gefaehrdungsbeurteilungen/{id}/items`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateGefaehrdungsbeurteilungItemsDtoToJSON(requestParameters['updateGefaehrdungsbeurteilungItemsDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Items einer Gefährdungsbeurteilung aktualisieren (FR3, FR4)
+     */
+    async gefaehrdungsbeurteilungControllerUpdateItemsVAlpha(requestParameters: GefaehrdungsbeurteilungControllerUpdateItemsVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response> {
+        const response = await this.gefaehrdungsbeurteilungControllerUpdateItemsVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

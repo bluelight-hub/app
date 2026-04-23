@@ -327,6 +327,36 @@ export const EVENT_HANDLER = {
 
   /** Alarmierung-Abgeschlossen → ETB-Eintrag Handler Token (Issue #408) */
   ALARMIERUNG_ABGESCHLOSSEN_ZU_ETB: Symbol('IEventHandler<AlarmierungAbgeschlossenEvent>:EtbEintrag'),
+
+  /* ===== EIGENSCHUTZ EVENT HANDLER TOKENS (Story 1.7 pre-allocated) =====
+   *
+   * Story 1.7 liefert nur das Event-Registry-Framework (Basisklasse +
+   * `EVENT_NAMES.EIGENSCHUTZ`-Namespace + Konsistenz-Spec). DI-Tokens werden
+   * bewusst NICHT als Live-Symbols angelegt, da ungenutzte Einträge im
+   * Consumer-Validator-Graph Rauschen erzeugen und Epic 2+ Devs eine
+   * "halbe" API vortäuschen könnten. Stattdessen hier ein Rezept-Block als
+   * Referenz für die nachfolgenden Stories:
+   *
+   *   GEFAEHRDUNGSBEURTEILUNG_ERSTELLT_PROJECTION: Symbol('IEventHandler<GefaehrdungsbeurteilungErstelltEvent>:AmpelProjection'),
+   *   GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT_PROJECTION: Symbol('IEventHandler<GefaehrdungsbeurteilungAktualisiertEvent>:AmpelProjection'),
+   *   PSA_PROFIL_GEAENDERT_WEBSOCKET: Symbol('IEventHandler<PsaProfilGeaendertEvent>:WebSocketBroadcast'),
+   *   PSA_PROFIL_GEAENDERT_PUSH: Symbol('IEventHandler<PsaProfilGeaendertEvent>:PushNotification'),
+   *   SICHERHEITSREGEL_AUSGERUFEN_WEBSOCKET: Symbol('IEventHandler<SicherheitsregelAusgerufenEvent>:WebSocketBroadcast'),
+   *   SICHERHEITSREGEL_QUITTIERT_ETB: Symbol('IEventHandler<SicherheitsregelQuittiertEvent>:EtbEintrag'),
+   *   SICHERUNGSPOSTEN_EINGERICHTET_WEBSOCKET: Symbol('IEventHandler<SicherungspostenEingerichtetEvent>:WebSocketBroadcast'),
+   *   SICHERUNGSPOSTEN_AKTUALISIERT_WEBSOCKET: Symbol('IEventHandler<SicherungspostenAktualisiertEvent>:WebSocketBroadcast'),
+   *   VORFALL_GEMELDET_WEBSOCKET: Symbol('IEventHandler<VorfallGemeldetEvent>:WebSocketBroadcast'),
+   *   VORFALL_EXPORTIERT_TELEMETRY: Symbol('IEventHandler<VorfallExportiertEvent>:Telemetry'),
+   *   QUITTUNG_ABGEGEBEN_PROJECTION: Symbol('IEventHandler<QuittungAbgegebenEvent>:QuittungsstandProjection'),
+   *   LUECKE_GEMELDET_WEBSOCKET: Symbol('IEventHandler<LueckeGemeldetEvent>:WebSocketBroadcast'),
+   *   QUITTUNG_UEBERFAELLIG_PUSH: Symbol('IEventHandler<QuittungUeberfaelligEvent>:PushNotification'),
+   *   KONFLIKT_ERKANNT_WEBSOCKET: Symbol('IEventHandler<KonfliktErkanntEvent>:WebSocketBroadcast'),
+   *   KONFLIKT_AUFGELOEST_WEBSOCKET: Symbol('IEventHandler<KonfliktAufgeloestEvent>:WebSocketBroadcast'),
+   *
+   * Convention: EIGENSCHUTZ-Token-Namen folgen UPPER_SNAKE_CASE aus
+   * `EVENT_NAMES.EIGENSCHUTZ` + "_{Aspect}"-Suffix (PROJECTION, WEBSOCKET,
+   * ETB, TELEMETRY, PUSH).
+   */
 } as const;
 
 /**
@@ -422,6 +452,17 @@ export const MONITORING = {
 
 /** Repository Token für ITaktischesZeichenRepository (Issue #636) */
 export const TAKTISCHE_ZEICHEN_REPOSITORY = Symbol('ITaktischesZeichenRepository');
+
+/**
+ * Eigenschutz-Gefährdungsbeurteilung Repository Tokens (Story 2.1).
+ *
+ * Trennung in drei Repositories (Haupt-Aggregate, Version-Chain, Vorlagen),
+ * damit Application-Handler gezielt nur die benötigten Ports injizieren
+ * (z. B. nutzt der Read-Query für Vorlagen nur den Vorlagen-Port).
+ */
+export const GEFAEHRDUNGSBEURTEILUNG_REPOSITORY = Symbol('IGefaehrdungsbeurteilungRepository');
+export const GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY = Symbol('IGefaehrdungsbeurteilungVersionRepository');
+export const GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY = Symbol('IGefaehrdungsbeurteilungVorlageRepository');
 
 /** Repository Token für IDefaultZeichenRepository (Issue #668) */
 export const DEFAULT_ZEICHEN_REPOSITORY = Symbol('IDefaultZeichenRepository');

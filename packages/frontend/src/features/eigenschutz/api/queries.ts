@@ -1,8 +1,9 @@
 import { api } from '@/shared';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { CreateGefaehrdungsbeurteilungInput, Gefaehrdungsbeurteilung, GefaehrdungsbeurteilungVorlage, UpdateGefaehrdungsbeurteilungItemsInput } from '../schemas/gefaehrdungsbeurteilung.schema';
 
 /**
- * Query-Key-Factory für das Eigenschutz-Feature (Story 1.6).
+ * Query-Key-Factory für das Eigenschutz-Feature (Story 1.6 + 2.1).
  *
  * Hierarchische Struktur gemäß Architecture §I — ermöglicht
  * gezielte Cache-Invalidierung in späteren Stories (z. B. nach
@@ -11,6 +12,9 @@ import { useQuery } from '@tanstack/react-query';
 export const EIGENSCHUTZ_QUERY_KEYS = {
   all: (einsatzId: string) => ['eigenschutz', einsatzId] as const,
   health: (einsatzId: string) => ['eigenschutz', einsatzId, 'health'] as const,
+  gefaehrdungsbeurteilungsVorlagen: (einsatzId: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungs-vorlagen'] as const,
+  gefaehrdungsbeurteilungen: (einsatzId: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen'] as const,
+  gefaehrdungsbeurteilung: (einsatzId: string, id: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen', id] as const,
 } as const;
 
 /**
@@ -19,6 +23,18 @@ export const EIGENSCHUTZ_QUERY_KEYS = {
  */
 function is403(error: unknown): boolean {
   return (error as { response?: { status?: number } } | null)?.response?.status === 403;
+}
+
+/**
+ * Gemeinsame Retry-Policy für Eigenschutz-GET-Queries (AC8, Zero-Toast).
+ * - 403 → kein Retry (Berechtigung fehlt dauerhaft, Route zeigt EmptyState).
+ * - Sonst → maximal 2 Wiederholungen.
+ */
+function eigenschutzRetry(failureCount: number, error: unknown): boolean {
+  if (is403(error)) {
+    return false;
+  }
+  return failureCount < 2;
 }
 
 /**
@@ -41,13 +57,178 @@ export function useEigenschutzHealth(einsatzId: string) {
       const response = await api.eigenschutz().eigenschutzHealthControllerGetHealthVAlpha({ einsatzId });
       return response.data;
     },
-    retry: (failureCount, error) => {
-      if (is403(error)) {
-        return false;
-      }
-      return failureCount < 2;
-    },
+    retry: eigenschutzRetry,
     meta: { silentError: true },
     enabled: Boolean(einsatzId),
+  });
+}
+
+/**
+ * Liefert die aktiven Gefährdungsbeurteilungs-Seed-Vorlagen für den
+ * aktuellen Einsatz (Story 2.1, AC4).
+ *
+ * Die Drawer-Komponente nutzt den Hook, um die Szenario-Kacheln
+ * (Verkehrsunfall, MANV, PSNV, Einsatzende) mit aktivem Content zu befüllen.
+ *
+ * **UX-DR21 Zero-Toast-Policy:**
+ * - `meta: { silentError: true }` — Fehler werden inline im Drawer gerendert,
+ *   nicht über den globalen Sonner-Toast.
+ * - Retry-Policy identisch zu `useEigenschutzHealth` (403 → kein Retry).
+ */
+export function useGefaehrdungsbeurteilungVorlagen(einsatzId: string) {
+  return useQuery({
+    queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungsVorlagen(einsatzId),
+    queryFn: async (): Promise<GefaehrdungsbeurteilungVorlage[]> => {
+      const response = await api.eigenschutz().gefaehrdungsbeurteilungControllerListVorlagenVAlpha({ einsatzId });
+      // Defensive gegen Backend-Responseshape-Drift: ein nicht-Array-Payload
+      // würde im Drawer einen Laufzeit-Typfehler („map is not a function") auslösen.
+      return Array.isArray(response?.data) ? (response.data as GefaehrdungsbeurteilungVorlage[]) : [];
+    },
+    retry: eigenschutzRetry,
+    meta: { silentError: true },
+    enabled: Boolean(einsatzId),
+  });
+}
+
+/**
+ * Legt eine Gefährdungsbeurteilung für eine Einheit im aktuellen Einsatz
+ * an (Story 2.1, AC5).
+ *
+ * **Optimistic-Cache-Pattern:**
+ * - `onMutate` snapshotet den aktuellen Listen-Cache unter
+ *   `EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungen(einsatzId)`.
+ * - `onError` stellt den Snapshot wieder her.
+ * - `onSettled` invalidiert die Liste, damit der echte Server-State nachgeladen
+ *   wird (Source-of-Truth bleibt das Backend).
+ *
+ * Der Hook führt **keinen** Redirect durch — das macht die Drawer-Komponente
+ * über den `onSuccess`-Callback mit dem zurückgegebenen Beurteilungs-Objekt.
+ */
+export function useCreateGefaehrdungsbeurteilung(einsatzId: string) {
+  const queryClient = useQueryClient();
+  const listKey = EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungen(einsatzId);
+
+  return useMutation({
+    mutationFn: async (input: CreateGefaehrdungsbeurteilungInput): Promise<Gefaehrdungsbeurteilung> => {
+      const response = await api.eigenschutz().gefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha({
+        einsatzId,
+        createGefaehrdungsbeurteilungDto: {
+          einheitId: input.einheitId,
+          // null → undefined: Der generierte Client kennt nur optionale String-Felder,
+          // aber das Shared-Zod-Schema erlaubt `null` als explizites „nicht gesetzt".
+          vorlageId: input.vorlageId ?? undefined,
+          gefahrenzoneId: input.gefahrenzoneId ?? undefined,
+        },
+      });
+      return response.data as Gefaehrdungsbeurteilung;
+    },
+    onMutate: async () => {
+      // Laufende Listen-Queries abbrechen, damit sie den Snapshot nicht überschreiben.
+      await queryClient.cancelQueries({ queryKey: listKey });
+      const previous = queryClient.getQueryData<Gefaehrdungsbeurteilung[]>(listKey);
+      return { previous };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(listKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: listKey });
+    },
+  });
+}
+
+/**
+ * Liefert eine einzelne Gefährdungsbeurteilung inkl. `items` + `version`
+ * (Story 2.2, AC10). Der Query-Key ist granular pro Beurteilungs-ID, damit
+ * die Mutation gezielt invalidieren kann.
+ *
+ * Retry- und Silent-Error-Policy identisch zum Vorlagen-Hook.
+ */
+export function useGefaehrdungsbeurteilung(einsatzId: string, id: string) {
+  return useQuery({
+    queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung(einsatzId, id),
+    queryFn: async (): Promise<Gefaehrdungsbeurteilung> => {
+      const response = await api.eigenschutz().gefaehrdungsbeurteilungControllerGetBeurteilungVAlpha({
+        einsatzId,
+        id,
+      });
+      return response.data as Gefaehrdungsbeurteilung;
+    },
+    retry: eigenschutzRetry,
+    meta: { silentError: true },
+    enabled: Boolean(einsatzId) && Boolean(id),
+  });
+}
+
+/**
+ * Aktualisiert die Items einer Gefährdungsbeurteilung (Story 2.2, AC10).
+ *
+ * **Optimistic-Update-Pattern:**
+ * - `onMutate`: snapshot den aktuellen Detail-Cache + setze den Cache auf
+ *   eine optimistische Version (`version + 1`). Das UI rendert die neue
+ *   Liste sofort; der Banner erscheint erst bei 409.
+ * - `onError`: rollback auf Snapshot. 409 (ConflictDetected) wird NICHT
+ *   silent — die Page-Komponente fängt den Error über `mutation.error` ab
+ *   und rendert einen `SeverityBanner` (Zero-Toast-Policy UX-DR21).
+ * - `onSettled`: invalidate, damit die Source-of-Truth das Backend bleibt.
+ */
+export function useUpdateGefaehrdungsbeurteilungItems(einsatzId: string, id: string) {
+  const queryClient = useQueryClient();
+  const detailKey = EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung(einsatzId, id);
+
+  return useMutation<Gefaehrdungsbeurteilung, unknown, UpdateGefaehrdungsbeurteilungItemsInput, { previous: Gefaehrdungsbeurteilung | undefined }>({
+    // UX-DR21 Zero-Toast-Policy: 409-Konflikte rendert die Page-Komponente als
+    // `SeverityBanner`-Fallback (div role="alert"). Ein zusätzlicher
+    // Sonner-Toast würde zu Doppel-Benachrichtigung führen.
+    meta: { silentError: true },
+    mutationFn: async (input): Promise<Gefaehrdungsbeurteilung> => {
+      const response = await api.eigenschutz().gefaehrdungsbeurteilungControllerUpdateItemsVAlpha({
+        einsatzId,
+        id,
+        updateGefaehrdungsbeurteilungItemsDto: {
+          items: input.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            eintritt: item.eintritt,
+            schaden: item.schaden,
+            // risikoklasse wird vom Backend autoritativ berechnet — kein Client-Feld.
+            schutzmassnahmen: item.schutzmassnahmen,
+          })),
+          expectedVersion: input.expectedVersion,
+        },
+      });
+      return response.data as Gefaehrdungsbeurteilung;
+    },
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: detailKey });
+      const previous = queryClient.getQueryData<Gefaehrdungsbeurteilung>(detailKey);
+      if (previous) {
+        queryClient.setQueryData<Gefaehrdungsbeurteilung>(detailKey, {
+          ...previous,
+          // Optimistic: Items wie eingegeben (ohne risikoklasse — Backend entscheidet).
+          items: input.items,
+          version: input.expectedVersion + 1,
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _input, context) => {
+      // Rollback auch bei `previous === null` durchführen (Cache war vorher
+      // leer): ein truthy-Check würde den optimistisch gesetzten Wert stehen
+      // lassen, obwohl der Cache eigentlich leer sein sollte.
+      if (context !== undefined && 'previous' in context) {
+        queryClient.setQueryData(detailKey, context.previous);
+      }
+    },
+    onSuccess: (data) => {
+      // Erfolg: Server-Wahrheit übernehmen (inkl. server-berechneter risikoklasse).
+      queryClient.setQueryData(detailKey, data);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: detailKey });
+    },
   });
 }
