@@ -74,7 +74,7 @@
     "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^4.2.4",
     "taktische-zeichen-core": "^0.10.0",
     "taktische-zeichen-react": "^0.10.0",
     "use-debounce": "^10.1.1",

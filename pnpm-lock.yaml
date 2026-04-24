@@ -424,8 +424,8 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0
       tailwindcss:
-        specifier: ^4.2.2
-        version: 4.2.2
+        specifier: ^4.2.4
+        version: 4.2.4
       taktische-zeichen-core:
         specifier: ^0.10.0
         version: 0.10.0(patch_hash=a427be0c7acbb4a6e7df4d16354d34d5e82a0e4cae8955dcd36f237c740bc7f2)
@@ -3766,8 +3766,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rolldown/debug@1.0.0-rc.16':
-    resolution: {integrity: sha512-titF/ZuuhX4hg0eP04iuVNX/9+YV40k9laG68niMawfVssl12X2s5iVQLWP/vjrnPTDgFESzrJzNEw84IAj+Nw==}
+  '@rolldown/debug@1.0.0-rc.17':
+    resolution: {integrity: sha512-4ZPkkHYar4T6+nG0UII9nVCaAqjnKp2fVkk5JqHzS27mOpsf2fs0COeX4yDMLEPj2S60B7QoGEk1b4kGhCgb3A==}
 
   '@rolldown/pluginutils@1.0.0-rc.16':
     resolution: {integrity: sha512-45+YtqxLYKDWQouLKCrpIZhke+nXxhsw+qAHVzHDVwttyBlHNBVs2K25rDXrZzhpTp9w1FlAlvweV1H++fdZoA==}
@@ -10405,6 +10405,9 @@ packages:
   tailwindcss@4.2.2:
     resolution: {integrity: sha512-KWBIxs1Xb6NoLdMVqhbhgwZf2PGBpPEiwOqgI4pFIYbNTfBXiKYyWoTsXgBQ9WFg/OlhnvHaY+AEpW7wSmFo2Q==}
 
+  tailwindcss@4.2.4:
+    resolution: {integrity: sha512-HhKppgO81FQof5m6TEnuBWCZGgfRAWbaeOaGT00KOy/Pf/j6oUihdvBpA7ltCeAvZpFhW3j0PTclkxsd4IXYDA==}
+
   taktische-zeichen-core@0.10.0:
     resolution: {integrity: sha512-jo4jZmAuBbAsKJrDppHY1hSprnZGmC8f8fRI1GwpZ6fOKDXXEaxVrNWJDfvywnjYXwEfOsRl7obbLW/LT77J9g==}
 
@@ -15789,7 +15792,7 @@ snapshots:
   '@rolldown/binding-win32-x64-msvc@1.0.0-rc.16':
     optional: true
 
-  '@rolldown/debug@1.0.0-rc.16':
+  '@rolldown/debug@1.0.0-rc.17':
     optional: true
 
   '@rolldown/pluginutils@1.0.0-rc.16': {}
@@ -18410,7 +18413,7 @@ snapshots:
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@pnpm/read-project-manifest': 1001.2.6(@pnpm/logger@1001.0.1)
-      '@rolldown/debug': 1.0.0-rc.16
+      '@rolldown/debug': 1.0.0-rc.17
       '@vitejs/devtools-kit': 0.1.3(typescript@6.0.3)(vite@8.0.9)(ws@8.20.0)
       '@vitejs/devtools-rpc': 0.1.3(typescript@6.0.3)(ws@8.20.0)
       ansis: 4.2.0
@@ -24036,6 +24039,8 @@ snapshots:
   tailwind-merge@3.5.0: {}
 
   tailwindcss@4.2.2: {}
+
+  tailwindcss@4.2.4: {}
 
   taktische-zeichen-core@0.10.0(patch_hash=a427be0c7acbb4a6e7df4d16354d34d5e82a0e4cae8955dcd36f237c740bc7f2):
     dependencies:
