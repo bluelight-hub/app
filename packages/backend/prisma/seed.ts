@@ -237,7 +237,7 @@ async function seedKraefteConfig(systemUserId: string): Promise<void> {
  *
  * ⚠️ WICHTIG — Beispielcharakter der Vorlagen:
  * Die 5 Gefährdungsbeurteilungs-Vorlagen enthalten fachlich formulierte Handlungsanweisungen
- * (PSNV-Einsatznachsorge, CSA-Tragezeiten, HV-Batterie-Warnungen, Bindemittel bei Säure-Austritt).
+ * (PSNV-Einsatznachsorge, Dekon-Schnittstellen, HV-Batterie-Warnungen, Bindemittel bei Säure-Austritt).
  * Diese Inhalte sind an DIN/DGUV/TRBS-Vokabular angelehnt, aber NICHT durch einen
  * Sicherheitsbeauftragten (SiBe) einer konkreten Organisation fachlich freigegeben.
  * Vor produktivem Einsatz MÜSSEN die Vorlagen durch den SiBe der einsetzenden
@@ -339,7 +339,7 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
           eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
           schaden: Schadensausmass.HOCH,
           schutzmassnahmen:
-            'Brandschutz (Feuerwehr) vor Patientenrettung zuerst anfordern, Zündquellen fernhalten (kein Licht, kein Funkgerät direkt am Fahrzeug), Bindemittel bereithalten, bei Säure-Kontakt sofort spülen.',
+            'Gefahrenbereich absichern lassen, Zündquellen fernhalten (kein offenes Licht direkt am Fahrzeug), Bindemittel bereithalten, bei Säure-Kontakt sofort spülen und Betroffene aus dem unmittelbaren Gefahrenbereich führen.',
         },
         {
           title: 'Hochvolt-Risiko bei Elektro- und Hybrid-Fahrzeugen',
@@ -348,7 +348,7 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
           eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
           schaden: Schadensausmass.KATASTROPHAL,
           schutzmassnahmen:
-            'Fahrzeug-Typ erkennen (Rettungsdatenblatt), HV-Abschaltung durch Feuerwehr abwarten, Mindestabstand zu beschädigten Batterien halten, bei Rauchentwicklung sofort Atemschutzkräfte anfordern.',
+            'Fahrzeug-Typ erkennen (Rettungsdatenblatt), technische Freigabe des Fahrzeugs abwarten, Mindestabstand zu beschädigten Batterien halten, bei Rauchentwicklung Bereich sofort räumen und Spezialkräfte anfordern.',
         },
       ],
     },
@@ -425,16 +425,16 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
           eintritt: Eintrittswahrscheinlichkeit.SELTEN,
           schaden: Schadensausmass.KATASTROPHAL,
           schutzmassnahmen:
-            'Arbeit ausschließlich in der Weißen Zone nach Dekontamination, bei Grenzübertritt Vollschutz (Schutzanzug, Atemschutz, doppelte Handschuhe), Dosimeter bei radiologischer Lage, striktes One-Way-Prinzip Schmutz/Sauber.',
+            'Arbeit ausschließlich in der Weißen Zone nach Dekontamination, kontaminierte Patienten nur über definierte Übergabepunkte übernehmen, Einweg-Schutzkleidung und Chemikalienschutzhandschuhe nutzen, striktes One-Way-Prinzip Schmutz/Sauber einhalten.',
         },
         {
-          title: 'Unzureichende Eigen-PSA ohne Vollschutz',
+          title: 'Unzureichende Eigen-PSA bei Kontaminationsverdacht',
           description:
-            'Einsatz in der Grauen oder Schwarzen Zone ohne CBRN-Vollschutz oder mit undichter PSA ist lebensgefährlich; Eindringen von Noxen durch Mikrorisse, Handschuhübergänge oder Maskenlecks.',
+            'Schon in der Patientenübernahme nach unklarer oder unvollständiger Dekontamination kann unzureichende Eigen-PSA zu Kontaminationsverschleppung oder Eigenschädigung führen; kritisch sind insbesondere Hautkontakt, Schleimhaut-Exposition und unsaubere Übergänge.',
           eintritt: Eintrittswahrscheinlichkeit.GELEGENTLICH,
           schaden: Schadensausmass.KATASTROPHAL,
           schutzmassnahmen:
-            'PSA-Dichtheitsprüfung (Maskensitz, Anzug-Naht-Check) vor Zonen-Eintritt, nur geschulte Kräfte in Grau/Schwarz, Buddy-Prinzip mit Buddy-Check, max. Tragezeit CSA beachten.',
+            'Buddy-Check der Eigenschutz-PSA vor Patientenkontakt, Versorgung nur in freigegebenen Bereichen, Dekon-Status sichtbar dokumentieren, bei unklarer Lage keine Patientenübernahme ohne Rücksprache mit Spezialkräften.',
         },
         {
           title: 'Kreuz-Kontamination zwischen Patienten und Helfern',

@@ -39,7 +39,7 @@ export const SEED_SZENARIO_META: Readonly<Record<string, SeedSzenarioMeta>> = {
   },
   'cbrn-patientenversorgung': {
     icon: PiRadioactive,
-    kurzbeschreibung: 'CBRN-Patientenversorgung — Kontaminationszonen, Vollschutz, Dekontamination.',
+    kurzbeschreibung: 'CBRN-Patientenversorgung — Übergabepunkte, Kontaminationsschutz, Dekontamination.',
   },
 };
 
