@@ -1,5 +1,6 @@
-import type { Gefaehrdungsbeurteilung as PrismaGefaehrdungsbeurteilung } from '@/generated/prisma/client';
+import type { Gefaehrdungsbeurteilung as PrismaGefaehrdungsbeurteilung, GefaehrdungsbeurteilungVersion as PrismaGefaehrdungsbeurteilungVersion } from '@/generated/prisma/client';
 import { Gefaehrdungsbeurteilung } from '@domain/eigenschutz/aggregates/gefaehrdungsbeurteilung.aggregate';
+import type { GefaehrdungsbeurteilungVersionRow } from '@domain/eigenschutz/repositories';
 import { GefaehrdungItem, type GefaehrdungItemProps } from '@domain/eigenschutz/value-objects/gefaehrdung-item.vo';
 
 /**
@@ -13,15 +14,7 @@ import { GefaehrdungItem, type GefaehrdungItemProps } from '@domain/eigenschutz/
  */
 export class PrismaGefaehrdungsbeurteilungMapper {
   static toDomain(row: PrismaGefaehrdungsbeurteilung): Gefaehrdungsbeurteilung {
-    const items = Array.isArray(row.items) ? row.items : [];
-    const domainItems: GefaehrdungItem[] = [];
-    for (const raw of items) {
-      if (typeof raw !== 'object' || raw === null) continue;
-      const result = GefaehrdungItem.create(raw as unknown as GefaehrdungItemProps);
-      if (result.isSuccess && result.value) {
-        domainItems.push(result.value);
-      }
-    }
+    const domainItems = PrismaGefaehrdungsbeurteilungMapper.rehydrateItems(row.items);
 
     // `reconstitute` statt `create`: übernimmt die tatsächliche DB-`version`
     // (sonst würde jedes geladene Aggregate auf Version 1 zurückfallen, was
@@ -40,5 +33,51 @@ export class PrismaGefaehrdungsbeurteilungMapper {
 
   static toPersistenceItems(items: readonly GefaehrdungItem[]): GefaehrdungItemProps[] {
     return items.map((item) => item.toJSON());
+  }
+
+  /**
+   * Mapped eine rohe Prisma-Row der Versions-Tabelle
+   * (`gefaehrdungsbeurteilung_versionen`) auf den Read-Model-Row-Typ
+   * {@link GefaehrdungsbeurteilungVersionRow} (Story 2.4).
+   *
+   * Die Items werden defensiv aus dem JSONB rehydriert — identisch zu
+   * `toDomain`: fehlerhafte Einträge werden still übersprungen (das Timeline-
+   * Read-Model darf auf Legacy- oder Migrations-Artefakten nicht fail-loudly
+   * sein).
+   *
+   * `changedFields` wird als `Record<string, unknown>` getippt (Story 2.3
+   * persistiert z. B. `{ added, removed, updated, unchanged }`; Story 2.1
+   * `{ created: true }`).
+   */
+  static toVersionRow(row: PrismaGefaehrdungsbeurteilungVersion): GefaehrdungsbeurteilungVersionRow {
+    return {
+      version: row.version,
+      items: PrismaGefaehrdungsbeurteilungMapper.rehydrateItems(row.items),
+      // `changedFields` ist in Prisma als `Json`-Feld typisiert; die tatsächliche
+      // Form ist je nach Write-Pfad unterschiedlich (siehe JSDoc). Wir geben
+      // sie 1:1 weiter und überlassen dem Frontend-Formatter die Interpretation.
+      changedFields: (row.changedFields ?? {}) as Record<string, unknown>,
+      gueltigVon: row.gueltigVon,
+      gueltigBis: row.gueltigBis,
+      changedByUserId: row.changedByUserId,
+      eventId: row.eventId,
+    };
+  }
+
+  /**
+   * Defensiver JSONB → GefaehrdungItem[]-Rehydrator. Fehlerhafte Einträge
+   * werden übersprungen (siehe Klassenkopf-Kommentar).
+   */
+  private static rehydrateItems(raw: unknown): GefaehrdungItem[] {
+    const items = Array.isArray(raw) ? raw : [];
+    const domainItems: GefaehrdungItem[] = [];
+    for (const entry of items) {
+      if (typeof entry !== 'object' || entry === null) continue;
+      const result = GefaehrdungItem.create(entry as unknown as GefaehrdungItemProps);
+      if (result.isSuccess && result.value) {
+        domainItems.push(result.value);
+      }
+    }
+    return domainItems;
   }
 }

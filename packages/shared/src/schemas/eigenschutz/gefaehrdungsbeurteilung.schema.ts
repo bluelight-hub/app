@@ -49,3 +49,35 @@ export const gefaehrdungsbeurteilungSchema = z.object({
 });
 
 export type Gefaehrdungsbeurteilung = z.infer<typeof gefaehrdungsbeurteilungSchema>;
+
+/**
+ * Response-Shape eines einzelnen Historien-Eintrags (Story 2.4).
+ *
+ * Jeder Eintrag repräsentiert eine Aggregat-Version mit Gültigkeitszeitraum
+ * (`gueltigVon`/`gueltigBis`), Urheber-Metadaten und dem Delta an geänderten
+ * Feldern (`changedFields`). `items` ist der vollständige Stand des JSONB-
+ * Arrays zu dieser Version.
+ */
+export const gefaehrdungsbeurteilungHistorieEintragSchema = z.object({
+  version: z.number().int().positive(),
+  gueltigVon: z.string(),
+  gueltigBis: z.string().nullable(),
+  changedByUserId: z.string(),
+  changedByUserName: z.string().nullable(),
+  changedFields: z.record(z.string(), z.unknown()),
+  items: z.array(gefaehrdungItemSchema),
+});
+
+/**
+ * Response-Shape der Versions-Historie (Story 2.4).
+ *
+ * `aggregateVersion` spiegelt die aktuelle Version des Aggregats; `eintraege`
+ * enthält alle Historien-Einträge in chronologischer Reihenfolge.
+ */
+export const gefaehrdungsbeurteilungHistorieSchema = z.object({
+  aggregateVersion: z.number().int().positive(),
+  eintraege: z.array(gefaehrdungsbeurteilungHistorieEintragSchema),
+});
+
+export type GefaehrdungsbeurteilungHistorieEintrag = z.infer<typeof gefaehrdungsbeurteilungHistorieEintragSchema>;
+export type GefaehrdungsbeurteilungHistorie = z.infer<typeof gefaehrdungsbeurteilungHistorieSchema>;

@@ -160,4 +160,40 @@ describe('RiskMatrix5x5 (Story 2.2 Task 9)', () => {
     expect(onChange).not.toHaveBeenCalled();
     expect(cell).toHaveAttribute('aria-disabled', 'true');
   });
+
+  describe('readOnly (Story 415-2-4 Task 13, AC14)', () => {
+    it('Klick auf nicht-selektierte Zelle löst kein onChange aus und hält die Auswahl stabil', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderWithProviders(<RiskMatrix5x5 readOnly value={{ eintritt: 'HAEUFIG', schaden: 'MITTEL' }} onChange={onChange} />);
+
+      await user.click(screen.getByTestId('risk-matrix-cell-STAENDIG-KATASTROPHAL'));
+
+      expect(onChange).not.toHaveBeenCalled();
+      // Auswahl (aria-selected) bleibt an der ursprünglich selektierten Zelle.
+      expect(screen.getByTestId('risk-matrix-cell-HAEUFIG-MITTEL')).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByTestId('risk-matrix-cell-STAENDIG-KATASTROPHAL')).toHaveAttribute('aria-selected', 'false');
+    });
+
+    it('Enter und Space auf fokussierter Zelle lösen kein onChange aus', () => {
+      const onChange = vi.fn();
+      renderWithProviders(<RiskMatrix5x5 readOnly value={{ eintritt: 'SELTEN', schaden: 'VERNACHLAESSIGBAR' }} onChange={onChange} />);
+
+      const cell = screen.getByTestId('risk-matrix-cell-SELTEN-VERNACHLAESSIGBAR');
+      cell.focus();
+
+      fireEvent.keyDown(cell, { key: 'Enter' });
+      fireEvent.keyDown(cell, { key: ' ' });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('setzt aria-readonly abhängig von der Prop', () => {
+      const { rerender } = renderWithProviders(<RiskMatrix5x5 readOnly onChange={vi.fn()} />);
+      expect(screen.getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+
+      rerender(<RiskMatrix5x5 onChange={vi.fn()} />);
+      expect(screen.getByRole('grid')).not.toHaveAttribute('aria-readonly');
+    });
+  });
 });

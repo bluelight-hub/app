@@ -9,6 +9,8 @@ import { CREATE_GEFAEHRDUNGSBEURTEILUNG_ERROR_CODES } from '@/application/eigens
 import { UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES } from '@/application/eigenschutz/commands/update-gefaehrdungsbeurteilung-items/update-gefaehrdungsbeurteilung-items.handler';
 import { GET_GEFAEHRDUNGSBEURTEILUNG_ERROR_CODES } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung/get-gefaehrdungsbeurteilung.handler';
 import { GetGefaehrdungsbeurteilungQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung/get-gefaehrdungsbeurteilung.query';
+import { GET_GEFAEHRDUNGSBEURTEILUNG_HISTORIE_ERROR_CODES } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.handler';
+import { GetGefaehrdungsbeurteilungHistorieQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.query';
 import { ListGefaehrdungsbeurteilungsVorlagenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungs-vorlagen/list-gefaehrdungsbeurteilungs-vorlagen.query';
 import { EigenschutzRolleGuard } from '@/modules/auth/guards/eigenschutz-rolle.guard';
 import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
@@ -135,6 +137,14 @@ describe('GefaehrdungsbeurteilungController', () => {
       const prototype = Object.getPrototypeOf(controller);
       const rollen = Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, prototype.getBeurteilung);
       const permissions = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, prototype.getBeurteilung);
+      expect(rollen).toEqual(['Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung']);
+      expect(permissions).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
+    });
+
+    it('(Story 2.4) GET /gefaehrdungsbeurteilungen/:id/versionen: Reader-Rollen + read-Permission', () => {
+      const prototype = Object.getPrototypeOf(controller);
+      const rollen = Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, prototype.getHistorie);
+      const permissions = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, prototype.getHistorie);
       expect(rollen).toEqual(['Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung']);
       expect(permissions).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
     });
@@ -469,6 +479,90 @@ describe('GefaehrdungsbeurteilungController', () => {
     it('RequiresPermission-Decorator an updateItems trägt "eigenschutz:gefaehrdungsbeurteilung:write"', () => {
       const permissions = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, GefaehrdungsbeurteilungController.prototype.updateItems) as string[] | undefined;
       expect(permissions).toContain('eigenschutz:gefaehrdungsbeurteilung:write');
+    });
+  });
+
+  // ==================================================
+  // GET /gefaehrdungsbeurteilungen/:id/versionen (Story 2.4)
+  // ==================================================
+
+  describe('getHistorie (Story 2.4)', () => {
+    function buildHistorieReadModel() {
+      const item = GefaehrdungItem.create({ title: 'Stolperfalle' }).value!;
+      return {
+        aggregateVersion: 3,
+        eintraege: [
+          {
+            version: 3,
+            gueltigVon: new Date('2026-04-22T11:00:00.000Z'),
+            gueltigBis: null,
+            changedByUserId: USER_ID,
+            changedByUserName: 'alice',
+            changedFields: { added: [], removed: ['x'], updated: [], unchanged: 1 },
+            items: [item],
+          },
+          {
+            version: 2,
+            gueltigVon: new Date('2026-04-22T10:00:00.000Z'),
+            gueltigBis: new Date('2026-04-22T11:00:00.000Z'),
+            changedByUserId: USER_ID,
+            changedByUserName: 'alice',
+            changedFields: { added: ['a'], removed: [], updated: [], unchanged: 0 },
+            items: [item],
+          },
+          {
+            version: 1,
+            gueltigVon: new Date('2026-04-22T09:00:00.000Z'),
+            gueltigBis: new Date('2026-04-22T10:00:00.000Z'),
+            changedByUserId: USER_ID,
+            changedByUserName: null,
+            changedFields: { created: true },
+            items: [item],
+          },
+        ],
+      };
+    }
+
+    it('(Happy-Path) liefert Historie-DTO mit DESC-sortierten Einträgen + aggregateVersion', async () => {
+      queryBus.execute.mockResolvedValue(Result.ok(buildHistorieReadModel()));
+
+      const response = await controller.getHistorie(EINSATZ_ID, BEURTEILUNG_ID);
+
+      expect(queryBus.execute).toHaveBeenCalledTimes(1);
+      const queryArg = queryBus.execute.mock.calls[0][0];
+      expect(queryArg).toBeInstanceOf(GetGefaehrdungsbeurteilungHistorieQuery);
+      expect(queryArg.einsatzId).toBe(EINSATZ_ID);
+      expect(queryArg.gefaehrdungsbeurteilungId).toBe(BEURTEILUNG_ID);
+
+      expect(response.aggregateVersion).toBe(3);
+      expect(response.eintraege).toHaveLength(3);
+      expect(response.eintraege[0].version).toBe(3);
+      expect(response.eintraege[0].gueltigBis).toBeNull();
+      expect(response.eintraege[0].gueltigVon).toBe('2026-04-22T11:00:00.000Z');
+      expect(response.eintraege[0].changedByUserName).toBe('alice');
+      expect(response.eintraege[2].changedByUserName).toBeNull();
+      expect(response.eintraege[2].changedFields).toEqual({ created: true });
+      expect(response.eintraege[0].items).toHaveLength(1);
+    });
+
+    it('(404 NotFound:Beurteilung) mapped Sentinel auf NotFoundException mit context.resource="beurteilung"', async () => {
+      queryBus.execute.mockResolvedValue(Result.fail(GET_GEFAEHRDUNGSBEURTEILUNG_HISTORIE_ERROR_CODES.NOT_FOUND));
+
+      const promise = controller.getHistorie(EINSATZ_ID, BEURTEILUNG_ID);
+      await expect(promise).rejects.toBeInstanceOf(NotFoundException);
+      try {
+        await promise;
+      } catch (error) {
+        const body = (error as NotFoundException).getResponse() as { statusCode: number; context: { resource: string } };
+        expect(body.statusCode).toBe(404);
+        expect(body.context.resource).toBe('beurteilung');
+      }
+    });
+
+    it('(500 Unexpected) unbekannte Query-Fehler landen als InternalServerError', async () => {
+      queryBus.execute.mockResolvedValue(Result.fail('InfrastructureError:LoadVersions'));
+
+      await expect(controller.getHistorie(EINSATZ_ID, BEURTEILUNG_ID)).rejects.toBeInstanceOf(InternalServerErrorException);
     });
   });
 });

@@ -121,4 +121,45 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // Version-Zeilen in der Chain, `changedFields.removed` enthält
     // alle drei ursprünglichen IDs.
   });
+
+  // ===== Story 2.4 — Versions-Timeline =====
+  // **Harness-Entscheidung (Story 2.4, Task 6.6, Fall C — 2026-04-23):**
+  // Das HTTP-Integration-Harness (Seeded Admin + JWT + Per-Test-Einsatz)
+  // existiert noch nicht im Repo (siehe Story 2.3 AC8/AC9/AC12 oben, die
+  // aus demselben Grund `.skip` sind). Der Harness-Build würde den
+  // Story-2.4-Scope sprengen; AC17 bleibt daher als Skip-Skelett mit
+  // Prosa-Kommentar.
+  //
+  // Die Unit-Tests (Handler-Spec, Controller-Spec) decken die Kern-Logik
+  // des Historie-Endpoints aktiv ab:
+  // - DESC-Sortierung + aufgelöste Usernamen (Handler-Spec, Happy-Path).
+  // - Not-Found + Cross-Einsatz-Leak-Check (Handler-Spec).
+  // - 404/500-HTTP-Mapping (Controller-Spec).
+  //
+  // Follow-up: Parallel zu Story 2.3 AC8/AC9/AC12 aktivieren, sobald das
+  // Harness gebaut ist. Siehe `deferred-work.md:100-104`.
+
+  describe('GET …/gefaehrdungsbeurteilungen/:id/versionen (Story 2.4)', () => {
+    it.skip('(Story 2.4 AC17) Endpoint liefert Historie mit aufgelösten User-Namen (3 Versionen, DESC, Chain-Intervall)', () => {
+      // Setup-Anforderungen:
+      //  - Seeded Admin-User mit Sicherheitsbeauftragter-Rolle + JWT-Login.
+      //  - Per-Test-Einsatz mit Einsatz-Einheit-Besetzung.
+      //  - 3 Versionen anlegen: V1 via POST …/gefaehrdungsbeurteilungen (Create),
+      //    V2 + V3 via POST …/gefaehrdungsbeurteilungen/:id/items (2× updateItems).
+      //
+      // Assertions-Matrix (AC17):
+      //  - Response 200, `eintraege.length === 3`.
+      //  - `eintraege[0].version === 3`, `eintraege[1].version === 2`,
+      //    `eintraege[2].version === 1` (DESC-Sortierung).
+      //  - `eintraege[0].gueltigBis === null` (aktuelle Version).
+      //  - `eintraege[1].gueltigBis === eintraege[0].gueltigVon`
+      //    (Chain-Intervall, AC9 halb-offenes `[gueltigVon, gueltigBis)`).
+      //  - `eintraege[2].gueltigBis === eintraege[1].gueltigVon`.
+      //  - `eintraege[0].changedByUserName` gesetzt ODER deterministisch
+      //    `null` (User-Fixture bestimmt den Pfad; der Test muss beide
+      //    Pfade explizit abdecken).
+      //  - Negativ-Pfade: Fremder `einsatzId` → 404, User ohne Lese-
+      //    Permission → 403 durch PermissionsGuard.
+    });
+  });
 });

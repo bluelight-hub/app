@@ -1,11 +1,15 @@
 import { z } from 'zod';
 import {
   createGefaehrdungsbeurteilungSchema,
+  gefaehrdungsbeurteilungHistorieEintragSchema,
+  gefaehrdungsbeurteilungHistorieSchema,
   gefaehrdungsbeurteilungSchema,
   gefaehrdungsbeurteilungVorlageSchema,
   gefaehrdungItemSchema,
   type CreateGefaehrdungsbeurteilungInput,
   type Gefaehrdungsbeurteilung,
+  type GefaehrdungsbeurteilungHistorie,
+  type GefaehrdungsbeurteilungHistorieEintrag,
   type GefaehrdungsbeurteilungVorlage,
   type GefaehrdungItem,
 } from '@bluelight-hub/shared/schemas';
@@ -19,8 +23,15 @@ import {
  * Im Submit-Handler wird `modus` verworfen; an die API geht ausschließlich
  * `createGefaehrdungsbeurteilungSchema`.
  */
-export { createGefaehrdungsbeurteilungSchema, gefaehrdungsbeurteilungSchema, gefaehrdungsbeurteilungVorlageSchema, gefaehrdungItemSchema };
-export type { CreateGefaehrdungsbeurteilungInput, Gefaehrdungsbeurteilung, GefaehrdungsbeurteilungVorlage, GefaehrdungItem };
+export {
+  createGefaehrdungsbeurteilungSchema,
+  gefaehrdungsbeurteilungHistorieEintragSchema,
+  gefaehrdungsbeurteilungHistorieSchema,
+  gefaehrdungsbeurteilungSchema,
+  gefaehrdungsbeurteilungVorlageSchema,
+  gefaehrdungItemSchema,
+};
+export type { CreateGefaehrdungsbeurteilungInput, Gefaehrdungsbeurteilung, GefaehrdungsbeurteilungHistorie, GefaehrdungsbeurteilungHistorieEintrag, GefaehrdungsbeurteilungVorlage, GefaehrdungItem };
 
 export const CREATE_GEFAEHRDUNGSBEURTEILUNG_MODUS = ['seed', 'leer'] as const;
 export type CreateGefaehrdungsbeurteilungModus = (typeof CREATE_GEFAEHRDUNGSBEURTEILUNG_MODUS)[number];

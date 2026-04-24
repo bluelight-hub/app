@@ -28,6 +28,8 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateGefaehrdungsbeurteilungDto } from '@/application/eigenschutz/dto/create-gefaehrdungsbeurteilung.dto';
 import { GefaehrdungsbeurteilungDto } from '@/application/eigenschutz/dto/gefaehrdungsbeurteilung.dto';
 import { toGefaehrdungsbeurteilungDto } from '@/application/eigenschutz/dto/gefaehrdungsbeurteilung.factory';
+import { GefaehrdungsbeurteilungHistorieDto } from '@/application/eigenschutz/dto/gefaehrdungsbeurteilung-historie.dto';
+import { toHistorieDto } from '@/application/eigenschutz/dto/gefaehrdungsbeurteilung-historie.factory';
 import { GefaehrdungsbeurteilungVorlageDto } from '@/application/eigenschutz/dto/gefaehrdungsbeurteilung-vorlage.dto';
 import { toGefaehrdungsbeurteilungVorlageDto } from '@/application/eigenschutz/dto/gefaehrdungsbeurteilung-vorlage.factory';
 import { UpdateGefaehrdungsbeurteilungItemsDto } from '@/application/eigenschutz/dto/gefaehrdung-item-input.dto';
@@ -36,6 +38,8 @@ import { UpdateGefaehrdungsbeurteilungItemsCommand } from '@/application/eigensc
 import { UPDATE_GEFAEHRDUNGSBEURTEILUNG_ITEMS_ERROR_CODES } from '@/application/eigenschutz/commands/update-gefaehrdungsbeurteilung-items/update-gefaehrdungsbeurteilung-items.handler';
 import { GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED } from '@domain/eigenschutz/aggregates/gefaehrdungsbeurteilung.aggregate';
 import { GetGefaehrdungsbeurteilungQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung/get-gefaehrdungsbeurteilung.query';
+import { GetGefaehrdungsbeurteilungHistorieQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.query';
+import type { HistorieReadModel } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.handler';
 import { ListGefaehrdungsbeurteilungsVorlagenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungs-vorlagen/list-gefaehrdungsbeurteilungs-vorlagen.query';
 import type { GefaehrdungsbeurteilungReadModel } from '@domain/eigenschutz/repositories';
 import type { GefaehrdungsbeurteilungVorlageReadModel } from '@domain/eigenschutz/repositories';
@@ -229,6 +233,37 @@ export class GefaehrdungsbeurteilungController {
   })
   async getBeurteilung(@Param('einsatzId') einsatzId: string, @Param('id') id: string): Promise<GefaehrdungsbeurteilungDto> {
     return this.loadDto(einsatzId, id);
+  }
+
+  /**
+   * Liefert die Versions-Historie einer Gefährdungsbeurteilung (Story 2.4).
+   *
+   * Chronologisch absteigend (neueste Version zuerst), mit aufgelösten
+   * User-Anzeige-Namen (bzw. `null` bei soft-deleted/gelockten Usern). Die
+   * Klassen-Level-Guard-Kette (JwtAuthGuard → EinsatzScopeGuard →
+   * EigenschutzRolleGuard → PermissionsGuard) gilt; die per-Route-Decoratoren
+   * definieren nur die konkreten Rollen und die Read-Permission.
+   *
+   * Fehler-Mapping: `NotFound:Beurteilung` → 404 (symmetrisch zum
+   * `getBeurteilung`-Endpoint), alles andere → 500 via `mapQueryError`.
+   */
+  @Get('gefaehrdungsbeurteilungen/:id/versionen')
+  @RequiresEigenschutzRolle('Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung')
+  @RequiresPermission('eigenschutz:gefaehrdungsbeurteilung:read')
+  @ApiOperation({ summary: 'Versionshistorie einer Gefährdungsbeurteilung (Story 2.4)' })
+  @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
+  @ApiParam({ name: 'id', type: String, description: 'Beurteilungs-ID (CUID)' })
+  @ApiNotFoundResponse({ description: 'Beurteilung existiert nicht oder gehört zu einem anderen Einsatz' })
+  @ApiWrappedResponse(GefaehrdungsbeurteilungHistorieDto, {
+    description: 'Chronologische Versions-Liste, absteigend sortiert (neueste Version zuerst).',
+  })
+  async getHistorie(@Param('einsatzId') einsatzId: string, @Param('id') id: string): Promise<GefaehrdungsbeurteilungHistorieDto> {
+    const query = new GetGefaehrdungsbeurteilungHistorieQuery(einsatzId, id);
+    const result = (await this.queryBus.execute(query)) as Result<HistorieReadModel>;
+    if (result.isFailure || !result.value) {
+      throw this.mapQueryError(result.error ?? 'Historie konnte nicht geladen werden');
+    }
+    return toHistorieDto(result.value);
   }
 
   /**

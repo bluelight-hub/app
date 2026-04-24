@@ -18,6 +18,7 @@ import type {
   CreateGefaehrdungsbeurteilungDto,
   EigenschutzHealthControllerGetHealthVAlpha200Response,
   GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response,
+  GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response,
   GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response,
   UpdateGefaehrdungsbeurteilungItemsDto,
 } from '../models/index';
@@ -28,6 +29,8 @@ import {
     EigenschutzHealthControllerGetHealthVAlpha200ResponseToJSON,
     GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseFromJSON,
     GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseToJSON,
+    GefaehrdungsbeurteilungControllerGetHistorieVAlpha200ResponseFromJSON,
+    GefaehrdungsbeurteilungControllerGetHistorieVAlpha200ResponseToJSON,
     GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseFromJSON,
     GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseToJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoFromJSON,
@@ -44,6 +47,11 @@ export interface GefaehrdungsbeurteilungControllerCreateBeurteilungVAlphaRequest
 }
 
 export interface GefaehrdungsbeurteilungControllerGetBeurteilungVAlphaRequest {
+    einsatzId: string;
+    id: string;
+}
+
+export interface GefaehrdungsbeurteilungControllerGetHistorieVAlphaRequest {
     einsatzId: string;
     id: string;
 }
@@ -176,6 +184,46 @@ export class EigenschutzApi extends runtime.BaseAPI {
      */
     async gefaehrdungsbeurteilungControllerGetBeurteilungVAlpha(requestParameters: GefaehrdungsbeurteilungControllerGetBeurteilungVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response> {
         const response = await this.gefaehrdungsbeurteilungControllerGetBeurteilungVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Versionshistorie einer Gefährdungsbeurteilung (Story 2.4)
+     */
+    async gefaehrdungsbeurteilungControllerGetHistorieVAlphaRaw(requestParameters: GefaehrdungsbeurteilungControllerGetHistorieVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling gefaehrdungsbeurteilungControllerGetHistorieVAlpha().'
+            );
+        }
+
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling gefaehrdungsbeurteilungControllerGetHistorieVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/gefaehrdungsbeurteilungen/{id}/versionen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GefaehrdungsbeurteilungControllerGetHistorieVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Versionshistorie einer Gefährdungsbeurteilung (Story 2.4)
+     */
+    async gefaehrdungsbeurteilungControllerGetHistorieVAlpha(requestParameters: GefaehrdungsbeurteilungControllerGetHistorieVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response> {
+        const response = await this.gefaehrdungsbeurteilungControllerGetHistorieVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
