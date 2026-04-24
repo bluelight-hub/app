@@ -31,6 +31,7 @@ const BUSINESS_RULE_EINHEIT_HAT_BEREITS_BEURTEILUNG = 'BusinessRule:EinheitHatBe
  * Version-Check produziert — doppelte Verteidigung gegen Lost-Updates.
  */
 const GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED = 'ConflictDetected:Gefaehrdungsbeurteilung';
+const INFRASTRUCTURE_ERROR_RECONSTITUTE_GEFAEHRDUNGSBEURTEILUNG = 'InfrastructureError:ReconstituteGefaehrdungsbeurteilung';
 
 /**
  * Prisma-Adapter für das Haupt-Repository einer Gefährdungsbeurteilung.
@@ -92,7 +93,11 @@ export class PrismaGefaehrdungsbeurteilungRepository implements IGefaehrdungsbeu
     try {
       const row = await client.gefaehrdungsbeurteilung.findUnique({ where: { id } });
       if (!row) return Result.ok<Gefaehrdungsbeurteilung | null>(null);
-      return Result.ok<Gefaehrdungsbeurteilung>(PrismaGefaehrdungsbeurteilungMapper.toDomain(row));
+      const aggregateResult = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+      if (aggregateResult.isFailure || !aggregateResult.value) {
+        return this.failReconstitution<Gefaehrdungsbeurteilung | null>(row.id, aggregateResult.error);
+      }
+      return Result.ok<Gefaehrdungsbeurteilung | null>(aggregateResult.value);
     } catch (error) {
       return Result.fail<Gefaehrdungsbeurteilung | null>(error instanceof Error ? error.message : 'Unbekannter Datenbankfehler');
     }
@@ -103,9 +108,12 @@ export class PrismaGefaehrdungsbeurteilungRepository implements IGefaehrdungsbeu
     try {
       const row = await client.gefaehrdungsbeurteilung.findUnique({ where: { id } });
       if (!row) return Result.ok<GefaehrdungsbeurteilungReadModel | null>(null);
-      const aggregate = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+      const aggregateResult = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+      if (aggregateResult.isFailure || !aggregateResult.value) {
+        return this.failReconstitution<GefaehrdungsbeurteilungReadModel | null>(row.id, aggregateResult.error);
+      }
       return Result.ok<GefaehrdungsbeurteilungReadModel | null>({
-        aggregate,
+        aggregate: aggregateResult.value,
         erstelltAm: row.erstelltAm,
         aktualisiertAm: row.aktualisiertAm,
         aktualisiertVonUserId: row.aktualisiertVonUserId,
@@ -171,5 +179,14 @@ export class PrismaGefaehrdungsbeurteilungRepository implements IGefaehrdungsbeu
       });
       return Result.fail<void>(error instanceof Error ? error.message : 'Unbekannter Datenbankfehler');
     }
+  }
+
+  private failReconstitution<T>(gefaehrdungsbeurteilungId: string, reason?: string): Result<T> {
+    const safeReason = reason ?? 'Unbekannter Reconstitution-Fehler';
+    this.logger.error('Reconstitution der Gefährdungsbeurteilung fehlgeschlagen', {
+      gefaehrdungsbeurteilungId,
+      reason: safeReason,
+    });
+    return Result.fail<T>(`${INFRASTRUCTURE_ERROR_RECONSTITUTE_GEFAEHRDUNGSBEURTEILUNG}:${safeReason}`);
   }
 }

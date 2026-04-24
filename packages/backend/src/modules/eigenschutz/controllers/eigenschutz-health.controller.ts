@@ -1,9 +1,6 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiForbiddenResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { EigenschutzHealthDto } from '@/application/eigenschutz/dto/eigenschutz-health.dto';
-import { RequiresEigenschutzRolle } from '@/modules/auth/decorators/requires-eigenschutz-rolle.decorator';
-import { EigenschutzRolleGuard } from '@/modules/auth/guards/eigenschutz-rolle.guard';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 
@@ -12,32 +9,27 @@ import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-resp
  *
  * Der Endpoint ist der Smoke-Test-Einsprungspunkt in das Eigenschutz-Modul:
  * er liefert kein fachliches Ergebnis, sondern nur `{ status: 'ready' }`, um
- * zu beweisen, dass die komplette Plattform-Kette (JWT → Einsatz-Scope →
- * Eigenschutz-Rolle) für den aktuellen Einsatz durchläuft. Epic 2+ ersetzt
- * den Hook-Konsum durch fachliche Queries (Ampel, Gefährdungsbeurteilung).
+ * zu beweisen, dass der Nutzer authentifiziert ist und das Modul gemountet
+ * ist. Ein eigenes Eigenschutz-Rollenmodell oder ein Einsatz-Rollenbesetzungs-
+ * Gate wird hier bewusst nicht simuliert.
  *
- * **Guard-Kette (Architecture §H, verbindlich):**
+ * **Guard-Kette:**
  * ```
- * JwtAuthGuard → EinsatzScopeGuard → EigenschutzRolleGuard
+ * JwtAuthGuard
  * ```
- *
- * **Rollen-Match (OR):** Jede der vier Eigenschutz-Rollen reicht, damit das
- * Frontend die Entry-Page rendern kann — Admins kommen über den
- * Story-1.5-AC4-Bypass durch.
  */
 @ApiTags('eigenschutz')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ist ungültig' })
-@ApiForbiddenResponse({ description: 'Keine Berechtigung (Einsatz-Scope oder Eigenschutz-Rolle fehlt)' })
+@ApiForbiddenResponse({ description: 'Nicht authentifiziert oder Token nicht verwendbar' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz', version: 'alpha' })
-@UseGuards(JwtAuthGuard, EinsatzScopeGuard, EigenschutzRolleGuard)
+@UseGuards(JwtAuthGuard)
 export class EigenschutzHealthController {
   @Get('health')
-  @RequiresEigenschutzRolle('Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung')
   @ApiOperation({ summary: 'Eigenschutz-Modul-Health — signalisiert, dass das Modul für den Einsatz verdrahtet ist' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
   @ApiWrappedResponse(EigenschutzHealthDto, {
-    description: 'Modul-Status — stets `ready`, solange der Controller gemountet ist und die Guard-Kette durchläuft.',
+    description: 'Modul-Status — stets `ready`, solange der Controller gemountet ist.',
   })
   async getHealth(): Promise<EigenschutzHealthDto> {
     return { status: 'ready' };

@@ -13,7 +13,6 @@ export {
   useGefaehrdungsbeurteilungVorlagen,
   useUpdateGefaehrdungsbeurteilungItems,
 } from './api/queries';
-export { useEigenschutzPermissions } from './hooks/useEigenschutzPermissions';
 export { GefaehrdungItemEditor } from './ui/molecules/GefaehrdungItemEditor';
 export { GefaehrdungenEditorOrganism } from './ui/organisms/GefaehrdungenEditorOrganism';
 export { GefaehrdungseditorDrawer } from './ui/organisms/GefaehrdungseditorDrawer.organism';

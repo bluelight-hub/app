@@ -9,9 +9,9 @@ import { createFileRoute } from '@tanstack/react-router';
  * hat den Health-Check bereits durchlaufen — hier geht es nur um den
  * Content-Slot.
  */
-export const Route = createFileRoute('/app/einsatz/$einsatzId/sicherheit/eigenschutz/')(() => ({
+export const Route = createFileRoute('/app/einsatz/$einsatzId/sicherheit/eigenschutz/')({
   component: EigenschutzIndexRouteComponent,
-}));
+});
 
 function EigenschutzIndexRouteComponent() {
   const { einsatzId } = Route.useParams();

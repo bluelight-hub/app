@@ -29,19 +29,25 @@ describe('PrismaGefaehrdungsbeurteilungMapper (Story 2.3 AC1)', () => {
 
   it('übernimmt row.version === 5 exakt ins Aggregate (Regression-Guard: kein hardcoded "1")', () => {
     const row = baseRow({ version: 5 });
-    const aggregate = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    const result = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    expect(result.isSuccess).toBe(true);
+    const aggregate = result.value!;
     expect(aggregate.version).toBe(5);
   });
 
   it.each([2, 7, 42, 100])('übernimmt row.version === %d parametrisiert', (version) => {
     const row = baseRow({ version });
-    const aggregate = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    const result = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    expect(result.isSuccess).toBe(true);
+    const aggregate = result.value!;
     expect(aggregate.version).toBe(version);
   });
 
   it('emittiert KEINE Domain-Events beim Rehydrieren (reconstitute-Contract)', () => {
     const row = baseRow({ version: 3 });
-    const aggregate = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    const result = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    expect(result.isSuccess).toBe(true);
+    const aggregate = result.value!;
     expect(aggregate.getDomainEvents()).toEqual([]);
   });
 
@@ -53,7 +59,9 @@ describe('PrismaGefaehrdungsbeurteilungMapper (Story 2.3 AC1)', () => {
       vorlageId: 'ckv1vorlageid000000000000000001',
       gefahrenzoneId: 'ckv1gefahrzone00000000000000001',
     });
-    const aggregate = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    const result = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    expect(result.isSuccess).toBe(true);
+    const aggregate = result.value!;
     expect(aggregate.einsatzId).toBe('ckv1einsatzid0000000000000042');
     expect(aggregate.einheitId).toBe('ckv1einheitid0000000000000042');
     expect(aggregate.createdBy).toBe('ckv1userid0000000000000000042');
@@ -71,19 +79,25 @@ describe('PrismaGefaehrdungsbeurteilungMapper (Story 2.3 AC1)', () => {
         { id: 'itemok2', title: 'Zweites gültiges Item' },
       ] as unknown,
     });
-    const aggregate = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    const result = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    expect(result.isSuccess).toBe(true);
+    const aggregate = result.value!;
     expect(aggregate.items).toHaveLength(2);
     expect(aggregate.items[0].id).toBe('itemok1');
     expect(aggregate.items[1].id).toBe('itemok2');
   });
 
-  it('wirft bei korrupter DB-Row ohne einsatzId (reconstitute-Invariante)', () => {
+  it('liefert Result.fail bei korrupter DB-Row ohne einsatzId (reconstitute-Invariante)', () => {
     const row = baseRow({ einsatzId: '' });
-    expect(() => PrismaGefaehrdungsbeurteilungMapper.toDomain(row)).toThrow(/einsatzId/);
+    const result = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toMatch(/einsatzId/);
   });
 
-  it('wirft bei korrupter DB-Row mit version < 1 (reconstitute-Invariante)', () => {
+  it('liefert Result.fail bei korrupter DB-Row mit version < 1 (reconstitute-Invariante)', () => {
     const row = baseRow({ version: 0 });
-    expect(() => PrismaGefaehrdungsbeurteilungMapper.toDomain(row)).toThrow(/version/);
+    const result = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toMatch(/version/);
   });
 });

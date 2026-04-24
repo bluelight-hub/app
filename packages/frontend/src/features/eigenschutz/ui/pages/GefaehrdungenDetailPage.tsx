@@ -79,7 +79,7 @@ export function GefaehrdungenDetailPage({ einsatzId, id }: GefaehrdungenDetailPa
       >
         <div>
           <p className="font-medium">Gefährdungsbeurteilung konnte nicht geladen werden.</p>
-          <p className="mt-1 text-xs">Bitte erneut versuchen. Falls das Problem bestehen bleibt, fehlt möglicherweise die Berechtigung für diesen Einsatz.</p>
+          <p className="mt-1 text-xs">Bitte erneut versuchen. Falls das Problem bestehen bleibt, ist der Bereich möglicherweise nicht freigegeben.</p>
         </div>
         <Button intent="danger" appearance="outline" size="sm" type="button" onClick={() => void query.refetch()} data-testid="gefaehrdungen-detail-retry">
           Erneut versuchen

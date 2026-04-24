@@ -45,12 +45,7 @@ import type { GefaehrdungsbeurteilungReadModel } from '@domain/eigenschutz/repos
 import type { GefaehrdungsbeurteilungVorlageReadModel } from '@domain/eigenschutz/repositories';
 import { Result } from '@domain/common/result';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
-import { RequiresEigenschutzRolle } from '@/modules/auth/decorators/requires-eigenschutz-rolle.decorator';
-import { RequiresPermission } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EigenschutzRolleGuard } from '@/modules/auth/guards/eigenschutz-rolle.guard';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { ILogger } from '@domain/ports/i-logger.port';
@@ -63,19 +58,13 @@ import { LOGGER } from '@infrastructure/di-tokens';
  * `/einsaetze/:einsatzId/sicherheit/eigenschutz/...` (Story-Vertrag + Memory-
  * Regel „Einsatz-bezogene HTTP-Endpoints immer unter /einsatz/:einsatzId/…").
  *
- * ### Guard-Kette (verbindlich, vier Guards)
+ * ### Guard-Kette
  * ```
- * JwtAuthGuard → EinsatzScopeGuard → EigenschutzRolleGuard → PermissionsGuard
+ * JwtAuthGuard
  * ```
- * Die Reihenfolge ist bindend, weil `EigenschutzRolleGuard` und
- * `PermissionsGuard` beide auf `request.einsatzContext` zugreifen, das
- * ausschließlich der `EinsatzScopeGuard` setzt.
- *
- * ### Permission-Matrix
- * - `GET .../gefaehrdungsbeurteilungs-vorlagen`: Reader-Rollen + `…:read`.
- * - `POST .../gefaehrdungsbeurteilungen`: ausschließlich
- *   `Sicherheitsbeauftragter` + `…:write`.
- * - `GET .../gefaehrdungsbeurteilungen/:id`: Reader-Rollen + `…:read`.
+ * Das konkrete Eigenschutz-Rollen-/Permission-Modell und ein
+ * Einsatz-Rollenbesetzungs-Gate sind nicht Bestandteil dieses Story-Schnitts.
+ * Fachliche Cross-Einsatz-Checks bleiben in Commands/Queries.
  *
  * ### Error-Mapping (AC6)
  * Der Create-Handler liefert drei Sentinel-Codes
@@ -88,9 +77,9 @@ import { LOGGER } from '@infrastructure/di-tokens';
 @ApiTags('eigenschutz')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ungültig' })
-@ApiForbiddenResponse({ description: 'Keine Berechtigung (Einsatz-Scope, Eigenschutz-Rolle oder Permission fehlt)' })
+@ApiForbiddenResponse({ description: 'Nicht authentifiziert oder Token nicht verwendbar' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz', version: 'alpha' })
-@UseGuards(JwtAuthGuard, EinsatzScopeGuard, EigenschutzRolleGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 export class GefaehrdungsbeurteilungController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -100,12 +89,10 @@ export class GefaehrdungsbeurteilungController {
 
   /**
    * Liefert alle aktiven Gefährdungsbeurteilungs-Vorlagen (seed-basiert).
-   * Der Einsatz-Scope dient nur der Autorisierung; die Vorlagen sind
-   * einsatzunabhängig.
+   * Die Vorlagen sind einsatzunabhängig; `einsatzId` bleibt im Pfad, damit
+   * alle Eigenschutz-Endpunkte denselben Einsatz-Workspace-Kontext nutzen.
    */
   @Get('gefaehrdungsbeurteilungs-vorlagen')
-  @RequiresEigenschutzRolle('Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung')
-  @RequiresPermission('eigenschutz:gefaehrdungsbeurteilung:read')
   @ApiOperation({ summary: 'Aktive Gefährdungsbeurteilungs-Vorlagen abrufen' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
   @ApiWrappedResponse(GefaehrdungsbeurteilungVorlageDto, {
@@ -127,8 +114,6 @@ export class GefaehrdungsbeurteilungController {
    * Duplikat) und den optionalen Vorlagen-Lookup durch.
    */
   @Post('gefaehrdungsbeurteilungen')
-  @RequiresEigenschutzRolle('Sicherheitsbeauftragter')
-  @RequiresPermission('eigenschutz:gefaehrdungsbeurteilung:write')
   @ApiOperation({ summary: 'Neue Gefährdungsbeurteilung für eine Einheit anlegen' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
   @ApiNotFoundResponse({ description: 'Einheit oder Vorlage existiert nicht (`context.resource`)' })
@@ -176,8 +161,6 @@ export class GefaehrdungsbeurteilungController {
    */
   @Post('gefaehrdungsbeurteilungen/:id/items')
   @HttpCode(HttpStatus.OK)
-  @RequiresEigenschutzRolle('Sicherheitsbeauftragter')
-  @RequiresPermission('eigenschutz:gefaehrdungsbeurteilung:write')
   @ApiOperation({ summary: 'Items einer Gefährdungsbeurteilung aktualisieren (FR3, FR4)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'id', type: String, description: 'Beurteilungs-ID (CUID)' })
@@ -222,8 +205,6 @@ export class GefaehrdungsbeurteilungController {
    * verhindert Existenz-Leaks über Einsatz-Grenzen hinweg.
    */
   @Get('gefaehrdungsbeurteilungen/:id')
-  @RequiresEigenschutzRolle('Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung')
-  @RequiresPermission('eigenschutz:gefaehrdungsbeurteilung:read')
   @ApiOperation({ summary: 'Eine Gefährdungsbeurteilung per ID abrufen' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'id', type: String, description: 'Beurteilungs-ID (CUID)' })
@@ -240,16 +221,13 @@ export class GefaehrdungsbeurteilungController {
    *
    * Chronologisch absteigend (neueste Version zuerst), mit aufgelösten
    * User-Anzeige-Namen (bzw. `null` bei soft-deleted/gelockten Usern). Die
-   * Klassen-Level-Guard-Kette (JwtAuthGuard → EinsatzScopeGuard →
-   * EigenschutzRolleGuard → PermissionsGuard) gilt; die per-Route-Decoratoren
-   * definieren nur die konkreten Rollen und die Read-Permission.
+   * Klassen-Level-Guard-Kette (JwtAuthGuard) gilt; das konkrete Eigenschutz-
+   * Rollen-/Permission-Modell ist aktuell kein Scope.
    *
    * Fehler-Mapping: `NotFound:Beurteilung` → 404 (symmetrisch zum
    * `getBeurteilung`-Endpoint), alles andere → 500 via `mapQueryError`.
    */
   @Get('gefaehrdungsbeurteilungen/:id/versionen')
-  @RequiresEigenschutzRolle('Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung')
-  @RequiresPermission('eigenschutz:gefaehrdungsbeurteilung:read')
   @ApiOperation({ summary: 'Versionshistorie einer Gefährdungsbeurteilung (Story 2.4)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'id', type: String, description: 'Beurteilungs-ID (CUID)' })

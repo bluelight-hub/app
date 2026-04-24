@@ -2,11 +2,11 @@
  * Spec für `GefaehrdungenEditorOrganism` (Story 2.2 Task 9).
  *
  * Fokus: Save-Flow mit expectedVersion, 409-Konflikt-Banner, Ctrl+S-
- * Shortcut, Permission-Gate mit Tooltip, und Reset-Verhalten.
+ * Shortcut und Reset-Verhalten.
  */
 
 import { renderWithProviders } from '@/test/utils';
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -18,12 +18,9 @@ const { mocks } = vi.hoisted(() => ({
       isPending: false,
       error: null as unknown,
     },
-    permissionState: {
-      canCreateGefaehrdungsbeurteilung: true,
-      isLoading: false,
-      requiredPermission: 'eigenschutz:gefaehrdungsbeurteilung:write' as const,
-    },
     invalidate: vi.fn(),
+    upsertPendingCommand: vi.fn(),
+    removePendingCommandsForEntity: vi.fn(),
   },
 }));
 
@@ -55,8 +52,9 @@ vi.mock('@/features/eigenschutz/api/queries', () => ({
   GefaehrdungsbeurteilungConflictError,
 }));
 
-vi.mock('@/features/eigenschutz/hooks/useEigenschutzPermissions', () => ({
-  useEigenschutzPermissions: () => mocks.permissionState,
+vi.mock('@/features/eigenschutz/lib/pending-command-queue', () => ({
+  upsertPendingCommand: mocks.upsertPendingCommand,
+  removePendingCommandsForEntity: mocks.removePendingCommandsForEntity,
 }));
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
@@ -90,23 +88,81 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
   beforeEach(() => {
     mocks.updateMutation.mutate = vi.fn();
     mocks.updateMutation.mutateAsync = vi.fn();
+    mocks.updateMutation.mutateAsync.mockResolvedValue(buildBeurteilung({ version: 4, items: [{ title: 'Strom neu' }] }));
     mocks.updateMutation.isPending = false;
     mocks.updateMutation.error = null;
-    mocks.permissionState.canCreateGefaehrdungsbeurteilung = true;
-    mocks.permissionState.isLoading = false;
     mocks.invalidate.mockReset();
+    mocks.upsertPendingCommand.mockReset();
+    mocks.removePendingCommandsForEntity.mockReset();
   });
 
-  it('ruft die Mutation mit items und expectedVersion bei Klick auf Speichern auf', async () => {
+  it('ruft die Mutation mit items und expectedVersion bei Klick auf „Version abschließen" auf', async () => {
     const user = userEvent.setup();
     renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
 
+    await user.clear(screen.getByTestId('gefaehrdung-item-title'));
+    await user.type(screen.getByTestId('gefaehrdung-item-title'), 'Strom neu');
     await user.click(screen.getByTestId('gefaehrdungen-editor-save'));
 
-    expect(mocks.updateMutation.mutate).toHaveBeenCalledWith({
-      items: [{ title: 'Strom' }],
+    expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
+      items: [{ title: 'Strom neu' }],
       expectedVersion: 3,
     });
+  });
+
+  it('auto-speichert nach 2 Sekunden Inaktivität', async () => {
+    vi.useFakeTimers();
+    try {
+      renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
+
+      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'Strom neu' } });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
+        items: [{ title: 'Strom neu' }],
+        expectedVersion: 3,
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('komprimiert kontinuierliches Tippen auf einen Auto-Save mit letztem Draft', async () => {
+    vi.useFakeTimers();
+    try {
+      renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
+
+      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'S' } });
+      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'St' } });
+      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'Strom neu' } });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1999);
+      });
+      expect(mocks.updateMutation.mutateAsync).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1);
+      });
+
+      expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledTimes(1);
+      expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
+        items: [{ title: 'Strom neu' }],
+        expectedVersion: 3,
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('zeigt Statuszeile und ersetzt Speichern durch Version abschließen', () => {
+    renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
+
+    expect(screen.getByTestId('sync-status-badge')).toHaveTextContent('Synchronisiert');
+    expect(screen.getByRole('button', { name: /Version abschließen/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Speichern$/ })).toBeNull();
   });
 
   it('rendert Konflikt-Banner bei 409 inkl. Reload-Button', async () => {
@@ -153,10 +209,11 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
   it('Ctrl+S triggert Save (UX-DR22)', () => {
     renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
 
+    fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'Strom neu' } });
     fireEvent.keyDown(document, { key: 's', ctrlKey: true });
 
-    expect(mocks.updateMutation.mutate).toHaveBeenCalledWith({
-      items: [{ title: 'Strom' }],
+    expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
+      items: [{ title: 'Strom neu' }],
       expectedVersion: 3,
     });
   });
@@ -164,19 +221,10 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
   it('Cmd+S triggert Save auf macOS', () => {
     renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
 
+    fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'Strom neu' } });
     fireEvent.keyDown(document, { key: 's', metaKey: true });
 
-    expect(mocks.updateMutation.mutate).toHaveBeenCalled();
-  });
-
-  it('Speichern ist disabled ohne Permission inkl. aria-disabled + Tooltip', () => {
-    mocks.permissionState.canCreateGefaehrdungsbeurteilung = false;
-    renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
-
-    const saveBtn = screen.getByTestId('gefaehrdungen-editor-save');
-    expect(saveBtn).toBeDisabled();
-    expect(saveBtn).toHaveAttribute('aria-disabled', 'true');
-    expect(saveBtn).toHaveAttribute('title', 'Fehlende Berechtigung: eigenschutz:gefaehrdungsbeurteilung:write');
+    expect(mocks.updateMutation.mutateAsync).toHaveBeenCalled();
   });
 
   it('Speichern ist disabled, wenn ein Item ungültig ist (leerer Titel)', () => {
@@ -206,5 +254,6 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
     // … und zurücksetzen.
     await user.click(screen.getByTestId('gefaehrdungen-editor-reset'));
     expect(screen.getAllByTestId('gefaehrdung-item-editor')).toHaveLength(1);
+    expect(mocks.removePendingCommandsForEntity).toHaveBeenCalledWith('gefaehrdungsbeurteilung', 'cl1beurteilungiddetailxx1');
   });
 });

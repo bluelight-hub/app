@@ -1,0 +1,132 @@
+# generated: 2026-04-21
+# last_updated: 2026-04-24 (Story 415-2-5 → review: Auto-Save, Versionsabschluss und Scope-Korrektur ohne Rollen-/Freigabe-Gates abgeschlossen.)
+# project: bluelight-hub
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+#
+# STORY-KEY-KONVENTION (Bluelight Hub):
+# =====================================
+# Story-Keys tragen den GitHub-Issue-Prefix aus dem Branch-Namen (hier: 415).
+# Epic-Keys bleiben OHNE Präfix. Volle Konvention: _bmad/custom/project-conventions.md
+
+generated: 2026-04-21
+last_updated: '2026-04-24 (Story 415-2-5 → review: Auto-Save, Versionsabschluss und Scope-Korrektur ohne Rollen-/Freigabe-Gates abgeschlossen.)'
+project: bluelight-hub
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Plattform-Voraussetzungen & Eigenschutz-Fundament
+  epic-1: done
+  415-1-1-plattform-push-notifications-backend-adr-011: done
+  415-1-2-plattform-push-clients-service-worker-tauri-bridge: done
+  415-1-3-einsatzscopeguard-als-plattform-pattern-adr-012: done
+  415-1-4-prisma-migration-add-eigenschutz-module-seeds: done
+  415-1-5-eigenschutz-rollen-permissions-guard: done
+  415-1-6-eigenschutz-feature-slice-route-skeleton-navigation: done
+  415-1-7-event-registry-framework-fuer-eigenschutz: done
+  epic-1-retrospective: done
+
+  # Epic 2: Gefährdungsbeurteilung & Sicherheitsregeln
+  epic-2: in-progress
+  415-2-1-gefaehrdungsbeurteilung-anlegen-aus-vorlage-oder-leer: done
+  415-2-2-gefaehrdung-erfassen-mit-5x5-risikomatrix-und-schutzmassnahmen: done
+  415-2-3-gefaehrdungen-aendern-entfernen-mit-version-chain: done
+  415-2-4-vorversionen-einsehen-und-versions-timeline: done
+  415-2-5-auto-save-mit-2s-debounce-manuelles-version-abschliessen: review
+  415-2-6-sicherheitsregeln-erfassen-und-abschnitt-zuweisen: backlog
+  415-2-7-sicherheitsregeln-empfangen-und-quittieren: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: PSA-Profile & kritische Bekanntgabe (CBRN-Signatur-Interaktion)
+  epic-3: backlog
+  415-3-1-psa-profil-einer-einheit-aktivieren-deaktivieren: backlog
+  415-3-2-multi-select-bulk-psa-aenderung-auf-mehreren-einheiten: backlog
+  415-3-3-kritische-bekanntgabe-via-severitybanner-echtzeit-propagation: backlog
+  415-3-4-psa-quittung-quittungsstand-anzeige: backlog
+  415-3-5-ausruestungs-checkliste-je-psa-profil-bei-empfang: backlog
+  415-3-6-rueckmeldung-ausruestungs-luecke-an-sicherheitsbeauftragten: backlog
+  415-3-7-re-prompt-scheduler-eskalation-nach-5-min-ohne-quittung: backlog
+  415-3-8-push-notifications-fuer-kritische-psa-events: backlog
+  415-3-9-sync-konflikt-erkennung-auf-psa-profil-backend: backlog
+  415-3-10-conflictresolutionlist-ui-konflikt-aufloesung-durch-sicherheitsbeauftragten: backlog
+  415-3-11-telemetrie-capture-fuer-cbrn-moment: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Sicherungsposten-Verwaltung & Lagekarten-Integration
+  epic-4: backlog
+  415-4-1-sicherungsposten-crud-mit-versionierung: backlog
+  415-4-2-abloesezeiten-als-textfeld: backlog
+  415-4-3-sicherungsposten-als-mapgl-marker-layer: backlog
+  415-4-4-bidirektionale-navigation-karte-detail-ansicht: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Vorfallmeldung & Unfallkassen-Export
+  epic-5: backlog
+  415-5-1-vorfall-erfassen-mit-unfallkassen-kennzeichnung: backlog
+  415-5-2-zeitpunkt-genauer-kontext-snapshot-nur-lese-viewer: backlog
+  415-5-3-vorfall-liste-mit-filtern: backlog
+  415-5-4-pdf-export-eines-vorfalls: backlog
+  415-5-5-json-export-eines-vorfalls: backlog
+  415-5-6-export-audit-trail-vorfallexportiert-event: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Ampel-Dashboard & Live-Status-Übersicht
+  epic-6: backlog
+  415-6-1-ampel-projektion-backend-read-model-event-handler: backlog
+  415-6-2-ampeldashboard-ampelcard-direction-b-default: backlog
+  415-6-3-focus-view-direction-c-opt-in-view-toggle-persistent: backlog
+  415-6-4-offene-vorfaelle-rueckmeldungen-seitenpanel: backlog
+  415-6-5-warn-markierungen-fuer-unbearbeitete-gefaehrdungen-nicht-quittierte-psa: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: MVP-Polish: Accessibility, Keyboard, Dark-Mode, Deep-Links & Telemetrie
+  epic-7: backlog
+  415-7-1-dark-mode-severity-tokens-nacht-einsatz-verifikation: backlog
+  415-7-2-keyboard-shortcuts-global-kontextuell-kbd-legende: backlog
+  415-7-3-command-palette-integration-fuer-eigenschutz-aktionen: backlog
+  415-7-4-deep-links-pro-entitaet-link-kopieren-button: backlog
+  415-7-5-syncstatusbadge-offline-ux-ohne-blockierende-modale: backlog
+  415-7-6-zero-success-toast-policy-destructive-actions-pattern-konsistenz-review: backlog
+  415-7-7-responsive-verifikation-auf-referenz-geraeten: backlog
+  415-7-8-a11y-audit-axe-core-screenreader-walk: backlog
+  415-7-9-prometheus-metriken-grafana-ready: backlog
+  415-7-10-performance-audit-bundle-size-gate: backlog
+  415-7-11-e2e-tests-fuer-journeys-1b-cbrn-4-export: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Scope-Korrektur & Artefakt-Synchronisierung
+  epic-8: in-progress
+  415-8-1-scope-korrektur-eigenschutz-seeds-und-ui-copy: review
+  epic-8-retrospective: optional

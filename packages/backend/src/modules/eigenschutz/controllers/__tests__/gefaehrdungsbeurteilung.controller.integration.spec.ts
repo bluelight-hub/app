@@ -9,17 +9,16 @@
  *
  * **Aktueller Status (Task-5-Lieferung):** Sieben Testfälle sind als
  * `it.skip(...)` skizziert. Die Aktivierung erfordert Test-Infrastruktur
- * (Seeded Admin-User + Server-Access-Token + Eigenschutz-Seed-Rollen in
- * einem per-Test-Einsatz), die heute noch nicht als wiederverwendbarer
- * Helper im Repo existiert — siehe `einsatz-controller.e2e.spec.ts` für
- * Referenz-Setup.
+ * (Seeded User + Server-Access-Token + per-Test-Einsatz), die heute noch
+ * nicht als wiederverwendbarer Helper im Repo existiert — siehe
+ * `einsatz-controller.e2e.spec.ts` für Referenz-Setup.
  *
  * Die Story erlaubt dieses Deferral explizit („Falls die Integration-Spec
  * nicht in der Zeit startbar ist … dokumentiere das explizit via it.skip");
  * die Aktivierung liegt bei **Task 9 (Integration-Suite)**.
  *
  * Was der Unit-Spec bereits abdeckt:
- *  - Guard-Kette + Decorator-Metadata (strukturell).
+ *  - Guard-Kette ohne Eigenschutz-Rollen-/Permission-Gating (strukturell).
  *  - Error-Mapping aller drei Sentinel-Klassen auf HTTP-Statuscodes.
  *  - Read-Model-Refresh nach Create (Controller-seitig).
  *
@@ -35,8 +34,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 (databaseAvailable ? describe : describe.skip)('GefaehrdungsbeurteilungController HTTP Integration (AC11)', () => {
   it.skip('Happy-Path Seed-Vorlage (MANV): 201 + Aggregate-ID + Items-Array + Version 1, plus DB-Rows + Outbox-Event', () => {
     // Integration-Test benötigt: Seed-Vorlage „MANV" (prisma/seed.ts),
-    // Per-Test-Einsatz mit Sicherheitsbeauftragter-Rollenbesetzung,
-    // Admin-Login-Flow (bcrypt) + Server-Access-Token — siehe Task 9.
+    // Per-Test-Einsatz, Login-Flow (bcrypt) + Server-Access-Token —
+    // siehe Task 9.
   });
 
   it.skip('Happy-Path Leer-Formular (vorlageId=null): 201 + items=[] + Outbox-Event mit itemCount:0', () => {
@@ -54,10 +53,9 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // Request-Phase. Erwartung: context.rule === 'EinheitHatBereitsBeurteilung'.
   });
 
-  it.skip('403 strukturiert: User ohne eigenschutz:gefaehrdungsbeurteilung:write erhält Insufficient-Permission', () => {
-    // Integration-Test benötigt: Einsatz-User ohne write-Permission
-    // (Seed-Rolle „Nachbereitung" hat nur read). Erwartung: Body von
-    // `EIGENSCHUTZ_INSUFFICIENT_PERMISSION_BODY`.
+  it.skip('401 strukturiert: Request ohne gültigen JWT wird vor dem Handler abgelehnt', () => {
+    // Integration-Test benötigt: Request ohne gültigen Server-Access-Token.
+    // Erwartung: strukturierter 401-Body des JwtAuthGuard.
   });
 
   it.skip('404 Vorlage fehlt: nicht-existente vorlageId liefert 404 mit context.resource="vorlage"', () => {
@@ -142,7 +140,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   describe('GET …/gefaehrdungsbeurteilungen/:id/versionen (Story 2.4)', () => {
     it.skip('(Story 2.4 AC17) Endpoint liefert Historie mit aufgelösten User-Namen (3 Versionen, DESC, Chain-Intervall)', () => {
       // Setup-Anforderungen:
-      //  - Seeded Admin-User mit Sicherheitsbeauftragter-Rolle + JWT-Login.
+      //  - Seeded User + JWT-Login.
       //  - Per-Test-Einsatz mit Einsatz-Einheit-Besetzung.
       //  - 3 Versionen anlegen: V1 via POST …/gefaehrdungsbeurteilungen (Create),
       //    V2 + V3 via POST …/gefaehrdungsbeurteilungen/:id/items (2× updateItems).
@@ -158,8 +156,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       //  - `eintraege[0].changedByUserName` gesetzt ODER deterministisch
       //    `null` (User-Fixture bestimmt den Pfad; der Test muss beide
       //    Pfade explizit abdecken).
-      //  - Negativ-Pfade: Fremder `einsatzId` → 404, User ohne Lese-
-      //    Permission → 403 durch PermissionsGuard.
+      //  - Negativ-Pfade: Fremder `einsatzId` → 404, Request ohne gültigen
+      //    JWT → 401 durch JwtAuthGuard.
     });
   });
 });

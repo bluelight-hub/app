@@ -140,7 +140,7 @@ describe('useGefaehrdungsbeurteilungVorlagen (Story 2.1 AC4)', () => {
       expect(retry(2, { response: { status: 500 } })).toBe(false);
     });
 
-    it('retriet NICHT bei 403 (Berechtigung fehlt dauerhaft, Zero-Toast-Drawer übernimmt)', async () => {
+    it('retriet NICHT bei 403 (Einsatz-Zugriff abgelehnt, Zero-Toast-Drawer übernimmt)', async () => {
       const retry = await readRetryFn();
       expect(retry(0, { response: { status: 403 } })).toBe(false);
       expect(retry(5, { response: { status: 403 } })).toBe(false);
@@ -329,6 +329,7 @@ describe('useUpdateGefaehrdungsbeurteilungItems (Story 2.2 AC10)', () => {
   it('sendet items + expectedVersion an den Update-Endpoint und übernimmt die Response in den Cache', async () => {
     mockUpdateItems.mockResolvedValueOnce(updateResponse);
     const { client, wrapper } = makeWrapper();
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
     client.setQueryData(EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung('e-1', 'b-7'), existing);
 
     const { result } = renderHook(() => useUpdateGefaehrdungsbeurteilungItems('e-1', 'b-7'), { wrapper });
@@ -348,6 +349,31 @@ describe('useUpdateGefaehrdungsbeurteilungItems (Story 2.2 AC10)', () => {
     await waitFor(() => {
       const cached = client.getQueryData(EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung('e-1', 'b-7')) as typeof existing;
       expect(cached?.version).toBe(2);
+    });
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungHistorie('e-1', 'b-7'),
+      });
+    });
+  });
+
+  it('bereinigt null-Felder im Items-Mapping zu undefined für den generierten Client', async () => {
+    mockUpdateItems.mockResolvedValueOnce(updateResponse);
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useUpdateGefaehrdungsbeurteilungItems('e-1', 'b-7'), { wrapper });
+
+    await result.current.mutateAsync({
+      items: [{ id: null, title: 'Neu', description: null, eintritt: 'GELEGENTLICH', schaden: 'MITTEL', schutzmassnahmen: null } as never],
+      expectedVersion: 1,
+    });
+
+    expect(mockUpdateItems).toHaveBeenCalledWith({
+      einsatzId: 'e-1',
+      id: 'b-7',
+      updateGefaehrdungsbeurteilungItemsDto: {
+        items: [{ id: undefined, title: 'Neu', description: undefined, eintritt: 'GELEGENTLICH', schaden: 'MITTEL', schutzmassnahmen: undefined }],
+        expectedVersion: 1,
+      },
     });
   });
 

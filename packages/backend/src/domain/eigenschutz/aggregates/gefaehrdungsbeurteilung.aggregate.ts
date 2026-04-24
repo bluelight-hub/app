@@ -138,40 +138,42 @@ export class Gefaehrdungsbeurteilung extends AggregateRoot<Gefaehrdungsbeurteilu
    * Wird nur vom Infrastructure-Mapper aufgerufen; Anwendungs-/Handler-Code
    * verwendet ausschließlich `create` oder lädt via Repository.
    */
-  static reconstitute(props: ReconstituteGefaehrdungsbeurteilungProps): Gefaehrdungsbeurteilung {
+  static reconstitute(props: ReconstituteGefaehrdungsbeurteilungProps): Result<Gefaehrdungsbeurteilung> {
     // Invariant-Parität zu `create()`: auch ein rehydriertes Aggregate darf
     // keine leeren Pflicht-Felder tragen. Eine korrupte DB-Row darf nicht
-    // silent in-memory weiterleben — lieber hart werfen, damit der Mapper-
-    // Pfad den Fehler an die Observability durchreicht.
+    // silent in-memory weiterleben. Der Mapper-Pfad reicht den Fehler als
+    // Result.fail an die Observability weiter.
     if (!props.einsatzId || props.einsatzId.trim().length === 0) {
-      throw new Error('Gefaehrdungsbeurteilung.reconstitute: einsatzId ist erforderlich');
+      return Result.fail<Gefaehrdungsbeurteilung>('Gefaehrdungsbeurteilung.reconstitute: einsatzId ist erforderlich');
     }
     if (!props.einheitId || props.einheitId.trim().length === 0) {
-      throw new Error('Gefaehrdungsbeurteilung.reconstitute: einheitId ist erforderlich');
+      return Result.fail<Gefaehrdungsbeurteilung>('Gefaehrdungsbeurteilung.reconstitute: einheitId ist erforderlich');
     }
     if (!props.createdBy || props.createdBy.trim().length === 0) {
-      throw new Error('Gefaehrdungsbeurteilung.reconstitute: createdBy ist erforderlich');
+      return Result.fail<Gefaehrdungsbeurteilung>('Gefaehrdungsbeurteilung.reconstitute: createdBy ist erforderlich');
     }
     if (!Array.isArray(props.items)) {
-      throw new Error('Gefaehrdungsbeurteilung.reconstitute: items muss ein Array sein');
+      return Result.fail<Gefaehrdungsbeurteilung>('Gefaehrdungsbeurteilung.reconstitute: items muss ein Array sein');
     }
     if (!Number.isInteger(props.version) || props.version < 1) {
-      throw new Error(`Gefaehrdungsbeurteilung.reconstitute: version muss Integer ≥ 1 sein (erhalten: ${String(props.version)})`);
+      return Result.fail<Gefaehrdungsbeurteilung>(`Gefaehrdungsbeurteilung.reconstitute: version muss Integer ≥ 1 sein (erhalten: ${String(props.version)})`);
     }
 
     const idResult = GefaehrdungsbeurteilungId.create(props.id);
     if (idResult.isFailure || !idResult.value) {
-      throw new Error(`Gefaehrdungsbeurteilung.reconstitute: ungültige ID ${props.id} (${idResult.error ?? 'unknown'})`);
+      return Result.fail<Gefaehrdungsbeurteilung>(`Gefaehrdungsbeurteilung.reconstitute: ungültige ID ${props.id} (${idResult.error ?? 'unknown'})`);
     }
-    return new Gefaehrdungsbeurteilung(
-      idResult.value as GefaehrdungsbeurteilungId,
-      props.einsatzId,
-      props.einheitId,
-      props.vorlageId,
-      props.gefahrenzoneId,
-      [...props.items],
-      props.version,
-      props.createdBy,
+    return Result.ok(
+      new Gefaehrdungsbeurteilung(
+        idResult.value as GefaehrdungsbeurteilungId,
+        props.einsatzId,
+        props.einheitId,
+        props.vorlageId,
+        props.gefahrenzoneId,
+        [...props.items],
+        props.version,
+        props.createdBy,
+      ),
     );
   }
 

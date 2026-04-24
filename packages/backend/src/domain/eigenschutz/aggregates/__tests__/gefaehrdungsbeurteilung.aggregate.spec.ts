@@ -319,9 +319,9 @@ describe('Gefaehrdungsbeurteilung Aggregate (Story 2.1)', () => {
       expect(aggregate.items.length).toBe(lengthAfterUpdate);
     });
 
-    it('(21) reconstitute: erstellt Aggregate mit gegebener version und emittiert KEIN Event (AC1)', () => {
+    it('(21) reconstitute: liefert Result.ok mit gegebener version und emittiert KEIN Event (AC1)', () => {
       const id = 'clw3h8x9y0000qwertyuimmmmm';
-      const aggregate = Gefaehrdungsbeurteilung.reconstitute({
+      const result = Gefaehrdungsbeurteilung.reconstitute({
         id,
         einsatzId: EINSATZ_ID,
         einheitId: EINHEIT_ID,
@@ -331,6 +331,9 @@ describe('Gefaehrdungsbeurteilung Aggregate (Story 2.1)', () => {
         items: [],
         version: 7,
       });
+      expect(result.isSuccess).toBe(true);
+
+      const aggregate = result.value!;
 
       expect(aggregate.version).toBe(7);
       expect(aggregate.id.value).toBe(id);
@@ -343,26 +346,56 @@ describe('Gefaehrdungsbeurteilung Aggregate (Story 2.1)', () => {
       expect(aggregate.getDomainEvents()).toHaveLength(0);
     });
 
-    it('(22) reconstitute: wirft bei ungültiger ID (AC1)', () => {
-      expect(() =>
-        Gefaehrdungsbeurteilung.reconstitute({
-          id: 'not-a-cuid',
-          einsatzId: EINSATZ_ID,
-          einheitId: EINHEIT_ID,
-          createdBy: USER_ID,
-          vorlageId: null,
-          gefahrenzoneId: null,
-          items: [],
-          version: 1,
-        }),
-      ).toThrow();
+    it('(22) reconstitute: liefert Result.fail bei ungültiger ID (AC1)', () => {
+      const result = Gefaehrdungsbeurteilung.reconstitute({
+        id: 'not-a-cuid',
+        einsatzId: EINSATZ_ID,
+        einheitId: EINHEIT_ID,
+        createdBy: USER_ID,
+        vorlageId: null,
+        gefahrenzoneId: null,
+        items: [],
+        version: 1,
+      });
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toMatch(/ungültige ID/i);
     });
 
-    it('(23) reconstitute: items-Array wird defensiv kopiert (AC6)', () => {
+    it('(23) reconstitute: liefert Result.fail bei leerem Pflichtfeld und ungültiger Version (AC1)', () => {
+      const missingEinsatz = Gefaehrdungsbeurteilung.reconstitute({
+        id: 'clw3h8x9y0000qwertyuimmmmm',
+        einsatzId: '',
+        einheitId: EINHEIT_ID,
+        createdBy: USER_ID,
+        vorlageId: null,
+        gefahrenzoneId: null,
+        items: [],
+        version: 1,
+      });
+
+      const invalidVersion = Gefaehrdungsbeurteilung.reconstitute({
+        id: 'clw3h8x9y0000qwertyuimmmmm',
+        einsatzId: EINSATZ_ID,
+        einheitId: EINHEIT_ID,
+        createdBy: USER_ID,
+        vorlageId: null,
+        gefahrenzoneId: null,
+        items: [],
+        version: 0,
+      });
+
+      expect(missingEinsatz.isFailure).toBe(true);
+      expect(missingEinsatz.error).toMatch(/einsatzId/);
+      expect(invalidVersion.isFailure).toBe(true);
+      expect(invalidVersion.error).toMatch(/version/);
+    });
+
+    it('(24) reconstitute: items-Array wird defensiv kopiert (AC6)', () => {
       const id = 'clw3h8x9y0000qwertyuinnnnn';
       const inputItems: GefaehrdungItem[] = [buildItem('A'), buildItem('B')];
 
-      const aggregate = Gefaehrdungsbeurteilung.reconstitute({
+      const result = Gefaehrdungsbeurteilung.reconstitute({
         id,
         einsatzId: EINSATZ_ID,
         einheitId: EINHEIT_ID,
@@ -372,6 +405,8 @@ describe('Gefaehrdungsbeurteilung Aggregate (Story 2.1)', () => {
         items: inputItems,
         version: 3,
       });
+      expect(result.isSuccess).toBe(true);
+      const aggregate = result.value!;
 
       const lengthAfter = aggregate.items.length;
       expect(lengthAfter).toBe(2);
@@ -391,7 +426,7 @@ describe('Gefaehrdungsbeurteilung Aggregate (Story 2.1)', () => {
     // Dieser Test triggert den Pfad via synthetisches Iterable, dessen `length`
     // über die tatsächlich iterierten Elemente hinweg lügt — entspricht dem in
     // AC14 dokumentierten „synthetisch via Internals-Zugriff"-Szenario.
-    it('(24) liefert Invariant:DiffSumMismatch wenn Audit-Quersumme nicht aufgeht (AC14 Case 9)', () => {
+    it('(25) liefert Invariant:DiffSumMismatch wenn Audit-Quersumme nicht aufgeht (AC14 Case 9)', () => {
       const aggregate = Gefaehrdungsbeurteilung.create({
         einsatzId: EINSATZ_ID,
         einheitId: EINHEIT_ID,

@@ -9,22 +9,19 @@
  *
  * Keyboard-Shortcut `Ctrl/Cmd+S` triggert den Speichern-Flow, analog zum
  * Admin-Backend-Pattern (UX-DR22).
- *
- * Permission-Gate: `useEigenschutzPermissions()` liefert aktuell einen
- * Proxy-Wert (Navigation-Access) — das serverseitige 403 bei fehlender
- * `write`-Rolle bleibt die harte Source-of-Truth. Der Tooltip benennt die
- * fehlende Berechtigung explizit (AC5 in Story 2.1, hier Wiederverwendung).
  */
 
-import { useEigenschutzPermissions } from '@/features/eigenschutz/hooks/useEigenschutzPermissions';
 import { EIGENSCHUTZ_QUERY_KEYS, GefaehrdungsbeurteilungConflictError, useUpdateGefaehrdungsbeurteilungItems } from '@/features/eigenschutz/api/queries';
+import { useAutoSave } from '@/features/eigenschutz/hooks/useAutoSave';
+import { removePendingCommandsForEntity, upsertPendingCommand } from '@/features/eigenschutz/lib/pending-command-queue';
 import { GEFAEHRDUNG_ITEM_LIMITS, type Gefaehrdungsbeurteilung, type GefaehrdungItem } from '@bluelight-hub/shared/schemas';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { SeverityBanner } from '@/shared/ui/molecules/severity-banner.molecule';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PiFloppyDiskLight, PiPlusLight } from 'react-icons/pi';
+import { PiCheckCircleFill, PiPlusLight } from 'react-icons/pi';
 import { GefaehrdungItemEditor } from '../molecules/GefaehrdungItemEditor';
+import { SyncStatusBadge } from '../molecules/SyncStatusBadge';
 
 export interface GefaehrdungenEditorOrganismProps {
   readonly einsatzId: string;
@@ -35,23 +32,25 @@ function getHttpStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null)?.response?.status;
 }
 
+function serializeItems(items: readonly GefaehrdungItem[]): string {
+  return JSON.stringify(items);
+}
+
+function createPendingCommandId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: GefaehrdungenEditorOrganismProps) {
   const queryClient = useQueryClient();
   const mutation = useUpdateGefaehrdungsbeurteilungItems(einsatzId, beurteilung.id);
-  const { canCreateGefaehrdungsbeurteilung, isLoading: permissionLoading, requiredPermission } = useEigenschutzPermissions();
 
   const [items, setItems] = useState<GefaehrdungItem[]>(() => beurteilung.items);
   const [autoFocusIndex, setAutoFocusIndex] = useState<number | null>(null);
-  // Wenn die Beurteilung neu geladen wird (z. B. nach Invalidate), müssen
-  // lokale Items den Server-State übernehmen — sonst würde der Banner-
-  // Reload-Flow stumm ins Leere laufen.
+  const [savedVersion, setSavedVersion] = useState(beurteilung.version);
+  const [serverConflict, setServerConflict] = useState(false);
   const lastSyncedVersionRef = useRef<number>(beurteilung.version);
-  useEffect(() => {
-    if (beurteilung.version !== lastSyncedVersionRef.current) {
-      setItems(beurteilung.items);
-      lastSyncedVersionRef.current = beurteilung.version;
-    }
-  }, [beurteilung.items, beurteilung.version]);
+  const lastSyncedItemsRef = useRef<GefaehrdungItem[]>(beurteilung.items);
+  const lastSyncedItemsKeyRef = useRef<string>(serializeItems(beurteilung.items));
 
   // Validierungs-Status lokal ableiten — TanStack-Form wäre Overkill für
   // einen flachen Items-Array. Die Zod-Validation im Mutation-Handler
@@ -65,27 +64,100 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
     });
   }, [items]);
 
-  const permissionMissing = !permissionLoading && !canCreateGefaehrdungsbeurteilung;
-  const saveDisabled = permissionMissing || hasInvalidItem || mutation.isPending;
-  const saveTitle = permissionMissing ? `Fehlende Berechtigung: ${requiredPermission}` : undefined;
+  const hasDraftChanges = useMemo(() => serializeItems(items) !== lastSyncedItemsKeyRef.current, [items]);
+
+  const saveItems = useCallback(
+    async (draftItems: GefaehrdungItem[]): Promise<Gefaehrdungsbeurteilung> => {
+      const saved = await mutation.mutateAsync({
+        items: draftItems,
+        expectedVersion: lastSyncedVersionRef.current,
+      });
+      lastSyncedVersionRef.current = saved.version;
+      lastSyncedItemsRef.current = saved.items;
+      lastSyncedItemsKeyRef.current = serializeItems(saved.items);
+      setSavedVersion(saved.version);
+      return saved;
+    },
+    [mutation],
+  );
+
+  const autoSave = useAutoSave<GefaehrdungItem[], Gefaehrdungsbeurteilung>({
+    entityId: beurteilung.id,
+    entityType: 'gefaehrdungsbeurteilung',
+    saveFn: saveItems,
+    debounceMs: 2000,
+    enabled: !serverConflict,
+    isValid: () => !hasInvalidItem,
+    hasChanges: (draftItems) => serializeItems(draftItems) !== lastSyncedItemsKeyRef.current,
+    isConflictError: (error) => error instanceof GefaehrdungsbeurteilungConflictError || getHttpStatus(error) === 409,
+    isOfflineError: (error) => getHttpStatus(error) === undefined,
+    isOnline: typeof navigator === 'undefined' ? true : navigator.onLine,
+    onSaved: (saved) => {
+      setItems(saved.items);
+      setServerConflict(false);
+    },
+    onOfflineSave: async (draftItems, source) => {
+      const now = new Date().toISOString();
+      await upsertPendingCommand({
+        schemaVersion: 1,
+        id: createPendingCommandId(),
+        entityType: 'gefaehrdungsbeurteilung',
+        einsatzId,
+        entityId: beurteilung.id,
+        expectedVersion: lastSyncedVersionRef.current,
+        payload: { items: draftItems },
+        queuedAt: now,
+        updatedAt: now,
+        source,
+        status: 'pending',
+      });
+    },
+  });
+  const { status: autoSaveStatus, hasPendingChanges: autoSaveHasPendingChanges, scheduleSave, finalizeNow, cancel: cancelAutoSave, resetSynced } = autoSave;
+
+  const editorBusy = mutation.isPending || autoSaveStatus === 'syncing';
+  const finalizeDisabled = hasInvalidItem || editorBusy || !hasDraftChanges || serverConflict;
+
+  useEffect(() => {
+    const incomingItemsKey = serializeItems(beurteilung.items);
+    const incomingChanged = beurteilung.version !== lastSyncedVersionRef.current || incomingItemsKey !== lastSyncedItemsKeyRef.current;
+    if (!incomingChanged) return;
+
+    const localDirty = serializeItems(items) !== lastSyncedItemsKeyRef.current || autoSaveHasPendingChanges;
+    if (localDirty) {
+      setServerConflict(true);
+      return;
+    }
+
+    lastSyncedVersionRef.current = beurteilung.version;
+    lastSyncedItemsRef.current = beurteilung.items;
+    lastSyncedItemsKeyRef.current = incomingItemsKey;
+    setItems(beurteilung.items);
+    setSavedVersion(beurteilung.version);
+    setServerConflict(false);
+    resetSynced(beurteilung.items);
+  }, [autoSaveHasPendingChanges, beurteilung.items, beurteilung.version, items, resetSynced]);
+
+  useEffect(() => {
+    if (hasInvalidItem || serverConflict || !hasDraftChanges) return;
+    scheduleSave(items);
+  }, [hasDraftChanges, hasInvalidItem, items, scheduleSave, serverConflict]);
 
   // AC13: Unterscheide typsierten ConflictError (mit `currentVersion`) vom
   // rohen 409-Fetch-Error. Fallback-Pfad deckt Alt-Backends + den Edge-Case
   // ab, dass ein Upstream-Proxy den Context rewrites.
   const conflictError = mutation.error instanceof GefaehrdungsbeurteilungConflictError ? mutation.error : null;
-  const conflictDetected = conflictError !== null || getHttpStatus(mutation.error) === 409;
-  const bannerTitle =
-    conflictError?.currentVersion !== undefined
+  const conflictDetected = serverConflict || autoSaveStatus === 'conflict' || conflictError !== null || getHttpStatus(mutation.error) === 409;
+  const bannerTitle = serverConflict
+    ? 'Es gibt einen neueren Stand auf dem Server. Lade die aktuelle Version neu, um fortzufahren.'
+    : conflictError?.currentVersion !== undefined
       ? `Version ${conflictError.currentVersion} wurde bereits von jemand anderem gespeichert. Lade die aktuelle Version neu, um fortzufahren.`
       : 'Jemand anders hat bereits Änderungen gespeichert — bitte neu laden.';
 
-  const handleSave = useCallback(() => {
-    if (saveDisabled) return;
-    mutation.mutate({
-      items,
-      expectedVersion: beurteilung.version,
-    });
-  }, [saveDisabled, mutation, items, beurteilung.version]);
+  const handleFinalize = useCallback(() => {
+    if (finalizeDisabled) return;
+    void finalizeNow(items);
+  }, [finalizeDisabled, finalizeNow, items]);
 
   // Ctrl/Cmd+S Shortcut (UX-DR22) — document-level, damit auch bei Fokus
   // im Editor-Feld ein Save ausgelöst werden kann. preventDefault verhindert
@@ -95,11 +167,11 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
       const matches = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's';
       if (!matches) return;
       event.preventDefault();
-      handleSave();
+      handleFinalize();
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [handleSave]);
+  }, [handleFinalize]);
 
   const handleAdd = useCallback(() => {
     setItems((prev) => {
@@ -110,9 +182,12 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
   }, []);
 
   const handleReset = useCallback(() => {
-    setItems(beurteilung.items);
+    cancelAutoSave();
+    setServerConflict(false);
+    setItems(lastSyncedItemsRef.current);
     setAutoFocusIndex(null);
-  }, [beurteilung.items]);
+    void removePendingCommandsForEntity('gefaehrdungsbeurteilung', beurteilung.id);
+  }, [beurteilung.id, cancelAutoSave]);
 
   const handleReload = useCallback(() => {
     void queryClient.invalidateQueries({
@@ -140,6 +215,15 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
         />
       ) : null}
 
+      {autoSaveStatus === 'error' ? (
+        <SeverityBanner
+          variant="danger"
+          title="Speichern fehlgeschlagen"
+          description="Die Änderung wurde nicht übernommen. Prüfe die Verbindung und versuche es erneut."
+          data-testid="gefaehrdungen-editor-error-banner"
+        />
+      ) : null}
+
       <div className="space-y-3" data-testid="gefaehrdungen-editor-items">
         {items.map((item, idx) => (
           <GefaehrdungItemEditor
@@ -151,7 +235,7 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
             onChange={(next) => handleItemChange(idx, next)}
             onRemove={() => handleRemove(idx)}
             autoFocusTitle={autoFocusIndex === idx}
-            disabled={mutation.isPending}
+            disabled={editorBusy}
           />
         ))}
         {items.length === 0 ? (
@@ -162,27 +246,27 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border-subtle pt-4">
-        <Button intent="secondary" appearance="outline" type="button" onClick={handleAdd} disabled={mutation.isPending} data-testid="gefaehrdungen-editor-add">
+        <Button intent="secondary" appearance="outline" type="button" onClick={handleAdd} disabled={editorBusy} data-testid="gefaehrdungen-editor-add">
           <PiPlusLight className="h-4 w-4" />
           Gefährdung hinzufügen
         </Button>
         <div className="flex items-center gap-2">
-          {/* Tab-Order per AC11: Speichern vor Abbrechen (linear zu Schutzmaßnahmen → Speichern → Abbrechen). */}
+          <SyncStatusBadge status={serverConflict ? 'conflict' : autoSaveStatus} savedVersion={autoSaveStatus === 'synced' ? savedVersion : undefined} />
+          {/* Tab-Order: Version abschließen vor Abbrechen (linear zu Schutzmaßnahmen → Abschluss → Abbrechen). */}
           <Button
             intent="primary"
             type="button"
-            onClick={handleSave}
-            disabled={saveDisabled}
-            aria-disabled={saveDisabled || undefined}
-            title={saveTitle}
-            loading={mutation.isPending}
+            onClick={handleFinalize}
+            disabled={finalizeDisabled}
+            aria-disabled={finalizeDisabled || undefined}
+            loading={editorBusy}
             kbd="⌘S"
             data-testid="gefaehrdungen-editor-save"
           >
-            <PiFloppyDiskLight className="h-4 w-4" />
-            Speichern
+            <PiCheckCircleFill className="h-4 w-4" />
+            Version abschließen
           </Button>
-          <Button intent="secondary" appearance="ghost" type="button" onClick={handleReset} disabled={mutation.isPending} data-testid="gefaehrdungen-editor-reset">
+          <Button intent="secondary" appearance="ghost" type="button" onClick={handleReset} disabled={editorBusy} data-testid="gefaehrdungen-editor-reset">
             Abbrechen
           </Button>
         </div>

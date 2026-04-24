@@ -71,6 +71,14 @@ Es ergänzt die zeitlosen Ring-Verträge um eine momentane Bestandsaufnahme.
 
 Der Ring-2-Vertrag fordert lesbare Zustände für: `loading`, `pending`, `warning`, `error`, `offline`, `local draft`, `syncing`, `synced`, `failed`, `conflict/retry`, `degraded connection`, `readonly/locked`, `focus/active`. Alle produzieren mindestens Text + Icon oder Zähler, nicht nur Farbe.
 
+### Eigenschutz: Auto-Save und Versionsabschluss
+
+Die Gefährdungsbeurteilungs-Detailseite nutzt seit Story 415-2-5 keinen generischen Speichern-Button mehr. Änderungen an Gefährdungs-Items werden nach 2 Sekunden Inaktivität über den bestehenden Update-Hook persistiert; der primäre Button heißt „Version abschließen" und führt denselben Save-Pfad sofort aus. `Ctrl/Cmd+S` triggert ebenfalls diesen Abschluss.
+
+Die Statuszeile wird über `SyncStatusBadge` gerendert und nutzt `aria-live="polite"`. Sichtbare Zustände sind: `Änderungen offen`, `Lokal gespeichert`, `Wird synchronisiert`, `Synchronisiert`, `Version {n} gespeichert`, `Konflikt`, `Speichern fehlgeschlagen` und `Offline gespeichert`. Konflikte und Fehler bleiben inline in der bestehenden `SeverityBanner`-Fläche; es gibt keine Sonner-Toasts für Save-, Offline- oder Konfliktzustände.
+
+Offline-Auto-Saves werden als feature-lokale Pending Commands unter `bluelight:eigenschutz:pending-commands:v1` abgelegt. Der Zugriff läuft ausschließlich über den Platform Storage Adapter. Auto-Save-Commands derselben Gefährdungsbeurteilung und `expectedVersion` werden zusammengeführt; Replay läuft FIFO. Ein echter 409 bleibt als Konflikt sichtbar, während ein bereits angewandter Payload entfernt werden kann.
+
 ## Komponenten (Ring 3)
 
 ### Reife pro Ebene
