@@ -100,7 +100,7 @@ function is403(error: unknown): boolean {
 
 /**
  * Gemeinsame Retry-Policy für Eigenschutz-GET-Queries (AC8, Zero-Toast).
- * - 403 → kein Retry (Berechtigung fehlt dauerhaft, Route zeigt EmptyState).
+ * - 403 → kein Retry (Einsatz-Zugriff wurde serverseitig abgelehnt).
  * - Sonst → maximal 2 Wiederholungen.
  */
 function eigenschutzRetry(failureCount: number, error: unknown): boolean {
@@ -114,9 +114,9 @@ function eigenschutzRetry(failureCount: number, error: unknown): boolean {
  * Liefert den Health-Status des Eigenschutz-Moduls für einen Einsatz.
  *
  * **Konsumiert den Story-1.6-AC2-Endpoint** und ist derzeit reiner Smoke-
- * Test: Rückgabe `{ status: 'ready' }` bedeutet, dass die Guard-Kette
- * (JWT → Einsatz-Scope → Eigenschutz-Rolle) durchläuft. Epic 2+ ersetzt
- * den Hook-Konsum durch fachliche Queries.
+ * Test: Rückgabe `{ status: 'ready' }` bedeutet, dass der Bereich gemountet
+ * ist und der Einsatz-Scope serverseitig durchläuft. Epic 2+ ersetzt den
+ * Hook-Konsum durch fachliche Queries.
  *
  * **403-Verhalten (AC8, Zero-Toast-Policy):**
  * - Kein Retry — 403 ist kein transientes Problem.
@@ -285,12 +285,14 @@ export function useGefaehrdungsbeurteilungHistorie(einsatzId: string, id: string
 export function useUpdateGefaehrdungsbeurteilungItems(einsatzId: string, id: string) {
   const queryClient = useQueryClient();
   const detailKey = EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung(einsatzId, id);
+  const historieKey = EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungHistorie(einsatzId, id);
 
   return useMutation<Gefaehrdungsbeurteilung, unknown, UpdateGefaehrdungsbeurteilungItemsInput, { previous: Gefaehrdungsbeurteilung | undefined }>({
     // UX-DR21 Zero-Toast-Policy: 409-Konflikte rendert die Page-Komponente als
     // `SeverityBanner`-Fallback (div role="alert"). Ein zusätzlicher
     // Sonner-Toast würde zu Doppel-Benachrichtigung führen.
     meta: { silentError: true },
+    scope: { id: `eigenschutz-gefaehrdungsbeurteilung-items-${einsatzId}-${id}` },
     mutationFn: async (input): Promise<Gefaehrdungsbeurteilung> => {
       try {
         const response = await api.eigenschutz().gefaehrdungsbeurteilungControllerUpdateItemsVAlpha({
@@ -298,13 +300,13 @@ export function useUpdateGefaehrdungsbeurteilungItems(einsatzId: string, id: str
           id,
           updateGefaehrdungsbeurteilungItemsDto: {
             items: input.items.map((item) => ({
-              id: item.id,
+              id: item.id ?? undefined,
               title: item.title,
-              description: item.description,
+              description: item.description ?? undefined,
               eintritt: item.eintritt,
               schaden: item.schaden,
               // risikoklasse wird vom Backend autoritativ berechnet — kein Client-Feld.
-              schutzmassnahmen: item.schutzmassnahmen,
+              schutzmassnahmen: item.schutzmassnahmen ?? undefined,
             })),
             expectedVersion: input.expectedVersion,
           },
@@ -345,6 +347,7 @@ export function useUpdateGefaehrdungsbeurteilungItems(einsatzId: string, id: str
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: detailKey });
+      void queryClient.invalidateQueries({ queryKey: historieKey });
     },
   });
 }

@@ -8,7 +8,7 @@
  *   angelegt (`mutateAsync` wird pro Test über `mockImplementation`
  *   konfiguriert), damit Erfolgs- und Sentinel-Fehlerpfade deterministisch
  *   prüfbar sind.
- * - A11y wird strukturell assertet (keine `vitest-axe`-Dep im Repo): Rolle
+ * - A11y wird strukturell assertet (keine `vitest-axe`-Dep im Repo): ARIA
  *   `dialog` + `role="radiogroup"` + Heading-Level — das reicht für die
  *   Drawer-Verantwortung, da die globale Dialog-Primitive (`Dialog.SlideIn`)
  *   fokus-trap und aria-modal bereits garantiert.
@@ -218,7 +218,7 @@ describe('GefaehrdungseditorDrawer (Story 2.1 Task 8)', () => {
     expect(alert).toHaveTextContent(/bereits eine Beurteilung/i);
   });
 
-  it('zeigt Inline-Meldung bei 403 Forbidden (defensive, Parent sollte vorab disablen)', async () => {
+  it('zeigt Inline-Meldung bei 403 Forbidden', async () => {
     const user = userEvent.setup();
     mocks.createMutation.mutateAsync.mockRejectedValue(buildResponseError(403, { code: 'Forbidden' }));
 
@@ -229,7 +229,7 @@ describe('GefaehrdungseditorDrawer (Story 2.1 Task 8)', () => {
     await user.click(screen.getByTestId('gefaehrdungseditor-submit'));
 
     const alert = await screen.findByTestId('gefaehrdungseditor-inline-error');
-    expect(alert).toHaveTextContent(/Keine Berechtigung/i);
+    expect(alert).toHaveTextContent(/nicht freigegeben/i);
   });
 
   it('Esc schließt ohne Mutation auszulösen (AC10)', async () => {

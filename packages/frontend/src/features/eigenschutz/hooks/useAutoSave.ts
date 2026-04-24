@@ -1,0 +1,287 @@
+import { AsyncDebouncer } from '@tanstack/pacer';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+export type AutoSaveStatus = 'idle' | 'dirty' | 'debouncing' | 'local-saved' | 'syncing' | 'synced' | 'offline-queued' | 'conflict' | 'error';
+export type AutoSaveSource = 'auto-save' | 'manual-finalize';
+
+interface AutoSaveRequest<TDraft> {
+  draft: TDraft;
+  draftKey: string;
+  revision: number;
+  source: AutoSaveSource;
+}
+
+export interface UseAutoSaveOptions<TDraft, TResult> {
+  readonly entityId: string;
+  readonly entityType: string;
+  readonly saveFn: (draft: TDraft) => Promise<TResult>;
+  readonly debounceMs?: number;
+  readonly enabled?: boolean;
+  readonly isValid?: (draft: TDraft) => boolean;
+  readonly hasChanges?: (draft: TDraft) => boolean;
+  readonly getDraftKey?: (draft: TDraft) => string;
+  readonly isConflictError?: (error: unknown) => boolean;
+  readonly isOfflineError?: (error: unknown) => boolean;
+  readonly isOnline?: boolean;
+  readonly onSaved?: (result: TResult, draft: TDraft) => void;
+  readonly onError?: (error: unknown, draft: TDraft) => void;
+  readonly onConflict?: (error: unknown, draft: TDraft) => void;
+  readonly onOfflineSave?: (draft: TDraft, source: AutoSaveSource) => Promise<void>;
+}
+
+export interface UseAutoSaveReturn<TDraft, TResult> {
+  readonly status: AutoSaveStatus;
+  readonly error: unknown;
+  readonly lastResult: TResult | null;
+  readonly hasPendingChanges: boolean;
+  readonly scheduleSave: (draft: TDraft) => boolean;
+  readonly flushNow: (draft?: TDraft) => Promise<TResult | undefined>;
+  readonly finalizeNow: (draft?: TDraft) => Promise<TResult | undefined>;
+  readonly cancel: () => void;
+  readonly resetSynced: (draft?: TDraft) => void;
+}
+
+function defaultDraftKey<TDraft>(draft: TDraft): string {
+  try {
+    return JSON.stringify(draft);
+  } catch {
+    return String(draft);
+  }
+}
+
+function getHttpStatus(error: unknown): number | undefined {
+  return (error as { response?: { status?: number } } | null)?.response?.status;
+}
+
+function defaultIsConflictError(error: unknown): boolean {
+  return (
+    getHttpStatus(error) === 409 || (error as { statusCode?: number; name?: string } | null)?.statusCode === 409 || (error as { name?: string } | null)?.name === 'GefaehrdungsbeurteilungConflictError'
+  );
+}
+
+function defaultIsOfflineError(error: unknown): boolean {
+  return getHttpStatus(error) === undefined;
+}
+
+export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft, TResult>): UseAutoSaveReturn<TDraft, TResult> {
+  const debounceMs = options.debounceMs ?? 2000;
+  const enabled = options.enabled ?? true;
+  const [status, setStatus] = useState<AutoSaveStatus>('idle');
+  const [error, setError] = useState<unknown>(null);
+  const [lastResult, setLastResult] = useState<TResult | null>(null);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+
+  const saveFnRef = useRef(options.saveFn);
+  const isValidRef = useRef(options.isValid);
+  const hasChangesRef = useRef(options.hasChanges);
+  const getDraftKeyRef = useRef(options.getDraftKey ?? defaultDraftKey<TDraft>);
+  const isConflictErrorRef = useRef(options.isConflictError ?? defaultIsConflictError);
+  const isOfflineErrorRef = useRef(options.isOfflineError ?? defaultIsOfflineError);
+  const onSavedRef = useRef(options.onSaved);
+  const onErrorRef = useRef(options.onError);
+  const onConflictRef = useRef(options.onConflict);
+  const onOfflineSaveRef = useRef(options.onOfflineSave);
+  const isOnlineRef = useRef(options.isOnline ?? true);
+  const enabledRef = useRef(enabled);
+
+  saveFnRef.current = options.saveFn;
+  isValidRef.current = options.isValid;
+  hasChangesRef.current = options.hasChanges;
+  getDraftKeyRef.current = options.getDraftKey ?? defaultDraftKey<TDraft>;
+  isConflictErrorRef.current = options.isConflictError ?? defaultIsConflictError;
+  isOfflineErrorRef.current = options.isOfflineError ?? defaultIsOfflineError;
+  onSavedRef.current = options.onSaved;
+  onErrorRef.current = options.onError;
+  onConflictRef.current = options.onConflict;
+  onOfflineSaveRef.current = options.onOfflineSave;
+  isOnlineRef.current = options.isOnline ?? true;
+  enabledRef.current = enabled;
+
+  const latestDraftRef = useRef<TDraft | undefined>(undefined);
+  const latestDraftKeyRef = useRef<string | null>(null);
+  const lastSavedDraftKeyRef = useRef<string | null>(null);
+  const latestRevisionRef = useRef(0);
+  const inFlightRef = useRef(false);
+  const inFlightDraftKeyRef = useRef<string | null>(null);
+  const queuedRequestRef = useRef<AutoSaveRequest<TDraft> | null>(null);
+  const conflictPausedRef = useRef(false);
+
+  const isSaveable = useCallback((draft: TDraft, draftKey: string): boolean => {
+    if (!enabledRef.current || conflictPausedRef.current) return false;
+    if (isValidRef.current && !isValidRef.current(draft)) return false;
+    if (hasChangesRef.current && !hasChangesRef.current(draft)) return false;
+    return draftKey !== lastSavedDraftKeyRef.current;
+  }, []);
+
+  const executeRequest = useCallback(
+    async (request: AutoSaveRequest<TDraft>): Promise<TResult | undefined> => {
+      if (!isSaveable(request.draft, request.draftKey)) {
+        return undefined;
+      }
+
+      if (inFlightRef.current) {
+        if (inFlightDraftKeyRef.current !== request.draftKey) {
+          queuedRequestRef.current = request;
+          setStatus('dirty');
+          setHasPendingChanges(true);
+        }
+        return undefined;
+      }
+
+      inFlightRef.current = true;
+      inFlightDraftKeyRef.current = request.draftKey;
+      setStatus('syncing');
+      setError(null);
+
+      try {
+        if (!isOnlineRef.current && onOfflineSaveRef.current) {
+          await onOfflineSaveRef.current(request.draft, request.source);
+          lastSavedDraftKeyRef.current = request.draftKey;
+          setStatus('offline-queued');
+          setHasPendingChanges(false);
+          return undefined;
+        }
+
+        const result = await saveFnRef.current(request.draft);
+        lastSavedDraftKeyRef.current = request.draftKey;
+
+        if (request.revision === latestRevisionRef.current && request.draftKey === latestDraftKeyRef.current) {
+          setLastResult(result);
+          setStatus('synced');
+          setHasPendingChanges(false);
+          onSavedRef.current?.(result, request.draft);
+        } else {
+          setStatus('dirty');
+          setHasPendingChanges(true);
+        }
+
+        return result;
+      } catch (caughtError) {
+        if (isConflictErrorRef.current(caughtError)) {
+          conflictPausedRef.current = true;
+          setError(caughtError);
+          setStatus('conflict');
+          setHasPendingChanges(false);
+          onConflictRef.current?.(caughtError, request.draft);
+          return undefined;
+        }
+
+        if ((isOfflineErrorRef.current(caughtError) || !isOnlineRef.current) && onOfflineSaveRef.current) {
+          await onOfflineSaveRef.current(request.draft, request.source);
+          lastSavedDraftKeyRef.current = request.draftKey;
+          setError(null);
+          setStatus('offline-queued');
+          setHasPendingChanges(false);
+          return undefined;
+        }
+
+        setError(caughtError);
+        setStatus('error');
+        setHasPendingChanges(false);
+        onErrorRef.current?.(caughtError, request.draft);
+        return undefined;
+      } finally {
+        inFlightRef.current = false;
+        inFlightDraftKeyRef.current = null;
+        const queued = queuedRequestRef.current;
+        queuedRequestRef.current = null;
+        if (queued && !conflictPausedRef.current) {
+          void executeRequest(queued);
+        }
+      }
+    },
+    [isSaveable],
+  );
+
+  const debouncerRef = useRef<AsyncDebouncer<(request: AutoSaveRequest<TDraft>) => Promise<TResult | undefined>> | null>(null);
+  if (!debouncerRef.current) {
+    debouncerRef.current = new AsyncDebouncer(executeRequest, {
+      wait: debounceMs,
+      throwOnError: false,
+    });
+  }
+
+  useEffect(() => {
+    debouncerRef.current?.setOptions({ wait: debounceMs, enabled });
+  }, [debounceMs, enabled]);
+
+  useEffect(() => {
+    return () => {
+      debouncerRef.current?.cancel();
+    };
+  }, []);
+
+  const buildRequest = useCallback(
+    (draft: TDraft, source: AutoSaveSource): AutoSaveRequest<TDraft> | null => {
+      const draftKey = getDraftKeyRef.current(draft);
+      if (!isSaveable(draft, draftKey)) {
+        if (!conflictPausedRef.current && status !== 'idle') {
+          setStatus(lastSavedDraftKeyRef.current === draftKey ? 'synced' : 'idle');
+        }
+        return null;
+      }
+      latestDraftRef.current = draft;
+      latestDraftKeyRef.current = draftKey;
+      latestRevisionRef.current += 1;
+      return {
+        draft,
+        draftKey,
+        revision: latestRevisionRef.current,
+        source,
+      };
+    },
+    [isSaveable, status],
+  );
+
+  const scheduleSave = useCallback(
+    (draft: TDraft): boolean => {
+      const request = buildRequest(draft, 'auto-save');
+      if (!request) return false;
+      setStatus('debouncing');
+      setHasPendingChanges(true);
+      void debouncerRef.current?.maybeExecute(request);
+      return true;
+    },
+    [buildRequest],
+  );
+
+  const flushNow = useCallback(
+    async (draft?: TDraft): Promise<TResult | undefined> => {
+      const targetDraft = draft ?? latestDraftRef.current;
+      if (targetDraft === undefined) return undefined;
+      const request = buildRequest(targetDraft, 'manual-finalize');
+      if (!request) return undefined;
+      debouncerRef.current?.cancel();
+      return executeRequest(request);
+    },
+    [buildRequest, executeRequest],
+  );
+
+  const cancel = useCallback(() => {
+    debouncerRef.current?.cancel();
+    queuedRequestRef.current = null;
+    setHasPendingChanges(false);
+    setStatus(lastSavedDraftKeyRef.current ? 'synced' : 'idle');
+  }, []);
+
+  const resetSynced = useCallback((draft?: TDraft) => {
+    const targetDraft = draft ?? latestDraftRef.current;
+    lastSavedDraftKeyRef.current = targetDraft === undefined ? null : getDraftKeyRef.current(targetDraft);
+    conflictPausedRef.current = false;
+    setError(null);
+    setHasPendingChanges(false);
+    setStatus(targetDraft === undefined ? 'idle' : 'synced');
+  }, []);
+
+  return {
+    status,
+    error,
+    lastResult,
+    hasPendingChanges,
+    scheduleSave,
+    flushNow,
+    finalizeNow: flushNow,
+    cancel,
+    resetSynced,
+  };
+}

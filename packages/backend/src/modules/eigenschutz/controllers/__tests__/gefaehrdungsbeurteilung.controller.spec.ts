@@ -12,10 +12,7 @@ import { GetGefaehrdungsbeurteilungQuery } from '@/application/eigenschutz/queri
 import { GET_GEFAEHRDUNGSBEURTEILUNG_HISTORIE_ERROR_CODES } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.handler';
 import { GetGefaehrdungsbeurteilungHistorieQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.query';
 import { ListGefaehrdungsbeurteilungsVorlagenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungs-vorlagen/list-gefaehrdungsbeurteilungs-vorlagen.query';
-import { EigenschutzRolleGuard } from '@/modules/auth/guards/eigenschutz-rolle.guard';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { EIGENSCHUTZ_ROLE_KEY } from '@/modules/auth/decorators/requires-eigenschutz-rolle.decorator';
 import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
 import { LOGGER } from '@infrastructure/di-tokens';
@@ -28,10 +25,10 @@ import { GefaehrdungsbeurteilungController } from '../gefaehrdungsbeurteilung.co
  * - CommandBus/QueryBus werden mit `jest.fn()` gemockt — hier liegt der Fokus
  *   auf Controller-Orchestrierung, nicht Handler-Logik.
  * - Guard-Metadata wird via `Reflect.getMetadata('__guards__', ...)` auf
- *   struktureller Ebene verifiziert: die 4-Guard-Kette in exakter Reihenfolge
- *   ist verbindlicher Story-Kontrakt (AC).
- * - Decorator-Metadata (`@RequiresEigenschutzRolle`, `@RequiresPermission`)
- *   wird pro Handler geprüft, damit Verschiebungen auffallen.
+ *   struktureller Ebene verifiziert: Story 2.5 bleibt bei JWT und simuliert
+ *   kein eigenes Rollen-/Permission- oder Einsatz-Rollenbesetzungsmodell.
+ * - Decorator-Metadata wird pro Handler auf Abwesenheit geprüft, damit
+ *   Rollen-/Permission-Gating nicht versehentlich wieder in den Scope rutscht.
  * - Error-Mapping wird auf alle Sentinel-Zweige getestet:
  *   `NotFound:Einheit` / `NotFound:Vorlage` / `BusinessRule:*` + unbekannt.
  */
@@ -62,12 +59,6 @@ describe('GefaehrdungsbeurteilungController', () => {
       ],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(EigenschutzRolleGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -104,49 +95,24 @@ describe('GefaehrdungsbeurteilungController', () => {
   // STRUKTUR: Guard-Kette + Decorator-Metadata
   // ==================================================
 
-  describe('Guard-Kette (AC: 4 Guards in exakter Reihenfolge)', () => {
-    it('trägt JwtAuthGuard, EinsatzScopeGuard, EigenschutzRolleGuard, PermissionsGuard in dieser Reihenfolge', () => {
+  describe('Guard-Kette', () => {
+    it('trägt nur JwtAuthGuard', () => {
       const guards = Reflect.getMetadata('__guards__', GefaehrdungsbeurteilungController) as unknown[];
       expect(guards).toBeDefined();
-      expect(guards).toHaveLength(4);
+      expect(guards).toHaveLength(1);
       expect(guards[0]).toBe(JwtAuthGuard);
-      expect(guards[1]).toBe(EinsatzScopeGuard);
-      expect(guards[2]).toBe(EigenschutzRolleGuard);
-      expect(guards[3]).toBe(PermissionsGuard);
     });
   });
 
-  describe('Decorator-Metadata pro Methode', () => {
-    it('GET /gefaehrdungsbeurteilungs-vorlagen: alle vier Reader-Rollen + read-Permission', () => {
+  describe('Rollen-/Permission-Metadata pro Methode', () => {
+    it('setzt keine Eigenschutz-Rollen oder Permissions auf den Handlern', () => {
       const prototype = Object.getPrototypeOf(controller);
-      const rollen = Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, prototype.listVorlagen);
-      const permissions = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, prototype.listVorlagen);
-      expect(rollen).toEqual(['Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung']);
-      expect(permissions).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
-    });
+      const handlers = [prototype.listVorlagen, prototype.createBeurteilung, prototype.updateItems, prototype.getBeurteilung, prototype.getHistorie];
 
-    it('POST /gefaehrdungsbeurteilungen: nur Sicherheitsbeauftragter + write-Permission', () => {
-      const prototype = Object.getPrototypeOf(controller);
-      const rollen = Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, prototype.createBeurteilung);
-      const permissions = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, prototype.createBeurteilung);
-      expect(rollen).toEqual(['Sicherheitsbeauftragter']);
-      expect(permissions).toEqual(['eigenschutz:gefaehrdungsbeurteilung:write']);
-    });
-
-    it('GET /gefaehrdungsbeurteilungen/:id: Reader-Rollen + read-Permission', () => {
-      const prototype = Object.getPrototypeOf(controller);
-      const rollen = Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, prototype.getBeurteilung);
-      const permissions = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, prototype.getBeurteilung);
-      expect(rollen).toEqual(['Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung']);
-      expect(permissions).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
-    });
-
-    it('(Story 2.4) GET /gefaehrdungsbeurteilungen/:id/versionen: Reader-Rollen + read-Permission', () => {
-      const prototype = Object.getPrototypeOf(controller);
-      const rollen = Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, prototype.getHistorie);
-      const permissions = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, prototype.getHistorie);
-      expect(rollen).toEqual(['Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung']);
-      expect(permissions).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
+      for (const handler of handlers) {
+        expect(Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, handler)).toBeUndefined();
+        expect(Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, handler)).toBeUndefined();
+      }
     });
   });
 
@@ -456,29 +422,23 @@ describe('GefaehrdungsbeurteilungController', () => {
       expect(commandBus.execute).not.toHaveBeenCalled();
     });
 
-    it('Guard-Kette ist an der updateItems-Methode in exakter Reihenfolge registriert', () => {
+    it('Guard-Kette an updateItems bleibt auf JWT begrenzt', () => {
       const guards = Reflect.getMetadata('__guards__', GefaehrdungsbeurteilungController.prototype.updateItems) as Array<{ name: string }> | undefined;
       // Klassen-level-Guards sind auf Class-Metadata, nicht method-level. Wir lesen sie vom Class ab.
       const classGuards = Reflect.getMetadata('__guards__', GefaehrdungsbeurteilungController) as Array<{ name: string }> | undefined;
       const allGuards = [...(classGuards ?? []), ...(guards ?? [])];
       const names = allGuards.map((g) => g.name);
-      expect(names).toContain('JwtAuthGuard');
-      expect(names).toContain('EinsatzScopeGuard');
-      expect(names).toContain('EigenschutzRolleGuard');
-      expect(names).toContain('PermissionsGuard');
-      expect(names.indexOf('JwtAuthGuard')).toBeLessThan(names.indexOf('EinsatzScopeGuard'));
-      expect(names.indexOf('EinsatzScopeGuard')).toBeLessThan(names.indexOf('EigenschutzRolleGuard'));
-      expect(names.indexOf('EigenschutzRolleGuard')).toBeLessThan(names.indexOf('PermissionsGuard'));
+      expect(names).toEqual(['JwtAuthGuard']);
     });
 
-    it('RequiresEigenschutzRolle-Decorator an updateItems trägt "Sicherheitsbeauftragter"', () => {
+    it('updateItems trägt keine Eigenschutz-Rollen-Metadata', () => {
       const roles = Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, GefaehrdungsbeurteilungController.prototype.updateItems) as string[] | undefined;
-      expect(roles).toEqual(['Sicherheitsbeauftragter']);
+      expect(roles).toBeUndefined();
     });
 
-    it('RequiresPermission-Decorator an updateItems trägt "eigenschutz:gefaehrdungsbeurteilung:write"', () => {
+    it('updateItems trägt keine Eigenschutz-Permission-Metadata', () => {
       const permissions = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, GefaehrdungsbeurteilungController.prototype.updateItems) as string[] | undefined;
-      expect(permissions).toContain('eigenschutz:gefaehrdungsbeurteilung:write');
+      expect(permissions).toBeUndefined();
     });
   });
 

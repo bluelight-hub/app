@@ -37,7 +37,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import type { PrismaClient } from '@/generated/prisma/client';
+import type { Gefaehrdungsbeurteilung as PrismaGefaehrdungsbeurteilungRow, PrismaClient } from '@/generated/prisma/client';
 import { Gefaehrdungsbeurteilung } from '@domain/eigenschutz/aggregates/gefaehrdungsbeurteilung.aggregate';
 import { GefaehrdungItem } from '@domain/eigenschutz/value-objects/gefaehrdung-item.vo';
 import type { ILogger } from '@domain/ports/i-logger.port';
@@ -422,6 +422,68 @@ describe('PrismaGefaehrdungsbeurteilungRepository - Integration Tests', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeNull();
+    });
+  });
+
+  describe('findById()/findReadModelById() — Reconstitution-Failure', () => {
+    const baseRow = (overrides: Partial<PrismaGefaehrdungsbeurteilungRow> = {}): PrismaGefaehrdungsbeurteilungRow =>
+      ({
+        id: 'ckv1example0aggregateid123456',
+        einsatzId: testEinsatzId,
+        einheitId: testEinheitId,
+        erstelltVonUserId: testUserId,
+        vorlageId: null,
+        gefahrenzoneId: null,
+        items: [],
+        version: 1,
+        erstelltAm: new Date('2026-04-24T10:00:00.000Z'),
+        aktualisiertAm: new Date('2026-04-24T10:00:00.000Z'),
+        aktualisiertVonUserId: testUserId,
+        ...overrides,
+      }) as PrismaGefaehrdungsbeurteilungRow;
+
+    const repoWithRow = (row: PrismaGefaehrdungsbeurteilungRow, logger: ILogger): PrismaGefaehrdungsbeurteilungRepository =>
+      new PrismaGefaehrdungsbeurteilungRepository(
+        {
+          gefaehrdungsbeurteilung: {
+            findUnique: jest.fn().mockResolvedValue(row),
+          },
+        } as never,
+        logger,
+      );
+
+    it('findById mappt korrupte Row auf Infrastructure-Sentinel und loggt', async () => {
+      const logger = createMockLogger();
+      const repo = repoWithRow(baseRow({ version: 0 }), logger);
+
+      const result = await repo.findById('ckv1example0aggregateid123456');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('InfrastructureError:ReconstituteGefaehrdungsbeurteilung');
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Reconstitution der Gefährdungsbeurteilung fehlgeschlagen'),
+        expect.objectContaining({
+          gefaehrdungsbeurteilungId: 'ckv1example0aggregateid123456',
+          reason: expect.stringMatching(/version/),
+        }),
+      );
+    });
+
+    it('findReadModelById mappt denselben Fehler ohne Throw auf Result.fail', async () => {
+      const logger = createMockLogger();
+      const repo = repoWithRow(baseRow({ einsatzId: '' }), logger);
+
+      const result = await repo.findReadModelById('ckv1example0aggregateid123456');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('InfrastructureError:ReconstituteGefaehrdungsbeurteilung');
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Reconstitution der Gefährdungsbeurteilung fehlgeschlagen'),
+        expect.objectContaining({
+          gefaehrdungsbeurteilungId: 'ckv1example0aggregateid123456',
+          reason: expect.stringMatching(/einsatzId/),
+        }),
+      );
     });
   });
 

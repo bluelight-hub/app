@@ -9,9 +9,8 @@
  * - Inline-Fehlermeldungen gemäß UX-DR21 Zero-Toast-Policy (AC6); dabei
  *   werden Backend-Sentinel-Codes (`BusinessRule:EinheitHatBereits…`,
  *   `NotFound:Einheit`/`Vorlage`) in benutzerfreundliche Texte übersetzt.
- * - Permission-Gate wird vom Parent (`GefaehrdungenPage`) gestellt — der
- *   Drawer rendert defensiv eine 403-Meldung, wenn trotzdem ein
- *   Forbidden-Error zurückkommt (AC5 Fallback).
+ * - 403-Responses werden defensiv inline angezeigt, ohne daraus
+ *   clientseitige Freigabe-Logik abzuleiten.
  *
  * Formular-Architektur (AC2–AC4):
  * - Alle 4 Felder (`modus`, `vorlageId`, `einheitId`, `gefahrenzoneId`)
@@ -66,8 +65,8 @@ interface GefahrenzoneOption {
 
 /**
  * Query-Hook für die Gefahrenzonen eines Einsatzes (nur im Drawer genutzt,
- * deshalb inline-definiert). Bei fehlender Berechtigung (403) oder leerer
- * Liste rendert das Select einen deaktivierten Hinweis.
+ * deshalb inline-definiert). Bei 403 oder leerer Liste rendert das Select
+ * einen deaktivierten Hinweis.
  *
  * **Response-Shape-Hinweis:** Das generierte DTO
  * (`GefahrenzoneControllerListVAlpha200Response`) liefert `{ data: Array<…> }`
@@ -108,8 +107,7 @@ function useGefahrenzonenFuerEinsatz(einsatzId: string, enabled: boolean) {
  * - `BusinessRule:EinheitHatBereitsBeurteilung` (422) → Duplikat-Hinweis.
  * - `NotFound:Einheit` (404) → Einheit-Lookup fehlgeschlagen.
  * - `NotFound:Vorlage` (404) → Vorlage nicht mehr aktiv.
- * - 403 → Permission-Fallback (der Parent sollte den Button vorab disablen,
- *   aber defensive Programmierung: vielleicht hat sich die Rolle geändert).
+ * - 403 → Zugriff nicht freigegeben.
  * - 500 / Unbekannt → generischer Fehlertext.
  */
 async function mapMutationError(error: unknown): Promise<string> {
@@ -130,7 +128,7 @@ async function mapMutationError(error: unknown): Promise<string> {
     }
   }
   if (status === 403) {
-    return 'Keine Berechtigung: Sie dürfen für diesen Einsatz keine Gefährdungsbeurteilung anlegen.';
+    return 'Dieser Bereich ist für den aktuellen Einsatz oder Nutzer nicht freigegeben.';
   }
   if (code === 'BusinessRule:EinheitHatBereitsBeurteilung' || (status === 422 && message?.toLowerCase().includes('bereits'))) {
     return 'Einheit hat bereits eine Beurteilung.';

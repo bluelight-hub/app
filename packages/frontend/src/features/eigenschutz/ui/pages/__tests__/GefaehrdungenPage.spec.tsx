@@ -1,9 +1,8 @@
 /**
- * Spec für `GefaehrdungenPage` (Story 2.1 Task 8, AC5 Permission-Gate).
+ * Spec für `GefaehrdungenPage` (Story 2.1 Task 8).
  *
  * Die eigentliche Drawer-Logik wird separat getestet; hier fokussieren
- * wir uns auf das Permission-Gating des Primary-Buttons sowie den
- * Empty-State-Platzhalter.
+ * wir uns auf den Primary-Button sowie den Empty-State.
  */
 
 import { renderWithProviders } from '@/test/utils';
@@ -11,17 +10,8 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { permissionState, mockNavigate } = vi.hoisted(() => ({
-  permissionState: {
-    canCreateGefaehrdungsbeurteilung: true,
-    isLoading: false,
-    requiredPermission: 'eigenschutz:gefaehrdungsbeurteilung:write' as const,
-  },
+const { mockNavigate } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
-}));
-
-vi.mock('@/features/eigenschutz/hooks/useEigenschutzPermissions', () => ({
-  useEigenschutzPermissions: () => permissionState,
 }));
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
@@ -52,9 +42,9 @@ vi.mock('../../organisms/GefaehrdungseditorDrawer.organism', () => ({
 import { GefaehrdungenPage } from '../GefaehrdungenPage';
 
 describe('GefaehrdungenPage (Story 2.1 Task 8)', () => {
+  const emptyStateDescription = 'Vorhandene Beurteilungen werden in dieser Ansicht nicht aufgeführt. Beim Anlegen prüft das System, ob die gewählte Einheit bereits eine Beurteilung hat.';
+
   beforeEach(() => {
-    permissionState.canCreateGefaehrdungsbeurteilung = true;
-    permissionState.isLoading = false;
     mockNavigate.mockReset();
   });
 
@@ -63,36 +53,19 @@ describe('GefaehrdungenPage (Story 2.1 Task 8)', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Gefährdungsbeurteilungen' })).toBeInTheDocument();
     expect(screen.getByText(/Pro Einheit eine Beurteilung/)).toBeInTheDocument();
-    expect(screen.getByText('Noch keine Beurteilungen')).toBeInTheDocument();
+    expect(screen.getByText('Beurteilung anlegen')).toBeInTheDocument();
+    expect(screen.getByText(emptyStateDescription)).toBeInTheDocument();
+    expect(screen.queryByText('Noch keine Beurteilungen')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Story 2\.4/)).not.toBeInTheDocument();
   });
 
-  it('disabled den Primary-Button bei fehlender Berechtigung inkl. aria-disabled und Tooltip', () => {
-    permissionState.canCreateGefaehrdungsbeurteilung = false;
-    renderWithProviders(<GefaehrdungenPage einsatzId="einsatz-1" />);
-
-    const button = screen.getByTestId('gefaehrdungen-neue-beurteilung');
-    expect(button).toBeDisabled();
-    expect(button).toHaveAttribute('aria-disabled', 'true');
-    expect(button).toHaveAttribute('title', 'Fehlende Berechtigung: eigenschutz:gefaehrdungsbeurteilung:write');
-  });
-
-  it('öffnet den Drawer bei Klick, wenn Berechtigung vorhanden', async () => {
+  it('öffnet den Drawer bei Klick', async () => {
     const user = userEvent.setup();
     renderWithProviders(<GefaehrdungenPage einsatzId="einsatz-1" />);
 
     expect(screen.queryByTestId('drawer-stub')).toBeNull();
     await user.click(screen.getByTestId('gefaehrdungen-neue-beurteilung'));
     expect(screen.getByTestId('drawer-stub')).toBeInTheDocument();
-  });
-
-  it('öffnet den Drawer nicht, wenn Permission-Check noch lädt', async () => {
-    const user = userEvent.setup();
-    permissionState.isLoading = true;
-    renderWithProviders(<GefaehrdungenPage einsatzId="einsatz-1" />);
-
-    const button = screen.getByTestId('gefaehrdungen-neue-beurteilung');
-    await user.click(button);
-    expect(screen.queryByTestId('drawer-stub')).toBeNull();
   });
 
   it('navigiert nach erfolgreichem Anlegen in die Detail-Route (AC3)', async () => {

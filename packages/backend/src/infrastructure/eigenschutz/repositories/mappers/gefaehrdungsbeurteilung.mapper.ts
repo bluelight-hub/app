@@ -1,4 +1,5 @@
 import type { Gefaehrdungsbeurteilung as PrismaGefaehrdungsbeurteilung, GefaehrdungsbeurteilungVersion as PrismaGefaehrdungsbeurteilungVersion } from '@/generated/prisma/client';
+import { Result } from '@domain/common/result';
 import { Gefaehrdungsbeurteilung } from '@domain/eigenschutz/aggregates/gefaehrdungsbeurteilung.aggregate';
 import type { GefaehrdungsbeurteilungVersionRow } from '@domain/eigenschutz/repositories';
 import { GefaehrdungItem, type GefaehrdungItemProps } from '@domain/eigenschutz/value-objects/gefaehrdung-item.vo';
@@ -13,7 +14,7 @@ import { GefaehrdungItem, type GefaehrdungItemProps } from '@domain/eigenschutz/
  * VO-Spec gesichert).
  */
 export class PrismaGefaehrdungsbeurteilungMapper {
-  static toDomain(row: PrismaGefaehrdungsbeurteilung): Gefaehrdungsbeurteilung {
+  static toDomain(row: PrismaGefaehrdungsbeurteilung): Result<Gefaehrdungsbeurteilung> {
     const domainItems = PrismaGefaehrdungsbeurteilungMapper.rehydrateItems(row.items);
 
     // `reconstitute` statt `create`: übernimmt die tatsächliche DB-`version`

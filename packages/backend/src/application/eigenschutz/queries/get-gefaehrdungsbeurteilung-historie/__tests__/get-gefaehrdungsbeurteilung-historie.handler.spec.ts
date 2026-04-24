@@ -34,7 +34,7 @@ describe('GetGefaehrdungsbeurteilungHistorieHandler', () => {
 
   function buildAggregate(einsatzId: string = EINSATZ_ID, version = 3): Gefaehrdungsbeurteilung {
     const item = GefaehrdungItem.create({ title: 'Stolperfalle' }).value!;
-    return Gefaehrdungsbeurteilung.reconstitute({
+    const result = Gefaehrdungsbeurteilung.reconstitute({
       id: BEURTEILUNG_ID,
       einsatzId,
       einheitId: EINHEIT_ID,
@@ -44,6 +44,8 @@ describe('GetGefaehrdungsbeurteilungHistorieHandler', () => {
       items: [item],
       version,
     });
+    if (result.isFailure || !result.value) throw new Error(`Ungültige Test-Gefährdungsbeurteilung: ${result.error}`);
+    return result.value;
   }
 
   function buildReadModel(einsatzId: string = EINSATZ_ID, aggregateVersion = 3) {

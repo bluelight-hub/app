@@ -3,18 +3,12 @@
  * (Story 2.1 Task 8, AC5).
  *
  * Rendert die Überschrift, einen Primary-Button für den Drawer sowie
- * einen Empty-State-Platzhalter für die eigentliche Listen-Darstellung
- * (kommt mit Story 2.4). Der Button wird bei fehlender
- * Permission (`eigenschutz:gefaehrdungsbeurteilung:write`) deaktiviert
- * inkl. `aria-disabled="true"` und Tooltip-Text, der die fehlende
- * Permission offenlegt (AC5).
+ * den Empty-State für die direkte Anlege-Ansicht ohne Listen-Datenquelle.
  *
  * **Navigation nach Erstellung (AC3):** Nach erfolgreicher Erstellung
  * navigiert die Page in die Detail-Route
  * `/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/$id`. Der
- * Ziel-Screen ist aktuell ein Stub (Story 2.2 ersetzt ihn durch die
- * Item-Erfassung mit 5x5-Risikomatrix); für Story 2.1 reicht die Navigation
- * als AC3-Erfüllung.
+ * Ziel-Screen ist die Detail-Erfassung mit 5x5-Risikomatrix.
  */
 
 import { logger } from '@/shared/lib/logger';
@@ -23,7 +17,6 @@ import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useState } from 'react';
 import { PiClipboardText } from 'react-icons/pi';
-import { useEigenschutzPermissions } from '../../hooks/useEigenschutzPermissions';
 import { GefaehrdungseditorDrawer } from '../organisms/GefaehrdungseditorDrawer.organism';
 
 export interface GefaehrdungenPageProps {
@@ -33,17 +26,10 @@ export interface GefaehrdungenPageProps {
 export function GefaehrdungenPage({ einsatzId }: GefaehrdungenPageProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { canCreateGefaehrdungsbeurteilung, isLoading: isPermissionLoading, requiredPermission } = useEigenschutzPermissions();
-
-  const isWriteDisabled = isPermissionLoading || !canCreateGefaehrdungsbeurteilung;
-  const disabledTooltip = `Fehlende Berechtigung: ${requiredPermission}`;
 
   const handleOpen = useCallback(() => {
-    if (isWriteDisabled) {
-      return;
-    }
     setDrawerOpen(true);
-  }, [isWriteDisabled]);
+  }, []);
 
   const handleCreated = useCallback(
     (beurteilungId: string) => {
@@ -64,19 +50,16 @@ export function GefaehrdungenPage({ einsatzId }: GefaehrdungenPageProps) {
           <h1 className="text-2xl font-bold text-text-primary">Gefährdungsbeurteilungen</h1>
           <p className="mt-1 text-sm text-text-muted">Pro Einheit eine Beurteilung anlegen, Gefährdungen erfassen und Schutzmaßnahmen dokumentieren.</p>
         </div>
-        <Button
-          intent="primary"
-          onClick={handleOpen}
-          disabled={isWriteDisabled}
-          aria-disabled={isWriteDisabled || undefined}
-          title={isWriteDisabled && !isPermissionLoading ? disabledTooltip : undefined}
-          data-testid="gefaehrdungen-neue-beurteilung"
-        >
+        <Button intent="primary" onClick={handleOpen} data-testid="gefaehrdungen-neue-beurteilung">
           Neue Gefährdungsbeurteilung
         </Button>
       </header>
 
-      <EmptyState icon={PiClipboardText} title="Noch keine Beurteilungen" description="Lege eine erste Gefährdungsbeurteilung an. Die Listen-Ansicht folgt mit Story 2.4." />
+      <EmptyState
+        icon={PiClipboardText}
+        title="Beurteilung anlegen"
+        description="Vorhandene Beurteilungen werden in dieser Ansicht nicht aufgeführt. Beim Anlegen prüft das System, ob die gewählte Einheit bereits eine Beurteilung hat."
+      />
 
       {drawerOpen ? <GefaehrdungseditorDrawer einsatzId={einsatzId} open={drawerOpen} onClose={() => setDrawerOpen(false)} onCreated={handleCreated} /> : null}
     </div>
