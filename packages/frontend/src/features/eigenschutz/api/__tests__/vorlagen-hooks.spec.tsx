@@ -14,6 +14,7 @@ const mockListVorlagen = vi.fn();
 const mockCreateBeurteilung = vi.fn();
 const mockGetBeurteilung = vi.fn();
 const mockUpdateItems = vi.fn();
+const mockGetHistorie = vi.fn();
 
 vi.mock('@/shared', () => ({
   api: {
@@ -23,6 +24,7 @@ vi.mock('@/shared', () => ({
       gefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha: mockCreateBeurteilung,
       gefaehrdungsbeurteilungControllerGetBeurteilungVAlpha: mockGetBeurteilung,
       gefaehrdungsbeurteilungControllerUpdateItemsVAlpha: mockUpdateItems,
+      gefaehrdungsbeurteilungControllerGetHistorieVAlpha: mockGetHistorie,
     }),
   },
 }));
@@ -33,6 +35,7 @@ import {
   extractConflictError,
   useCreateGefaehrdungsbeurteilung,
   useGefaehrdungsbeurteilung,
+  useGefaehrdungsbeurteilungHistorie,
   useGefaehrdungsbeurteilungVorlagen,
   useUpdateGefaehrdungsbeurteilungItems,
 } from '../queries';
@@ -48,11 +51,15 @@ function makeWrapper() {
   return { client, wrapper };
 }
 
-describe('EIGENSCHUTZ_QUERY_KEYS (Story 2.1)', () => {
+describe('EIGENSCHUTZ_QUERY_KEYS (Story 2.1 + 2.4)', () => {
   it('baut hierarchische Keys für Vorlagen-, Liste- und Detail-Caches', () => {
     expect(EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungsVorlagen('e-1')).toEqual(['eigenschutz', 'e-1', 'gefaehrdungsbeurteilungs-vorlagen']);
     expect(EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungen('e-1')).toEqual(['eigenschutz', 'e-1', 'gefaehrdungsbeurteilungen']);
     expect(EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung('e-1', 'b-7')).toEqual(['eigenschutz', 'e-1', 'gefaehrdungsbeurteilungen', 'b-7']);
+  });
+
+  it('baut den Historie-Sub-Key unter dem Detail-Key an (Story 2.4 AC10)', () => {
+    expect(EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungHistorie('e-1', 'b-7')).toEqual(['eigenschutz', 'e-1', 'gefaehrdungsbeurteilungen', 'b-7', 'historie']);
   });
 });
 
@@ -445,5 +452,89 @@ describe('extractConflictError (Story 2.3 AC13)', () => {
     expect(extractConflictError(raw500, 3)).toBeNull();
     expect(extractConflictError(rawNetwork, 3)).toBeNull();
     expect(extractConflictError(null, 3)).toBeNull();
+  });
+});
+
+describe('useGefaehrdungsbeurteilungHistorie (Story 2.4 AC10)', () => {
+  beforeEach(() => {
+    mockGetHistorie.mockReset();
+  });
+
+  it('ist deaktiviert bei leerer einsatzId oder id', () => {
+    const { wrapper } = makeWrapper();
+    const hookA = renderHook(() => useGefaehrdungsbeurteilungHistorie('', 'b-7'), { wrapper });
+    const hookB = renderHook(() => useGefaehrdungsbeurteilungHistorie('e-1', ''), { wrapper });
+
+    expect(hookA.result.current.fetchStatus).toBe('idle');
+    expect(hookB.result.current.fetchStatus).toBe('idle');
+    expect(mockGetHistorie).not.toHaveBeenCalled();
+  });
+
+  it('entpackt die `data`-Property und leitet einsatzId + id durch', async () => {
+    const payload = {
+      aggregateVersion: 3,
+      eintraege: [
+        {
+          version: 3,
+          gueltigVon: '2026-04-23T12:00:00.000Z',
+          gueltigBis: null,
+          changedByUserId: 'u-1',
+          changedByUserName: 'Erika Mustermann',
+          changedFields: { added: ['i-9'], removed: [], updated: [], unchanged: 0 },
+          items: [],
+        },
+        {
+          version: 2,
+          gueltigVon: '2026-04-23T11:00:00.000Z',
+          gueltigBis: '2026-04-23T12:00:00.000Z',
+          changedByUserId: 'u-1',
+          changedByUserName: 'Erika Mustermann',
+          changedFields: { added: [], removed: [], updated: [{ id: 'i-2', fields: ['eintritt'] }], unchanged: 1 },
+          items: [],
+        },
+        { version: 1, gueltigVon: '2026-04-23T10:00:00.000Z', gueltigBis: '2026-04-23T11:00:00.000Z', changedByUserId: 'u-2', changedByUserName: null, changedFields: { created: true }, items: [] },
+      ],
+    };
+    mockGetHistorie.mockResolvedValueOnce({ data: payload, meta: {} });
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGefaehrdungsbeurteilungHistorie('e-42', 'b-7'), { wrapper });
+
+    await waitFor(() => expect(result.current.data).toBeDefined());
+    expect(result.current.data).toEqual(payload);
+    expect(mockGetHistorie).toHaveBeenCalledWith({ einsatzId: 'e-42', id: 'b-7' });
+  });
+
+  it('trägt meta.silentError + staleTime 5s + refetchOnMount=always + korrekten Historie-Query-Key', async () => {
+    mockGetHistorie.mockResolvedValueOnce({ data: { aggregateVersion: 1, eintraege: [] }, meta: {} });
+    const { client, wrapper } = makeWrapper();
+    renderHook(() => useGefaehrdungsbeurteilungHistorie('e-99', 'b-7'), { wrapper });
+
+    await waitFor(() => {
+      const cached = client.getQueryCache().find({ queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungHistorie('e-99', 'b-7') });
+      expect(cached).toBeDefined();
+    });
+    const query = client.getQueryCache().find({ queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungHistorie('e-99', 'b-7') });
+    expect(query?.meta?.silentError).toBe(true);
+    expect(query?.options.staleTime).toBe(5_000);
+    expect(query?.options.refetchOnMount).toBe('always');
+  });
+
+  it('retriet NICHT bei 403 (Zero-Toast-Route übernimmt)', async () => {
+    mockGetHistorie.mockResolvedValueOnce({ data: { aggregateVersion: 1, eintraege: [] }, meta: {} });
+    const { client, wrapper } = makeWrapper();
+    renderHook(() => useGefaehrdungsbeurteilungHistorie('e-1', 'b-7'), { wrapper });
+
+    await waitFor(() => {
+      const cached = client.getQueryCache().find({ queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungHistorie('e-1', 'b-7') });
+      expect(cached).toBeDefined();
+    });
+    const query = client.getQueryCache().find({ queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungHistorie('e-1', 'b-7') });
+    const retry = query?.options.retry;
+    if (typeof retry !== 'function') {
+      throw new Error('retry muss für diese Query eine Funktion sein');
+    }
+    expect(retry(0, { response: { status: 403 } })).toBe(false);
+    expect(retry(0, { response: { status: 500 } })).toBe(true);
+    expect(retry(2, { response: { status: 500 } })).toBe(false);
   });
 });

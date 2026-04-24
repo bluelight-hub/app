@@ -3,8 +3,11 @@ import type { Prisma } from '@/generated/prisma/client';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import type { IGefaehrdungsbeurteilungVersionRepository, SaveInitialVersionArgs, SaveNewVersionArgs } from '@domain/eigenschutz/repositories';
+import type { GefaehrdungsbeurteilungVersionRow, IGefaehrdungsbeurteilungVersionRepository, SaveInitialVersionArgs, SaveNewVersionArgs } from '@domain/eigenschutz/repositories';
 import { LOGGER } from '@infrastructure/di-tokens';
+// Hinweis: DI-Import-Regel (CLAUDE.md AC1) — Injectable Class mit regulärem
+// `import`, niemals `import type`.
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { isPrismaP2002 } from '@/shared/utils/prisma.util';
 import { PrismaGefaehrdungsbeurteilungMapper } from './mappers/gefaehrdungsbeurteilung.mapper';
 
@@ -80,10 +83,35 @@ function isEventIdConflict(error: unknown): boolean {
  * Die Version-Zeile ist die Single-Source-of-Truth für „wer hat wann welchen
  * Stand gelesen" — Story 2.4 baut die Timeline darauf auf. Das `eventId`-
  * Unique-Constraint verhindert Doppel-Processing bei einem Outbox-Retry.
+ *
+ * ## Chain-Intervall-Invariante (halb-offenes Intervall `[gueltigVon, gueltigBis)`)
+ *
+ * Die Schreib-Methoden etablieren, die Read-Methode konsumiert: beim Schreiben
+ * von `V_{n+1}` setzt {@link saveNewVersion} `V_n.gueltigBis = V_{n+1}.gueltigVon`
+ * (identischer Timestamp). Für Point-in-Time-Queries gilt deshalb
+ * halb-offene Semantik — der Zeitpunkt `T = gueltigBis` gehört zur
+ * **Folge-Version**, nicht zur abgeschlossenen Vorversion. Die aktive Version
+ * trägt `gueltigBis === null`.
+ *
+ * ```sql
+ * -- Point-in-Time-Query (Story 5.2 Vorfall-Snapshot):
+ * SELECT * FROM gefaehrdungsbeurteilung_versionen
+ * WHERE gef_beurteilung_id = :id
+ *   AND gueltig_von <= :T
+ *   AND (gueltig_bis > :T OR gueltig_bis IS NULL)
+ * ```
+ *
+ * Story 2.4 (Timeline) nutzt die Invariante aktuell nicht direkt — die
+ * Timeline listet alle Versionen, sie navigiert nicht zum Zeitpunkt T. Die
+ * Doku hier ist der vertragliche Anker für spätere Konsumenten (primär
+ * Story 5.2).
  */
 @Injectable()
 export class PrismaGefaehrdungsbeurteilungVersionRepository implements IGefaehrdungsbeurteilungVersionRepository {
-  constructor(@Inject(LOGGER) private readonly logger: ILogger) {}
+  constructor(
+    @Inject(LOGGER) private readonly logger: ILogger,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async saveInitialVersion(args: SaveInitialVersionArgs, tx: TransactionContext): Promise<Result<void>> {
     const client = tx as PrismaTransactionClient;
@@ -169,6 +197,37 @@ export class PrismaGefaehrdungsbeurteilungVersionRepository implements IGefaehrd
         error: error instanceof Error ? error.message : String(error),
       });
       return Result.fail<void>(error instanceof Error ? error.message : 'Unbekannter Datenbankfehler');
+    }
+  }
+
+  /**
+   * Lädt alle Version-Zeilen einer Gefährdungsbeurteilung, absteigend sortiert
+   * nach `(gueltigVon DESC, version DESC)` (Story 2.4, Timeline-Read-Path).
+   *
+   * Die Query nutzt den bestehenden Index `@@index([gefBeurteilungId,
+   * gueltigVon])` aus `schema.prisma` — Postgres-B-Tree unterstützt den
+   * DESC-Scan ohne zusätzlichen Index-Build.
+   *
+   * Fehler-Fall: Alle `Error`-Instanzen werden auf den Sentinel
+   * `InfrastructureError:LoadVersions` normalisiert, damit der Controller
+   * das Fehler-Mapping über `mapQueryError` auf HTTP 500 vornehmen kann.
+   *
+   * Für die Intervall-Semantik siehe den Klassen-Header oben
+   * (halb-offenes `[gueltigVon, gueltigBis)`).
+   */
+  async findVersionsByBeurteilung(gefBeurteilungId: string): Promise<Result<GefaehrdungsbeurteilungVersionRow[]>> {
+    try {
+      const rows = await this.prisma.gefaehrdungsbeurteilungVersion.findMany({
+        where: { gefBeurteilungId },
+        orderBy: [{ gueltigVon: 'desc' }, { version: 'desc' }],
+      });
+      return Result.ok<GefaehrdungsbeurteilungVersionRow[]>(rows.map((row) => PrismaGefaehrdungsbeurteilungMapper.toVersionRow(row)));
+    } catch (error) {
+      this.logger.error('Fehler beim Laden der Versions-Chain', {
+        gefBeurteilungId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return Result.fail<GefaehrdungsbeurteilungVersionRow[]>('InfrastructureError:LoadVersions');
     }
   }
 }

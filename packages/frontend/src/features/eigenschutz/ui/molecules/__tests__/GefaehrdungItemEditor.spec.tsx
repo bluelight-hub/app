@@ -136,4 +136,15 @@ describe('GefaehrdungItemEditor (Story 2.2 Task 9)', () => {
     await user.click(screen.getByTestId('gefaehrdung-item-remove'));
     expect(onRemove).toHaveBeenCalled();
   });
+
+  it('setzt Felder im Read-Only-Modus auf readonly und blendet Remove aus', () => {
+    renderWithProviders(
+      <GefaehrdungItemEditor value={{ title: 'T', description: 'D', eintritt: 'SELTEN', schaden: 'VERNACHLAESSIGBAR', schutzmassnahmen: '' }} onChange={vi.fn()} onRemove={vi.fn()} readOnly />,
+    );
+
+    expect(screen.getByTestId('gefaehrdung-item-title')).toHaveAttribute('readonly');
+    expect(screen.getByTestId('gefaehrdung-item-description')).toHaveAttribute('readonly');
+    expect(screen.getByTestId('gefaehrdung-item-schutzmassnahmen')).toHaveAttribute('readonly');
+    expect(screen.queryByTestId('gefaehrdung-item-remove')).toBeNull();
+  });
 });

@@ -31,6 +31,7 @@ export interface GefaehrdungItemEditorProps {
   readonly onChange: (value: GefaehrdungItem) => void;
   readonly onRemove?: () => void;
   readonly disabled?: boolean;
+  readonly readOnly?: boolean;
   readonly autoFocusTitle?: boolean;
   readonly index?: number;
 }
@@ -51,7 +52,7 @@ const RISIKOKLASSE_LABELS: Record<Risikoklasse, string> = {
   ROT: 'Rot',
 };
 
-export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = false, autoFocusTitle = false, index }: GefaehrdungItemEditorProps) {
+export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = false, readOnly = false, autoFocusTitle = false, index }: GefaehrdungItemEditorProps) {
   const idPrefix = useId();
   const titleId = `${idPrefix}-title`;
   const descriptionId = `${idPrefix}-description`;
@@ -82,7 +83,7 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
   // (`risikoklasse === null`), bleibt das Feld bewusst verborgen — sonst
   // wäre die Pflicht-Disclosure-Semantik invertiert. Der Nutzer kann das
   // Feld jederzeit durch manuelles Tabben aktivieren (`revealed`-State).
-  const schutzmassnahmenVisible = (risikoklasse !== null && risikoklasse !== 'GRUEN') || schutzmassnahmenRevealed || Boolean(value.schutzmassnahmen);
+  const schutzmassnahmenVisible = readOnly || (risikoklasse !== null && risikoklasse !== 'GRUEN') || schutzmassnahmenRevealed || Boolean(value.schutzmassnahmen);
 
   const schutzmassnahmenText = value.schutzmassnahmen ?? '';
   const schutzmassnahmenLen = schutzmassnahmenText.length;
@@ -112,6 +113,7 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
             type="text"
             value={value.title ?? ''}
             disabled={disabled}
+            readOnly={readOnly}
             maxLength={GEFAEHRDUNG_ITEM_LIMITS.titleMax + 1}
             onChange={(event) => update({ title: event.target.value })}
             aria-required="true"
@@ -124,7 +126,7 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
             data-testid="gefaehrdung-item-title"
           />
         </div>
-        {onRemove ? (
+        {onRemove && !readOnly ? (
           <Button intent="danger" appearance="ghost" size="icon" type="button" onClick={onRemove} disabled={disabled} aria-label="Gefährdung entfernen" data-testid="gefaehrdung-item-remove">
             <PiTrashLight className="h-5 w-5" />
           </Button>
@@ -139,6 +141,7 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
           id={descriptionId}
           value={value.description ?? ''}
           disabled={disabled}
+          readOnly={readOnly}
           maxLength={GEFAEHRDUNG_ITEM_LIMITS.descriptionMax + 1}
           rows={2}
           onChange={(event) => update({ description: event.target.value })}
@@ -151,7 +154,7 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
         <legend id={matrixHeadingId} className="text-sm font-medium text-text-primary">
           Risikobewertung
         </legend>
-        <RiskMatrix5x5 value={{ eintritt: value.eintritt, schaden: value.schaden }} onChange={(next) => update(next)} disabled={disabled} aria-labelledby={matrixHeadingId} />
+        <RiskMatrix5x5 value={{ eintritt: value.eintritt, schaden: value.schaden }} onChange={(next) => update(next)} disabled={disabled} readOnly={readOnly} aria-labelledby={matrixHeadingId} />
         {risikoklasse ? (
           <p className="text-xs text-text-secondary" data-testid="gefaehrdung-item-risiko-badge">
             Errechnete Risikoklasse:{' '}
@@ -171,6 +174,7 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
             id={schutzmassnahmenId}
             value={schutzmassnahmenText}
             disabled={disabled}
+            readOnly={readOnly}
             rows={3}
             onChange={(event) => update({ schutzmassnahmen: event.target.value })}
             aria-describedby={cn(schutzmassnahmenHelpId, showCounter ? schutzmassnahmenCounterId : null, tooLong ? schutzmassnahmenErrorId : null)}

@@ -1,7 +1,13 @@
 import { api } from '@/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-import type { CreateGefaehrdungsbeurteilungInput, Gefaehrdungsbeurteilung, GefaehrdungsbeurteilungVorlage, UpdateGefaehrdungsbeurteilungItemsInput } from '../schemas/gefaehrdungsbeurteilung.schema';
+import type {
+  CreateGefaehrdungsbeurteilungInput,
+  Gefaehrdungsbeurteilung,
+  GefaehrdungsbeurteilungHistorie,
+  GefaehrdungsbeurteilungVorlage,
+  UpdateGefaehrdungsbeurteilungItemsInput,
+} from '../schemas/gefaehrdungsbeurteilung.schema';
 
 /**
  * Zod-Guard für den 409-Response-Body-Context (Story 2.3, AC13).
@@ -81,6 +87,7 @@ export const EIGENSCHUTZ_QUERY_KEYS = {
   gefaehrdungsbeurteilungsVorlagen: (einsatzId: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungs-vorlagen'] as const,
   gefaehrdungsbeurteilungen: (einsatzId: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen'] as const,
   gefaehrdungsbeurteilung: (einsatzId: string, id: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen', id] as const,
+  gefaehrdungsbeurteilungHistorie: (einsatzId: string, id: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen', id, 'historie'] as const,
 } as const;
 
 /**
@@ -225,6 +232,41 @@ export function useGefaehrdungsbeurteilung(einsatzId: string, id: string) {
     retry: eigenschutzRetry,
     meta: { silentError: true },
     enabled: Boolean(einsatzId) && Boolean(id),
+  });
+}
+
+/**
+ * Liefert die chronologische Versionshistorie einer Gefährdungsbeurteilung
+ * (Story 2.4, AC10).
+ *
+ * Konsumiert den Read-Only-Endpoint `GET …/gefaehrdungsbeurteilungen/:id/versionen`
+ * und liefert `{ aggregateVersion, eintraege[] }` absteigend sortiert (neueste
+ * Version zuerst). Backend löst `changedByUserName` pro Eintrag auf; bei
+ * soft-deleted User bleibt der Wert `null` — das UI fällt dann auf die
+ * UserId-Kurzform zurück.
+ *
+ * **Cache-Verhalten:**
+ * - `staleTime: 5_000` — nach einem Schreib-Vorgang (Story 2.2/2.3) wird die
+ *   Historie nicht proaktiv invalidiert; TanStack refetched beim nächsten
+ *   Popover-Open nach Ablauf der Stale-Time (begründet in AC10).
+ * - `retry: eigenschutzRetry` — 403 → kein Retry, sonst max. 2 Wiederholungen.
+ * - `meta: { silentError: true }` — Popover rendert Fehler inline (Zero-Toast).
+ */
+export function useGefaehrdungsbeurteilungHistorie(einsatzId: string, id: string) {
+  return useQuery({
+    queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungHistorie(einsatzId, id),
+    queryFn: async (): Promise<GefaehrdungsbeurteilungHistorie> => {
+      const response = await api.eigenschutz().gefaehrdungsbeurteilungControllerGetHistorieVAlpha({
+        einsatzId,
+        id,
+      });
+      return response.data as GefaehrdungsbeurteilungHistorie;
+    },
+    retry: eigenschutzRetry,
+    meta: { silentError: true },
+    enabled: Boolean(einsatzId) && Boolean(id),
+    staleTime: 5_000,
+    refetchOnMount: 'always',
   });
 }
 

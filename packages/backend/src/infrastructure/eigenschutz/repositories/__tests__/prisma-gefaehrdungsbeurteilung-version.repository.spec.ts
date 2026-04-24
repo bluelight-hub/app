@@ -76,7 +76,11 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
     if (!databaseAvailable) return;
 
     prisma = createTestPrismaClient();
-    repository = new PrismaGefaehrdungsbeurteilungVersionRepository(createMockLogger());
+    // Story 2.4: PrismaService-Injection für `findVersionsByBeurteilung`.
+    // Die save-Methoden nutzen `tx` explizit und ignorieren `this.prisma` —
+    // der Integration-PrismaClient wird hier als Duck-Typed PrismaService
+    // durchgereicht (nur `gefaehrdungsbeurteilungVersion.findMany` wird konsumiert).
+    repository = new PrismaGefaehrdungsbeurteilungVersionRepository(createMockLogger(), prisma as never);
 
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
@@ -574,6 +578,85 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository - Integration Tests', (
       expect(v2Count).toBe(1);
     });
 
+    it('(Story 2.4 AC9) Chain-Intervall: 3 sequenzielle Updates → findVersionsByBeurteilung liefert DESC-sortierte Kette mit V_n.gueltigBis === V_{n+1}.gueltigVon', async () => {
+      if (!databaseAvailable) return;
+      // Given: 3 Versionen in chronologischer Reihenfolge.
+      const gbId = await insertGefaehrdungsbeurteilung();
+      const gvV1 = new Date('2026-04-22T09:00:00.000Z');
+      const gvV2 = new Date('2026-04-22T10:00:00.000Z');
+      const gvV3 = new Date('2026-04-22T11:00:00.000Z');
+
+      const r1 = await prisma.$transaction(async (tx) =>
+        repository.saveInitialVersion(
+          {
+            gefBeurteilungId: gbId,
+            version: 1,
+            items: [makeItem('V1')],
+            changedFields: { created: true },
+            gueltigVon: gvV1,
+            changedByUserId: testUserId,
+            eventId: cuid(),
+          },
+          tx,
+        ),
+      );
+      expect(r1.isSuccess).toBe(true);
+      const r2 = await prisma.$transaction(async (tx) =>
+        repository.saveNewVersion(
+          {
+            gefBeurteilungId: gbId,
+            version: 2,
+            items: [makeItem('V2')],
+            changedFields: { added: ['a'], removed: [], updated: [], unchanged: 0 },
+            gueltigVon: gvV2,
+            changedByUserId: testUserId,
+            eventId: cuid(),
+          },
+          tx,
+        ),
+      );
+      expect(r2.isSuccess).toBe(true);
+      const r3 = await prisma.$transaction(async (tx) =>
+        repository.saveNewVersion(
+          {
+            gefBeurteilungId: gbId,
+            version: 3,
+            items: [makeItem('V3')],
+            changedFields: { added: [], removed: ['r'], updated: [], unchanged: 0 },
+            gueltigVon: gvV3,
+            changedByUserId: testUserId,
+            eventId: cuid(),
+          },
+          tx,
+        ),
+      );
+      expect(r3.isSuccess).toBe(true);
+
+      // When: Timeline-Read-Pfad.
+      const result = await repository.findVersionsByBeurteilung(gbId);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      const rows = result.value!;
+      expect(rows).toHaveLength(3);
+      // DESC-Sortierung: neueste zuerst.
+      expect(rows[0].version).toBe(3);
+      expect(rows[1].version).toBe(2);
+      expect(rows[2].version).toBe(1);
+      // Aktive Version: gueltigBis === null.
+      expect(rows[0].gueltigBis).toBeNull();
+      // Chain-Intervall (AC9): V_n.gueltigBis === V_{n+1}.gueltigVon — in
+      // DESC-Sortierung heißt das: rows[i-1].gueltigVon === rows[i].gueltigBis.
+      expect((rows[1].gueltigBis as Date).toISOString()).toBe(rows[0].gueltigVon.toISOString());
+      expect((rows[2].gueltigBis as Date).toISOString()).toBe(rows[1].gueltigVon.toISOString());
+      // Items werden rehydriert (JSONB → Domain-VO).
+      expect(rows[0].items).toHaveLength(1);
+      expect(rows[0].items[0].toJSON().title).toBe('V3');
+      expect(rows[2].items[0].toJSON().title).toBe('V1');
+      // changedFields wird 1:1 durchgereicht.
+      expect(rows[2].changedFields).toEqual({ created: true });
+    });
+
     it('changedFields wird als JSONB-Struktur persistiert', async () => {
       if (!databaseAvailable) return;
       // Given: V1 initial.
@@ -717,7 +800,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
   describe('saveNewVersion', () => {
     it('P2002 mit target=["gefaehrdungsbeurteilung_versionen_event_id_key"] → Result.ok (idempotent)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002(['gefaehrdungsbeurteilung_versionen_event_id_key']);
 
       const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
@@ -729,7 +815,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('P2002 mit target als bare String "event_id" → Result.ok (defensive Prisma-Version-Abdeckung)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002('event_id');
 
       const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
@@ -741,7 +830,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('P2002 mit target=["gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key"] → Result.fail (echter Concurrency-Bug)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002(['gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key']);
 
       const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
@@ -753,7 +845,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('P2002 mit target=undefined (kein meta) → Result.fail (konservativ, kein Silent-Success)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002(undefined);
 
       const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(err));
@@ -764,7 +859,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('Nicht-Prisma-Error (z. B. Connection-Error) → Result.fail', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
 
       const result = await repo.saveNewVersion(baseArgs(), mockTxNewVersionReject(new Error('Connection reset')));
 
@@ -775,7 +873,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('Driver-Adapter-Shape P2002 mit constraint.fields=["event_id"] → Result.ok (Produktions-Shape)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002DriverAdapter({
         fields: ['event_id'],
         originalMessage: 'duplicate key value violates unique constraint "gefaehrdungsbeurteilung_versionen_event_id_key"',
@@ -790,7 +891,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('Driver-Adapter-Shape P2002 mit constraint.fields=["gef_beurteilung_id","version"] → Result.fail (Produktions-Shape)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002DriverAdapter({
         fields: ['gef_beurteilung_id', 'version'],
         originalMessage: 'duplicate key value violates unique constraint "gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key"',
@@ -807,7 +911,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
   describe('saveInitialVersion', () => {
     it('P2002 mit target=["gefaehrdungsbeurteilung_versionen_event_id_key"] → Result.ok (idempotent)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002(['gefaehrdungsbeurteilung_versionen_event_id_key']);
 
       const result = await repo.saveInitialVersion({ ...baseArgs(), version: 1 }, mockTxInitialReject(err));
@@ -819,7 +926,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('P2002 mit target=["gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key"] → Result.fail (echter Concurrency-Bug)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002(['gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key']);
 
       const result = await repo.saveInitialVersion({ ...baseArgs(), version: 1 }, mockTxInitialReject(err));
@@ -831,7 +941,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('Nicht-Prisma-Error → Result.fail (kein Idempotenz-Fang)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
 
       const result = await repo.saveInitialVersion({ ...baseArgs(), version: 1 }, mockTxInitialReject(new Error('Connection reset')));
 
@@ -842,7 +955,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('Driver-Adapter-Shape P2002 mit constraint.fields=["event_id"] → Result.ok (Produktions-Shape)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002DriverAdapter({
         fields: ['event_id'],
         originalMessage: 'duplicate key value violates unique constraint "gefaehrdungsbeurteilung_versionen_event_id_key"',
@@ -857,7 +973,10 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
 
     it('Driver-Adapter-Shape P2002 mit constraint.fields=["gef_beurteilung_id","version"] → Result.fail (Produktions-Shape)', async () => {
       const logger = createMockLoggerUnit();
-      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger);
+      // Story 2.4: Constructor nimmt jetzt PrismaService als zweites Argument —
+      // für die `tx`-basierten save-Pfade ist er nicht relevant, wir übergeben
+      // ein minimales `undefined`-Placeholder (TypeScript-Bypass via `@ts-nocheck`).
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, undefined as never);
       const err = buildP2002DriverAdapter({
         fields: ['gef_beurteilung_id', 'version'],
         originalMessage: 'duplicate key value violates unique constraint "gefaehrdungsbeurteilung_versionen_gefBeurteilungId_version_key"',
@@ -868,6 +987,92 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('Unique constraint failed');
       expect(logger.error).toHaveBeenCalled();
+    });
+  });
+
+  // ========================================
+  // findVersionsByBeurteilung — Story 2.4 (Mock)
+  // ========================================
+  //
+  // Die DB-Chain-Invariante ist im Integration-Test oben verifiziert; hier
+  // decken wir den DI-Call-Shape und den Error-Fallback ab.
+  describe('findVersionsByBeurteilung', () => {
+    const BEURTEILUNG_ID = 'clw3h8x9y0000qwertyui00abc';
+
+    it('reicht die gefBeurteilungId 1:1 an Prisma durch und sortiert DESC nach (gueltigVon, version)', async () => {
+      const logger = createMockLoggerUnit();
+      const mockRows = [
+        {
+          version: 3,
+          items: [{ title: 'V3-Item' }],
+          changedFields: { added: [], removed: ['r'], updated: [], unchanged: 1 },
+          gueltigVon: new Date('2026-04-22T11:00:00.000Z'),
+          gueltigBis: null,
+          changedByUserId: 'user-1',
+          eventId: 'evt-3',
+        },
+        {
+          version: 2,
+          items: [{ title: 'V2-Item' }],
+          changedFields: { added: ['a'], removed: [], updated: [], unchanged: 0 },
+          gueltigVon: new Date('2026-04-22T10:00:00.000Z'),
+          gueltigBis: new Date('2026-04-22T11:00:00.000Z'),
+          changedByUserId: 'user-2',
+          eventId: 'evt-2',
+        },
+      ];
+      const findMany = jest.fn().mockResolvedValue(mockRows);
+      const prismaMock = {
+        gefaehrdungsbeurteilungVersion: { findMany },
+      };
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, prismaMock as never);
+
+      const result = await repo.findVersionsByBeurteilung(BEURTEILUNG_ID);
+
+      expect(findMany).toHaveBeenCalledWith({
+        where: { gefBeurteilungId: BEURTEILUNG_ID },
+        orderBy: [{ gueltigVon: 'desc' }, { version: 'desc' }],
+      });
+      expect(result.isSuccess).toBe(true);
+      const rows = result.value!;
+      expect(rows).toHaveLength(2);
+      expect(rows[0].version).toBe(3);
+      expect(rows[0].gueltigBis).toBeNull();
+      expect(rows[1].version).toBe(2);
+      expect(rows[1].gueltigBis).toEqual(new Date('2026-04-22T11:00:00.000Z'));
+      // Items werden via Mapper rehydriert (JSONB → GefaehrdungItem[]).
+      expect(rows[0].items).toHaveLength(1);
+      expect(rows[0].items[0].toJSON().title).toBe('V3-Item');
+      // changedFields wird 1:1 propagiert.
+      expect(rows[0].changedFields).toEqual({ added: [], removed: ['r'], updated: [], unchanged: 1 });
+    });
+
+    it('liefert Result.ok([]), wenn Prisma keine Zeilen liefert (Defensive: gar keine Versionen — in der Praxis unerreichbar, da V1 immer existiert)', async () => {
+      const logger = createMockLoggerUnit();
+      const findMany = jest.fn().mockResolvedValue([]);
+      const prismaMock = { gefaehrdungsbeurteilungVersion: { findMany } };
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, prismaMock as never);
+
+      const result = await repo.findVersionsByBeurteilung(BEURTEILUNG_ID);
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toEqual([]);
+    });
+
+    it('mapped Prisma-Fehler auf Sentinel "InfrastructureError:LoadVersions" und loggt Fehler-Message', async () => {
+      const logger = createMockLoggerUnit();
+      const findMany = jest.fn().mockRejectedValue(new Error('Connection reset by peer'));
+      const prismaMock = { gefaehrdungsbeurteilungVersion: { findMany } };
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, prismaMock as never);
+
+      const result = await repo.findVersionsByBeurteilung(BEURTEILUNG_ID);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('InfrastructureError:LoadVersions');
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Fehler beim Laden der Versions-Chain'),
+        expect.objectContaining({ gefBeurteilungId: BEURTEILUNG_ID, error: 'Connection reset by peer' }),
+      );
     });
   });
 });

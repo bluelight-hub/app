@@ -1,11 +1,16 @@
 /**
  * GefaehrdungenDetailPage — Editor-Page für eine einzelne
- * Gefährdungsbeurteilung (Story 2.2 Task 9, AC10).
+ * Gefährdungsbeurteilung (Story 2.2 Task 9, AC10 + Story 2.4 Task 14, AC1).
  *
  * Lädt die Beurteilung via `useGefaehrdungsbeurteilung` und rendert je nach
  * Query-State Skeleton, Fehler-Banner oder den Editor-Organism. Der Header
  * zeigt den Einheiten-Namen (Fallback: ID) plus Version-Badge, damit der
  * User das optimistisch-concurrent Lock-Token sichtbar hat.
+ *
+ * **Story 2.4:** Unter dem Editor hängt der `VersionTimestampFooter`, der
+ * beim Klick das `GefaehrdungsbeurteilungHistoriePopover` öffnet. Wird dort
+ * eine Versions-Zeile gewählt, öffnet sich der Read-Only-
+ * `GefaehrdungsbeurteilungVersionDrawer`.
  *
  * Error-Handling bleibt inline (UX-DR21 Zero-Toast) — weder 403 noch 500
  * werden über Sonner gerendert.
@@ -14,8 +19,12 @@
 import { useGefaehrdungsbeurteilung } from '@/features/eigenschutz/api/queries';
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { GefaehrdungsbeurteilungHistorieEintrag } from '@bluelight-hub/shared/schemas';
+import { VersionTimestampFooter } from '../molecules/VersionTimestampFooter';
 import { GefaehrdungenEditorOrganism } from '../organisms/GefaehrdungenEditorOrganism';
+import { GefaehrdungsbeurteilungHistoriePopover } from '../organisms/GefaehrdungsbeurteilungHistoriePopover';
+import { GefaehrdungsbeurteilungVersionDrawer } from '../organisms/GefaehrdungsbeurteilungVersionDrawer';
 
 export interface GefaehrdungenDetailPageProps {
   readonly einsatzId: string;
@@ -44,9 +53,12 @@ function GefaehrdungenSkeleton() {
   );
 }
 
+const HISTORIE_POPOVER_ID = 'gefaehrdungsbeurteilung-historie-popover';
+
 export function GefaehrdungenDetailPage({ einsatzId, id }: GefaehrdungenDetailPageProps) {
   const query = useGefaehrdungsbeurteilung(einsatzId, id);
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
+  const [selectedHistorieEintrag, setSelectedHistorieEintrag] = useState<GefaehrdungsbeurteilungHistorieEintrag | null>(null);
 
   const einheitName = useMemo(() => {
     if (!query.data) return null;
@@ -77,6 +89,16 @@ export function GefaehrdungenDetailPage({ einsatzId, id }: GefaehrdungenDetailPa
   }
 
   const beurteilung = query.data;
+  const drawerEntry =
+    selectedHistorieEintrag?.gueltigBis === null
+      ? {
+          ...selectedHistorieEintrag,
+          version: beurteilung.version,
+          gueltigBis: null,
+          changedByUserId: beurteilung.aktualisiertVonUserId,
+          items: beurteilung.items,
+        }
+      : selectedHistorieEintrag;
 
   return (
     <div className="space-y-4 md:space-y-6" data-testid="gefaehrdungen-detail-page">
@@ -97,6 +119,18 @@ export function GefaehrdungenDetailPage({ einsatzId, id }: GefaehrdungenDetailPa
       </header>
 
       <GefaehrdungenEditorOrganism einsatzId={einsatzId} beurteilung={beurteilung} />
+
+      <GefaehrdungsbeurteilungHistoriePopover
+        einsatzId={einsatzId}
+        gefaehrdungsbeurteilungId={beurteilung.id}
+        popoverId={HISTORIE_POPOVER_ID}
+        trigger={
+          <VersionTimestampFooter aktualisiertAm={beurteilung.aktualisiertAm} aktualisiertVonUserId={beurteilung.aktualisiertVonUserId} version={beurteilung.version} popoverId={HISTORIE_POPOVER_ID} />
+        }
+        onSelectVersion={setSelectedHistorieEintrag}
+      />
+
+      <GefaehrdungsbeurteilungVersionDrawer entry={drawerEntry} aggregateVersion={beurteilung.version} onClose={() => setSelectedHistorieEintrag(null)} />
     </div>
   );
 }

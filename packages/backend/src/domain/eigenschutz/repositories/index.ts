@@ -7,4 +7,4 @@
  */
 export type { IGefaehrdungsbeurteilungRepository, GefaehrdungsbeurteilungReadModel } from './i-gefaehrdungsbeurteilung.repository';
 export type { IGefaehrdungsbeurteilungVorlageRepository, GefaehrdungsbeurteilungVorlageReadModel } from './i-gefaehrdungsbeurteilung-vorlage.repository';
-export type { IGefaehrdungsbeurteilungVersionRepository, SaveInitialVersionArgs, SaveNewVersionArgs } from './i-gefaehrdungsbeurteilung-version.repository';
+export type { IGefaehrdungsbeurteilungVersionRepository, SaveInitialVersionArgs, SaveNewVersionArgs, GefaehrdungsbeurteilungVersionRow } from './i-gefaehrdungsbeurteilung-version.repository';

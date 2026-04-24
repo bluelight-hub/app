@@ -43,6 +43,15 @@ export interface RiskMatrix5x5Props {
   };
   readonly onChange: (value: { eintritt: Eintrittswahrscheinlichkeit; schaden: Schadensausmass }) => void;
   readonly disabled?: boolean;
+  /**
+   * Wenn `true`, wird die Matrix als Read-only angezeigt (Story 415-2-4 Task 13, AC14):
+   * - Root-Element trägt `aria-readonly="true"`.
+   * - Klick und Enter/Space lösen kein `onChange` aus.
+   * - Pfeiltasten-Fokus bleibt erhalten, damit Screenreader die ausgewählte
+   *   Zelle (z. B. in einer Versions-Detailansicht) erkunden können.
+   * - Selection-Stil der aktiv ausgewählten Zelle bleibt sichtbar.
+   */
+  readonly readOnly?: boolean;
   readonly 'aria-labelledby'?: string;
 }
 
@@ -103,7 +112,7 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-export function RiskMatrix5x5({ value, onChange, disabled = false, 'aria-labelledby': ariaLabelledBy }: RiskMatrix5x5Props) {
+export function RiskMatrix5x5({ value, onChange, disabled = false, readOnly = false, 'aria-labelledby': ariaLabelledBy }: RiskMatrix5x5Props) {
   const reducedMotion = usePrefersReducedMotion();
 
   // Roving-Tabindex-Fokus: Initialisierung auf den selektierten Wert,
@@ -152,6 +161,7 @@ export function RiskMatrix5x5({ value, onChange, disabled = false, 'aria-labelle
         case 'Enter':
         case ' ':
           event.preventDefault();
+          if (readOnly) return;
           onChange({ eintritt: EINTRITT_ORDER[row], schaden: SCHADEN_ORDER[col] });
           return;
         default:
@@ -163,7 +173,7 @@ export function RiskMatrix5x5({ value, onChange, disabled = false, 'aria-labelle
         setFocus({ row: nextRow, col: nextCol });
       }
     },
-    [disabled, onChange],
+    [disabled, readOnly, onChange],
   );
 
   const selectedKey = useMemo(() => {
@@ -172,7 +182,15 @@ export function RiskMatrix5x5({ value, onChange, disabled = false, 'aria-labelle
   }, [value?.eintritt, value?.schaden]);
 
   return (
-    <table ref={gridRef} role="grid" aria-labelledby={ariaLabelledBy} aria-disabled={disabled || undefined} className="w-full border-separate border-spacing-1" data-testid="risk-matrix-5x5">
+    <table
+      ref={gridRef}
+      role="grid"
+      aria-labelledby={ariaLabelledBy}
+      aria-disabled={disabled || undefined}
+      aria-readonly={readOnly || undefined}
+      className="w-full border-separate border-spacing-1"
+      data-testid="risk-matrix-5x5"
+    >
       <thead>
         <tr>
           {/* Leere Ecke oben-links — kein Label. */}
@@ -212,6 +230,7 @@ export function RiskMatrix5x5({ value, onChange, disabled = false, 'aria-labelle
                     if (disabled) return;
                     shouldRefocus.current = false;
                     setFocus({ row: rowIdx, col: colIdx });
+                    if (readOnly) return;
                     onChange({ eintritt, schaden });
                   }}
                   onKeyDown={(event) => handleCellKeyDown(event, rowIdx, colIdx)}
