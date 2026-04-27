@@ -253,6 +253,15 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get gefaehrdungsbeurteilungVorlage() {
     return this._client.gefaehrdungsbeurteilungVorlage;
   }
+  get sicherheitsregel() {
+    return this._client.sicherheitsregel;
+  }
+  get sicherheitsregelVersion() {
+    return this._client.sicherheitsregelVersion;
+  }
+  get sicherheitsregelQuittung() {
+    return this._client.sicherheitsregelQuittung;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

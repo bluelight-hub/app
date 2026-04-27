@@ -1,0 +1,151 @@
+import { type ReactNode } from 'react';
+import { cn } from '@/shared/ui';
+
+export type SeverityBannerVariant = 'critical' | 'warning' | 'info';
+export type SeverityBannerTone = 'assertive' | 'polite';
+
+export interface SeverityBannerProps {
+  variant: SeverityBannerVariant;
+  tone?: SeverityBannerTone;
+  /** ≤ 60 Zeichen — Story 2.7 AC1. */
+  headline: string;
+  /** ≤ 140 Zeichen Anriss; voller Inhalt kommt aus Detail-Refetch. */
+  body?: string;
+  /** Optionaler Footer (Timestamp, Quelle). */
+  footer?: ReactNode;
+  /** Primary-Action-Label, z. B. „Quittieren". */
+  primaryActionLabel?: string;
+  /** Wird beim Tap/Enter/Space auf Primary aufgerufen. */
+  onPrimary?: () => void;
+  /** Optionale Sekundär-Action (z. B. „Details ansehen"). */
+  secondaryActionLabel?: string;
+  onSecondary?: () => void;
+  /** Optionale Inline-Fehlerzeile (Zero-Toast-Policy, Story 2.7 AC14). */
+  inlineError?: string;
+  /**
+   * Optionaler Retry-Handler — wenn gesetzt UND `inlineError` ist gesetzt,
+   * wird ein Retry-Button rechts neben dem Fehler gerendert.
+   */
+  onRetry?: () => void;
+  /** Disabled-Pending-State während der Mutation läuft. */
+  pending?: boolean;
+  /** Optional: Test-Identifier. */
+  'data-testid'?: string;
+}
+
+/**
+ * `SeverityBanner` — UX-Spec-Komponente (Story 2.7 AC1).
+ *
+ * **Varianten** mappen auf das Eskalations-Token:
+ * - `critical` → rot, kritische Bekanntgabe (PSA, CBRN — kommt in Story 3.3+).
+ * - `warning` → orange, Änderung einer aktiven Sicherheitsregel.
+ * - `info` → blau, Erst-Bekanntgabe einer Regel.
+ *
+ * **Tone** steuert `aria-live`:
+ * - `polite` (default) für Sicherheitsregeln (UX-Spec Zeile 219).
+ * - `assertive` für PSA/CBRN.
+ *
+ * **A11y:** `role="status"` + `aria-live="polite"`/`"assertive"` macht den
+ * Banner für Screenreader sichtbar, ohne die Fokus-Reihenfolge zu stören.
+ *
+ * **Touch-Target:** Primary-Action ist ≥ 48 × 48 px (`min-h-12 min-w-12`).
+ * Retry-Button ist ≥ 44 × 44 px (Story 2.7 AC14).
+ *
+ * **Reduced-Motion:** Tailwind-`motion-safe`-Variante guards optionale
+ * Animationen (Fade/Slide) — auf der Atom-Ebene rendern wir keine
+ * Animationen, sondern überlassen sie dem Container.
+ *
+ * **Promotion-Kandidat:** Lebt feature-lokal, bis ein zweiter plattform-
+ * weiter Use-Case (PSA, Vorfälle) eintritt — dann Migration nach
+ * `shared/ui/`.
+ */
+export function SeverityBanner({
+  variant,
+  tone = 'polite',
+  headline,
+  body,
+  footer,
+  primaryActionLabel,
+  onPrimary,
+  secondaryActionLabel,
+  onSecondary,
+  inlineError,
+  onRetry,
+  pending = false,
+  'data-testid': dataTestId,
+}: SeverityBannerProps) {
+  const toneClass: Record<SeverityBannerVariant, string> = {
+    critical: 'border-red-600 bg-red-50 dark:border-red-500 dark:bg-red-950/40',
+    warning: 'border-amber-600 bg-amber-50 dark:border-amber-500 dark:bg-amber-950/40',
+    info: 'border-blue-600 bg-blue-50 dark:border-blue-500 dark:bg-blue-950/40',
+  };
+
+  return (
+    <section
+      role="status"
+      aria-live={tone}
+      data-variant={variant}
+      data-testid={dataTestId}
+      className={cn('rounded-lg border-l-4 p-4 shadow-sm', toneClass[variant], 'transition-opacity motion-reduce:transition-none')}
+    >
+      <header className="flex items-start justify-between gap-4">
+        <h3 className="text-base leading-tight font-semibold">{headline.length > 60 ? `${headline.slice(0, 57)}…` : headline}</h3>
+      </header>
+      {body !== undefined && body.length > 0 && <p className="text-foreground/80 dark:text-foreground/90 mt-2 text-sm">{body.length > 140 ? `${body.slice(0, 137)}…` : body}</p>}
+      {footer !== undefined && <footer className="text-foreground/60 mt-2 text-xs">{footer}</footer>}
+      {(primaryActionLabel !== undefined || secondaryActionLabel !== undefined) && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {primaryActionLabel !== undefined && (
+            <button
+              type="button"
+              onClick={onPrimary}
+              disabled={pending || onPrimary === undefined}
+              className={cn(
+                'inline-flex min-h-12 min-w-12 items-center justify-center rounded-md px-4 py-2 text-sm font-medium',
+                'bg-foreground text-background hover:bg-foreground/90',
+                'focus-visible:outline-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                'disabled:cursor-not-allowed disabled:opacity-50',
+              )}
+            >
+              {pending ? 'Wird verarbeitet …' : primaryActionLabel}
+            </button>
+          )}
+          {secondaryActionLabel !== undefined && (
+            <button
+              type="button"
+              onClick={onSecondary}
+              disabled={onSecondary === undefined}
+              className={cn(
+                'inline-flex min-h-12 min-w-12 items-center justify-center rounded-md border px-4 py-2 text-sm font-medium',
+                'border-foreground/40 text-foreground hover:bg-foreground/5',
+                'focus-visible:outline-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+              )}
+            >
+              {secondaryActionLabel}
+            </button>
+          )}
+        </div>
+      )}
+      {inlineError !== undefined && inlineError.length > 0 && (
+        <div
+          role="alert"
+          className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-red-500/60 bg-red-50/40 px-3 py-2 text-sm text-red-700 dark:border-red-500 dark:bg-red-950/20 dark:text-red-200"
+        >
+          <span>{inlineError}</span>
+          {onRetry !== undefined && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className={cn(
+                'inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium',
+                'border border-red-600 text-red-700 hover:bg-red-100/50 dark:border-red-400 dark:text-red-100 dark:hover:bg-red-900/30',
+              )}
+            >
+              Erneut versuchen
+            </button>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}

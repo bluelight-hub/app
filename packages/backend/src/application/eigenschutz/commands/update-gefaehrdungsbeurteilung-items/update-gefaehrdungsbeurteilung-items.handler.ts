@@ -5,10 +5,11 @@ import { Result } from '@domain/common/result';
 import { GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED } from '@domain/eigenschutz/aggregates/gefaehrdungsbeurteilung.aggregate';
 import { GefaehrdungsbeurteilungAktualisiertEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event';
 import type { IGefaehrdungsbeurteilungRepository, IGefaehrdungsbeurteilungVersionRepository } from '@domain/eigenschutz/repositories';
-import { GefaehrdungItem } from '@domain/eigenschutz/value-objects/gefaehrdung-item.vo';
+import { GefaehrdungItem, type GefaehrdungItemProps } from '@domain/eigenschutz/value-objects/gefaehrdung-item.vo';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { CommandHandler } from '@nestjs/cqrs';
 import { Inject, Injectable } from '@nestjs/common';
+import { createId } from '@paralleldrive/cuid2';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { GEFAEHRDUNGSBEURTEILUNG_REPOSITORY, GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
@@ -72,6 +73,13 @@ function encodeConflictSentinel(currentVersion: number): string {
   return `${GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED}:current=${currentVersion}`;
 }
 
+function withStableItemId(itemProps: GefaehrdungItemProps): GefaehrdungItemProps {
+  if (typeof itemProps.id === 'string' && itemProps.id.trim().length > 0) {
+    return itemProps;
+  }
+  return { ...itemProps, id: createId() };
+}
+
 /**
  * Zusatzkontext, den der Controller bei einem 409 in die Error-Response packt.
  * `currentVersion` entstammt dem `:current=<n>`-Suffix (siehe `encodeConflictSentinel`);
@@ -127,7 +135,7 @@ export class UpdateGefaehrdungsbeurteilungItemsHandler extends TransactionalComm
     // Controller den Fall deterministisch (via Whitelist) auf 422 mapped.
     const newItems: GefaehrdungItem[] = [];
     for (const itemProps of command.items) {
-      const itemResult = GefaehrdungItem.create(itemProps);
+      const itemResult = GefaehrdungItem.create(withStableItemId(itemProps));
       if (itemResult.isFailure || !itemResult.value) {
         return Result.fail<string>(wrapValidationError(itemResult.error, 'Ungültiges Item'));
       }

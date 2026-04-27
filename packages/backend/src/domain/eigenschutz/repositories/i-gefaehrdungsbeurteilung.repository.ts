@@ -51,6 +51,14 @@ export interface IGefaehrdungsbeurteilungRepository {
   findReadModelById(id: string, tx?: TransactionContext): Promise<Result<GefaehrdungsbeurteilungReadModel | null>>;
 
   /**
+   * Lädt alle Beurteilungen eines Einsatzes als Read-Model-Liste.
+   *
+   * Sortierung ist Teil des Repository-Kontrakts: zuletzt aktualisierte
+   * Beurteilungen zuerst, stabilisiert über `erstelltAm` und `id`.
+   */
+  findReadModelsByEinsatz(einsatzId: string, tx?: TransactionContext): Promise<Result<GefaehrdungsbeurteilungReadModel[]>>;
+
+  /**
    * Prüft, ob bereits eine Beurteilung für `(einsatzId, einheitId)` existiert.
    * Wird im Handler für den Business-Check genutzt, bevor das Aggregate
    * erstellt wird (Ziel: strukturierter 422-Fehler statt roher Prisma-P2002).

@@ -11,15 +11,15 @@
  * Admin-Backend-Pattern (UX-DR22).
  */
 
-import { EIGENSCHUTZ_QUERY_KEYS, GefaehrdungsbeurteilungConflictError, useUpdateGefaehrdungsbeurteilungItems } from '@/features/eigenschutz/api/queries';
-import { useAutoSave } from '@/features/eigenschutz/hooks/useAutoSave';
-import { removePendingCommandsForEntity, upsertPendingCommand } from '@/features/eigenschutz/lib/pending-command-queue';
-import { GEFAEHRDUNG_ITEM_LIMITS, type Gefaehrdungsbeurteilung, type GefaehrdungItem } from '@bluelight-hub/shared/schemas';
-import { Button } from '@/shared/ui/atoms/button.atom';
-import { SeverityBanner } from '@/shared/ui/molecules/severity-banner.molecule';
+import { GEFAEHRDUNG_ITEM_LIMITS, type GefaehrdungItem, type Gefaehrdungsbeurteilung } from '@bluelight-hub/shared/schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PiCheckCircleFill, PiPlusLight } from 'react-icons/pi';
+import { EIGENSCHUTZ_QUERY_KEYS, fetchGefaehrdungsbeurteilung, GefaehrdungsbeurteilungConflictError, useUpdateGefaehrdungsbeurteilungItems } from '@/features/eigenschutz/api/queries';
+import { useAutoSave } from '@/features/eigenschutz/hooks/useAutoSave';
+import { loadPendingCommands, removePendingCommandsForEntity, replayPendingCommands, upsertPendingCommand } from '@/features/eigenschutz/lib/pending-command-queue';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { SeverityBanner } from '@/shared/ui/molecules/severity-banner.molecule';
 import { GefaehrdungItemEditor } from '../molecules/GefaehrdungItemEditor';
 import { SyncStatusBadge } from '../molecules/SyncStatusBadge';
 
@@ -48,9 +48,11 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
   const [autoFocusIndex, setAutoFocusIndex] = useState<number | null>(null);
   const [savedVersion, setSavedVersion] = useState(beurteilung.version);
   const [serverConflict, setServerConflict] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
   const lastSyncedVersionRef = useRef<number>(beurteilung.version);
   const lastSyncedItemsRef = useRef<GefaehrdungItem[]>(beurteilung.items);
   const lastSyncedItemsKeyRef = useRef<string>(serializeItems(beurteilung.items));
+  const replayInFlightRef = useRef(false);
 
   // Validierungs-Status lokal ableiten — TanStack-Form wäre Overkill für
   // einen flachen Items-Array. Die Zod-Validation im Mutation-Handler
@@ -66,37 +68,46 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
 
   const hasDraftChanges = useMemo(() => serializeItems(items) !== lastSyncedItemsKeyRef.current, [items]);
 
-  const saveItems = useCallback(
-    async (draftItems: GefaehrdungItem[]): Promise<Gefaehrdungsbeurteilung> => {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const updateOnlineState = () => setIsOnline(typeof navigator === 'undefined' ? true : navigator.onLine);
+    window.addEventListener('online', updateOnlineState);
+    window.addEventListener('offline', updateOnlineState);
+    updateOnlineState();
+    return () => {
+      window.removeEventListener('online', updateOnlineState);
+      window.removeEventListener('offline', updateOnlineState);
+    };
+  }, []);
+
+  const applySavedBeurteilung = useCallback((saved: Gefaehrdungsbeurteilung): Gefaehrdungsbeurteilung => {
+    lastSyncedVersionRef.current = saved.version;
+    lastSyncedItemsRef.current = saved.items;
+    lastSyncedItemsKeyRef.current = serializeItems(saved.items);
+    setSavedVersion(saved.version);
+    return saved;
+  }, []);
+
+  const saveItemsWithVersion = useCallback(
+    async (draftItems: GefaehrdungItem[], expectedVersion: number): Promise<Gefaehrdungsbeurteilung> => {
       const saved = await mutation.mutateAsync({
         items: draftItems,
-        expectedVersion: lastSyncedVersionRef.current,
+        expectedVersion,
       });
-      lastSyncedVersionRef.current = saved.version;
-      lastSyncedItemsRef.current = saved.items;
-      lastSyncedItemsKeyRef.current = serializeItems(saved.items);
-      setSavedVersion(saved.version);
-      return saved;
+      return applySavedBeurteilung(saved);
     },
-    [mutation],
+    [applySavedBeurteilung, mutation],
   );
 
-  const autoSave = useAutoSave<GefaehrdungItem[], Gefaehrdungsbeurteilung>({
-    entityId: beurteilung.id,
-    entityType: 'gefaehrdungsbeurteilung',
-    saveFn: saveItems,
-    debounceMs: 2000,
-    enabled: !serverConflict,
-    isValid: () => !hasInvalidItem,
-    hasChanges: (draftItems) => serializeItems(draftItems) !== lastSyncedItemsKeyRef.current,
-    isConflictError: (error) => error instanceof GefaehrdungsbeurteilungConflictError || getHttpStatus(error) === 409,
-    isOfflineError: (error) => getHttpStatus(error) === undefined,
-    isOnline: typeof navigator === 'undefined' ? true : navigator.onLine,
-    onSaved: (saved) => {
-      setItems(saved.items);
-      setServerConflict(false);
+  const saveItems = useCallback(
+    (draftItems: GefaehrdungItem[]): Promise<Gefaehrdungsbeurteilung> => {
+      return saveItemsWithVersion(draftItems, lastSyncedVersionRef.current);
     },
-    onOfflineSave: async (draftItems, source) => {
+    [saveItemsWithVersion],
+  );
+
+  const queuePendingCommand = useCallback(
+    async (draftItems: GefaehrdungItem[], source: 'auto-save' | 'manual-finalize') => {
       const now = new Date().toISOString();
       await upsertPendingCommand({
         schemaVersion: 1,
@@ -112,8 +123,82 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
         status: 'pending',
       });
     },
+    [beurteilung.id, einsatzId],
+  );
+
+  const autoSave = useAutoSave<GefaehrdungItem[], Gefaehrdungsbeurteilung>({
+    entityId: beurteilung.id,
+    entityType: 'gefaehrdungsbeurteilung',
+    saveFn: saveItems,
+    debounceMs: 2000,
+    enabled: !serverConflict,
+    isValid: () => !hasInvalidItem,
+    hasChanges: (draftItems) => serializeItems(draftItems) !== lastSyncedItemsKeyRef.current,
+    isConflictError: (error) => error instanceof GefaehrdungsbeurteilungConflictError || getHttpStatus(error) === 409,
+    isOfflineError: (error) => getHttpStatus(error) === undefined,
+    isOnline,
+    onSaved: (saved) => {
+      setItems(saved.items);
+      setServerConflict(false);
+      void removePendingCommandsForEntity('gefaehrdungsbeurteilung', beurteilung.id);
+    },
+    onLocalSave: queuePendingCommand,
+    onOfflineSave: queuePendingCommand,
   });
   const { status: autoSaveStatus, hasPendingChanges: autoSaveHasPendingChanges, scheduleSave, finalizeNow, cancel: cancelAutoSave, resetSynced } = autoSave;
+
+  const isCurrentBeurteilungCommand = useCallback(
+    (command: { readonly entityType: string; readonly einsatzId: string; readonly entityId: string }) => {
+      return command.entityType === 'gefaehrdungsbeurteilung' && command.einsatzId === einsatzId && command.entityId === beurteilung.id;
+    },
+    [beurteilung.id, einsatzId],
+  );
+
+  const replayPendingForCurrentBeurteilung = useCallback(async () => {
+    if (!isOnline || replayInFlightRef.current) return;
+
+    const pendingBeforeReplay = await loadPendingCommands();
+    const hasCurrentConflict = pendingBeforeReplay.some((command) => isCurrentBeurteilungCommand(command) && command.status === 'conflict');
+    if (hasCurrentConflict) {
+      setServerConflict(true);
+      return;
+    }
+
+    const hasReplayableCommand = pendingBeforeReplay.some((command) => isCurrentBeurteilungCommand(command) && command.status === 'pending');
+    if (!hasReplayableCommand) return;
+
+    replayInFlightRef.current = true;
+    try {
+      await replayPendingCommands({
+        shouldReplay: isCurrentBeurteilungCommand,
+        saveCommand: async (command) => {
+          await saveItemsWithVersion(command.payload.items, command.expectedVersion);
+        },
+        isAlreadyApplied: async (command) => {
+          const current = await queryClient.fetchQuery({
+            queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung(einsatzId, command.entityId),
+            queryFn: () => fetchGefaehrdungsbeurteilung(einsatzId, command.entityId),
+          });
+          return serializeItems(current.items) === serializeItems(command.payload.items);
+        },
+      });
+
+      const pendingAfterReplay = await loadPendingCommands();
+      const hasConflictAfterReplay = pendingAfterReplay.some((command) => isCurrentBeurteilungCommand(command) && command.status === 'conflict');
+      setServerConflict(hasConflictAfterReplay);
+      if (!hasConflictAfterReplay) {
+        void queryClient.invalidateQueries({
+          queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilung(einsatzId, beurteilung.id),
+        });
+      }
+    } finally {
+      replayInFlightRef.current = false;
+    }
+  }, [beurteilung.id, einsatzId, isCurrentBeurteilungCommand, isOnline, queryClient, saveItemsWithVersion]);
+
+  useEffect(() => {
+    void replayPendingForCurrentBeurteilung();
+  }, [replayPendingForCurrentBeurteilung]);
 
   const editorBusy = mutation.isPending || autoSaveStatus === 'syncing';
   const finalizeDisabled = hasInvalidItem || editorBusy || !hasDraftChanges || serverConflict;
@@ -123,8 +208,12 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
     const incomingChanged = beurteilung.version !== lastSyncedVersionRef.current || incomingItemsKey !== lastSyncedItemsKeyRef.current;
     if (!incomingChanged) return;
 
-    const localDirty = serializeItems(items) !== lastSyncedItemsKeyRef.current || autoSaveHasPendingChanges;
+    const localItemsKey = serializeItems(items);
+    const localDirty = localItemsKey !== lastSyncedItemsKeyRef.current || autoSaveHasPendingChanges;
     if (localDirty) {
+      if (incomingItemsKey === localItemsKey) {
+        return;
+      }
       setServerConflict(true);
       return;
     }

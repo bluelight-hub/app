@@ -106,8 +106,9 @@ describe('UpdateGefaehrdungsbeurteilungItemsHandler', () => {
 
     const versionArgs = versionRepo.saveNewVersion.mock.calls[0][0];
     expect(versionArgs.version).toBe(2);
-    expect(versionArgs.changedFields).toEqual({ added: ['generated:0'], removed: [], updated: [], unchanged: 0 });
+    expect(versionArgs.changedFields).toEqual({ added: [expect.any(String)], removed: [], updated: [], unchanged: 0 });
     expect(versionArgs.items).toHaveLength(1);
+    expect(versionArgs.items[0].id).toEqual(expect.any(String));
     expect(versionArgs.eventId).toBeTruthy();
   });
 
@@ -140,11 +141,33 @@ describe('UpdateGefaehrdungsbeurteilungItemsHandler', () => {
 
     const versionArgs = versionRepo.saveNewVersion.mock.calls[0][0];
     expect(versionArgs.changedFields).toEqual({
-      added: ['generated:0'],
+      added: [expect.any(String)],
       removed: [idB],
       updated: [{ id: idA, fields: ['title'] }],
       unchanged: 0,
     });
+    expect(versionArgs.items[1].id).toEqual(expect.any(String));
+    expect(versionArgs.items[1].id).not.toBe(idA);
+  });
+
+  it('(Regression) ergänzt stabile IDs für id-lose Client-Items vor Aggregate- und Version-Persistenz', async () => {
+    beurteilungRepo.findById.mockResolvedValue(Result.ok(buildAggregate()));
+
+    const result = await handler.execute(
+      buildCommand({
+        items: [{ title: 'Atemschutz', schutzmassnahmen: 'PA-Trupp einsetzen' }],
+      }),
+    );
+
+    expect(result.isSuccess).toBe(true);
+    const persistedAggregate = beurteilungRepo.updateItems.mock.calls[0][0];
+    const versionArgs = versionRepo.saveNewVersion.mock.calls[0][0];
+    const generatedId = versionArgs.items[0].id;
+
+    expect(generatedId).toEqual(expect.any(String));
+    expect(generatedId).not.toHaveLength(0);
+    expect(persistedAggregate.items[0].id).toBe(generatedId);
+    expect(versionArgs.changedFields.added).toEqual([generatedId]);
   });
 
   it('(409 ConflictDetected) bei Version-Mismatch — keine Persistenz, Sentinel im Error', async () => {

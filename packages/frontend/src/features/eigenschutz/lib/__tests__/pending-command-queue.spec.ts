@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   EIGENSCHUTZ_PENDING_COMMANDS_STORAGE_KEY,
+  type EigenschutzPendingCommandV1,
   loadPendingCommands,
   markPendingCommandConflict,
   removePendingCommand,
   replayPendingCommands,
   upsertPendingCommand,
-  type EigenschutzPendingCommandV1,
 } from '../pending-command-queue';
 
 const mocks = vi.hoisted(() => ({
@@ -70,7 +70,13 @@ describe('pending-command-queue (Story 2.5)', () => {
   it('coalesced Auto-Save-Commands derselben Entität und expectedVersion auf den neuesten Payload', async () => {
     mocks.getItem.mockResolvedValue(JSON.stringify([command({ id: 'cmd-alt', payload: { items: [{ title: 'Alt' }] } })]));
 
-    await upsertPendingCommand(command({ id: 'cmd-neu', payload: { items: [{ title: 'Neu' }] }, updatedAt: '2026-04-24T10:00:02.000Z' }));
+    await upsertPendingCommand(
+      command({
+        id: 'cmd-neu',
+        payload: { items: [{ title: 'Neu' }] },
+        updatedAt: '2026-04-24T10:00:02.000Z',
+      }),
+    );
 
     const persisted = JSON.parse(mocks.setItem.mock.calls[0][1]) as EigenschutzPendingCommandV1[];
     expect(persisted).toHaveLength(1);
@@ -103,6 +109,51 @@ describe('pending-command-queue (Story 2.5)', () => {
     expect(persisted[0]).toMatchObject({ id: 'a', status: 'conflict' });
   });
 
+  it('pausiert nach echtem Replay-409 spätere Commands derselben Beurteilung', async () => {
+    mocks.getItem.mockResolvedValue(
+      JSON.stringify([
+        command({
+          id: 'a',
+          entityId: 'gb-1',
+          queuedAt: '2026-04-24T10:00:00.000Z',
+        }),
+        command({
+          id: 'b',
+          entityId: 'gb-1',
+          queuedAt: '2026-04-24T10:00:01.000Z',
+          payload: { items: [{ title: 'Strom später' }] },
+        }),
+        command({
+          id: 'c',
+          entityId: 'gb-2',
+          queuedAt: '2026-04-24T10:00:02.000Z',
+        }),
+      ]),
+    );
+    const error409 = { response: { status: 409 } };
+    const saveCommand = vi.fn().mockRejectedValueOnce(error409).mockResolvedValue(undefined);
+
+    await replayPendingCommands({
+      saveCommand,
+      isAlreadyApplied: vi.fn().mockResolvedValue(false),
+    });
+
+    expect(saveCommand).toHaveBeenCalledTimes(2);
+    expect(saveCommand).toHaveBeenNthCalledWith(1, expect.objectContaining({ id: 'a' }));
+    expect(saveCommand).toHaveBeenNthCalledWith(2, expect.objectContaining({ id: 'c' }));
+    const lastSetItemPayload = mocks.setItem.mock.calls[mocks.setItem.mock.calls.length - 1]?.[1];
+    expect(lastSetItemPayload).toEqual(expect.any(String));
+    const lastPersisted = JSON.parse(lastSetItemPayload as string) as EigenschutzPendingCommandV1[];
+    expect(lastPersisted).toEqual([
+      expect.objectContaining({ id: 'a', status: 'conflict' }),
+      expect.objectContaining({
+        id: 'b',
+        status: 'conflict',
+        conflictReason: 'Replay pausiert bis zur Konfliktlösung dieser Beurteilung.',
+      }),
+    ]);
+  });
+
   it('entfernt Replay-409, wenn Serverstand den Payload bereits enthält', async () => {
     mocks.getItem.mockResolvedValue(JSON.stringify([command({ id: 'a' })]));
     const error409 = { response: { status: 409 } };
@@ -114,6 +165,19 @@ describe('pending-command-queue (Story 2.5)', () => {
 
     const persisted = JSON.parse(mocks.setItem.mock.calls[0][1]) as EigenschutzPendingCommandV1[];
     expect(persisted).toEqual([]);
+  });
+
+  it('replayt nur Commands, die shouldReplay zulässt', async () => {
+    mocks.getItem.mockResolvedValue(JSON.stringify([command({ id: 'a', entityId: 'gb-1' }), command({ id: 'b', entityId: 'gb-2' })]));
+    const saveCommand = vi.fn().mockResolvedValue(undefined);
+
+    await replayPendingCommands({
+      shouldReplay: (pendingCommand) => pendingCommand.entityId === 'gb-2',
+      saveCommand,
+    });
+
+    expect(saveCommand).toHaveBeenCalledTimes(1);
+    expect(saveCommand).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
   });
 
   it('markPendingCommandConflict hält den Command sichtbar', async () => {

@@ -40,6 +40,7 @@ import { GEFAEHRDUNGSBEURTEILUNG_CONFLICT_DETECTED } from '@domain/eigenschutz/a
 import { GetGefaehrdungsbeurteilungQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung/get-gefaehrdungsbeurteilung.query';
 import { GetGefaehrdungsbeurteilungHistorieQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.query';
 import type { HistorieReadModel } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.handler';
+import { ListGefaehrdungsbeurteilungenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungen/list-gefaehrdungsbeurteilungen.query';
 import { ListGefaehrdungsbeurteilungsVorlagenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungs-vorlagen/list-gefaehrdungsbeurteilungs-vorlagen.query';
 import type { GefaehrdungsbeurteilungReadModel } from '@domain/eigenschutz/repositories';
 import type { GefaehrdungsbeurteilungVorlageReadModel } from '@domain/eigenschutz/repositories';
@@ -106,6 +107,33 @@ export class GefaehrdungsbeurteilungController {
       throw new InternalServerErrorException(result.error ?? 'Vorlagen konnten nicht geladen werden');
     }
     return result.value.map(toGefaehrdungsbeurteilungVorlageDto);
+  }
+
+  /**
+   * Liefert alle Gefährdungsbeurteilungen des aktuellen Einsatzes für die
+   * Übersichts- und Navigationsliste.
+   */
+  @Get('gefaehrdungsbeurteilungen')
+  @ApiOperation({ summary: 'Gefährdungsbeurteilungen des Einsatzes auflisten' })
+  @ApiParam({ name: 'einsatzId', type: String, description: 'Einsatz-ID (CUID)' })
+  @ApiWrappedResponse(GefaehrdungsbeurteilungDto, {
+    isArray: true,
+    description: 'Liste der Gefährdungsbeurteilungen im Einsatz, zuletzt geänderte zuerst.',
+  })
+  async listBeurteilungen(@Param('einsatzId') einsatzId: string): Promise<GefaehrdungsbeurteilungDto[]> {
+    const query = new ListGefaehrdungsbeurteilungenQuery(einsatzId);
+    const result = (await this.queryBus.execute(query)) as Result<GefaehrdungsbeurteilungReadModel[]>;
+    if (result.isFailure || !result.value) {
+      throw new InternalServerErrorException(result.error ?? 'Beurteilungen konnten nicht geladen werden');
+    }
+    return result.value.map((readModel) =>
+      toGefaehrdungsbeurteilungDto({
+        aggregate: readModel.aggregate,
+        erstelltAm: readModel.erstelltAm,
+        aktualisiertAm: readModel.aktualisiertAm,
+        aktualisiertVonUserId: readModel.aktualisiertVonUserId,
+      }),
+    );
   }
 
   /**

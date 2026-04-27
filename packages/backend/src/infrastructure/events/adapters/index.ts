@@ -73,3 +73,5 @@ export * from './fms-alarmierung-zeitpunkt.adapter';
 // über das `./eigenschutz-…`-Import-Pattern als Registry-Stelle 4 gezählt.
 export * from './eigenschutz-gefaehrdungsbeurteilung-erstellt-event.adapter';
 export * from './eigenschutz-gefaehrdungsbeurteilung-aktualisiert-event.adapter';
+export * from './eigenschutz-sicherheitsregel-ausgerufen-event.adapter';
+export * from './eigenschutz-sicherheitsregel-quittiert-event.adapter';

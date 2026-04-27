@@ -7,3 +7,6 @@
  */
 export { EigenschutzDomainEvent } from './eigenschutz-domain-event';
 export { GefaehrdungsbeurteilungErstelltEvent } from './gefaehrdungsbeurteilung-erstellt.event';
+export { SicherheitsregelAusgerufenEvent } from './sicherheitsregel-ausgerufen.event';
+export type { SicherheitsregelAusgerufenChangedFields, SicherheitsregelFieldKey } from './sicherheitsregel-ausgerufen.event';
+export { SicherheitsregelQuittiertEvent } from './sicherheitsregel-quittiert.event';

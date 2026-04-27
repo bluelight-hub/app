@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  */
 const mockGetHealth = vi.fn();
 const mockListVorlagen = vi.fn();
+const mockListBeurteilungen = vi.fn();
 const mockCreateBeurteilung = vi.fn();
 const mockGetBeurteilung = vi.fn();
 const mockUpdateItems = vi.fn();
@@ -21,6 +22,7 @@ vi.mock('@/shared', () => ({
     eigenschutz: () => ({
       eigenschutzHealthControllerGetHealthVAlpha: mockGetHealth,
       gefaehrdungsbeurteilungControllerListVorlagenVAlpha: mockListVorlagen,
+      gefaehrdungsbeurteilungControllerListBeurteilungenVAlpha: mockListBeurteilungen,
       gefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha: mockCreateBeurteilung,
       gefaehrdungsbeurteilungControllerGetBeurteilungVAlpha: mockGetBeurteilung,
       gefaehrdungsbeurteilungControllerUpdateItemsVAlpha: mockUpdateItems,
@@ -36,6 +38,7 @@ import {
   useCreateGefaehrdungsbeurteilung,
   useGefaehrdungsbeurteilung,
   useGefaehrdungsbeurteilungHistorie,
+  useGefaehrdungsbeurteilungen,
   useGefaehrdungsbeurteilungVorlagen,
   useUpdateGefaehrdungsbeurteilungItems,
 } from '../queries';
@@ -144,6 +147,69 @@ describe('useGefaehrdungsbeurteilungVorlagen (Story 2.1 AC4)', () => {
       const retry = await readRetryFn();
       expect(retry(0, { response: { status: 403 } })).toBe(false);
       expect(retry(5, { response: { status: 403 } })).toBe(false);
+    });
+  });
+});
+
+describe('useGefaehrdungsbeurteilungen', () => {
+  beforeEach(() => {
+    mockListBeurteilungen.mockReset();
+  });
+
+  it('ist deaktiviert bei leerer einsatzId', () => {
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGefaehrdungsbeurteilungen(''), { wrapper });
+
+    expect(result.current.fetchStatus).toBe('idle');
+    expect(mockListBeurteilungen).not.toHaveBeenCalled();
+  });
+
+  it('entpackt die `data`-Property des Wrapped-Response und leitet einsatzId durch', async () => {
+    mockListBeurteilungen.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'b-1',
+          einsatzId: 'e-42',
+          einheitId: 'einheit-1',
+          vorlageId: null,
+          gefahrenzoneId: null,
+          items: [],
+          version: 1,
+          erstelltAm: '2026-04-24T08:00:00Z',
+          erstelltVonUserId: 'u-1',
+          aktualisiertAm: '2026-04-24T09:00:00Z',
+          aktualisiertVonUserId: 'u-1',
+        },
+      ],
+      meta: {},
+    });
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGefaehrdungsbeurteilungen('e-42'), { wrapper });
+
+    await waitFor(() => expect(result.current.data).toHaveLength(1));
+    expect(result.current.data?.[0]?.id).toBe('b-1');
+    expect(mockListBeurteilungen).toHaveBeenCalledWith({ einsatzId: 'e-42' });
+  });
+
+  it('fallbackt auf leeres Array, wenn der Envelope unerwartet `data` nicht liefert', async () => {
+    mockListBeurteilungen.mockResolvedValueOnce({ meta: {} } as unknown as { data: []; meta: object });
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGefaehrdungsbeurteilungen('e-7'), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual([]);
+  });
+
+  it('trägt meta.silentError für inline Fehleranzeige auf der Page', async () => {
+    mockListBeurteilungen.mockResolvedValueOnce({ data: [], meta: {} });
+    const { client, wrapper } = makeWrapper();
+    renderHook(() => useGefaehrdungsbeurteilungen('e-99'), { wrapper });
+
+    await waitFor(() => {
+      const cached = client.getQueryCache().find({
+        queryKey: EIGENSCHUTZ_QUERY_KEYS.gefaehrdungsbeurteilungen('e-99'),
+      });
+      expect(cached?.meta?.silentError).toBe(true);
     });
   });
 });

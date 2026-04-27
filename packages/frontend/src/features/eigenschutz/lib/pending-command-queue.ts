@@ -1,7 +1,7 @@
-import { logger } from '@/shared/lib/logger';
-import { getStorageAdapter } from '@/shared/services/storage/storage-adapter.factory';
 import { gefaehrdungItemSchema } from '@bluelight-hub/shared/schemas';
 import { z } from 'zod';
+import { logger } from '@/shared/lib/logger';
+import { getStorageAdapter } from '@/shared/services/storage/storage-adapter.factory';
 
 export const EIGENSCHUTZ_PENDING_COMMANDS_STORAGE_KEY = 'bluelight:eigenschutz:pending-commands:v1';
 
@@ -27,6 +27,7 @@ export type EigenschutzPendingCommandV1 = z.infer<typeof eigenschutzPendingComma
 const eigenschutzPendingCommandListSchema = z.array(eigenschutzPendingCommandV1Schema);
 
 export interface ReplayPendingCommandsOptions {
+  readonly shouldReplay?: (command: EigenschutzPendingCommandV1) => boolean;
   readonly saveCommand: (command: EigenschutzPendingCommandV1) => Promise<void>;
   readonly isAlreadyApplied?: (command: EigenschutzPendingCommandV1, error: unknown) => Promise<boolean>;
 }
@@ -69,7 +70,8 @@ export async function upsertPendingCommand(command: EigenschutzPendingCommandV1)
   );
 
   if (existingIndex >= 0) {
-    const existing = commands[existingIndex]!;
+    const existing = commands.at(existingIndex);
+    if (!existing) return;
     commands[existingIndex] = {
       ...existing,
       payload: command.payload,
@@ -110,28 +112,41 @@ export async function markPendingCommandConflict(commandId: string, reason: stri
   );
 }
 
-export async function replayPendingCommands({ saveCommand, isAlreadyApplied }: ReplayPendingCommandsOptions): Promise<void> {
+function isSameEntity(a: EigenschutzPendingCommandV1, b: EigenschutzPendingCommandV1): boolean {
+  return a.entityType === b.entityType && a.entityId === b.entityId;
+}
+
+function getEntityKey(command: EigenschutzPendingCommandV1): string {
+  return `${command.entityType}:${command.entityId}`;
+}
+
+export async function replayPendingCommands({ shouldReplay, saveCommand, isAlreadyApplied }: ReplayPendingCommandsOptions): Promise<void> {
   let commands = (await loadPendingCommands()).sort((a, b) => a.queuedAt.localeCompare(b.queuedAt));
+  const blockedEntityKeys = new Set(commands.filter((command) => command.status === 'conflict').map(getEntityKey));
 
   for (const command of commands) {
-    if (command.status === 'conflict') continue;
+    const currentCommand = commands.find((entry) => entry.id === command.id);
+    if (!currentCommand || currentCommand.status === 'conflict') continue;
+    if (blockedEntityKeys.has(getEntityKey(currentCommand))) continue;
+    if (shouldReplay && !shouldReplay(currentCommand)) continue;
 
     try {
-      await saveCommand(command);
-      commands = commands.filter((entry) => entry.id !== command.id);
+      await saveCommand(currentCommand);
+      commands = commands.filter((entry) => entry.id !== currentCommand.id);
       await savePendingCommands(commands);
     } catch (error) {
       if (getHttpStatus(error) === 409) {
-        const alreadyApplied = (await isAlreadyApplied?.(command, error)) ?? false;
+        const alreadyApplied = (await isAlreadyApplied?.(currentCommand, error)) ?? false;
         if (alreadyApplied) {
-          commands = commands.filter((entry) => entry.id !== command.id);
+          commands = commands.filter((entry) => entry.id !== currentCommand.id);
         } else {
+          blockedEntityKeys.add(getEntityKey(currentCommand));
           commands = commands.map((entry) =>
-            entry.id === command.id
+            isSameEntity(entry, currentCommand)
               ? {
                   ...entry,
                   status: 'conflict',
-                  conflictReason: 'Server-Version weicht vom lokalen Pending Command ab.',
+                  conflictReason: entry.id === currentCommand.id ? 'Server-Version weicht vom lokalen Pending Command ab.' : 'Replay pausiert bis zur Konfliktlösung dieser Beurteilung.',
                   updatedAt: new Date().toISOString(),
                 }
               : entry,
@@ -141,7 +156,10 @@ export async function replayPendingCommands({ saveCommand, isAlreadyApplied }: R
         continue;
       }
 
-      logger.warn('Eigenschutz Pending Command Replay fehlgeschlagen', { commandId: command.id, error });
+      logger.warn('Eigenschutz Pending Command Replay fehlgeschlagen', {
+        commandId: currentCommand.id,
+        error,
+      });
       break;
     }
   }

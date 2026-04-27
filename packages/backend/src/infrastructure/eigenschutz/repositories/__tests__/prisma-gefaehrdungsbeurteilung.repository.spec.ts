@@ -878,3 +878,68 @@ describe('PrismaGefaehrdungsbeurteilungRepository.updateItems — Mock-basierte 
     );
   });
 });
+
+describe('PrismaGefaehrdungsbeurteilungRepository.findReadModelsByEinsatz — Mock-basierte Query-Tests', () => {
+  const EINSATZ_ID = 'clw3h8x9y0000qwertyui00002';
+  const EINHEIT_ID = 'clw3h8x9y0000qwertyui00050';
+  const USER_ID = 'clw3h8x9y0000qwertyui00099';
+
+  const createMockLogger = (): ILogger => ({
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  });
+
+  function buildRow(id: string, title: string, aktualisiertAm: Date) {
+    return {
+      id,
+      einsatzId: EINSATZ_ID,
+      einheitId: EINHEIT_ID,
+      gefahrenzoneId: null,
+      vorlageId: null,
+      items: [makeItem(title).toJSON()],
+      version: 1,
+      erstelltAm: new Date('2026-04-22T09:00:00.000Z'),
+      erstelltVonUserId: USER_ID,
+      aktualisiertAm,
+      aktualisiertVonUserId: USER_ID,
+    };
+  }
+
+  it('fragt alle Read-Models eines Einsatzes mit stabiler Sortierung ab', async () => {
+    const row = buildRow('clw3h8x9y0000qwertyui01001', 'Stolperfalle', new Date('2026-04-22T10:00:00.000Z'));
+    const prisma = {
+      gefaehrdungsbeurteilung: {
+        findMany: jest.fn().mockResolvedValue([row]),
+      },
+    };
+    const repo = new PrismaGefaehrdungsbeurteilungRepository(prisma as never, createMockLogger());
+
+    const result = await repo.findReadModelsByEinsatz(EINSATZ_ID);
+
+    expect(result.isSuccess).toBe(true);
+    expect(prisma.gefaehrdungsbeurteilung.findMany).toHaveBeenCalledWith({
+      where: { einsatzId: EINSATZ_ID },
+      orderBy: [{ aktualisiertAm: 'desc' }, { erstelltAm: 'desc' }, { id: 'asc' }],
+    });
+    expect(result.value).toHaveLength(1);
+    expect(result.value?.[0]?.aggregate.einsatzId).toBe(EINSATZ_ID);
+    expect(result.value?.[0]?.aggregate.items[0]?.title).toBe('Stolperfalle');
+    expect(result.value?.[0]?.aktualisiertVonUserId).toBe(USER_ID);
+  });
+
+  it('liefert Repository-Fehler als Result.fail', async () => {
+    const prisma = {
+      gefaehrdungsbeurteilung: {
+        findMany: jest.fn().mockRejectedValue(new Error('db down')),
+      },
+    };
+    const repo = new PrismaGefaehrdungsbeurteilungRepository(prisma as never, createMockLogger());
+
+    const result = await repo.findReadModelsByEinsatz(EINSATZ_ID);
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toBe('db down');
+  });
+});

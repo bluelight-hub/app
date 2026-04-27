@@ -139,6 +139,10 @@ describe('CreateGefaehrdungsbeurteilungHandler', () => {
     expect(versionArgs.items).toHaveLength(2);
     // Deep-Copy: die gespeicherten Items sind andere Instanzen als die Vorlagen-Items.
     expect(versionArgs.items[0]).not.toBe(vorlagenItems[0]);
+    expect(versionArgs.items[0].id).toEqual(expect.any(String));
+    expect(versionArgs.items[1].id).toEqual(expect.any(String));
+    expect(versionArgs.items[0].id).not.toBe(versionArgs.items[1].id);
+    expect(versionArgs.items[0].id).not.toBe(vorlagenItems[0].id);
   });
 
   it('(422) liefert BusinessRule-Code, wenn Einheit bereits eine Beurteilung hat', async () => {

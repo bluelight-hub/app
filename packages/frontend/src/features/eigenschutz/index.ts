@@ -7,12 +7,26 @@
  */
 export {
   EIGENSCHUTZ_QUERY_KEYS,
+  SicherheitsregelConflictError,
+  extractSicherheitsregelConflictError,
   useCreateGefaehrdungsbeurteilung,
+  useCreateSicherheitsregel,
   useEigenschutzHealth,
   useGefaehrdungsbeurteilung,
   useGefaehrdungsbeurteilungVorlagen,
+  useSicherheitsregel,
+  useSicherheitsregeln,
   useUpdateGefaehrdungsbeurteilungItems,
+  useUpdateSicherheitsregel,
 } from './api/queries';
+export {
+  SicherheitsregelCreateSchemaV1,
+  SicherheitsregelDtoSchemaV1,
+  SicherheitsregelUpdateSchemaV1,
+  type CreateSicherheitsregelInput,
+  type SicherheitsregelDto,
+  type UpdateSicherheitsregelInput,
+} from './schemas/sicherheitsregel.schema';
 export { GefaehrdungItemEditor } from './ui/molecules/GefaehrdungItemEditor';
 export { GefaehrdungenEditorOrganism } from './ui/organisms/GefaehrdungenEditorOrganism';
 export { GefaehrdungseditorDrawer } from './ui/organisms/GefaehrdungseditorDrawer.organism';

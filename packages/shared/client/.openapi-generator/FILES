@@ -53,6 +53,7 @@ apis/UsersApi.ts
 apis/WarnungenApi.ts
 apis/index.ts
 index.ts
+models/AckSicherheitsregelDto.ts
 models/ActivateFuehrungsrhythmusTemplateDto.ts
 models/ActivateFuehrungsrhythmusTemplateResponseDto.ts
 models/AddBefehlKommentarDto.ts
@@ -214,6 +215,7 @@ models/CreatePoiDto.ts
 models/CreatePushSubscriptionDto.ts
 models/CreateQualifikationDto.ts
 models/CreateRollenDefinitionDto.ts
+models/CreateSicherheitsregelDto.ts
 models/CreateStammFahrzeugDto.ts
 models/CreateStammPersonDto.ts
 models/CreateTaktischesZeichenDto.ts
@@ -336,6 +338,7 @@ models/GefaehrdungItemDto.ts
 models/GefaehrdungItemInputDto.ts
 models/GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response.ts
 models/GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response.ts
+models/GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200Response.ts
 models/GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response.ts
 models/GefaehrdungsbeurteilungDto.ts
 models/GefaehrdungsbeurteilungHistorieDto.ts
@@ -479,6 +482,11 @@ models/SetupResponseDto.ts
 models/SetupTokenDto.ts
 models/SetupUserDto.ts
 models/SetzeDefaultZeichenDto.ts
+models/SicherheitsregelControllerGetRegelVAlpha200Response.ts
+models/SicherheitsregelControllerListQuittungenVAlpha200Response.ts
+models/SicherheitsregelControllerListRegelnVAlpha200Response.ts
+models/SicherheitsregelDto.ts
+models/SicherheitsregelQuittungDto.ts
 models/SnoozeErinnerungDto.ts
 models/StammFahrzeugDto.ts
 models/StammPersonDto.ts
@@ -524,6 +532,7 @@ models/UpdatePoiPositionDto.ts
 models/UpdateProfileDto.ts
 models/UpdateQualifikationDto.ts
 models/UpdateRollenDefinitionDto.ts
+models/UpdateSicherheitsregelDto.ts
 models/UpdateStammFahrzeugDto.ts
 models/UpdateStammPersonDto.ts
 models/UpdateTaktischesZeichenDto.ts

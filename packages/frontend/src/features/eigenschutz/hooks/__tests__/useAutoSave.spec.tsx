@@ -132,7 +132,9 @@ describe('useAutoSave (Story 2.5)', () => {
   });
 
   it('setzt Konfliktstatus und pausiert weitere Auto-Saves nach 409', async () => {
-    const conflict = new GefaehrdungsbeurteilungConflictError(4, 3, { response: { status: 409 } });
+    const conflict = new GefaehrdungsbeurteilungConflictError(4, 3, {
+      response: { status: 409 },
+    });
     const saveFn = vi.fn().mockRejectedValue(conflict);
     const { result } = renderHook(() =>
       useAutoSave({
@@ -154,5 +156,117 @@ describe('useAutoSave (Story 2.5)', () => {
       result.current.scheduleSave({ title: 'B' });
     });
     expect(saveFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('lässt einen späten lokalen Snapshot keinen abgeschlossenen Server-Save überschreiben', async () => {
+    const localSave = deferred<void>();
+    const saveFn = vi.fn().mockResolvedValue({ version: 2 });
+    const onLocalSave = vi.fn().mockReturnValue(localSave.promise);
+    const { result } = renderHook(() =>
+      useAutoSave({
+        entityId: 'gb-1',
+        entityType: 'gefaehrdungsbeurteilung',
+        saveFn,
+        debounceMs: 2000,
+        onLocalSave,
+      }),
+    );
+
+    await act(async () => {
+      result.current.scheduleSave({ title: 'A' });
+      await result.current.flushNow();
+    });
+    expect(result.current.status).toBe('synced');
+
+    await act(async () => {
+      localSave.resolve();
+      await localSave.promise;
+    });
+
+    expect(result.current.status).toBe('synced');
+  });
+
+  it('hält offline gequeueute Drafts im offline-queued Status statt auf synced zu kippen', async () => {
+    const saveFn = vi.fn().mockResolvedValue({ version: 2 });
+    const onOfflineSave = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() =>
+      useAutoSave({
+        entityId: 'gb-1',
+        entityType: 'gefaehrdungsbeurteilung',
+        saveFn,
+        debounceMs: 2000,
+        isOnline: false,
+        onOfflineSave,
+      }),
+    );
+
+    await act(async () => {
+      result.current.scheduleSave({ title: 'offline' });
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+
+    expect(saveFn).not.toHaveBeenCalled();
+    expect(onOfflineSave).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe('offline-queued');
+
+    act(() => {
+      result.current.scheduleSave({ title: 'offline' });
+    });
+
+    expect(result.current.status).toBe('offline-queued');
+    expect(onOfflineSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('setzt Offline-Persistenzfehler sauber auf error ohne erneuten Offline-Save', async () => {
+    const storageError = new Error('quota exceeded');
+    const saveFn = vi.fn().mockResolvedValue({ version: 2 });
+    const onError = vi.fn();
+    const onOfflineSave = vi.fn().mockRejectedValue(storageError);
+    const draft = { title: 'offline' };
+    const { result } = renderHook(() =>
+      useAutoSave({
+        entityId: 'gb-1',
+        entityType: 'gefaehrdungsbeurteilung',
+        saveFn,
+        debounceMs: 2000,
+        isOnline: false,
+        onError,
+        onOfflineSave,
+      }),
+    );
+
+    await act(async () => {
+      result.current.scheduleSave(draft);
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+
+    expect(onOfflineSave).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe('error');
+    expect(result.current.error).toBe(storageError);
+    expect(result.current.hasPendingChanges).toBe(true);
+    expect(onError).toHaveBeenCalledWith(storageError, draft);
+  });
+
+  it('persistiert einen geplanten Debounce-Draft lokal, bevor der Timer feuert', async () => {
+    const saveFn = vi.fn().mockResolvedValue({ version: 2 });
+    const onLocalSave = vi.fn().mockResolvedValue(undefined);
+    const draft = { title: 'lokal' };
+    const { result, unmount } = renderHook(() =>
+      useAutoSave({
+        entityId: 'gb-1',
+        entityType: 'gefaehrdungsbeurteilung',
+        saveFn,
+        debounceMs: 2000,
+        onLocalSave,
+      }),
+    );
+
+    await act(async () => {
+      result.current.scheduleSave(draft);
+    });
+    unmount();
+
+    expect(onLocalSave).toHaveBeenCalledWith(draft, 'auto-save');
+    expect(saveFn).not.toHaveBeenCalled();
   });
 });

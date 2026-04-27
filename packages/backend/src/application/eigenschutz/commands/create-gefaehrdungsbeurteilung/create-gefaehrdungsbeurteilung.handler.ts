@@ -10,6 +10,7 @@ import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository
 import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import { CommandHandler } from '@nestjs/cqrs';
 import { Inject, Injectable } from '@nestjs/common';
+import { createId } from '@paralleldrive/cuid2';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import {
@@ -39,8 +40,8 @@ export const CREATE_GEFAEHRDUNGSBEURTEILUNG_ERROR_CODES = {
  * **Transactional Flow (AC2, AC3):**
  * 1. Wenn `vorlageId` gesetzt: Vorlage laden → NotFound-Result, wenn Slot leer.
  * 2. Unique-Check `existsForEinheit` — bereits vorhandene Beurteilung ⇒ 422.
- * 3. Items entweder aus der Vorlage deep-kopieren (`structuredClone` im VO)
- *    oder leeres Array für das Leer-Formular.
+ * 3. Items entweder aus der Vorlage mit neuen Item-IDs kopieren oder
+ *    leeres Array für das Leer-Formular.
  * 4. Aggregate `Gefaehrdungsbeurteilung.create` → emittiert
  *    `GefaehrdungsbeurteilungErstelltEvent`.
  * 5. `save` + `saveInitialVersion` in derselben Transaktion.
@@ -96,8 +97,15 @@ export class CreateGefaehrdungsbeurteilungHandler extends TransactionalCommandHa
       if (!vorlageResult.value) {
         return Result.fail<string>(CREATE_GEFAEHRDUNGSBEURTEILUNG_ERROR_CODES.VORLAGE_NOT_FOUND);
       }
-      // Deep-Copy über das VO — kein Live-Link auf die Vorlagen-Items.
-      items = vorlageResult.value.items.map((item) => item.clone());
+      // Deep-Copy über neue Item-IDs — kein Live-Link auf die Vorlagen-Items.
+      items = [];
+      for (const item of vorlageResult.value.items) {
+        const cloneResult = GefaehrdungItem.create({ ...item.toJSON(), id: createId() });
+        if (cloneResult.isFailure || !cloneResult.value) {
+          return Result.fail<string>(cloneResult.error ?? 'Vorlagen-Item konnte nicht kopiert werden');
+        }
+        items.push(cloneResult.value);
+      }
     }
 
     // Step 3 — Aggregate erzeugen (Domain emittiert das Event).

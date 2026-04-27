@@ -11,3 +11,4 @@
 export * from './gefaehrdung-item.schema.js';
 export * from './gefaehrdungsbeurteilung.schema.js';
 export * from './gefaehrdungsbeurteilung-vorlage.schema.js';
+export * from './sicherheitsregel.schema.js';

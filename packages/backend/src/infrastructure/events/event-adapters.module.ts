@@ -55,6 +55,8 @@ import {
   FmsAlarmierungZeitpunktAdapter,
   EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
   EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,
+  EigenschutzSicherheitsregelAusgerufenEventAdapter,
+  EigenschutzSicherheitsregelQuittiertEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -204,6 +206,8 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     FmsAlarmierungZeitpunktAdapter, // Issue #408: FMS-Status → Alarmierung Auto-Population
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter, // Story 2.1: GefaehrdungsbeurteilungErstellt Log-Adapter (4-Stellen-Registry)
     EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter, // Story 2.2: GefaehrdungsbeurteilungAktualisiert Log-Adapter (4-Stellen-Registry)
+    EigenschutzSicherheitsregelAusgerufenEventAdapter, // Story 2.6: SicherheitsregelAusgerufen Log-Adapter (4-Stellen-Registry)
+    EigenschutzSicherheitsregelQuittiertEventAdapter, // Story 2.7: SicherheitsregelQuittiert Log+Broadcast-Adapter (4-Stellen-Registry)
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

@@ -161,6 +161,8 @@ import { NachalarmierungErstelltEvent } from '@domain/events/nachalarmierung-ers
 // Eigenschutz Events (Story 2.1+)
 import { GefaehrdungsbeurteilungErstelltEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-erstellt.event';
 import { GefaehrdungsbeurteilungAktualisiertEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event';
+import { SicherheitsregelAusgerufenEvent } from '@domain/eigenschutz/events/sicherheitsregel-ausgerufen.event';
+import { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
 import type { AlarmierungEmpfaengerRef } from '@domain/aggregates/alarmierung/alarmierung-empfaenger-ref';
@@ -434,6 +436,8 @@ export class EventDeserializer {
       // ===== EIGENSCHUTZ EVENTS (Story 2.1+) =====
       ['eigenschutz.gefaehrdungsbeurteilung_erstellt', deserializeGefaehrdungsbeurteilungErstellt],
       ['eigenschutz.gefaehrdungsbeurteilung_aktualisiert', deserializeGefaehrdungsbeurteilungAktualisiert],
+      ['eigenschutz.sicherheitsregel_ausgerufen', deserializeSicherheitsregelAusgerufen],
+      ['eigenschutz.sicherheitsregel_quittiert', deserializeSicherheitsregelQuittiert],
     ]);
   }
 
@@ -2682,5 +2686,139 @@ function deserializeGefaehrdungsbeurteilungAktualisiert(payload: Record<string, 
     },
     aggregateId,
   );
+  return Result.ok<DomainEvent>(event);
+}
+
+const SICHERHEITSREGEL_FIELD_KEYS: ReadonlySet<string> = new Set(['titel', 'inhalt', 'einheitId']);
+
+function isSicherheitsregelFieldKey(value: unknown): value is 'titel' | 'inhalt' | 'einheitId' {
+  return typeof value === 'string' && SICHERHEITSREGEL_FIELD_KEYS.has(value);
+}
+
+function deserializeSicherheitsregelAusgerufen(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const regelId = payload.regelId;
+  const propagationGroupId = payload.propagationGroupId;
+  const fromVersionRaw = payload.fromVersion;
+  const toVersionRaw = payload.toVersion;
+  const changedFieldsRaw = payload.changedFields;
+  const titel = payload.titel;
+  const inhalt = payload.inhalt;
+
+  // Grund-Shape: Pflichtfelder aus der 2.6-Event-Definition. `einheitId` darf
+  // null/undefined sein (regel-ohne-Einheit), muss aber vor dem Constructor
+  // in `undefined` normalisiert werden — die Domain-Klasse akzeptiert
+  // `string | undefined`.
+  if (
+    typeof einsatzId !== 'string' ||
+    typeof userId !== 'string' ||
+    typeof regelId !== 'string' ||
+    typeof propagationGroupId !== 'string' ||
+    typeof titel !== 'string' ||
+    typeof inhalt !== 'string' ||
+    typeof changedFieldsRaw !== 'object' ||
+    changedFieldsRaw === null
+  ) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_ausgerufen');
+  }
+
+  if (einheitId !== undefined && einheitId !== null && typeof einheitId !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_ausgerufen');
+  }
+
+  // `fromVersion: null` markiert den Create-Pfad, alles andere muss positive
+  // Integer-Version sein. Silent-Fallback würde Audit-Trail brechen (Story
+  // 2.6 AC2/AC4), darum harter Reject.
+  const isCreate = fromVersionRaw === null;
+  if (!isCreate && (!Number.isInteger(fromVersionRaw) || (fromVersionRaw as number) < 1)) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_ausgerufen');
+  }
+  if (!Number.isInteger(toVersionRaw) || (toVersionRaw as number) < 1) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_ausgerufen');
+  }
+
+  const fromVersion = isCreate ? null : (fromVersionRaw as number);
+  const toVersion = toVersionRaw as number;
+
+  // changedFields-Shape (Story 2.6): genau einer der Modi `created`/`updated`/
+  // `deprecated` darf gesetzt sein. Der Modus muss zur Versions-Progression
+  // passen, sonst liegt ein korrupter Payload vor.
+  const cf = changedFieldsRaw as Record<string, unknown>;
+  const hasCreated = cf.created !== undefined;
+  const hasUpdated = cf.updated !== undefined;
+  const hasDeprecated = cf.deprecated !== undefined;
+  const modeCount = (hasCreated ? 1 : 0) + (hasUpdated ? 1 : 0) + (hasDeprecated ? 1 : 0);
+  if (modeCount !== 1) {
+    return Result.fail<DomainEvent>('Invalid changedFields for eigenschutz.sicherheitsregel_ausgerufen');
+  }
+
+  const changedFields: { created?: boolean; updated?: Array<'titel' | 'inhalt' | 'einheitId'>; deprecated?: boolean } = {};
+
+  if (hasCreated) {
+    if (cf.created !== true || !isCreate || toVersion !== 1) {
+      return Result.fail<DomainEvent>('Invalid version progression for eigenschutz.sicherheitsregel_ausgerufen');
+    }
+    changedFields.created = true;
+  } else if (hasDeprecated) {
+    if (cf.deprecated !== true || isCreate || toVersion !== (fromVersion as number)) {
+      return Result.fail<DomainEvent>('Invalid version progression for eigenschutz.sicherheitsregel_ausgerufen');
+    }
+    changedFields.deprecated = true;
+  } else {
+    // Update-Pfad: fromVersion + 1 === toVersion, updated[] enthält mindestens
+    // einen bekannten Feld-Schlüssel ohne Duplikate.
+    if (isCreate || toVersion !== (fromVersion as number) + 1) {
+      return Result.fail<DomainEvent>('Invalid version progression for eigenschutz.sicherheitsregel_ausgerufen');
+    }
+    if (!Array.isArray(cf.updated) || cf.updated.length === 0 || !cf.updated.every(isSicherheitsregelFieldKey)) {
+      return Result.fail<DomainEvent>('Invalid changedFields for eigenschutz.sicherheitsregel_ausgerufen');
+    }
+    const seen = new Set<string>();
+    for (const field of cf.updated) {
+      if (seen.has(field)) {
+        return Result.fail<DomainEvent>('Invalid changedFields for eigenschutz.sicherheitsregel_ausgerufen: duplicate updated field');
+      }
+      seen.add(field);
+    }
+    changedFields.updated = cf.updated as Array<'titel' | 'inhalt' | 'einheitId'>;
+  }
+
+  const normalizedEinheitId = typeof einheitId === 'string' ? einheitId : undefined;
+  const event = new SicherheitsregelAusgerufenEvent(einsatzId, userId, normalizedEinheitId, regelId, propagationGroupId, fromVersion, toVersion, changedFields, titel, inhalt, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserializer für `eigenschutz.sicherheitsregel_quittiert` (Story 2.7).
+ *
+ * Strikte Typ-Guards: `einheitId` ist Pflicht-String (anders als beim
+ * Ausgerufen-Event, das `null` für einsatzweit erlaubt — eine Quittung ist
+ * immer einheitenscharf). `propagationGroupId` darf `null` sein.
+ */
+function deserializeSicherheitsregelQuittiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const regelId = payload.regelId;
+  const propagationGroupIdRaw = payload.propagationGroupId;
+  const quittiertAmRaw = payload.quittiertAm;
+
+  if (typeof einsatzId !== 'string' || typeof userId !== 'string' || typeof einheitId !== 'string' || typeof regelId !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_quittiert');
+  }
+  if (propagationGroupIdRaw !== null && typeof propagationGroupIdRaw !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_quittiert');
+  }
+  if (typeof quittiertAmRaw !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_quittiert');
+  }
+  const quittiertAm = new Date(quittiertAmRaw);
+  if (Number.isNaN(quittiertAm.getTime())) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_quittiert');
+  }
+
+  const event = new SicherheitsregelQuittiertEvent(einsatzId, userId, einheitId, regelId, propagationGroupIdRaw as string | null, quittiertAm, aggregateId);
   return Result.ok<DomainEvent>(event);
 }

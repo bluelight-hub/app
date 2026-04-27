@@ -5,10 +5,10 @@
  * Shortcut und Reset-Verhalten.
  */
 
-import { renderWithProviders } from '@/test/utils';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { renderWithProviders } from '@/test/utils';
 
 const { mocks } = vi.hoisted(() => ({
   mocks: {
@@ -19,6 +19,9 @@ const { mocks } = vi.hoisted(() => ({
       error: null as unknown,
     },
     invalidate: vi.fn(),
+    fetchQuery: vi.fn(),
+    loadPendingCommands: vi.fn(),
+    replayPendingCommands: vi.fn(),
     upsertPendingCommand: vi.fn(),
     removePendingCommandsForEntity: vi.fn(),
   },
@@ -49,10 +52,13 @@ vi.mock('@/features/eigenschutz/api/queries', () => ({
     gefaehrdungsbeurteilung: (einsatzId: string, id: string) => ['eigenschutz', einsatzId, 'beurteilungen', id],
   },
   useUpdateGefaehrdungsbeurteilungItems: () => mocks.updateMutation,
+  fetchGefaehrdungsbeurteilung: vi.fn(),
   GefaehrdungsbeurteilungConflictError,
 }));
 
 vi.mock('@/features/eigenschutz/lib/pending-command-queue', () => ({
+  loadPendingCommands: mocks.loadPendingCommands,
+  replayPendingCommands: mocks.replayPendingCommands,
   upsertPendingCommand: mocks.upsertPendingCommand,
   removePendingCommandsForEntity: mocks.removePendingCommandsForEntity,
 }));
@@ -61,7 +67,10 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>();
   return {
     ...actual,
-    useQueryClient: () => ({ invalidateQueries: mocks.invalidate }),
+    useQueryClient: () => ({
+      fetchQuery: mocks.fetchQuery,
+      invalidateQueries: mocks.invalidate,
+    }),
   };
 });
 
@@ -92,6 +101,11 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
     mocks.updateMutation.isPending = false;
     mocks.updateMutation.error = null;
     mocks.invalidate.mockReset();
+    mocks.fetchQuery.mockReset();
+    mocks.loadPendingCommands.mockReset();
+    mocks.loadPendingCommands.mockResolvedValue([]);
+    mocks.replayPendingCommands.mockReset();
+    mocks.replayPendingCommands.mockResolvedValue(undefined);
     mocks.upsertPendingCommand.mockReset();
     mocks.removePendingCommandsForEntity.mockReset();
   });
@@ -115,7 +129,9 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
     try {
       renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
 
-      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'Strom neu' } });
+      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), {
+        target: { value: 'Strom neu' },
+      });
       await act(async () => {
         await vi.advanceTimersByTimeAsync(2000);
       });
@@ -134,9 +150,15 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
     try {
       renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
 
-      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'S' } });
-      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'St' } });
-      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'Strom neu' } });
+      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), {
+        target: { value: 'S' },
+      });
+      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), {
+        target: { value: 'St' },
+      });
+      fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), {
+        target: { value: 'Strom neu' },
+      });
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(1999);
@@ -155,6 +177,54 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('replayt Pending Commands der aktuellen Beurteilung beim Online-Start', async () => {
+    const pendingCommand = {
+      schemaVersion: 1,
+      id: 'cmd-1',
+      entityType: 'gefaehrdungsbeurteilung',
+      einsatzId: 'einsatz-1',
+      entityId: 'cl1beurteilungiddetailxx1',
+      expectedVersion: 3,
+      payload: { items: [{ title: 'Replay' }] },
+      queuedAt: '2026-04-24T10:00:00.000Z',
+      updatedAt: '2026-04-24T10:00:00.000Z',
+      source: 'auto-save',
+      status: 'pending',
+    };
+    mocks.loadPendingCommands.mockResolvedValueOnce([pendingCommand]).mockResolvedValueOnce([]);
+    mocks.replayPendingCommands.mockImplementation(async (options) => {
+      await options.saveCommand(pendingCommand);
+    });
+    mocks.updateMutation.mutateAsync.mockResolvedValue(buildBeurteilung({ version: 4, items: [{ title: 'Replay' }] }));
+
+    renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
+
+    await waitFor(() => expect(mocks.replayPendingCommands).toHaveBeenCalled());
+    expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
+      items: [{ title: 'Replay' }],
+      expectedVersion: 3,
+    });
+  });
+
+  it('wertet eigene optimistic Updates mit identischem Draft nicht als Serverkonflikt', () => {
+    const { rerender } = renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
+
+    fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), {
+      target: { value: 'Strom neu' },
+    });
+    rerender(
+      <GefaehrdungenEditorOrganism
+        einsatzId="einsatz-1"
+        beurteilung={buildBeurteilung({
+          version: 4,
+          items: [{ title: 'Strom neu' }],
+        })}
+      />,
+    );
+
+    expect(screen.queryByTestId('gefaehrdungen-editor-conflict-banner')).toBeNull();
   });
 
   it('zeigt Statuszeile und ersetzt Speichern durch Version abschließen', () => {
@@ -209,7 +279,9 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
   it('Ctrl+S triggert Save (UX-DR22)', () => {
     renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
 
-    fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'Strom neu' } });
+    fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), {
+      target: { value: 'Strom neu' },
+    });
     fireEvent.keyDown(document, { key: 's', ctrlKey: true });
 
     expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
@@ -221,7 +293,9 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
   it('Cmd+S triggert Save auf macOS', () => {
     renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" beurteilung={buildBeurteilung()} />);
 
-    fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), { target: { value: 'Strom neu' } });
+    fireEvent.change(screen.getByTestId('gefaehrdung-item-title'), {
+      target: { value: 'Strom neu' },
+    });
     fireEvent.keyDown(document, { key: 's', metaKey: true });
 
     expect(mocks.updateMutation.mutateAsync).toHaveBeenCalled();

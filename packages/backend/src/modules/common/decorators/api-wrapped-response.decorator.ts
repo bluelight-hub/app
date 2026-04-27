@@ -74,14 +74,20 @@ export const ApiWrappedResponse = <TModel extends Type<unknown>>(
 /**
  * Custom Decorator für gewrappte API-Responses bei Resource-Erstellung (HTTP 201 Created).
  * Beschreibt die tatsächliche Response-Struktur mit data und meta.
+ *
+ * Für Endpoints, die eine Liste neu erzeugter Rows liefern (z. B. Fanout-
+ * Create), `options.isArray = true` setzen — der OpenAPI-Generator
+ * typisiert `data` dann korrekt als Array statt als Einzel-Objekt.
  */
 export const ApiWrappedCreatedResponse = <TModel extends Type<unknown>>(
   model: TModel,
   options?: {
     description?: string;
+    isArray?: boolean;
   },
 ) => {
   const description = options?.description ?? 'Resource successfully created';
+  const isArray = options?.isArray ?? false;
 
-  return applyDecorators(ApiExtraModels(model), ApiCreatedResponse({ description, schema: createWrappedSchema(model, false) }));
+  return applyDecorators(ApiExtraModels(model), ApiCreatedResponse({ description, schema: createWrappedSchema(model, isArray) }));
 };

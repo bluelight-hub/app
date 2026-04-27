@@ -7,3 +7,5 @@
  */
 export { EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter } from './gefaehrdungsbeurteilung-erstellt.adapter';
 export { EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter } from './gefaehrdungsbeurteilung-aktualisiert.adapter';
+export { EigenschutzSicherheitsregelAusgerufenEventAdapter } from './sicherheitsregel-ausgerufen.adapter';
+export { EigenschutzSicherheitsregelQuittiertEventAdapter } from './sicherheitsregel-quittiert.adapter';
