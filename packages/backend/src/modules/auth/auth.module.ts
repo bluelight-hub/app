@@ -79,6 +79,17 @@ import './interfaces/einsatz-request-context';
     PermissionsGuard,
     ExchangeInviteHandler,
   ],
-  exports: [AuthService, JwtModule, AdminJwtAuthGuard, EinsatzScopeGuard, EigenschutzRolleGuard, PermissionsGuard],
+  exports: [
+    AuthService,
+    JwtModule,
+    AdminJwtAuthGuard,
+    EinsatzScopeGuard,
+    EigenschutzRolleGuard,
+    PermissionsGuard,
+    // Re-Export (ADR-014): macht KRAEFTE_REPOSITORIES.* Provider transitiv für
+    // Consumer-Module sichtbar, die EinsatzScopeGuard via @UseGuards einsetzen.
+    // Schließt A1/B2: Consumer brauchen nur noch `imports: [AuthModule]`.
+    KraefteInfrastructureModule,
+  ],
 })
 export class AuthModule {}
