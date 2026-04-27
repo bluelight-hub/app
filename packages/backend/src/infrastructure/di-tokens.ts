@@ -464,6 +464,24 @@ export const GEFAEHRDUNGSBEURTEILUNG_REPOSITORY = Symbol('IGefaehrdungsbeurteilu
 export const GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY = Symbol('IGefaehrdungsbeurteilungVersionRepository');
 export const GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY = Symbol('IGefaehrdungsbeurteilungVorlageRepository');
 
+/**
+ * Eigenschutz-Sicherheitsregel Repository Tokens (Story 2.6).
+ *
+ * Trennung in zwei Repositories (Haupt-Aggregate + Version-Chain), analog zu
+ * GEFAEHRDUNGSBEURTEILUNG_*. Handler injizieren gezielt nur die benötigten
+ * Ports. Die Quittungs-Repositories (Story 2.7) kommen separat dazu.
+ */
+export const SICHERHEITSREGEL_REPOSITORY = Symbol('ISicherheitsregelRepository');
+export const SICHERHEITSREGEL_VERSION_REPOSITORY = Symbol('ISicherheitsregelVersionRepository');
+/**
+ * DI-Token für `ISicherheitsregelQuittungRepository` (Story 2.7).
+ *
+ * Wird vom `AckSicherheitsregelHandler` (Application) und der Quittungs-
+ * Liste-Query injiziert. Die Implementierung im Infrastructure-Layer ist
+ * `PrismaSicherheitsregelQuittungRepository`.
+ */
+export const SICHERHEITSREGEL_QUITTUNG_REPOSITORY = Symbol('ISicherheitsregelQuittungRepository');
+
 /** Repository Token für IDefaultZeichenRepository (Issue #668) */
 export const DEFAULT_ZEICHEN_REPOSITORY = Symbol('IDefaultZeichenRepository');
 

@@ -1,23 +1,37 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
-import { GEFAEHRDUNGSBEURTEILUNG_REPOSITORY, GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY, GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import {
+  GEFAEHRDUNGSBEURTEILUNG_REPOSITORY,
+  GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY,
+  GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY,
+  LOGGER,
+  SICHERHEITSREGEL_QUITTUNG_REPOSITORY,
+  SICHERHEITSREGEL_REPOSITORY,
+  SICHERHEITSREGEL_VERSION_REPOSITORY,
+} from '@infrastructure/di-tokens';
+import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
 import { PrismaGefaehrdungsbeurteilungRepository } from './repositories/prisma-gefaehrdungsbeurteilung.repository';
 import { PrismaGefaehrdungsbeurteilungVersionRepository } from './repositories/prisma-gefaehrdungsbeurteilung-version.repository';
 import { PrismaGefaehrdungsbeurteilungVorlageRepository } from './repositories/prisma-gefaehrdungsbeurteilung-vorlage.repository';
+import { PrismaSicherheitsregelRepository } from './repositories/prisma-sicherheitsregel.repository';
+import { PrismaSicherheitsregelVersionRepository } from './repositories/prisma-sicherheitsregel-version.repository';
+import { PrismaSicherheitsregelQuittungRepository } from './repositories/prisma-sicherheitsregel-quittung.repository';
 import { EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-erstellt.adapter';
 import { EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-aktualisiert.adapter';
+import { EigenschutzSicherheitsregelAusgerufenEventAdapter } from './event-adapters/sicherheitsregel-ausgerufen.adapter';
+import { EigenschutzSicherheitsregelQuittiertEventAdapter } from './event-adapters/sicherheitsregel-quittiert.adapter';
 
 /**
  * Infrastructure-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
  *
- * Stellt die Prisma-Repositories für das Gefährdungsbeurteilungs-Modell bereit
- * und registriert den Log-Adapter für `eigenschutz.gefaehrdungsbeurteilung_-
- * erstellt`. Das Modul wird von `EigenschutzModule` importiert; eine Direkt-
- * Registrierung in `AppModule` ist nicht nötig.
+ * Stellt die Prisma-Repositories für Gefährdungsbeurteilung (Stories 2.1–2.4)
+ * und Sicherheitsregel (Story 2.6) bereit und registriert die zugehörigen
+ * Log-Adapter. Das Modul wird von `EigenschutzModule` importiert; eine
+ * Direkt-Registrierung in `AppModule` ist nicht nötig.
  */
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, WebsocketModule],
   providers: [
     {
       provide: LOGGER,
@@ -26,15 +40,25 @@ import { EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter } from './ev
     { provide: GEFAEHRDUNGSBEURTEILUNG_REPOSITORY, useClass: PrismaGefaehrdungsbeurteilungRepository },
     { provide: GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY, useClass: PrismaGefaehrdungsbeurteilungVersionRepository },
     { provide: GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY, useClass: PrismaGefaehrdungsbeurteilungVorlageRepository },
+    { provide: SICHERHEITSREGEL_REPOSITORY, useClass: PrismaSicherheitsregelRepository },
+    { provide: SICHERHEITSREGEL_VERSION_REPOSITORY, useClass: PrismaSicherheitsregelVersionRepository },
+    { provide: SICHERHEITSREGEL_QUITTUNG_REPOSITORY, useClass: PrismaSicherheitsregelQuittungRepository },
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
     EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,
+    EigenschutzSicherheitsregelAusgerufenEventAdapter,
+    EigenschutzSicherheitsregelQuittiertEventAdapter,
   ],
   exports: [
     GEFAEHRDUNGSBEURTEILUNG_REPOSITORY,
     GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY,
     GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY,
+    SICHERHEITSREGEL_REPOSITORY,
+    SICHERHEITSREGEL_VERSION_REPOSITORY,
+    SICHERHEITSREGEL_QUITTUNG_REPOSITORY,
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
     EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,
+    EigenschutzSicherheitsregelAusgerufenEventAdapter,
+    EigenschutzSicherheitsregelQuittiertEventAdapter,
   ],
 })
 export class EigenschutzInfrastructureModule {}

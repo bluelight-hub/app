@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { PiClipboardText } from 'react-icons/pi';
+import { PiClipboardText, PiShieldCheck } from 'react-icons/pi';
 
 export interface EigenschutzEntryPageProps {
   /**
@@ -33,15 +33,26 @@ export function EigenschutzEntryPage({ einsatzId }: EigenschutzEntryPageProps = 
       <div className="space-y-3 rounded-lg bg-surface-panel p-4 shadow">
         <p className="text-text-muted">Hier entstehen Gefährdungsbeurteilung, PSA-Verwaltung, Sicherheitsregeln, Sicherungsposten und Vorfallmeldung.</p>
         {einsatzId ? (
-          <Link
-            to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen"
-            params={{ einsatzId }}
-            data-testid="eigenschutz-gefaehrdungen-link"
-            className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
-          >
-            <PiClipboardText aria-hidden="true" className="h-4 w-4" />
-            <span>Gefährdungsbeurteilungen verwalten</span>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen"
+              params={{ einsatzId }}
+              data-testid="eigenschutz-gefaehrdungen-link"
+              className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+            >
+              <PiClipboardText aria-hidden="true" className="h-4 w-4" />
+              <span>Gefährdungsbeurteilungen verwalten</span>
+            </Link>
+            <Link
+              to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln"
+              params={{ einsatzId }}
+              data-testid="eigenschutz-sicherheitsregeln-link"
+              className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+            >
+              <PiShieldCheck aria-hidden="true" className="h-4 w-4" />
+              <span>Sicherheitsregeln verwalten</span>
+            </Link>
+          </div>
         ) : null}
       </div>
     </div>

@@ -26,6 +26,7 @@ export interface UseAutoSaveOptions<TDraft, TResult> {
   readonly onSaved?: (result: TResult, draft: TDraft) => void;
   readonly onError?: (error: unknown, draft: TDraft) => void;
   readonly onConflict?: (error: unknown, draft: TDraft) => void;
+  readonly onLocalSave?: (draft: TDraft, source: AutoSaveSource) => Promise<void>;
   readonly onOfflineSave?: (draft: TDraft, source: AutoSaveSource) => Promise<void>;
 }
 
@@ -70,6 +71,7 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
   const [error, setError] = useState<unknown>(null);
   const [lastResult, setLastResult] = useState<TResult | null>(null);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const statusRef = useRef(status);
 
   const saveFnRef = useRef(options.saveFn);
   const isValidRef = useRef(options.isValid);
@@ -80,6 +82,7 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
   const onSavedRef = useRef(options.onSaved);
   const onErrorRef = useRef(options.onError);
   const onConflictRef = useRef(options.onConflict);
+  const onLocalSaveRef = useRef(options.onLocalSave);
   const onOfflineSaveRef = useRef(options.onOfflineSave);
   const isOnlineRef = useRef(options.isOnline ?? true);
   const enabledRef = useRef(enabled);
@@ -93,13 +96,18 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
   onSavedRef.current = options.onSaved;
   onErrorRef.current = options.onError;
   onConflictRef.current = options.onConflict;
+  onLocalSaveRef.current = options.onLocalSave;
   onOfflineSaveRef.current = options.onOfflineSave;
   isOnlineRef.current = options.isOnline ?? true;
   enabledRef.current = enabled;
+  statusRef.current = status;
 
   const latestDraftRef = useRef<TDraft | undefined>(undefined);
   const latestDraftKeyRef = useRef<string | null>(null);
+  const latestRequestRef = useRef<AutoSaveRequest<TDraft> | null>(null);
   const lastSavedDraftKeyRef = useRef<string | null>(null);
+  const lastLocalDraftKeyRef = useRef<string | null>(null);
+  const lastOfflineDraftKeyRef = useRef<string | null>(null);
   const latestRevisionRef = useRef(0);
   const inFlightRef = useRef(false);
   const inFlightDraftKeyRef = useRef<string | null>(null);
@@ -110,8 +118,76 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
     if (!enabledRef.current || conflictPausedRef.current) return false;
     if (isValidRef.current && !isValidRef.current(draft)) return false;
     if (hasChangesRef.current && !hasChangesRef.current(draft)) return false;
-    return draftKey !== lastSavedDraftKeyRef.current;
+    return draftKey !== lastSavedDraftKeyRef.current && draftKey !== lastOfflineDraftKeyRef.current;
   }, []);
+
+  const persistDraft = useCallback(
+    async (
+      request: AutoSaveRequest<TDraft>,
+      saveDraft: ((draft: TDraft, source: AutoSaveSource) => Promise<void>) | undefined,
+      options: {
+        readonly status: Extract<AutoSaveStatus, 'local-saved' | 'offline-queued'>;
+        readonly markOffline: boolean;
+        readonly updateState: boolean;
+      },
+    ): Promise<boolean> => {
+      if (!saveDraft) return false;
+
+      try {
+        await saveDraft(request.draft, request.source);
+        if (options.status === 'local-saved') {
+          lastLocalDraftKeyRef.current = request.draftKey;
+        }
+        if (options.markOffline) {
+          lastOfflineDraftKeyRef.current = request.draftKey;
+        }
+        if (options.updateState) {
+          const localSaveWouldDowngradeServerState =
+            options.status === 'local-saved' &&
+            (inFlightDraftKeyRef.current === request.draftKey || lastSavedDraftKeyRef.current === request.draftKey || lastOfflineDraftKeyRef.current === request.draftKey);
+          if (localSaveWouldDowngradeServerState) {
+            return true;
+          }
+          setError(null);
+          setStatus(options.status);
+          setHasPendingChanges(options.status === 'local-saved');
+        }
+        return true;
+      } catch (storageError) {
+        if (options.updateState) {
+          setError(storageError);
+          setStatus('error');
+          setHasPendingChanges(true);
+        }
+        onErrorRef.current?.(storageError, request.draft);
+        return false;
+      }
+    },
+    [],
+  );
+
+  const persistLocalDraft = useCallback(
+    (request: AutoSaveRequest<TDraft>, updateState: boolean): Promise<boolean> => {
+      return persistDraft(request, onLocalSaveRef.current, {
+        status: 'local-saved',
+        markOffline: false,
+        updateState,
+      });
+    },
+    [persistDraft],
+  );
+
+  const persistOfflineDraft = useCallback(
+    (request: AutoSaveRequest<TDraft>): Promise<boolean> => {
+      const saveDraft = onOfflineSaveRef.current ?? onLocalSaveRef.current;
+      return persistDraft(request, saveDraft, {
+        status: 'offline-queued',
+        markOffline: true,
+        updateState: true,
+      });
+    },
+    [persistDraft],
+  );
 
   const executeRequest = useCallback(
     async (request: AutoSaveRequest<TDraft>): Promise<TResult | undefined> => {
@@ -134,16 +210,19 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
       setError(null);
 
       try {
-        if (!isOnlineRef.current && onOfflineSaveRef.current) {
-          await onOfflineSaveRef.current(request.draft, request.source);
-          lastSavedDraftKeyRef.current = request.draftKey;
-          setStatus('offline-queued');
-          setHasPendingChanges(false);
+        if (!isOnlineRef.current && (onOfflineSaveRef.current || onLocalSaveRef.current)) {
+          await persistOfflineDraft(request);
           return undefined;
         }
 
         const result = await saveFnRef.current(request.draft);
         lastSavedDraftKeyRef.current = request.draftKey;
+        if (lastLocalDraftKeyRef.current === request.draftKey) {
+          lastLocalDraftKeyRef.current = null;
+        }
+        if (lastOfflineDraftKeyRef.current === request.draftKey) {
+          lastOfflineDraftKeyRef.current = null;
+        }
 
         if (request.revision === latestRevisionRef.current && request.draftKey === latestDraftKeyRef.current) {
           setLastResult(result);
@@ -166,12 +245,8 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
           return undefined;
         }
 
-        if ((isOfflineErrorRef.current(caughtError) || !isOnlineRef.current) && onOfflineSaveRef.current) {
-          await onOfflineSaveRef.current(request.draft, request.source);
-          lastSavedDraftKeyRef.current = request.draftKey;
-          setError(null);
-          setStatus('offline-queued');
-          setHasPendingChanges(false);
+        if ((isOfflineErrorRef.current(caughtError) || !isOnlineRef.current) && (onOfflineSaveRef.current || onLocalSaveRef.current)) {
+          await persistOfflineDraft(request);
           return undefined;
         }
 
@@ -190,7 +265,7 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
         }
       }
     },
-    [isSaveable],
+    [isSaveable, persistOfflineDraft],
   );
 
   const debouncerRef = useRef<AsyncDebouncer<(request: AutoSaveRequest<TDraft>) => Promise<TResult | undefined>> | null>(null);
@@ -207,30 +282,41 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
 
   useEffect(() => {
     return () => {
+      const pendingRequest = queuedRequestRef.current ?? latestRequestRef.current;
+      if (
+        pendingRequest &&
+        pendingRequest.draftKey !== lastSavedDraftKeyRef.current &&
+        pendingRequest.draftKey !== lastLocalDraftKeyRef.current &&
+        pendingRequest.draftKey !== lastOfflineDraftKeyRef.current
+      ) {
+        void persistLocalDraft(pendingRequest, false);
+      }
       debouncerRef.current?.cancel();
     };
-  }, []);
+  }, [persistLocalDraft]);
 
   const buildRequest = useCallback(
     (draft: TDraft, source: AutoSaveSource): AutoSaveRequest<TDraft> | null => {
       const draftKey = getDraftKeyRef.current(draft);
       if (!isSaveable(draft, draftKey)) {
-        if (!conflictPausedRef.current && status !== 'idle') {
-          setStatus(lastSavedDraftKeyRef.current === draftKey ? 'synced' : 'idle');
+        if (!conflictPausedRef.current && statusRef.current !== 'idle') {
+          setStatus(lastSavedDraftKeyRef.current === draftKey ? 'synced' : lastOfflineDraftKeyRef.current === draftKey ? 'offline-queued' : 'idle');
         }
         return null;
       }
       latestDraftRef.current = draft;
       latestDraftKeyRef.current = draftKey;
       latestRevisionRef.current += 1;
-      return {
+      const request = {
         draft,
         draftKey,
         revision: latestRevisionRef.current,
         source,
       };
+      latestRequestRef.current = request;
+      return request;
     },
-    [isSaveable, status],
+    [isSaveable],
   );
 
   const scheduleSave = useCallback(
@@ -239,10 +325,11 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
       if (!request) return false;
       setStatus('debouncing');
       setHasPendingChanges(true);
+      void persistLocalDraft(request, true);
       void debouncerRef.current?.maybeExecute(request);
       return true;
     },
-    [buildRequest],
+    [buildRequest, persistLocalDraft],
   );
 
   const flushNow = useCallback(
@@ -261,12 +348,14 @@ export function useAutoSave<TDraft, TResult>(options: UseAutoSaveOptions<TDraft,
     debouncerRef.current?.cancel();
     queuedRequestRef.current = null;
     setHasPendingChanges(false);
-    setStatus(lastSavedDraftKeyRef.current ? 'synced' : 'idle');
+    setStatus(lastOfflineDraftKeyRef.current ? 'offline-queued' : lastSavedDraftKeyRef.current ? 'synced' : 'idle');
   }, []);
 
   const resetSynced = useCallback((draft?: TDraft) => {
     const targetDraft = draft ?? latestDraftRef.current;
     lastSavedDraftKeyRef.current = targetDraft === undefined ? null : getDraftKeyRef.current(targetDraft);
+    lastLocalDraftKeyRef.current = null;
+    lastOfflineDraftKeyRef.current = null;
     conflictPausedRef.current = false;
     setError(null);
     setHasPendingChanges(false);

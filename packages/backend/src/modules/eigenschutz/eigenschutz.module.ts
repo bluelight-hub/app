@@ -6,6 +6,7 @@ import { KraefteInfrastructureModule } from '@/infrastructure/kraefte/kraefte-in
 import { AuthModule } from '@/modules/auth/auth.module';
 import { EigenschutzHealthController } from './controllers/eigenschutz-health.controller';
 import { GefaehrdungsbeurteilungController } from './controllers/gefaehrdungsbeurteilung.controller';
+import { SicherheitsregelController } from './controllers/sicherheitsregel.controller';
 
 /**
  * HTTP-Modul für den Eigenschutz-Feature-Slice.
@@ -30,6 +31,6 @@ import { GefaehrdungsbeurteilungController } from './controllers/gefaehrdungsbeu
  */
 @Module({
   imports: [AuthModule, KraefteInfrastructureModule, CqrsModule, EigenschutzApplicationModule, EigenschutzInfrastructureModule],
-  controllers: [EigenschutzHealthController, GefaehrdungsbeurteilungController],
+  controllers: [EigenschutzHealthController, GefaehrdungsbeurteilungController, SicherheitsregelController],
 })
 export class EigenschutzModule {}

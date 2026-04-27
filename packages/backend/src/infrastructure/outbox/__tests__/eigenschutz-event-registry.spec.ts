@@ -148,14 +148,18 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       }
     });
 
-    it('Story-2.2-Fortschritt: `gefaehrdungsbeurteilung_erstellt` + `_aktualisiert` sind an 4/4 Stellen, die übrigen 12 weiterhin an 0/4', () => {
+    it('Story-2.7-Fortschritt: `gefaehrdungsbeurteilung_erstellt` + `_aktualisiert` + `sicherheitsregel_ausgerufen` + `sicherheitsregel_quittiert` sind an 4/4 Stellen, die übrigen 10 weiterhin an 0/4', () => {
       const ERSTELLT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_ERSTELLT;
       const AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT;
+      const SICHERHEITSREGEL_AUSGERUFEN = EVENT_NAMES.EIGENSCHUTZ.SICHERHEITSREGEL_AUSGERUFEN;
+      const SICHERHEITSREGEL_QUITTIERT = EVENT_NAMES.EIGENSCHUTZ.SICHERHEITSREGEL_QUITTIERT;
       expect(sumTuple(countRegistrationSites(ERSTELLT))).toBe(4);
       expect(sumTuple(countRegistrationSites(AKTUALISIERT))).toBe(4);
+      expect(sumTuple(countRegistrationSites(SICHERHEITSREGEL_AUSGERUFEN))).toBe(4);
+      expect(sumTuple(countRegistrationSites(SICHERHEITSREGEL_QUITTIERT))).toBe(4);
 
       for (const eventName of EIGENSCHUTZ_NAMES) {
-        if (eventName === ERSTELLT || eventName === AKTUALISIERT) continue;
+        if (eventName === ERSTELLT || eventName === AKTUALISIERT || eventName === SICHERHEITSREGEL_AUSGERUFEN || eventName === SICHERHEITSREGEL_QUITTIERT) continue;
         expect(sumTuple(countRegistrationSites(eventName))).toBe(0);
       }
     });

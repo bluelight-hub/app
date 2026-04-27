@@ -15,26 +15,47 @@
 
 import * as runtime from '../runtime';
 import type {
+  AckSicherheitsregelDto,
   CreateGefaehrdungsbeurteilungDto,
+  CreateSicherheitsregelDto,
   EigenschutzHealthControllerGetHealthVAlpha200Response,
   GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response,
   GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response,
+  GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200Response,
   GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response,
+  SicherheitsregelControllerGetRegelVAlpha200Response,
+  SicherheitsregelControllerListQuittungenVAlpha200Response,
+  SicherheitsregelControllerListRegelnVAlpha200Response,
   UpdateGefaehrdungsbeurteilungItemsDto,
+  UpdateSicherheitsregelDto,
 } from '../models/index';
 import {
+    AckSicherheitsregelDtoFromJSON,
+    AckSicherheitsregelDtoToJSON,
     CreateGefaehrdungsbeurteilungDtoFromJSON,
     CreateGefaehrdungsbeurteilungDtoToJSON,
+    CreateSicherheitsregelDtoFromJSON,
+    CreateSicherheitsregelDtoToJSON,
     EigenschutzHealthControllerGetHealthVAlpha200ResponseFromJSON,
     EigenschutzHealthControllerGetHealthVAlpha200ResponseToJSON,
     GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseFromJSON,
     GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseToJSON,
     GefaehrdungsbeurteilungControllerGetHistorieVAlpha200ResponseFromJSON,
     GefaehrdungsbeurteilungControllerGetHistorieVAlpha200ResponseToJSON,
+    GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200ResponseFromJSON,
+    GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200ResponseToJSON,
     GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseFromJSON,
     GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseToJSON,
+    SicherheitsregelControllerGetRegelVAlpha200ResponseFromJSON,
+    SicherheitsregelControllerGetRegelVAlpha200ResponseToJSON,
+    SicherheitsregelControllerListQuittungenVAlpha200ResponseFromJSON,
+    SicherheitsregelControllerListQuittungenVAlpha200ResponseToJSON,
+    SicherheitsregelControllerListRegelnVAlpha200ResponseFromJSON,
+    SicherheitsregelControllerListRegelnVAlpha200ResponseToJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoFromJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoToJSON,
+    UpdateSicherheitsregelDtoFromJSON,
+    UpdateSicherheitsregelDtoToJSON,
 } from '../models/index';
 
 export interface EigenschutzHealthControllerGetHealthVAlphaRequest {
@@ -56,6 +77,10 @@ export interface GefaehrdungsbeurteilungControllerGetHistorieVAlphaRequest {
     id: string;
 }
 
+export interface GefaehrdungsbeurteilungControllerListBeurteilungenVAlphaRequest {
+    einsatzId: string;
+}
+
 export interface GefaehrdungsbeurteilungControllerListVorlagenVAlphaRequest {
     einsatzId: string;
 }
@@ -64,6 +89,38 @@ export interface GefaehrdungsbeurteilungControllerUpdateItemsVAlphaRequest {
     einsatzId: string;
     id: string;
     updateGefaehrdungsbeurteilungItemsDto: UpdateGefaehrdungsbeurteilungItemsDto;
+}
+
+export interface SicherheitsregelControllerCreateRegelnVAlphaRequest {
+    einsatzId: string;
+    createSicherheitsregelDto: CreateSicherheitsregelDto;
+}
+
+export interface SicherheitsregelControllerGetRegelVAlphaRequest {
+    einsatzId: string;
+    id: string;
+}
+
+export interface SicherheitsregelControllerListQuittungenVAlphaRequest {
+    einsatzId: string;
+    id: string;
+}
+
+export interface SicherheitsregelControllerListRegelnVAlphaRequest {
+    einsatzId: string;
+    einheitId?: string;
+}
+
+export interface SicherheitsregelControllerQuittierenVAlphaRequest {
+    einsatzId: string;
+    id: string;
+    ackSicherheitsregelDto: AckSicherheitsregelDto;
+}
+
+export interface SicherheitsregelControllerUpdateRegelVAlphaRequest {
+    einsatzId: string;
+    id: string;
+    updateSicherheitsregelDto: UpdateSicherheitsregelDto;
 }
 
 /**
@@ -228,6 +285,39 @@ export class EigenschutzApi extends runtime.BaseAPI {
     }
 
     /**
+     * Gefährdungsbeurteilungen des Einsatzes auflisten
+     */
+    async gefaehrdungsbeurteilungControllerListBeurteilungenVAlphaRaw(requestParameters: GefaehrdungsbeurteilungControllerListBeurteilungenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling gefaehrdungsbeurteilungControllerListBeurteilungenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/gefaehrdungsbeurteilungen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gefährdungsbeurteilungen des Einsatzes auflisten
+     */
+    async gefaehrdungsbeurteilungControllerListBeurteilungenVAlpha(requestParameters: GefaehrdungsbeurteilungControllerListBeurteilungenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200Response> {
+        const response = await this.gefaehrdungsbeurteilungControllerListBeurteilungenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Aktive Gefährdungsbeurteilungs-Vorlagen abrufen
      */
     async gefaehrdungsbeurteilungControllerListVorlagenVAlphaRaw(requestParameters: GefaehrdungsbeurteilungControllerListVorlagenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response>> {
@@ -307,6 +397,265 @@ export class EigenschutzApi extends runtime.BaseAPI {
      */
     async gefaehrdungsbeurteilungControllerUpdateItemsVAlpha(requestParameters: GefaehrdungsbeurteilungControllerUpdateItemsVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response> {
         const response = await this.gefaehrdungsbeurteilungControllerUpdateItemsVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Neue Sicherheitsregel anlegen (einsatzweit oder Fanout an Einheiten)
+     */
+    async sicherheitsregelControllerCreateRegelnVAlphaRaw(requestParameters: SicherheitsregelControllerCreateRegelnVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SicherheitsregelControllerListRegelnVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling sicherheitsregelControllerCreateRegelnVAlpha().'
+            );
+        }
+
+        if (requestParameters['createSicherheitsregelDto'] == null) {
+            throw new runtime.RequiredError(
+                'createSicherheitsregelDto',
+                'Required parameter "createSicherheitsregelDto" was null or undefined when calling sicherheitsregelControllerCreateRegelnVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sicherheitsregeln`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateSicherheitsregelDtoToJSON(requestParameters['createSicherheitsregelDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SicherheitsregelControllerListRegelnVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Neue Sicherheitsregel anlegen (einsatzweit oder Fanout an Einheiten)
+     */
+    async sicherheitsregelControllerCreateRegelnVAlpha(requestParameters: SicherheitsregelControllerCreateRegelnVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SicherheitsregelControllerListRegelnVAlpha200Response> {
+        const response = await this.sicherheitsregelControllerCreateRegelnVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Eine Sicherheitsregel per ID abrufen
+     */
+    async sicherheitsregelControllerGetRegelVAlphaRaw(requestParameters: SicherheitsregelControllerGetRegelVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SicherheitsregelControllerGetRegelVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling sicherheitsregelControllerGetRegelVAlpha().'
+            );
+        }
+
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling sicherheitsregelControllerGetRegelVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sicherheitsregeln/{id}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SicherheitsregelControllerGetRegelVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Eine Sicherheitsregel per ID abrufen
+     */
+    async sicherheitsregelControllerGetRegelVAlpha(requestParameters: SicherheitsregelControllerGetRegelVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SicherheitsregelControllerGetRegelVAlpha200Response> {
+        const response = await this.sicherheitsregelControllerGetRegelVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Quittungen einer Sicherheitsregel auflisten (Sender-View)
+     */
+    async sicherheitsregelControllerListQuittungenVAlphaRaw(requestParameters: SicherheitsregelControllerListQuittungenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SicherheitsregelControllerListQuittungenVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling sicherheitsregelControllerListQuittungenVAlpha().'
+            );
+        }
+
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling sicherheitsregelControllerListQuittungenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sicherheitsregeln/{id}/quittungen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SicherheitsregelControllerListQuittungenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Quittungen einer Sicherheitsregel auflisten (Sender-View)
+     */
+    async sicherheitsregelControllerListQuittungenVAlpha(requestParameters: SicherheitsregelControllerListQuittungenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SicherheitsregelControllerListQuittungenVAlpha200Response> {
+        const response = await this.sicherheitsregelControllerListQuittungenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Aktive Sicherheitsregeln des Einsatzes auflisten
+     */
+    async sicherheitsregelControllerListRegelnVAlphaRaw(requestParameters: SicherheitsregelControllerListRegelnVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SicherheitsregelControllerListRegelnVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling sicherheitsregelControllerListRegelnVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['einheitId'] != null) {
+            queryParameters['einheitId'] = requestParameters['einheitId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sicherheitsregeln`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SicherheitsregelControllerListRegelnVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Aktive Sicherheitsregeln des Einsatzes auflisten
+     */
+    async sicherheitsregelControllerListRegelnVAlpha(requestParameters: SicherheitsregelControllerListRegelnVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SicherheitsregelControllerListRegelnVAlpha200Response> {
+        const response = await this.sicherheitsregelControllerListRegelnVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sicherheitsregel durch eine konkrete Einheit quittieren — AC2/AC3/AC4
+     */
+    async sicherheitsregelControllerQuittierenVAlphaRaw(requestParameters: SicherheitsregelControllerQuittierenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling sicherheitsregelControllerQuittierenVAlpha().'
+            );
+        }
+
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling sicherheitsregelControllerQuittierenVAlpha().'
+            );
+        }
+
+        if (requestParameters['ackSicherheitsregelDto'] == null) {
+            throw new runtime.RequiredError(
+                'ackSicherheitsregelDto',
+                'Required parameter "ackSicherheitsregelDto" was null or undefined when calling sicherheitsregelControllerQuittierenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sicherheitsregeln/{id}/quittieren`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AckSicherheitsregelDtoToJSON(requestParameters['ackSicherheitsregelDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Sicherheitsregel durch eine konkrete Einheit quittieren — AC2/AC3/AC4
+     */
+    async sicherheitsregelControllerQuittierenVAlpha(requestParameters: SicherheitsregelControllerQuittierenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.sicherheitsregelControllerQuittierenVAlphaRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Sicherheitsregel aktualisieren (In-Place oder Re-Wire) — AC3/AC4/AC10
+     */
+    async sicherheitsregelControllerUpdateRegelVAlphaRaw(requestParameters: SicherheitsregelControllerUpdateRegelVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SicherheitsregelControllerListRegelnVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling sicherheitsregelControllerUpdateRegelVAlpha().'
+            );
+        }
+
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling sicherheitsregelControllerUpdateRegelVAlpha().'
+            );
+        }
+
+        if (requestParameters['updateSicherheitsregelDto'] == null) {
+            throw new runtime.RequiredError(
+                'updateSicherheitsregelDto',
+                'Required parameter "updateSicherheitsregelDto" was null or undefined when calling sicherheitsregelControllerUpdateRegelVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sicherheitsregeln/{id}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateSicherheitsregelDtoToJSON(requestParameters['updateSicherheitsregelDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SicherheitsregelControllerListRegelnVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Sicherheitsregel aktualisieren (In-Place oder Re-Wire) — AC3/AC4/AC10
+     */
+    async sicherheitsregelControllerUpdateRegelVAlpha(requestParameters: SicherheitsregelControllerUpdateRegelVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SicherheitsregelControllerListRegelnVAlpha200Response> {
+        const response = await this.sicherheitsregelControllerUpdateRegelVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

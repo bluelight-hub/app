@@ -11,6 +11,7 @@ import { GET_GEFAEHRDUNGSBEURTEILUNG_ERROR_CODES } from '@/application/eigenschu
 import { GetGefaehrdungsbeurteilungQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung/get-gefaehrdungsbeurteilung.query';
 import { GET_GEFAEHRDUNGSBEURTEILUNG_HISTORIE_ERROR_CODES } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.handler';
 import { GetGefaehrdungsbeurteilungHistorieQuery } from '@/application/eigenschutz/queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.query';
+import { ListGefaehrdungsbeurteilungenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungen/list-gefaehrdungsbeurteilungen.query';
 import { ListGefaehrdungsbeurteilungsVorlagenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungs-vorlagen/list-gefaehrdungsbeurteilungs-vorlagen.query';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { EIGENSCHUTZ_ROLE_KEY } from '@/modules/auth/decorators/requires-eigenschutz-rolle.decorator';
@@ -107,7 +108,7 @@ describe('GefaehrdungsbeurteilungController', () => {
   describe('Rollen-/Permission-Metadata pro Methode', () => {
     it('setzt keine Eigenschutz-Rollen oder Permissions auf den Handlern', () => {
       const prototype = Object.getPrototypeOf(controller);
-      const handlers = [prototype.listVorlagen, prototype.createBeurteilung, prototype.updateItems, prototype.getBeurteilung, prototype.getHistorie];
+      const handlers = [prototype.listVorlagen, prototype.listBeurteilungen, prototype.createBeurteilung, prototype.updateItems, prototype.getBeurteilung, prototype.getHistorie];
 
       for (const handler of handlers) {
         expect(Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, handler)).toBeUndefined();
@@ -147,6 +148,44 @@ describe('GefaehrdungsbeurteilungController', () => {
     it('wirft InternalServerError, wenn der QueryBus fehlschlägt', async () => {
       queryBus.execute.mockResolvedValue(Result.fail('boom'));
       await expect(controller.listVorlagen(EINSATZ_ID)).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
+  });
+
+  // ==================================================
+  // GET /gefaehrdungsbeurteilungen
+  // ==================================================
+
+  describe('listBeurteilungen', () => {
+    it('reicht die einsatzId an den QueryBus weiter und mapped Read-Models auf DTOs', async () => {
+      queryBus.execute.mockResolvedValue(Result.ok([makeReadModel()]));
+
+      const response = await controller.listBeurteilungen(EINSATZ_ID);
+
+      expect(queryBus.execute).toHaveBeenCalledWith(expect.any(ListGefaehrdungsbeurteilungenQuery));
+      const queryArg = queryBus.execute.mock.calls[0][0];
+      expect(queryArg.einsatzId).toBe(EINSATZ_ID);
+      expect(response).toHaveLength(1);
+      expect(response[0]).toMatchObject({
+        id: BEURTEILUNG_ID,
+        einsatzId: EINSATZ_ID,
+        einheitId: EINHEIT_ID,
+        version: 1,
+        aktualisiertVonUserId: USER_ID,
+      });
+      expect(response[0].items).toHaveLength(1);
+    });
+
+    it('liefert eine leere Liste als gültigen Zustand', async () => {
+      queryBus.execute.mockResolvedValue(Result.ok([]));
+
+      const response = await controller.listBeurteilungen(EINSATZ_ID);
+
+      expect(response).toEqual([]);
+    });
+
+    it('wirft InternalServerError, wenn der QueryBus fehlschlägt', async () => {
+      queryBus.execute.mockResolvedValue(Result.fail('boom'));
+      await expect(controller.listBeurteilungen(EINSATZ_ID)).rejects.toBeInstanceOf(InternalServerErrorException);
     });
   });
 

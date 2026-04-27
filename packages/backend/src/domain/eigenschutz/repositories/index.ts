@@ -8,3 +8,11 @@
 export type { IGefaehrdungsbeurteilungRepository, GefaehrdungsbeurteilungReadModel } from './i-gefaehrdungsbeurteilung.repository';
 export type { IGefaehrdungsbeurteilungVorlageRepository, GefaehrdungsbeurteilungVorlageReadModel } from './i-gefaehrdungsbeurteilung-vorlage.repository';
 export type { IGefaehrdungsbeurteilungVersionRepository, SaveInitialVersionArgs, SaveNewVersionArgs, GefaehrdungsbeurteilungVersionRow } from './i-gefaehrdungsbeurteilung-version.repository';
+export type { ISicherheitsregelRepository, SicherheitsregelReadModel } from './i-sicherheitsregel.repository';
+export type { ISicherheitsregelVersionRepository, SaveSicherheitsregelVersionArgs } from './i-sicherheitsregel-version.repository';
+export type {
+  ISicherheitsregelQuittungRepository,
+  SicherheitsregelQuittungReadModel,
+  UpsertSicherheitsregelQuittungParams,
+  UpsertSicherheitsregelQuittungResult,
+} from './i-sicherheitsregel-quittung.repository';

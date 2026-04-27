@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Prisma } from '@/generated/prisma/client';
+import type { Gefaehrdungsbeurteilung as PrismaGefaehrdungsbeurteilungRow, Prisma } from '@/generated/prisma/client';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { TransactionContext } from '@domain/common/transaction';
 import { Result } from '@domain/common/result';
@@ -108,18 +108,34 @@ export class PrismaGefaehrdungsbeurteilungRepository implements IGefaehrdungsbeu
     try {
       const row = await client.gefaehrdungsbeurteilung.findUnique({ where: { id } });
       if (!row) return Result.ok<GefaehrdungsbeurteilungReadModel | null>(null);
-      const aggregateResult = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
-      if (aggregateResult.isFailure || !aggregateResult.value) {
-        return this.failReconstitution<GefaehrdungsbeurteilungReadModel | null>(row.id, aggregateResult.error);
+      const readModelResult = this.toReadModel(row);
+      if (readModelResult.isFailure || !readModelResult.value) {
+        return Result.fail<GefaehrdungsbeurteilungReadModel | null>(readModelResult.error ?? 'ReadModel konnte nicht rekonstruiert werden');
       }
-      return Result.ok<GefaehrdungsbeurteilungReadModel | null>({
-        aggregate: aggregateResult.value,
-        erstelltAm: row.erstelltAm,
-        aktualisiertAm: row.aktualisiertAm,
-        aktualisiertVonUserId: row.aktualisiertVonUserId,
-      });
+      return Result.ok<GefaehrdungsbeurteilungReadModel | null>(readModelResult.value);
     } catch (error) {
       return Result.fail<GefaehrdungsbeurteilungReadModel | null>(error instanceof Error ? error.message : 'Unbekannter Datenbankfehler');
+    }
+  }
+
+  async findReadModelsByEinsatz(einsatzId: string, tx?: TransactionContext): Promise<Result<GefaehrdungsbeurteilungReadModel[]>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+    try {
+      const rows = await client.gefaehrdungsbeurteilung.findMany({
+        where: { einsatzId },
+        orderBy: [{ aktualisiertAm: 'desc' }, { erstelltAm: 'desc' }, { id: 'asc' }],
+      });
+      const readModels: GefaehrdungsbeurteilungReadModel[] = [];
+      for (const row of rows) {
+        const readModelResult = this.toReadModel(row);
+        if (readModelResult.isFailure || !readModelResult.value) {
+          return Result.fail<GefaehrdungsbeurteilungReadModel[]>(readModelResult.error ?? 'ReadModel konnte nicht rekonstruiert werden');
+        }
+        readModels.push(readModelResult.value);
+      }
+      return Result.ok(readModels);
+    } catch (error) {
+      return Result.fail<GefaehrdungsbeurteilungReadModel[]>(error instanceof Error ? error.message : 'Unbekannter Datenbankfehler');
     }
   }
 
@@ -188,5 +204,18 @@ export class PrismaGefaehrdungsbeurteilungRepository implements IGefaehrdungsbeu
       reason: safeReason,
     });
     return Result.fail<T>(`${INFRASTRUCTURE_ERROR_RECONSTITUTE_GEFAEHRDUNGSBEURTEILUNG}:${safeReason}`);
+  }
+
+  private toReadModel(row: PrismaGefaehrdungsbeurteilungRow): Result<GefaehrdungsbeurteilungReadModel> {
+    const aggregateResult = PrismaGefaehrdungsbeurteilungMapper.toDomain(row);
+    if (aggregateResult.isFailure || !aggregateResult.value) {
+      return this.failReconstitution<GefaehrdungsbeurteilungReadModel>(row.id, aggregateResult.error);
+    }
+    return Result.ok({
+      aggregate: aggregateResult.value,
+      erstelltAm: row.erstelltAm,
+      aktualisiertAm: row.aktualisiertAm,
+      aktualisiertVonUserId: row.aktualisiertVonUserId,
+    });
   }
 }

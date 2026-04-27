@@ -107,6 +107,8 @@ import type { NotfallAlertRequestedEvent } from '@domain/events/notfall-alert-re
 // Eigenschutz Events (Story 2.1+)
 import type { GefaehrdungsbeurteilungErstelltEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-erstellt.event';
 import type { GefaehrdungsbeurteilungAktualisiertEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event';
+import type { SicherheitsregelAusgerufenEvent } from '@domain/eigenschutz/events/sicherheitsregel-ausgerufen.event';
+import type { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
 
 // Alarmierung Events (Issue #408)
 import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
@@ -507,6 +509,10 @@ export class EventSerializer {
         return this.serializeGefaehrdungsbeurteilungErstellt(event as unknown as GefaehrdungsbeurteilungErstelltEvent);
       case 'eigenschutz.gefaehrdungsbeurteilung_aktualisiert':
         return this.serializeGefaehrdungsbeurteilungAktualisiert(event as unknown as GefaehrdungsbeurteilungAktualisiertEvent);
+      case 'eigenschutz.sicherheitsregel_ausgerufen':
+        return this.serializeSicherheitsregelAusgerufen(event as unknown as SicherheitsregelAusgerufenEvent);
+      case 'eigenschutz.sicherheitsregel_quittiert':
+        return this.serializeSicherheitsregelQuittiert(event as unknown as SicherheitsregelQuittiertEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1797,6 +1803,117 @@ export class EventSerializer {
       fromVersion,
       toVersion,
       changedFields: cf,
+    };
+  }
+
+  private serializeSicherheitsregelAusgerufen(event: SicherheitsregelAusgerufenEvent): Record<string, unknown> {
+    // Symmetrische Shape-Validation (Story 2.6, analog zu AC7 aus Story 2.3):
+    // der Serializer rejected invalide Payloads vor dem DB-Insert — damit
+    // niemals eine Zeile entsteht, die der Deserializer beim Round-Trip
+    // verwirft. Liefert das Aggregate einen korrupten `changedFields`-Payload,
+    // ist das ein Programmierfehler (keine Client-Input-Kategorie) — wir
+    // werfen hart, damit der Outbox-Insert fehlschlägt und der Handler das
+    // Event nicht persistiert.
+    //
+    // Die Feld-Keys in `changedFields.updated` werden hier bewusst strikt
+    // gegen das bekannte Set validiert (wie der Deserializer) — sonst könnte
+    // ein Poison-Payload (z. B. `['version']`) in die Outbox gelangen, beim
+    // Replay rejected werden und das Event permanent blockieren.
+    const ALLOWED_FIELD_KEYS: ReadonlySet<string> = new Set(['titel', 'inhalt', 'einheitId']);
+    const cf = event.changedFields;
+    const fromVersion = event.fromVersion;
+    const toVersion = event.toVersion;
+
+    // Versionen: `fromVersion: null` gilt ausschließlich für den Create-Pfad
+    // (`toVersion === 1`, `changedFields.created === true`). Ansonsten
+    // `fromVersion >= 1` plus Update- (`toVersion = fromVersion + 1`) oder
+    // Deprecate-Regel (`toVersion === fromVersion`, kein neuer aktiver Stand).
+    const isCreate = fromVersion === null;
+    if (isCreate) {
+      if (toVersion !== 1 || cf.created !== true || cf.updated !== undefined || cf.deprecated !== undefined) {
+        throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+      }
+    } else {
+      if (!Number.isInteger(fromVersion) || (fromVersion as number) < 1 || !Number.isInteger(toVersion)) {
+        throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+      }
+      const isDeprecate = cf.deprecated === true;
+      const isUpdate = Array.isArray(cf.updated);
+      if (isDeprecate) {
+        if (toVersion !== fromVersion || cf.created !== undefined || cf.updated !== undefined) {
+          throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+        }
+      } else if (isUpdate) {
+        if (toVersion !== (fromVersion as number) + 1 || cf.created !== undefined || cf.deprecated !== undefined) {
+          throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+        }
+        // Story 2.7 Code-Review-Patch: Symmetrie zum Deserializer (rejected
+        // `cf.updated.length === 0`) — leere Update-Liste hier nicht zulassen,
+        // sonst entstehen Poison-Records, die der Replay nicht wieder
+        // einlesen kann.
+        if ((cf.updated as unknown[]).length === 0) {
+          throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+        }
+        if (!(cf.updated as unknown[]).every((field) => typeof field === 'string' && ALLOWED_FIELD_KEYS.has(field))) {
+          throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+        }
+      } else {
+        throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+      }
+    }
+
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.regelId !== 'string' ||
+      typeof event.propagationGroupId !== 'string' ||
+      typeof event.titel !== 'string' ||
+      typeof event.inhalt !== 'string'
+    ) {
+      throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+    }
+    if (event.einheitId !== undefined && typeof event.einheitId !== 'string') {
+      throw new Error('Invalid SicherheitsregelAusgerufen event payload');
+    }
+
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      regelId: event.regelId,
+      propagationGroupId: event.propagationGroupId,
+      fromVersion,
+      toVersion,
+      changedFields: cf,
+      titel: event.titel,
+      inhalt: event.inhalt,
+    };
+  }
+
+  /**
+   * Serialisiert `SicherheitsregelQuittiertEvent` (Story 2.7).
+   *
+   * Pflichtfelder: einsatzId, userId, einheitId (immer Pflicht), regelId,
+   * quittiertAm. `propagationGroupId` darf `null` sein (Outbox-Retention-
+   * Fallback). Symmetrische Shape-Validation analog zu Ausgerufen — ein
+   * korrupter Payload bricht den Outbox-Insert hart, damit der Replay
+   * konsistent bleibt.
+   */
+  private serializeSicherheitsregelQuittiert(event: SicherheitsregelQuittiertEvent): Record<string, unknown> {
+    if (typeof event.einsatzId !== 'string' || typeof event.userId !== 'string' || typeof event.einheitId !== 'string' || typeof event.regelId !== 'string' || !(event.quittiertAm instanceof Date)) {
+      throw new Error('Invalid SicherheitsregelQuittiert event payload');
+    }
+    if (event.propagationGroupId !== null && typeof event.propagationGroupId !== 'string') {
+      throw new Error('Invalid SicherheitsregelQuittiert event payload');
+    }
+
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      regelId: event.regelId,
+      propagationGroupId: event.propagationGroupId,
+      quittiertAm: event.quittiertAm.toISOString(),
     };
   }
 }
