@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { AuthModule } from '@/modules/auth/auth.module';
-import { KraefteInfrastructureModule } from '@/infrastructure/kraefte/kraefte-infrastructure.module';
 import { EigenschutzHealthController } from '../controllers/eigenschutz-health.controller';
 import { EigenschutzModule } from '../eigenschutz.module';
 
@@ -12,10 +11,9 @@ import { EigenschutzModule } from '../eigenschutz.module';
  * dass:
  *
  * 1. Der Controller im HTTP-Modul registriert ist (sonst kein Routing).
- * 2. `AuthModule` + `KraefteInfrastructureModule` importiert sind —
- *    ohne den ersten kennt NestJS die Guard-Klassen nicht, ohne den
- *    zweiten fehlt das vom `EinsatzScopeGuard` konsumierte
- *    `IRollenBesetzungRepository`.
+ * 2. `AuthModule` ist importiert — der `EinsatzScopeGuard` (samt seiner
+ *    `KRAEFTE_REPOSITORIES.ROLLEN_BESETZUNG`-Dependency) wird transitiv
+ *    via Re-Export aus `AuthModule` aufgelöst (ADR-014).
  * 3. Das Modul **keine** eigenen Provider registriert — Story 1.6 lebt
  *    bewusst ohne Application-Handler.
  */
@@ -25,9 +23,9 @@ describe('EigenschutzModule', () => {
     expect(controllers).toContain(EigenschutzHealthController);
   });
 
-  it('importiert AuthModule und KraefteInfrastructureModule', () => {
+  it('importiert AuthModule (re-exportiert KraefteInfrastructureModule transitiv, ADR-014)', () => {
     const imports = Reflect.getMetadata('imports', EigenschutzModule) as unknown[];
-    expect(imports).toEqual(expect.arrayContaining([AuthModule, KraefteInfrastructureModule]));
+    expect(imports).toEqual(expect.arrayContaining([AuthModule]));
   });
 
   it('dokumentiert die aktuelle Leere: keine eigenen Provider', () => {
