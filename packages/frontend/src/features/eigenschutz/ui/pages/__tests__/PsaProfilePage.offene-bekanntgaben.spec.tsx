@@ -139,6 +139,35 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
       expect(screen.getByTestId('offene-psa-bekanntgabe-checkliste-group-3-5-page')).toBeInTheDocument();
     });
 
+    it('Klick auf Eintrag mit ausschließlich DEAKTIVIERT-Toggles öffnet Drawer mit Section-B-Deaktiviert + Empty-aktiviert (P14b)', () => {
+      mocks.offene = {
+        data: [
+          {
+            propagationGroupId: 'group-deaktiviert-only',
+            occurredAt: '2026-04-24T08:30:00.000Z',
+            begruendungAnriss: 'Schutzstufe wieder gesenkt',
+            profilToggles: [{ profil: 'BASIS', aktion: 'DEAKTIVIERT' }],
+            betroffeneEinheitIds: ['e1'],
+            ackCount: 0,
+            totalCount: 1,
+            status: 'pending',
+          },
+        ],
+        isLoading: false,
+      };
+      const client = makeClient();
+      render(<PsaProfilePage einsatzId="einsatz-1" />, { wrapper: wrapper(client) });
+
+      fireEvent.click(screen.getByTestId('offene-psa-bekanntgabe-checkliste-group-deaktiviert-only'));
+
+      // Drawer mountet — Decision-Aufloesung: Section B zeigt nur die
+      // Deaktiviert-Liste, Aktiviert-Liste fehlt (filter ergibt leer).
+      expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
+      expect(screen.getByTestId('psa-profil-detail-deaktiviert')).toHaveTextContent(/Basis/);
+      // Aktiviert-Liste rendert NICHT als eigene Section (keine `Aktiviert`-Header).
+      expect(screen.queryByTestId('psa-profil-detail-aktiviert')).toBeNull();
+    });
+
     it('Klick öffnet Drawer im Sender-Read-Only-Modus (kein Quittungs-/Lücke-Button)', () => {
       mocks.offene = {
         data: [

@@ -11,10 +11,11 @@ describe('AusruestungsChecklisten — Backend ↔ Frontend Sync (Story 3.5 AC4)'
     expect(new Set(Object.keys(FE))).toEqual(new Set(Object.keys(BE)));
   });
 
-  it('hat identische Item-IDs + Labels pro Profil', () => {
+  it('hat identische Item-IDs, Labels und Hinweise pro Profil (P7)', () => {
     for (const profil of Object.keys(BE) as Array<keyof typeof BE>) {
-      const beItems = BE[profil].items.map((i) => ({ id: i.id, label: i.label }));
-      const feItems = FE[profil].items.map((i) => ({ id: i.id, label: i.label }));
+      // P7: `hinweis` mit prüfen, sonst driftet das Tooltip-Field unbemerkt.
+      const beItems = BE[profil].items.map((i) => ({ id: i.id, label: i.label, hinweis: i.hinweis }));
+      const feItems = FE[profil].items.map((i) => ({ id: i.id, label: i.label, hinweis: i.hinweis }));
       expect(feItems).toEqual(beItems);
     }
   });

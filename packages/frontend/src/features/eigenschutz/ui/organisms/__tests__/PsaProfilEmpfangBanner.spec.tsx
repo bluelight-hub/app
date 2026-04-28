@@ -7,7 +7,7 @@
  * bei fehlender Einheit.
  */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PsaProfilLiveBanner } from '../../../api/use-eigenschutz-psa-live-banner';
 
@@ -303,7 +303,7 @@ describe('PsaProfilEmpfangBanner', () => {
     expect((headline?.textContent ?? '').length).toBeLessThanOrEqual(60);
   });
 
-  it('Sammel-Banner ist SeverityBanner variant="warning" tone="polite" mit Tastatur-Pfad (AC7)', () => {
+  it('Sammel-Banner ist SeverityBanner variant="warning" tone="polite" mit Drawer-Pfad (AC7, P5)', () => {
     hookMock.banner = [
       makeBanner({ propagationGroupId: 'g1', occurredAt: '2026-04-24T10:00:01.000Z' }),
       makeBanner({ propagationGroupId: 'g2', occurredAt: '2026-04-24T10:00:02.000Z' }),
@@ -317,22 +317,29 @@ describe('PsaProfilEmpfangBanner', () => {
     expect(overflow).toHaveAttribute('data-variant', 'warning');
     expect(overflow).toHaveAttribute('aria-live', 'polite');
 
-    // Tastatur-Pfad: Primary-Button reichbar via Klick (Buttons sind per
-    // Default fokussierbar) und liefert die erste Overflow-Group an den Stub.
-    const overflowButtons = screen.getAllByRole('button', { name: 'Details ansehen' });
-    fireEvent.click(overflowButtons[overflowButtons.length - 1]!);
+    // P5: Overflow-Pfad öffnet jetzt denselben Drawer wie der sichtbare
+    // Banner-Pfad. Vor P5 ging der Pfad nur über den `onShowDetails`-Stub —
+    // der Drawer wurde nie gemountet. Wir selektieren den Overflow-Banner-
+    // Button gezielt via Container statt `[last]`-Indexing (P13-analog).
+    const overflowPrimary = within(overflow).getByRole('button', { name: 'Details ansehen' });
+    fireEvent.click(overflowPrimary);
+
+    // Drawer ist nun für g4 gemountet.
+    expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
+    // `onShowDetails` ist als optionale Telemetrie-Notify weiterhin verdrahtet.
     expect(onShowDetails).toHaveBeenLastCalledWith('g4');
   });
 
   describe('Story 3.5 AC9 — Tertiary „Details ansehen" öffnet Drawer', () => {
-    it('Banner zeigt Tertiary-Button; Klick öffnet Detail-Drawer für die Group', () => {
+    it('Banner zeigt Tertiary-Button; Klick öffnet Detail-Drawer für die Group (P13: testid statt last)', () => {
       hookMock.banner = [makeBanner({ propagationGroupId: 'group-3-5' })];
       render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
 
       // Pre: kein Drawer offen.
       expect(screen.queryByTestId('psa-profil-detail-drawer')).toBeNull();
 
-      // Im Banner ist der Tertiary-Button vorhanden.
+      // P13: Selektion via stabilem `data-testid="severity-banner-tertiary"`
+      // statt DOM-Reihenfolge-abhängigem `getAllByRole(...)[last]`.
       const tertiary = screen.getByTestId('severity-banner-tertiary');
       expect(tertiary).toHaveTextContent('Details ansehen');
 
@@ -355,6 +362,28 @@ describe('PsaProfilEmpfangBanner', () => {
       // mountet — die Quittungs-Wege selbst sind in
       // `PsaProfilDetailDrawer.spec.tsx` getestet.
       expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
+    });
+  });
+
+  describe('Story 3.5 P14 — Re-Emission von all_banners_delivered nach Dismiss + Wieder-Eintreffen', () => {
+    it('emittedRef wird bereinigt, wenn die Group aus dem Banner-Stack verschwindet', () => {
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-redo' })];
+      const { rerender } = render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      let events = eigenschutzTelemetryQueue.snapshot().filter((e) => e.eventName === 'all_banners_delivered');
+      expect(events).toHaveLength(1);
+
+      // Group wird dismissed → Banner-Queue leer → emittedRef bereinigt.
+      hookMock.banner = [];
+      rerender(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      // Re-Eintreffen derselben Group → erneutes all_banners_delivered.
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-redo' })];
+      rerender(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      events = eigenschutzTelemetryQueue.snapshot().filter((e) => e.eventName === 'all_banners_delivered');
+      // Zwei Events: einmal beim ersten Eintreffen, einmal nach Re-Trigger.
+      expect(events.filter((e) => e.propagationGroupIdCandidate === 'group-redo')).toHaveLength(2);
     });
   });
 });

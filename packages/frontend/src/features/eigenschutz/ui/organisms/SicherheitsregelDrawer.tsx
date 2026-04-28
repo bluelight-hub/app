@@ -510,7 +510,7 @@ export function SicherheitsregelDrawer({ einsatzId, open, onClose, onSaved, rege
           </form.Subscribe>
 
           {einheitenLeer ? (
-            <p className="bg-surface-panel-elevated rounded-control border border-border-subtle px-3 py-2 text-xs text-text-muted" data-testid="sicherheitsregel-keine-einheiten-hinweis">
+            <p className="rounded-control border border-border-subtle bg-surface-panel-elevated px-3 py-2 text-xs text-text-muted" data-testid="sicherheitsregel-keine-einheiten-hinweis">
               Keine Einheiten vorhanden — Regel wird einsatzweit angelegt.
             </p>
           ) : null}

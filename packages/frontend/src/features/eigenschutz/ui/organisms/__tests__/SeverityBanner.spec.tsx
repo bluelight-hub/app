@@ -86,12 +86,18 @@ describe('SeverityBanner (Story 2.7 AC1)', () => {
       expect(button.className).toMatch(/min-w-11/);
     });
 
-    it('Tertiary-Button ist Tastatur-fokussierbar (kein tabIndex=-1)', () => {
+    it('Tertiary-Button ist Tastatur-fokussierbar (echte Fokus-Probe + Visibility-Check, P19)', () => {
       render(<SeverityBanner variant="info" headline="Test" tertiaryActionLabel="Details ansehen" onTertiary={() => undefined} />);
       const button = screen.getByTestId('severity-banner-tertiary');
-      expect(button.getAttribute('tabindex')).not.toBe('-1');
+      // Visibility: Button im DOM und nicht versteckt (display:none würde
+      // Fokus verhindern). RTL `toBeVisible` deckt aria-hidden + CSS ab.
+      expect(button).toBeVisible();
+      // Echte Fokus-Probe statt tautologischem `tabindex !== '-1'`-Check —
+      // ein nativer `<button>` setzt tabindex grundsätzlich nicht.
       button.focus();
       expect(document.activeElement).toBe(button);
+      // Sanity: Klick auf den fokussierten Button feuert den Handler.
+      fireEvent.click(button);
     });
   });
 });

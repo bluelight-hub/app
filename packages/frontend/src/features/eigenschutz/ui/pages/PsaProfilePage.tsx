@@ -279,7 +279,7 @@ function OffenePsaBekanntgabenSection({ einsatzId }: { readonly einsatzId: strin
                 <button
                   type="button"
                   onClick={() => setChecklistDrawerGroup(eintrag.propagationGroupId)}
-                  className="hover:bg-surface-panel-elevated inline-flex min-h-11 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-text-muted hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-status-info"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-surface-panel-elevated hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-status-info"
                   data-testid={`offene-psa-bekanntgabe-checkliste-${eintrag.propagationGroupId}`}
                 >
                   Checkliste anzeigen
@@ -292,12 +292,15 @@ function OffenePsaBekanntgabenSection({ einsatzId }: { readonly einsatzId: strin
       )}
 
       {/* Story 3.5 AC11 — Sender-Read-Only-Drawer: KEIN onQuittieren /
-          onMeldeLuecke (Sender quittiert nicht selbst). */}
+          onMeldeLuecke (Sender quittiert nicht selbst). Decision-Aufloesung:
+          `profilToggles` wird durchgereicht, damit Section B beide Aktionen
+          (AKTIVIERT/DEAKTIVIERT) sichtbar macht. */}
       {activeEintrag !== undefined ? (
         <PsaProfilDetailDrawer
           einsatzId={einsatzId}
           propagationGroupId={activeEintrag.propagationGroupId}
           aktiveProfile={activeEintrag.profilToggles.filter((t) => t.aktion === 'AKTIVIERT').map((t) => t.profil)}
+          profilToggles={activeEintrag.profilToggles}
           einheiten={activeEintrag.betroffeneEinheitIds.map((id) => ({ einheitId: id, einheitName: einheitNameById.get(id) ?? id }))}
           begruendung={activeEintrag.begruendungAnriss}
           onClose={() => setChecklistDrawerGroup(null)}
