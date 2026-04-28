@@ -23,8 +23,9 @@ describe('EquipmentChecklist (Story 3.5 AC5/AC8/AC10/AC12)', () => {
     // Fieldsets pro Einheit
     const fieldsets = screen.getAllByRole('group');
     expect(fieldsets.length).toBe(2);
-    expect(within(fieldsets[0]).getByText('Einheit Sani-1')).toBeInTheDocument();
-    expect(within(fieldsets[1]).getByText('Einheit Sani-2')).toBeInTheDocument();
+    // Legend enthält Einheit + Profil-Kontext (P6).
+    expect(within(fieldsets[0]).getByText(/Einheit Sani-1 — Basis/)).toBeInTheDocument();
+    expect(within(fieldsets[1]).getByText(/Einheit Sani-2 — Basis/)).toBeInTheDocument();
   });
 
   it('feuert onToggle mit korrekten Argumenten beim Klick auf Checkbox', () => {
@@ -109,5 +110,46 @@ describe('EquipmentChecklist (Story 3.5 AC5/AC8/AC10/AC12)', () => {
   it('aria-label auf Lücke-Button enthält den Einheit-Namen', () => {
     render(<EquipmentChecklist aktiveProfile={['BASIS']} einheiten={[EINHEITEN[0]]} checked={new Map()} onToggle={() => undefined} />);
     expect(screen.getByLabelText('Lücke für Einheit Sani-1 melden')).toBeInTheDocument();
+  });
+
+  it('readOnly=true disabled alle Checkboxen und unterdrückt den Lücke-Button (P1)', () => {
+    const onToggle = vi.fn();
+    const item = AUSRUESTUNGS_CHECKLISTEN.BASIS.items[0];
+    render(<EquipmentChecklist aktiveProfile={['BASIS']} einheiten={[EINHEITEN[0]]} checked={new Map()} onToggle={onToggle} readOnly />);
+
+    // Alle Checkboxen sind `disabled` — Browser-A11y-Layer verhindert
+    // Tab+Space-Manipulation. JSDOM unterscheidet sich vom realen Browser
+    // (fireEvent.click würde den onChange dort weiter feuern), aber das
+    // `disabled`-Attribut ist die maßgebliche Garantie.
+    const checkbox = screen.getByTestId(`equipment-checklist-checkbox-cle-a-${item.id}`);
+    expect(checkbox).toBeDisabled();
+
+    // Sender-Read-Only: Lücke-Button ist nicht im DOM.
+    expect(screen.queryByTestId('equipment-checklist-luecke-cle-a')).toBeNull();
+
+    // Wrapper trägt data-read-only-Marker für Snapshot-/E2E-Selektoren.
+    expect(screen.getByTestId('equipment-checklist')).toHaveAttribute('data-read-only', 'true');
+  });
+
+  it('disabled Lücke-Button trägt aria-describedby mit SR-only-Hinweis (P11, AC10)', () => {
+    render(<EquipmentChecklist aktiveProfile={['BASIS']} einheiten={[EINHEITEN[0]]} checked={new Map()} onToggle={() => undefined} />);
+    const button = screen.getByTestId('equipment-checklist-luecke-cle-a');
+    const describedBy = button.getAttribute('aria-describedby');
+    expect(describedBy).not.toBeNull();
+    const hint = document.getElementById(describedBy!);
+    expect(hint).not.toBeNull();
+    expect(hint?.textContent ?? '').toMatch(/Story 3\.6/);
+  });
+
+  it('Status-Pill trägt aria-live="polite" für Screenreader-Status-Wechsel (P12)', () => {
+    render(<EquipmentChecklist aktiveProfile={['BASIS']} einheiten={[EINHEITEN[0]]} checked={new Map()} onToggle={() => undefined} />);
+    expect(screen.getByTestId('equipment-checklist-status-cle-a')).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('Legend trägt Einheit + Profil-Kontext bei mehreren Profilen (P6)', () => {
+    render(<EquipmentChecklist aktiveProfile={['BASIS', 'INFEKTION']} einheiten={[EINHEITEN[0]]} checked={new Map()} onToggle={() => undefined} />);
+    // Beide Legends enthalten Profil-Label.
+    expect(screen.getByText(/Einheit Sani-1 — Basis/)).toBeInTheDocument();
+    expect(screen.getByText(/Einheit Sani-1 — Infektion/)).toBeInTheDocument();
   });
 });

@@ -116,6 +116,30 @@ describe('useEquipmentChecklistState (Story 3.5 AC6)', () => {
     expect(result.current.missingByEinheit.get(einheitB)).toEqual([basisItems[1].label, basisItems[2].label]);
   });
 
+  it('Wechsel der propagationGroupId resettet den Stand (P2)', () => {
+    const basisItems = AUSRUESTUNGS_CHECKLISTEN.BASIS.items;
+    const { result, rerender } = renderHook(
+      ({ pgId }: { pgId: string }) =>
+        useEquipmentChecklistState({
+          propagationGroupId: pgId,
+          einheitenIds: [einheitId],
+          aktiveProfile: ['BASIS'],
+        }),
+      { initialProps: { pgId: 'pg-A' } },
+    );
+
+    act(() => {
+      result.current.toggle(einheitId, basisItems[0].id, true);
+      result.current.toggle(einheitId, basisItems[1].id, true);
+    });
+    expect(result.current.checked.size).toBe(2);
+
+    // Wechsel auf andere Gruppe → State darf NICHT mit kommen.
+    rerender({ pgId: 'pg-B' });
+    expect(result.current.checked.size).toBe(0);
+    expect(result.current.statusFor(einheitId)).toBe('pristine');
+  });
+
   it('aggregiert Items über mehrere Profile und de-dupliziert nach id', () => {
     const { result } = renderHook(() =>
       useEquipmentChecklistState({

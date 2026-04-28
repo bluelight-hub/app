@@ -239,6 +239,7 @@
 
   --color-surface-canvas: var(--ring-1-color-surface-canvas);
   --color-surface-panel: var(--ring-1-color-surface-panel);
+  --color-surface-panel-elevated: var(--ring-1-color-surface-raised);
   --color-surface-raised: var(--ring-1-color-surface-raised);
   --color-surface-elevated: var(--ring-1-color-surface-raised);
   --color-surface-overlay: var(--ring-1-color-surface-overlay);

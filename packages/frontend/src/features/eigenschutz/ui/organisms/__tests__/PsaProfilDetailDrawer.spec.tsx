@@ -123,4 +123,83 @@ describe('PsaProfilDetailDrawer (Story 3.5 AC7/AC14)', () => {
     fireEvent.click(buttons[buttons.length - 1]);
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('Sender-Read-Only-Modus: Checkliste ist disabled (P1)', () => {
+    render(<PsaProfilDetailDrawer einsatzId="einsatz-1" propagationGroupId="pg-1" einheiten={EINHEITEN} aktiveProfile={['BASIS']} begruendung="Test" onClose={() => undefined} />);
+    const checklist = screen.getByTestId('psa-profil-detail-checklist');
+    expect(checklist).toHaveAttribute('data-read-only', 'true');
+    const checkboxes = checklist.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    expect(checkboxes.length).toBeGreaterThan(0);
+    for (const cb of checkboxes) {
+      expect(cb).toBeDisabled();
+    }
+  });
+
+  it('Footer-Lücke-Button füllt vorbereiteteNotiz aus nicht-gehakten Items (P4)', () => {
+    const onMeldeLuecke = vi.fn();
+    render(
+      <PsaProfilDetailDrawer
+        einsatzId="einsatz-1"
+        propagationGroupId="pg-1"
+        einheiten={EINHEITEN}
+        aktiveProfile={['BASIS']}
+        begruendung="Test"
+        onClose={() => undefined}
+        onQuittieren={() => undefined}
+        onMeldeLuecke={onMeldeLuecke}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('psa-profil-detail-luecke'));
+    expect(onMeldeLuecke).toHaveBeenCalledWith(
+      expect.objectContaining({
+        einheitId: 'einheit-1',
+        // P4: nicht mehr leerer String — ergibt sich aus den nicht-gehakten Items.
+        vorbereiteteNotiz: expect.stringMatching(/.+/),
+      }),
+    );
+  });
+
+  it('Empty einheiten: Drawer rendert Inline-Hinweis (P15)', () => {
+    render(
+      <PsaProfilDetailDrawer einsatzId="einsatz-1" propagationGroupId="pg-1" einheiten={[]} aktiveProfile={['BASIS']} begruendung="Test" onClose={() => undefined} onQuittieren={() => undefined} />,
+    );
+    expect(screen.getByTestId('psa-profil-detail-einheiten-empty')).toHaveTextContent(/Keine betroffenen Einheiten/);
+  });
+
+  it('profileLoading=true zeigt Skeleton-Hinweise statt leerer Sektionen (P8)', () => {
+    render(
+      <PsaProfilDetailDrawer
+        einsatzId="einsatz-1"
+        propagationGroupId="pg-1"
+        einheiten={EINHEITEN}
+        aktiveProfile={[]}
+        begruendung="Test"
+        profileLoading
+        onClose={() => undefined}
+        onQuittieren={() => undefined}
+      />,
+    );
+    expect(screen.getByTestId('psa-profil-detail-profile-loading')).toBeInTheDocument();
+    expect(screen.getByTestId('psa-profil-detail-checklist-loading')).toBeInTheDocument();
+  });
+
+  it('profilToggles differenziert Section B in Aktiviert + Deaktiviert (Decision)', () => {
+    render(
+      <PsaProfilDetailDrawer
+        einsatzId="einsatz-1"
+        propagationGroupId="pg-1"
+        einheiten={EINHEITEN}
+        aktiveProfile={['CBRN_PATIENT']}
+        profilToggles={[
+          { profil: 'CBRN_PATIENT', aktion: 'AKTIVIERT' },
+          { profil: 'BASIS', aktion: 'DEAKTIVIERT' },
+        ]}
+        begruendung="Test"
+        onClose={() => undefined}
+        onQuittieren={() => undefined}
+      />,
+    );
+    expect(screen.getByTestId('psa-profil-detail-aktiviert')).toHaveTextContent(/Aktiviert/);
+    expect(screen.getByTestId('psa-profil-detail-deaktiviert')).toHaveTextContent(/Deaktiviert/);
+  });
 });

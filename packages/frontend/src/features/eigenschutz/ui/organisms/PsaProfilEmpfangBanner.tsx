@@ -118,14 +118,18 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
     for (const id of stale) emittedRef.current.delete(id);
   }, [banner]);
 
-  // Overflow-Klick: navigiert zu *einem* überzähligen Eintrag (Story 3.3-Stub;
-  // volle Liste folgt in Story 3.4). Defensives Guard gegen den Race zwischen
-  // Render und State-Mutation, damit `onShowDetails` nie mit `''` aufgerufen wird.
+  // Overflow-Klick (P5): nutzt nun denselben Drawer-Pfad wie die sichtbaren
+  // Banner. Vor P5 ging der Pfad über den deprecated `onShowDetails`-Stub —
+  // der Drawer wurde nie geöffnet. Wir greifen die erste überzählige Group
+  // und mounten den Drawer für sie. `onShowDetails` bleibt als optionale
+  // Telemetrie-Notify, falls Aufrufer sie weiter setzen wollen.
   const handleOverflowClick = useMemo(() => {
-    if (onShowDetails === undefined) return undefined;
     const overflowFirst = banner[MAX_VISIBLE];
     if (!overflowFirst) return undefined;
-    return () => onShowDetails(overflowFirst.propagationGroupId);
+    return () => {
+      setOpenDrawerForGroup(overflowFirst.propagationGroupId);
+      onShowDetails?.(overflowFirst.propagationGroupId);
+    };
   }, [banner, onShowDetails]);
 
   /**
@@ -217,22 +221,34 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
       {/* Story 3.5 AC9 — Detail-Drawer als Geschwister-Element zum Banner-Stack.
           MVP-Pragmatik (Q3): die aktive Empfänger-Einheit ist die einzige
           Empfänger-Einheit im Drawer; eine Hierarchie „Abschnitt → N Einheiten"
-          wird in Story 6.x ergänzt. */}
-      <PsaProfilDetailDrawer
-        einsatzId={einsatzId}
-        propagationGroupId={openDrawerForGroup}
-        einheiten={einheitName === null ? [] : [{ einheitId, einheitName }]}
-        aktiveProfile={(profileQuery.data ?? []).map((row) => row.profil)}
-        begruendung={(profileQuery.data ?? []).find((row) => row.propagationGroupId === openDrawerForGroup)?.begruendung}
-        onClose={() => setOpenDrawerForGroup(null)}
-        // Drawer ruft `useAckPsaQuittung` intern (AC14) — diese Notify-Callback
-        // entfernt den Banner aus der Hook-Queue, sobald die Quittung erfolgreich
-        // war. Identisches Pattern wie der Banner-Primary-Pfad (handleAcknowledge).
-        onQuittieren={() => {
-          if (openDrawerForGroup !== null) dismiss(openDrawerForGroup);
-        }}
-        // Story-3.6-Stub: KEIN onMeldeLuecke setzen — Lücke-Button ist disabled.
-      />
+          wird in Story 6.x ergänzt.
+          P3: `aktiveProfile` wird aus dem konkreten `eintrag` (zur geöffneten
+          propagationGroupId) abgeleitet — nicht aus der globalen Einheit-
+          Profile-Liste, sonst zeigt der Drawer auch nicht-betroffene Profile. */}
+      {(() => {
+        const activeBannerEntry = openDrawerForGroup === null ? undefined : banner.find((b) => b.propagationGroupId === openDrawerForGroup);
+        const drawerToggles = activeBannerEntry?.profilToggles.map((t) => ({ profil: t.profil as PsaProfilLiveValue, aktion: t.aktion }));
+        const drawerAktiveProfile = drawerToggles ? drawerToggles.filter((t) => t.aktion === 'AKTIVIERT').map((t) => t.profil) : [];
+        return (
+          <PsaProfilDetailDrawer
+            einsatzId={einsatzId}
+            propagationGroupId={openDrawerForGroup}
+            einheiten={einheitName === null ? [] : [{ einheitId, einheitName }]}
+            aktiveProfile={drawerAktiveProfile}
+            profilToggles={drawerToggles}
+            profileLoading={profileQuery.isPending}
+            begruendung={(profileQuery.data ?? []).find((row) => row.propagationGroupId === openDrawerForGroup)?.begruendung}
+            onClose={() => setOpenDrawerForGroup(null)}
+            // Drawer ruft `useAckPsaQuittung` intern (AC14) — diese Notify-Callback
+            // entfernt den Banner aus der Hook-Queue, sobald die Quittung erfolgreich
+            // war. Identisches Pattern wie der Banner-Primary-Pfad (handleAcknowledge).
+            onQuittieren={() => {
+              if (openDrawerForGroup !== null) dismiss(openDrawerForGroup);
+            }}
+            // Story-3.6-Stub: KEIN onMeldeLuecke setzen — Lücke-Button ist disabled.
+          />
+        );
+      })()}
     </div>
   );
 }

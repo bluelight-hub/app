@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import type { PsaProfilValue } from '@bluelight-hub/shared/schemas/eigenschutz/psa-profil.schema';
 import { type AusruestungsItem, getAusruestungsCheckliste } from '../constants/ausruestungs-checkliste.constants';
 
@@ -64,6 +64,12 @@ function reducer(state: State, action: Action): State {
     case 'reset':
       if (state.checked.size === 0) return state;
       return { checked: new Map() };
+    default:
+      // P10: Runtime-Fallback gegen unbekannte Actions. Discriminated-Union
+      // schützt zur Compile-Time, aber ein dynamischer Caller könnte
+      // dispatch({ type: 'foo' as 'reset' }) feuern. Wir fallen sicher
+      // auf den existierenden State zurück.
+      return state;
   }
 }
 
@@ -86,6 +92,13 @@ const INITIAL_STATE: State = { checked: new Map<string, boolean>() };
  */
 export function useEquipmentChecklistState(input: UseEquipmentChecklistStateInput): UseEquipmentChecklistStateResult {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+
+  // P2: Wechsel der `propagationGroupId` (z. B. zweiter Banner-Tap auf eine
+  // andere Gruppe) → Stand verfällt. JSDoc verspricht das Verhalten; ohne
+  // diesen Effekt würde der State der vorherigen Gruppe stehen bleiben.
+  useEffect(() => {
+    dispatch({ type: 'reset' });
+  }, [input.propagationGroupId]);
 
   const aggregierte = useMemo(() => aggregateChecklisten(input.aktiveProfile), [input.aktiveProfile]);
 

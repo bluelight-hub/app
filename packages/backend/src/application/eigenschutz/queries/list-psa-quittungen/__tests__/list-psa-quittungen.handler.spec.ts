@@ -25,8 +25,8 @@ describe('ListPsaQuittungenHandler (Story 3.4 AC8)', () => {
     einheitRepo = {
       findByEinsatzId: jest.fn().mockResolvedValue(
         Result.ok([
-          { id: EINHEIT_A, name: '1. Sanitätsgruppe' },
-          { id: EINHEIT_B, name: '2. Sanitätsgruppe' },
+          { id: { value: EINHEIT_A }, name: '1. Sanitätsgruppe' },
+          { id: { value: EINHEIT_B }, name: '2. Sanitätsgruppe' },
         ]),
       ),
     };
@@ -134,7 +134,7 @@ describe('ListPsaQuittungenHandler (Story 3.4 AC8)', () => {
     // Einheit B existiert in der Outbox (Bekanntgabe ging raus), wurde aber
     // zwischenzeitlich gelöscht und ist nicht mehr im findByEinsatzId-Ergebnis.
     prisma.outboxEvent.findMany.mockResolvedValue([{ payload: { propagationGroupId: PROPAGATION_GROUP_ID, einheitId: EINHEIT_B } }]);
-    einheitRepo.findByEinsatzId.mockResolvedValue(Result.ok([{ id: EINHEIT_A, name: '1. Sanitätsgruppe' }]));
+    einheitRepo.findByEinsatzId.mockResolvedValue(Result.ok([{ id: { value: EINHEIT_A }, name: '1. Sanitätsgruppe' }]));
     quittungRepo.findByEinsatzAndGroup.mockResolvedValue(Result.ok([]));
 
     const result = await handler.execute(new ListPsaQuittungenQuery(EINSATZ_ID, PROPAGATION_GROUP_ID));

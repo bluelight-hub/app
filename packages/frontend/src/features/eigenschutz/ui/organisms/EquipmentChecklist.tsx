@@ -21,6 +21,13 @@ export interface EquipmentChecklistProps {
    * und übergibt die vorbereitete Notiz aus den nicht-gehakten Items.
    */
   readonly onMeldeLuecke?: (input: { einheitId: string; vorbereiteteNotiz: string }) => void;
+  /**
+   * Sender-Read-Only-Modus (P1): wenn `true`, sind alle Checkboxen `disabled`
+   * und der „Lücke melden"-Button wird unterdrückt. Der UX-Vertrag „Sender-
+   * Sicht — keine Aktionen" wird damit auch gegen Tab+Space-Manipulation
+   * geschützt.
+   */
+  readonly readOnly?: boolean;
   readonly 'data-testid'?: string;
 }
 
@@ -77,11 +84,11 @@ const STATUS_META: Record<EinheitStatus, { label: string; className: string }> =
  *
  * **Multi-Einheit:** skaliert auf N Einheiten (Snapshot-Tests prüfen 1, 2, 5).
  */
-export function EquipmentChecklist({ aktiveProfile, einheiten, checked, onToggle, onMeldeLuecke, 'data-testid': dataTestId = 'equipment-checklist' }: EquipmentChecklistProps) {
+export function EquipmentChecklist({ aktiveProfile, einheiten, checked, onToggle, onMeldeLuecke, readOnly = false, 'data-testid': dataTestId = 'equipment-checklist' }: EquipmentChecklistProps) {
   const allItems = aggregateItems(aktiveProfile);
 
   return (
-    <div className="space-y-4" data-testid={dataTestId}>
+    <div className="space-y-4" data-testid={dataTestId} data-read-only={readOnly ? 'true' : undefined}>
       {aktiveProfile.map((profil) => {
         const meta = PSA_PROFIL_META[profil];
         const Icon = meta.icon;
@@ -99,7 +106,13 @@ export function EquipmentChecklist({ aktiveProfile, einheiten, checked, onToggle
                   className="rounded-control border border-border-subtle bg-surface-panel p-3"
                   data-testid={`${dataTestId}-fieldset-${einheit.einheitId}-${profil}`}
                 >
-                  <legend className="px-1 text-xs font-medium text-text-muted">Einheit {einheit.einheitName}</legend>
+                  {/* P6: Legend trägt Einheit + Profil-Kontext, damit
+                      Screenreader bei N×M Wiederholung den Profil-Bezug
+                      mit ansagen. Bisheriges „Einheit Sani-1" wäre
+                      mehrfach identisch. */}
+                  <legend className="px-1 text-xs font-medium text-text-muted">
+                    Einheit {einheit.einheitName} — {meta.label}
+                  </legend>
                   <ul className="space-y-1">
                     {items.map((item) => {
                       const inputId = `${dataTestId}-${einheit.einheitId}-${item.id}`;
@@ -110,14 +123,15 @@ export function EquipmentChecklist({ aktiveProfile, einheiten, checked, onToggle
                             id={inputId}
                             type="checkbox"
                             checked={isChecked}
+                            disabled={readOnly}
                             onChange={(event) => onToggle(einheit.einheitId, item.id, event.target.checked)}
                             // Touch-Target ≥ 44 × 44 px erbt der `<label>`; das
                             // Input selbst ist visuell kleiner, der gesamte
                             // Label-Block ist klickbar.
-                            className="mt-1 h-5 w-5 shrink-0 rounded-sm border-border-subtle text-status-info focus:ring-2 focus:ring-status-info"
+                            className="mt-1 h-5 w-5 shrink-0 rounded-sm border-border-subtle text-status-info focus:ring-2 focus:ring-status-info disabled:cursor-not-allowed disabled:opacity-60"
                             data-testid={`${dataTestId}-checkbox-${einheit.einheitId}-${item.id}`}
                           />
-                          <label htmlFor={inputId} className="flex min-h-11 flex-1 cursor-pointer flex-col py-1 text-sm text-text-primary">
+                          <label htmlFor={inputId} className={cn('flex min-h-11 flex-1 flex-col py-1 text-sm text-text-primary', readOnly ? 'cursor-not-allowed opacity-80' : 'cursor-pointer')}>
                             <span>{item.label}</span>
                             {item.hinweis !== undefined ? <small className="text-xs text-text-muted">{item.hinweis}</small> : null}
                           </label>
@@ -132,46 +146,65 @@ export function EquipmentChecklist({ aktiveProfile, einheiten, checked, onToggle
         );
       })}
 
-      {/* Pro-Einheit Status + Lücke-melden-Button: aggregiert über alle Profile. */}
+      {/* Pro-Einheit Status + Lücke-melden-Button: aggregiert über alle Profile.
+          Im Read-Only-Modus (P1) wird der Lücke-Button suppressed. */}
       <ul className="space-y-2" data-testid={`${dataTestId}-status-list`}>
         {einheiten.map((einheit) => {
           const status = computeStatus(einheit, allItems, checked);
           const statusMeta = STATUS_META[status];
           const missingLabels = allItems.filter((item) => checked.get(compositeKey(einheit.einheitId, item.id)) !== true).map((item) => item.label);
           const vorbereiteteNotiz = missingLabels.join(', ');
-          const luecheButtonDisabled = onMeldeLuecke === undefined;
+          // P16: Typo `luecheButtonDisabled` → `lueckeButtonDisabled`.
+          const lueckeButtonDisabled = onMeldeLuecke === undefined;
+          const lueckeHintId = `${dataTestId}-luecke-hint-${einheit.einheitId}`;
           return (
             <li
               key={einheit.einheitId}
-              className="bg-surface-panel-elevated flex flex-wrap items-center justify-between gap-2 rounded-control border border-border-subtle px-3 py-2"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-border-subtle bg-surface-panel-elevated px-3 py-2"
               data-testid={`${dataTestId}-status-row-${einheit.einheitId}`}
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-medium text-text-primary">Einheit {einheit.einheitName}</span>
+                {/* P12: aria-live="polite" announce Status-Wechsel
+                    (`pristine → in-progress → complete`) für Screenreader. */}
                 <span
                   className={cn('inline-flex items-center rounded-control border px-2 py-0.5 text-xs font-semibold', statusMeta.className)}
                   data-testid={`${dataTestId}-status-${einheit.einheitId}`}
                   data-status={status}
+                  aria-live="polite"
                 >
                   {statusMeta.label}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => onMeldeLuecke?.({ einheitId: einheit.einheitId, vorbereiteteNotiz })}
-                disabled={luecheButtonDisabled}
-                aria-label={`Lücke für Einheit ${einheit.einheitName} melden`}
-                title={luecheButtonDisabled ? 'Verfügbar ab Story 3.6 (Rückmeldung an Sicherheitsbeauftragten)' : undefined}
-                className={cn(
-                  'inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border px-3 py-1.5 text-sm font-medium',
-                  'border-status-danger-border text-status-danger-text hover:bg-status-danger-surface/40',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-status-danger-border',
-                  'disabled:cursor-not-allowed disabled:opacity-50',
-                )}
-                data-testid={`${dataTestId}-luecke-${einheit.einheitId}`}
-              >
-                Ausrüstungs-Lücke melden
-              </button>
+              {readOnly ? null : (
+                <>
+                  {/* P11: zusätzlicher SR-only-Hinweis verlinkt via
+                      aria-describedby — Spec AC10 nennt `title` ODER
+                      `aria-describedby`; wir liefern beide. */}
+                  {lueckeButtonDisabled ? (
+                    <span id={lueckeHintId} className="sr-only">
+                      Verfügbar ab Story 3.6 (Rückmeldung an Sicherheitsbeauftragten)
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => onMeldeLuecke?.({ einheitId: einheit.einheitId, vorbereiteteNotiz })}
+                    disabled={lueckeButtonDisabled}
+                    aria-label={`Lücke für Einheit ${einheit.einheitName} melden`}
+                    aria-describedby={lueckeButtonDisabled ? lueckeHintId : undefined}
+                    title={lueckeButtonDisabled ? 'Verfügbar ab Story 3.6 (Rückmeldung an Sicherheitsbeauftragten)' : undefined}
+                    className={cn(
+                      'inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border px-3 py-1.5 text-sm font-medium',
+                      'border-status-danger-border text-status-danger-text hover:bg-status-danger-surface/40',
+                      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-status-danger-border',
+                      'disabled:cursor-not-allowed disabled:opacity-50',
+                    )}
+                    data-testid={`${dataTestId}-luecke-${einheit.einheitId}`}
+                  >
+                    Ausrüstungs-Lücke melden
+                  </button>
+                </>
+              )}
             </li>
           );
         })}
