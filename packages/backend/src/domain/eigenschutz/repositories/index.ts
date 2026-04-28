@@ -16,3 +16,5 @@ export type {
   UpsertSicherheitsregelQuittungParams,
   UpsertSicherheitsregelQuittungResult,
 } from './i-sicherheitsregel-quittung.repository';
+export type { IPsaProfilZuweisungRepository, IPsaProfilZuweisungReadRepository, PsaProfilZuweisungReadRow } from './i-psa-profil-zuweisung.repository';
+export type { IPsaProfilQuittungRepository, PsaProfilQuittungReadModel, UpsertPsaProfilQuittungParams, UpsertPsaProfilQuittungResult } from './i-psa-profil-quittung.repository';

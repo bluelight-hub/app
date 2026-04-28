@@ -5,6 +5,7 @@ import { EigenschutzInfrastructureModule } from '@/infrastructure/eigenschutz/ei
 import { AuthModule } from '@/modules/auth/auth.module';
 import { EigenschutzHealthController } from './controllers/eigenschutz-health.controller';
 import { GefaehrdungsbeurteilungController } from './controllers/gefaehrdungsbeurteilung.controller';
+import { PsaProfilController } from './controllers/psa-profil.controller';
 import { SicherheitsregelController } from './controllers/sicherheitsregel.controller';
 
 /**
@@ -18,7 +19,7 @@ import { SicherheitsregelController } from './controllers/sicherheitsregel.contr
  * ### Modul-Dependencies
  *
  * - `AuthModule`: liefert `JwtAuthGuard`, `EinsatzScopeGuard`,
- *   `EigenschutzRolleGuard`, `PermissionsGuard` und transitiv das
+ *   `PermissionsGuard` und transitiv das
  *   `KraefteInfrastructureModule` (ADR-014: Single-Import-Konvention).
  * - `CqrsModule`: CommandBus/QueryBus für den Controller.
  * - `EigenschutzApplicationModule`: Command-/Query-Handler.
@@ -26,6 +27,6 @@ import { SicherheitsregelController } from './controllers/sicherheitsregel.contr
  */
 @Module({
   imports: [AuthModule, CqrsModule, EigenschutzApplicationModule, EigenschutzInfrastructureModule],
-  controllers: [EigenschutzHealthController, GefaehrdungsbeurteilungController, SicherheitsregelController],
+  controllers: [EigenschutzHealthController, GefaehrdungsbeurteilungController, SicherheitsregelController, PsaProfilController],
 })
 export class EigenschutzModule {}

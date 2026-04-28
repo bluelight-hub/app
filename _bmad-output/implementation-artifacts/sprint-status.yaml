@@ -1,5 +1,6 @@
 # generated: 2026-04-21
-# last_updated: 2026-04-24 (Story 415-2-5 → review: Auto-Save, Versionsabschluss und Scope-Korrektur ohne Rollen-/Freigabe-Gates abgeschlossen.)
+# last_updated: 2026-04-24 (Story 3.5 → in-progress: Code-Review fertig — 1 Decision-Needed (AC7 Section B AKTIVIERT/DEAKTIVIERT-Differenzierung), 19 Patches (1 BLOCKER, 2 HIGH, 6 MEDIUM, 10 LOW), 12 Deferred, 6 Dismissed. Findings in Story-File + deferred-work.md persistiert. Status wegen offener Patches zurück auf in-progress.)
+# previous_update: 2026-04-24 (Story 3.5 → review: Ausrüstungs-Checkliste je PSA-Profil bei Empfang. Backend-VO + Frontend-Spiegel + Sync-Test, useEquipmentChecklistState-Hook, EquipmentChecklist-Organism, PsaProfilDetailDrawer-Organism, SeverityBanner-Tertiary-Action, Banner-Drawer-Mount, Sender-Page-Drawer-Mount. Backend 8/8 ausruestungs-Tests + 570/570 eigenschutz-Tests grün, Frontend 5040/5040 grün, Lint 0 Errors, DI-Imports + Arch-Check clean. 16 ACs erfüllt, 9 Tasks abgeschlossen.)
 # project: bluelight-hub
 # project_key: NOKEY
 # tracking_system: file-system
@@ -40,7 +41,7 @@
 # Epic-Keys bleiben OHNE Präfix. Volle Konvention: _bmad/custom/project-conventions.md
 
 generated: 2026-04-21
-last_updated: '2026-04-24 (Story 415-2-5 → review: Auto-Save, Versionsabschluss und Scope-Korrektur ohne Rollen-/Freigabe-Gates abgeschlossen.)'
+last_updated: '2026-04-28 (Story 3.5 → ready-for-dev: Ausrüstungs-Checkliste je PSA-Profil bei Empfang. 16 ACs umfassen Backend-Value-Object `AusruestungsCheckliste` (5 Profile mit ≥3 Items, statisches Mapping FR13 MVP — Phase 2 FR16 Admin-Editor), Frontend-Spiegel mit Backend-seitigem Sync-Test (Drift-Schutz, ersetzt durch generierten API-Hook in Phase 2), neuer `EquipmentChecklist` Organism (Fieldset/Legend pro Einheit, native Checkboxen, Status-Pills pristine|in-progress|complete|gap-reported), neuer `PsaProfilDetailDrawer` Organism (Headless-UI-Dialog, Banner-Tap öffnet Drawer, Empfänger-Quittung via existierendem useAckPsaQuittung, Sender-Read-Only-Modus für PsaProfilePage), `SeverityBanner` um optionale tertiaryActionLabel/onTertiary erweitert (defense-in-depth: kein Layout-Default-Bruch), Banner-Wiring übernimmt onShowDetails-Stub, lokaler `useEquipmentChecklistState`-Hook (Composite-Key Map, missingItemsFor als Story-3.6-Schnittstelle für Lücke-Notiz-Vorbelegung). Story bewahrt Story-3.4-Banner-Pfad unverändert (AC10/AC17), keine Backend-Endpoints, keine Schema-Migration. Vorigerigang Story 3.4 → done.) Vorgänger: Story 3.4 → done: Code-Review-Patches angewendet (16/17 + 1 already-handled), 32 Findings deferred, 9 dismissed. Outbox-Lookups in AckHandler + ListPsaQuittungenHandler + ListOffenePsaBekanntgabenHandler nutzen jetzt Prisma JSON-Path-Filter statt In-Memory-Scans (Defense-in-Depth gegen >50 unrelated Events + Cross-Einsatz-Leak); Caller-Authorization gehärtet (einsatzId-Match + leftAt-Check); Repository P2002 prüft meta.target gegen Constraint-Verwechslung; Controller mappt ConflictDetected → 409 + validiert ?seit-ISO → 400; AcknowledgmentStatusBadge nutzt direkten Hook-Import statt Eager-Module-Resolve; OffenePsaBekanntgabenSection rendert Inline-Error-State; useAckPsaQuittung skipped Telemetrie wenn user fehlt (kein "unknown"-Fallback); WS-Schema validiert quittiertAm/occurredAt als ISO-DateTime; permissions.guard.spec deckt eigenschutz:psa:acknowledge ab. Backend 562/582 Tests grün (20 skipped), Frontend 388/388 grün, Lint 0 Errors.)'
 project: bluelight-hub
 project_key: NOKEY
 tracking_system: file-system
@@ -59,23 +60,23 @@ development_status:
   epic-1-retrospective: done
 
   # Epic 2: Gefährdungsbeurteilung & Sicherheitsregeln
-  epic-2: in-progress
+  epic-2: done
   415-2-1-gefaehrdungsbeurteilung-anlegen-aus-vorlage-oder-leer: done
   415-2-2-gefaehrdung-erfassen-mit-5x5-risikomatrix-und-schutzmassnahmen: done
   415-2-3-gefaehrdungen-aendern-entfernen-mit-version-chain: done
   415-2-4-vorversionen-einsehen-und-versions-timeline: done
-  415-2-5-auto-save-mit-2s-debounce-manuelles-version-abschliessen: review
-  415-2-6-sicherheitsregeln-erfassen-und-abschnitt-zuweisen: backlog
-  415-2-7-sicherheitsregeln-empfangen-und-quittieren: backlog
-  epic-2-retrospective: optional
+  415-2-5-auto-save-mit-2s-debounce-manuelles-version-abschliessen: done
+  415-2-6-sicherheitsregeln-erfassen-und-abschnitt-zuweisen: done
+  415-2-7-sicherheitsregeln-empfangen-und-quittieren: done
+  epic-2-retrospective: done
 
   # Epic 3: PSA-Profile & kritische Bekanntgabe (CBRN-Signatur-Interaktion)
-  epic-3: backlog
-  415-3-1-psa-profil-einer-einheit-aktivieren-deaktivieren: backlog
-  415-3-2-multi-select-bulk-psa-aenderung-auf-mehreren-einheiten: backlog
-  415-3-3-kritische-bekanntgabe-via-severitybanner-echtzeit-propagation: backlog
-  415-3-4-psa-quittung-quittungsstand-anzeige: backlog
-  415-3-5-ausruestungs-checkliste-je-psa-profil-bei-empfang: backlog
+  epic-3: in-progress
+  415-3-1-psa-profil-einer-einheit-aktivieren-deaktivieren: done
+  415-3-2-multi-select-bulk-psa-aenderung-auf-mehreren-einheiten: in-progress
+  415-3-3-kritische-bekanntgabe-via-severitybanner-echtzeit-propagation: done
+  415-3-4-psa-quittung-quittungsstand-anzeige: done
+  415-3-5-ausruestungs-checkliste-je-psa-profil-bei-empfang: in-progress
   415-3-6-rueckmeldung-ausruestungs-luecke-an-sicherheitsbeauftragten: backlog
   415-3-7-re-prompt-scheduler-eskalation-nach-5-min-ohne-quittung: backlog
   415-3-8-push-notifications-fuer-kritische-psa-events: backlog

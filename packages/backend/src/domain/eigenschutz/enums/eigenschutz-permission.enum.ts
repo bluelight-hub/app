@@ -13,6 +13,7 @@ export type EigenschutzPermission =
   | 'eigenschutz:gefaehrdungsbeurteilung:write'
   | 'eigenschutz:psa:read'
   | 'eigenschutz:psa:write'
+  | 'eigenschutz:psa:acknowledge'
   | 'eigenschutz:sicherheitsregel:read'
   | 'eigenschutz:sicherheitsregel:write'
   | 'eigenschutz:sicherheitsregel:acknowledge'
@@ -25,13 +26,14 @@ export type EigenschutzPermission =
 
 /**
  * Laufzeit-iterierbare Liste aller Eigenschutz-Permissions.
- * 13 Einträge aus Architecture §B10 Z. 699–706.
+ * 14 Einträge aus Architecture §B10 Z. 699–706 + Story 3.4 (psa:acknowledge).
  */
 export const ALL_EIGENSCHUTZ_PERMISSIONS: readonly EigenschutzPermission[] = [
   'eigenschutz:gefaehrdungsbeurteilung:read',
   'eigenschutz:gefaehrdungsbeurteilung:write',
   'eigenschutz:psa:read',
   'eigenschutz:psa:write',
+  'eigenschutz:psa:acknowledge',
   'eigenschutz:sicherheitsregel:read',
   'eigenschutz:sicherheitsregel:write',
   'eigenschutz:sicherheitsregel:acknowledge',

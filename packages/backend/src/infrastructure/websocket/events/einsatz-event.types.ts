@@ -39,7 +39,11 @@ export type EinsatzEventName =
   | 'gefahrenmatrix:aktualisiert'
   // Eigenschutz — Sicherheitsregeln (Story 2.7)
   | 'sicherheitsregel:ausgerufen'
-  | 'sicherheitsregel:quittiert';
+  | 'sicherheitsregel:quittiert'
+  // Eigenschutz — PSA-Profile (Story 3.1)
+  | 'eigenschutz:psa-profil-geaendert'
+  // Eigenschutz — PSA-Quittung (Story 3.4)
+  | 'eigenschutz:psa-quittung-abgegeben';
 
 /**
  * Port für den einsatzgebundenen WebSocket-Publisher.

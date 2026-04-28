@@ -9,3 +9,5 @@ export { EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter } from './gefaeh
 export { EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter } from './gefaehrdungsbeurteilung-aktualisiert.adapter';
 export { EigenschutzSicherheitsregelAusgerufenEventAdapter } from './sicherheitsregel-ausgerufen.adapter';
 export { EigenschutzSicherheitsregelQuittiertEventAdapter } from './sicherheitsregel-quittiert.adapter';
+export { EigenschutzPsaProfilGeaendertEventAdapter } from './psa-profil-geaendert.adapter';
+export { EigenschutzQuittungAbgegebenEventAdapter } from './psa-quittung-abgegeben.adapter';

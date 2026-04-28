@@ -163,6 +163,9 @@ import { GefaehrdungsbeurteilungErstelltEvent } from '@domain/eigenschutz/events
 import { GefaehrdungsbeurteilungAktualisiertEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event';
 import { SicherheitsregelAusgerufenEvent } from '@domain/eigenschutz/events/sicherheitsregel-ausgerufen.event';
 import { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
+import { PsaProfilGeaendertEvent, type PsaProfilAktion } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
+import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
+import { PsaProfil } from '@/generated/prisma/enums';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
 import type { AlarmierungEmpfaengerRef } from '@domain/aggregates/alarmierung/alarmierung-empfaenger-ref';
@@ -438,6 +441,8 @@ export class EventDeserializer {
       ['eigenschutz.gefaehrdungsbeurteilung_aktualisiert', deserializeGefaehrdungsbeurteilungAktualisiert],
       ['eigenschutz.sicherheitsregel_ausgerufen', deserializeSicherheitsregelAusgerufen],
       ['eigenschutz.sicherheitsregel_quittiert', deserializeSicherheitsregelQuittiert],
+      ['eigenschutz.psa_profil_geaendert', deserializePsaProfilGeaendert],
+      ['eigenschutz.quittung_abgegeben', deserializeQuittungAbgegeben],
     ]);
   }
 
@@ -2820,5 +2825,91 @@ function deserializeSicherheitsregelQuittiert(payload: Record<string, unknown>, 
   }
 
   const event = new SicherheitsregelQuittiertEvent(einsatzId, userId, einheitId, regelId, propagationGroupIdRaw as string | null, quittiertAm, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+const PSA_PROFIL_VALUES = new Set(Object.values(PsaProfil));
+
+function isPsaProfil(value: unknown): value is (typeof PsaProfil)[keyof typeof PsaProfil] {
+  return typeof value === 'string' && PSA_PROFIL_VALUES.has(value as (typeof PsaProfil)[keyof typeof PsaProfil]);
+}
+
+function isPsaProfilAktion(value: unknown): value is PsaProfilAktion {
+  return value === 'AKTIVIERT' || value === 'DEAKTIVIERT';
+}
+
+/**
+ * Deserializer für `eigenschutz.psa_profil_geaendert` (Story 3.1).
+ *
+ * Pflichtfelder: einsatzId, userId, einheitId, zuweisungId,
+ * propagationGroupId, profil (Enum), aktion (`AKTIVIERT`/`DEAKTIVIERT`),
+ * begruendung. Strikte Validierung — der Replay verweigert korrupte Payloads.
+ */
+function deserializePsaProfilGeaendert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const zuweisungId = payload.zuweisungId;
+  const propagationGroupId = payload.propagationGroupId;
+  const profil = payload.profil;
+  const aktion = payload.aktion;
+  const begruendung = payload.begruendung;
+
+  if (
+    typeof einsatzId !== 'string' ||
+    typeof userId !== 'string' ||
+    typeof einheitId !== 'string' ||
+    typeof zuweisungId !== 'string' ||
+    typeof propagationGroupId !== 'string' ||
+    typeof begruendung !== 'string'
+  ) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.psa_profil_geaendert');
+  }
+  if (!isPsaProfil(profil) || !isPsaProfilAktion(aktion)) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.psa_profil_geaendert');
+  }
+  // Pflichtfelder dürfen keine Whitespace-only Strings sein — Aggregate-
+  // `reconstitute` würde sonst später fehlschlagen, mit unklarerem Fehler-Pfad
+  // (Code-Review P-22 / P-28).
+  if (
+    einsatzId.trim().length === 0 ||
+    userId.trim().length === 0 ||
+    einheitId.trim().length === 0 ||
+    zuweisungId.trim().length === 0 ||
+    propagationGroupId.trim().length === 0 ||
+    begruendung.trim().length === 0
+  ) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.psa_profil_geaendert: leere Pflichtfelder');
+  }
+
+  const event = new PsaProfilGeaendertEvent(einsatzId, userId, einheitId, zuweisungId, propagationGroupId, profil, aktion, begruendung, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserializer für `eigenschutz.quittung_abgegeben` (Story 3.4).
+ *
+ * Pflichtfelder: einsatzId, userId, einheitId, propagationGroupId,
+ * quittiertAm. Strikte Typ-Guards — der Replay verweigert korrupte Payloads.
+ */
+function deserializeQuittungAbgegeben(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const propagationGroupId = payload.propagationGroupId;
+  const quittiertAmRaw = payload.quittiertAm;
+
+  if (typeof einsatzId !== 'string' || typeof userId !== 'string' || typeof einheitId !== 'string' || typeof propagationGroupId !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.quittung_abgegeben');
+  }
+  if (typeof quittiertAmRaw !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.quittung_abgegeben');
+  }
+  const quittiertAm = new Date(quittiertAmRaw);
+  if (Number.isNaN(quittiertAm.getTime())) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.quittung_abgegeben');
+  }
+
+  const event = new QuittungAbgegebenEvent(einsatzId, userId, einheitId, propagationGroupId, quittiertAm, aggregateId);
   return Result.ok<DomainEvent>(event);
 }

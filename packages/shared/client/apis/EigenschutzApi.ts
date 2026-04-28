@@ -15,7 +15,10 @@
 
 import * as runtime from '../runtime';
 import type {
+  AckPsaQuittungDto,
   AckSicherheitsregelDto,
+  BulkChangePsaProfilDto,
+  ChangePsaProfilDto,
   CreateGefaehrdungsbeurteilungDto,
   CreateSicherheitsregelDto,
   EigenschutzHealthControllerGetHealthVAlpha200Response,
@@ -23,6 +26,10 @@ import type {
   GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response,
   GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200Response,
   GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response,
+  PsaProfilControllerChangePsaProfilVAlpha201Response,
+  PsaProfilControllerGetPsaProfileVAlpha200Response,
+  PsaProfilControllerListOffeneBekanntgabenVAlpha200Response,
+  PsaProfilControllerListQuittungenVAlpha200Response,
   SicherheitsregelControllerGetRegelVAlpha200Response,
   SicherheitsregelControllerListQuittungenVAlpha200Response,
   SicherheitsregelControllerListRegelnVAlpha200Response,
@@ -30,8 +37,14 @@ import type {
   UpdateSicherheitsregelDto,
 } from '../models/index';
 import {
+    AckPsaQuittungDtoFromJSON,
+    AckPsaQuittungDtoToJSON,
     AckSicherheitsregelDtoFromJSON,
     AckSicherheitsregelDtoToJSON,
+    BulkChangePsaProfilDtoFromJSON,
+    BulkChangePsaProfilDtoToJSON,
+    ChangePsaProfilDtoFromJSON,
+    ChangePsaProfilDtoToJSON,
     CreateGefaehrdungsbeurteilungDtoFromJSON,
     CreateGefaehrdungsbeurteilungDtoToJSON,
     CreateSicherheitsregelDtoFromJSON,
@@ -46,6 +59,14 @@ import {
     GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200ResponseToJSON,
     GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseFromJSON,
     GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseToJSON,
+    PsaProfilControllerChangePsaProfilVAlpha201ResponseFromJSON,
+    PsaProfilControllerChangePsaProfilVAlpha201ResponseToJSON,
+    PsaProfilControllerGetPsaProfileVAlpha200ResponseFromJSON,
+    PsaProfilControllerGetPsaProfileVAlpha200ResponseToJSON,
+    PsaProfilControllerListOffeneBekanntgabenVAlpha200ResponseFromJSON,
+    PsaProfilControllerListOffeneBekanntgabenVAlpha200ResponseToJSON,
+    PsaProfilControllerListQuittungenVAlpha200ResponseFromJSON,
+    PsaProfilControllerListQuittungenVAlpha200ResponseToJSON,
     SicherheitsregelControllerGetRegelVAlpha200ResponseFromJSON,
     SicherheitsregelControllerGetRegelVAlpha200ResponseToJSON,
     SicherheitsregelControllerListQuittungenVAlpha200ResponseFromJSON,
@@ -89,6 +110,38 @@ export interface GefaehrdungsbeurteilungControllerUpdateItemsVAlphaRequest {
     einsatzId: string;
     id: string;
     updateGefaehrdungsbeurteilungItemsDto: UpdateGefaehrdungsbeurteilungItemsDto;
+}
+
+export interface PsaProfilControllerBulkChangePsaProfilVAlphaRequest {
+    einsatzId: string;
+    bulkChangePsaProfilDto: BulkChangePsaProfilDto;
+}
+
+export interface PsaProfilControllerChangePsaProfilVAlphaRequest {
+    einsatzId: string;
+    einheitId: string;
+    changePsaProfilDto: ChangePsaProfilDto;
+}
+
+export interface PsaProfilControllerGetPsaProfileVAlphaRequest {
+    einsatzId: string;
+    einheitId: string;
+}
+
+export interface PsaProfilControllerListOffeneBekanntgabenVAlphaRequest {
+    einsatzId: string;
+    seit?: string;
+}
+
+export interface PsaProfilControllerListQuittungenVAlphaRequest {
+    einsatzId: string;
+    propagationGroupId: string;
+}
+
+export interface PsaProfilControllerQuittierenVAlphaRequest {
+    einsatzId: string;
+    propagationGroupId: string;
+    ackPsaQuittungDto: AckPsaQuittungDto;
 }
 
 export interface SicherheitsregelControllerCreateRegelnVAlphaRequest {
@@ -398,6 +451,265 @@ export class EigenschutzApi extends runtime.BaseAPI {
     async gefaehrdungsbeurteilungControllerUpdateItemsVAlpha(requestParameters: GefaehrdungsbeurteilungControllerUpdateItemsVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response> {
         const response = await this.gefaehrdungsbeurteilungControllerUpdateItemsVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * PSA-Profil-Toggle gleichzeitig auf mehrere Einheiten anwenden (Bulk)
+     */
+    async psaProfilControllerBulkChangePsaProfilVAlphaRaw(requestParameters: PsaProfilControllerBulkChangePsaProfilVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PsaProfilControllerChangePsaProfilVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling psaProfilControllerBulkChangePsaProfilVAlpha().'
+            );
+        }
+
+        if (requestParameters['bulkChangePsaProfilDto'] == null) {
+            throw new runtime.RequiredError(
+                'bulkChangePsaProfilDto',
+                'Required parameter "bulkChangePsaProfilDto" was null or undefined when calling psaProfilControllerBulkChangePsaProfilVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/psa-profile/bulk-aendern`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: BulkChangePsaProfilDtoToJSON(requestParameters['bulkChangePsaProfilDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PsaProfilControllerChangePsaProfilVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * PSA-Profil-Toggle gleichzeitig auf mehrere Einheiten anwenden (Bulk)
+     */
+    async psaProfilControllerBulkChangePsaProfilVAlpha(requestParameters: PsaProfilControllerBulkChangePsaProfilVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PsaProfilControllerChangePsaProfilVAlpha201Response> {
+        const response = await this.psaProfilControllerBulkChangePsaProfilVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * PSA-Profil-Toggle einer Einheit ausführen
+     */
+    async psaProfilControllerChangePsaProfilVAlphaRaw(requestParameters: PsaProfilControllerChangePsaProfilVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PsaProfilControllerChangePsaProfilVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling psaProfilControllerChangePsaProfilVAlpha().'
+            );
+        }
+
+        if (requestParameters['einheitId'] == null) {
+            throw new runtime.RequiredError(
+                'einheitId',
+                'Required parameter "einheitId" was null or undefined when calling psaProfilControllerChangePsaProfilVAlpha().'
+            );
+        }
+
+        if (requestParameters['changePsaProfilDto'] == null) {
+            throw new runtime.RequiredError(
+                'changePsaProfilDto',
+                'Required parameter "changePsaProfilDto" was null or undefined when calling psaProfilControllerChangePsaProfilVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/psa-profile/einheiten/{einheitId}/change`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"einheitId"}}`, encodeURIComponent(String(requestParameters['einheitId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ChangePsaProfilDtoToJSON(requestParameters['changePsaProfilDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PsaProfilControllerChangePsaProfilVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * PSA-Profil-Toggle einer Einheit ausführen
+     */
+    async psaProfilControllerChangePsaProfilVAlpha(requestParameters: PsaProfilControllerChangePsaProfilVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PsaProfilControllerChangePsaProfilVAlpha201Response> {
+        const response = await this.psaProfilControllerChangePsaProfilVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Aktive PSA-Profile einer Einheit laden
+     */
+    async psaProfilControllerGetPsaProfileVAlphaRaw(requestParameters: PsaProfilControllerGetPsaProfileVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PsaProfilControllerGetPsaProfileVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling psaProfilControllerGetPsaProfileVAlpha().'
+            );
+        }
+
+        if (requestParameters['einheitId'] == null) {
+            throw new runtime.RequiredError(
+                'einheitId',
+                'Required parameter "einheitId" was null or undefined when calling psaProfilControllerGetPsaProfileVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/psa-profile/einheiten/{einheitId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"einheitId"}}`, encodeURIComponent(String(requestParameters['einheitId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PsaProfilControllerGetPsaProfileVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Aktive PSA-Profile einer Einheit laden
+     */
+    async psaProfilControllerGetPsaProfileVAlpha(requestParameters: PsaProfilControllerGetPsaProfileVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PsaProfilControllerGetPsaProfileVAlpha200Response> {
+        const response = await this.psaProfilControllerGetPsaProfileVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Offene PSA-Bekanntgaben des Einsatzes auflisten (pending/partial) — AC15
+     */
+    async psaProfilControllerListOffeneBekanntgabenVAlphaRaw(requestParameters: PsaProfilControllerListOffeneBekanntgabenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PsaProfilControllerListOffeneBekanntgabenVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling psaProfilControllerListOffeneBekanntgabenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['seit'] != null) {
+            queryParameters['seit'] = requestParameters['seit'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/psa-profile/propagation-groups/offene-bekanntgaben`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PsaProfilControllerListOffeneBekanntgabenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Offene PSA-Bekanntgaben des Einsatzes auflisten (pending/partial) — AC15
+     */
+    async psaProfilControllerListOffeneBekanntgabenVAlpha(requestParameters: PsaProfilControllerListOffeneBekanntgabenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PsaProfilControllerListOffeneBekanntgabenVAlpha200Response> {
+        const response = await this.psaProfilControllerListOffeneBekanntgabenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Quittungs-Stand einer PSA-Bekanntgabe-Gruppe auflisten (Sender-View) — AC8
+     */
+    async psaProfilControllerListQuittungenVAlphaRaw(requestParameters: PsaProfilControllerListQuittungenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PsaProfilControllerListQuittungenVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling psaProfilControllerListQuittungenVAlpha().'
+            );
+        }
+
+        if (requestParameters['propagationGroupId'] == null) {
+            throw new runtime.RequiredError(
+                'propagationGroupId',
+                'Required parameter "propagationGroupId" was null or undefined when calling psaProfilControllerListQuittungenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/psa-profile/propagation-groups/{propagationGroupId}/quittungen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"propagationGroupId"}}`, encodeURIComponent(String(requestParameters['propagationGroupId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PsaProfilControllerListQuittungenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Quittungs-Stand einer PSA-Bekanntgabe-Gruppe auflisten (Sender-View) — AC8
+     */
+    async psaProfilControllerListQuittungenVAlpha(requestParameters: PsaProfilControllerListQuittungenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PsaProfilControllerListQuittungenVAlpha200Response> {
+        const response = await this.psaProfilControllerListQuittungenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * PSA-Profil-Änderung durch eine konkrete Einheit quittieren — AC1/AC2/AC3
+     */
+    async psaProfilControllerQuittierenVAlphaRaw(requestParameters: PsaProfilControllerQuittierenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling psaProfilControllerQuittierenVAlpha().'
+            );
+        }
+
+        if (requestParameters['propagationGroupId'] == null) {
+            throw new runtime.RequiredError(
+                'propagationGroupId',
+                'Required parameter "propagationGroupId" was null or undefined when calling psaProfilControllerQuittierenVAlpha().'
+            );
+        }
+
+        if (requestParameters['ackPsaQuittungDto'] == null) {
+            throw new runtime.RequiredError(
+                'ackPsaQuittungDto',
+                'Required parameter "ackPsaQuittungDto" was null or undefined when calling psaProfilControllerQuittierenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/psa-profile/propagation-groups/{propagationGroupId}/quittieren`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"propagationGroupId"}}`, encodeURIComponent(String(requestParameters['propagationGroupId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AckPsaQuittungDtoToJSON(requestParameters['ackPsaQuittungDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * PSA-Profil-Änderung durch eine konkrete Einheit quittieren — AC1/AC2/AC3
+     */
+    async psaProfilControllerQuittierenVAlpha(requestParameters: PsaProfilControllerQuittierenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.psaProfilControllerQuittierenVAlphaRaw(requestParameters, initOverrides);
     }
 
     /**

@@ -2,6 +2,8 @@
 
 Status: done
 
+> **Update 2026-04-28:** Eigenschutz-Rollen-Schicht ist entfernt — Permission-Guard ist die einzige Autorisierungsquelle. Erwähnungen von `EigenschutzRolleGuard` / `@RequiresEigenschutzRolle` unten sind historisch; produktiv gilt die Drei-Schicht-Kette `JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard`. `EinsatzScopeGuard` selbst bleibt unverändert (Membership-Check).
+
 **Scope-Grenze (KRITISCH):** Diese Story ist **Plattform-Backend + ADR**. Sie liefert den neuen Guard `EinsatzScopeGuard` in `modules/auth/guards/`, den Begleit-Decorator `@EinsatzParam`, die erweiterte Repository-Port-Methode für User-↔-Einsatz-Lookup und die ADR-012. **Nicht in dieser Story:**
 
 - `EigenschutzRolleGuard` / `PermissionsGuard` (Story 1.5)

@@ -482,6 +482,33 @@ export const SICHERHEITSREGEL_VERSION_REPOSITORY = Symbol('ISicherheitsregelVers
  */
 export const SICHERHEITSREGEL_QUITTUNG_REPOSITORY = Symbol('ISicherheitsregelQuittungRepository');
 
+/**
+ * Repository Token für `IPsaProfilZuweisungRepository` (Story 3.1).
+ *
+ * Wird vom `ChangePsaProfilHandler` (Application) injiziert. Die
+ * Implementierung im Infrastructure-Layer ist
+ * `PrismaPsaProfilZuweisungRepository`.
+ */
+export const PSA_PROFIL_ZUWEISUNG_REPOSITORY = Symbol('IPsaProfilZuweisungRepository');
+
+/**
+ * Repository Token für `IPsaProfilQuittungRepository` (Story 3.4).
+ *
+ * Wird vom `AckPsaQuittungHandler` (Application) und den Quittungs-Listen-
+ * Queries injiziert. Die Implementierung im Infrastructure-Layer ist
+ * `PrismaPsaProfilQuittungRepository`.
+ */
+export const PSA_PROFIL_QUITTUNG_REPOSITORY = Symbol('IPsaProfilQuittungRepository');
+
+/**
+ * Read-Repository Token für `IPsaProfilZuweisungReadRepository` (Story 3.1).
+ *
+ * Liefert Read-Model-Rows der aktiven PSA-Profile einer Einheit für die
+ * GET-Endpoints im Controller. Trennt Read- vom Aggregate-Pfad
+ * (Lesson L5 aus Story 2.4).
+ */
+export const PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY = Symbol('IPsaProfilZuweisungReadRepository');
+
 /** Repository Token für IDefaultZeichenRepository (Issue #668) */
 export const DEFAULT_ZEICHEN_REPOSITORY = Symbol('IDefaultZeichenRepository');
 

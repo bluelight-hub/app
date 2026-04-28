@@ -31,7 +31,7 @@ describe('EinsatzScopeGuard', () => {
     method: string;
     path: string;
     route: { path: string };
-    einsatzContext?: { einsatzId: string; einsatzRollenNamen: string[]; einsatzPermissions: string[] };
+    einsatzContext?: { einsatzId: string; einsatzPermissions: string[] };
   }
 
   function createMockContextAndRequest(options?: { user?: { userId: string } | undefined; params?: Record<string, string>; handler?: () => unknown; controllerClass?: new () => unknown }): {
@@ -137,7 +137,6 @@ describe('EinsatzScopeGuard', () => {
     expect(rollenBesetzungRepository.findActiveByUserIdAndEinsatzId).toHaveBeenCalledWith(TEST_USER_ID, TEST_EINSATZ_ID);
     expect(request.einsatzContext).toEqual({
       einsatzId: TEST_EINSATZ_ID,
-      einsatzRollenNamen: ['Eigenschutz: Sicherheitsbeauftragter'],
       einsatzPermissions: ['eigenschutz:psa:write'],
     });
   });
@@ -238,7 +237,7 @@ describe('EinsatzScopeGuard', () => {
     expect(rollenBesetzungRepository.findActiveByUserIdAndEinsatzId).toHaveBeenCalledWith(TEST_USER_ID, TEST_EINSATZ_ID);
   });
 
-  it('(g) Mehrfach-Rollenbesetzung → einsatzRollenNamen dedupliziert', async () => {
+  it('(g) Mehrfach-Rollenbesetzung → Membership-Check passiert (keine Rollen-Liste mehr im Context)', async () => {
     authService.findUserById.mockResolvedValue(createUserEntity());
     rollenBesetzungRepository.findActiveByUserIdAndEinsatzId.mockResolvedValue(
       Result.ok([createRollenBesetzung('Eigenschutz: Sicherheitsbeauftragter'), createRollenBesetzung('Eigenschutz: Sicherheitsbeauftragter'), createRollenBesetzung('Eigenschutz: Nachbereitung')]),
@@ -246,9 +245,13 @@ describe('EinsatzScopeGuard', () => {
 
     const { context, request } = createMockContextAndRequest({ user: { userId: TEST_USER_ID }, params: { einsatzId: TEST_EINSATZ_ID } });
 
-    await guard.canActivate(context);
+    const ok = await guard.canActivate(context);
 
-    expect(request.einsatzContext?.einsatzRollenNamen).toEqual(['Eigenschutz: Sicherheitsbeauftragter', 'Eigenschutz: Nachbereitung']);
+    // Nach Drei-Schicht-Konsolidierung: Guard prüft nur noch Membership.
+    // Konkrete Rollen-Namen werden nicht mehr im Context exponiert — Schreibrechte
+    // laufen ausschließlich über `PermissionsGuard` + `eigenschutz:*:write`.
+    expect(ok).toBe(true);
+    expect(request.einsatzContext?.einsatzId).toBe(TEST_EINSATZ_ID);
   });
 
   describe('(h) User.permissions Parse-Robustheit → [] + Warn-Log', () => {

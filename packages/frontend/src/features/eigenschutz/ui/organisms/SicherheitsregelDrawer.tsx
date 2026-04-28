@@ -28,6 +28,8 @@ import { SicherheitsregelCreateSchemaV1, type SicherheitsregelDto } from '@/feat
 import { SicherheitsregelConflictError, useCreateSicherheitsregel, useSicherheitsregel, useUpdateSicherheitsregel } from '@/features/eigenschutz/api/queries';
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
@@ -314,7 +316,7 @@ export function SicherheitsregelDrawer({ einsatzId, open, onClose, onSaved, rege
                   <span className="block font-medium text-text-primary">
                     Titel <span className="text-status-danger-text">*</span>
                   </span>
-                  <input
+                  <Input
                     id="sicherheitsregel-titel"
                     ref={titelInputRef}
                     type="text"
@@ -331,7 +333,7 @@ export function SicherheitsregelDrawer({ einsatzId, open, onClose, onSaved, rege
                     }}
                     maxLength={TITEL_MAX_LENGTH}
                     disabled={createMutation.isPending || updateMutation.isPending}
-                    className="mt-1 block min-h-[2.75rem] w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring"
+                    className="mt-1 min-h-[2.75rem] py-2"
                     data-testid="sicherheitsregel-titel"
                     aria-describedby={showCount ? 'sicherheitsregel-titel-count' : undefined}
                   />
@@ -360,7 +362,7 @@ export function SicherheitsregelDrawer({ einsatzId, open, onClose, onSaved, rege
                   <span className="block font-medium text-text-primary">
                     Inhalt <span className="text-status-danger-text">*</span>
                   </span>
-                  <textarea
+                  <Textarea
                     id="sicherheitsregel-inhalt"
                     ref={inhaltTextareaRef}
                     value={field.state.value}
@@ -376,9 +378,9 @@ export function SicherheitsregelDrawer({ einsatzId, open, onClose, onSaved, rege
                       }
                     }}
                     maxLength={INHALT_MAX_LENGTH}
-                    rows={6}
+                    textareaSize="lg"
                     disabled={createMutation.isPending || updateMutation.isPending}
-                    className="mt-1 block w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring"
+                    className="mt-1"
                     data-testid="sicherheitsregel-inhalt"
                     aria-describedby={showCount ? 'sicherheitsregel-inhalt-count' : undefined}
                   />

@@ -60,6 +60,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let message: string;
     let errorDetails: unknown = null;
     let errorCode: unknown = null;
+    let errorContext: unknown = null;
     let allowClientCode = false;
 
     if (status >= 500) {
@@ -103,6 +104,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
           message = normalizeMessage(responseObj.message) || normalizeMessage(exception.message) || normalizeMessage(responseObj.error) || getDefaultClientErrorMessage(status);
           errorDetails = responseObj.error || null;
           errorCode = responseObj.code || null;
+          // Domain-spezifischer Strukturkontext (z. B. ConflictException-Body
+          // mit `{ context: { rule, einheitId, profil, currentVersion } }`)
+          // muss durchgereicht werden, damit Clients den Konflikt-Pfad
+          // korrekt darstellen können (Story 3.2 AC5/AC6).
+          if (responseObj.context !== undefined && responseObj.context !== null && typeof responseObj.context === 'object') {
+            errorContext = responseObj.context;
+          }
         } else {
           message = normalizeMessage(exception.message) || getDefaultClientErrorMessage(status);
         }
@@ -132,6 +140,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
     if (errorCode && (status < 500 || allowClientCode)) {
       responseBody.code = errorCode;
+    }
+    if (errorContext && status < 500) {
+      responseBody.context = errorContext;
     }
 
     // Set request ID header for client correlation

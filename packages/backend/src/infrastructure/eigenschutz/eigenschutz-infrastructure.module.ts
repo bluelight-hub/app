@@ -6,6 +6,9 @@ import {
   GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY,
   GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY,
   LOGGER,
+  PSA_PROFIL_QUITTUNG_REPOSITORY,
+  PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY,
+  PSA_PROFIL_ZUWEISUNG_REPOSITORY,
   SICHERHEITSREGEL_QUITTUNG_REPOSITORY,
   SICHERHEITSREGEL_REPOSITORY,
   SICHERHEITSREGEL_VERSION_REPOSITORY,
@@ -17,10 +20,14 @@ import { PrismaGefaehrdungsbeurteilungVorlageRepository } from './repositories/p
 import { PrismaSicherheitsregelRepository } from './repositories/prisma-sicherheitsregel.repository';
 import { PrismaSicherheitsregelVersionRepository } from './repositories/prisma-sicherheitsregel-version.repository';
 import { PrismaSicherheitsregelQuittungRepository } from './repositories/prisma-sicherheitsregel-quittung.repository';
+import { PrismaPsaProfilZuweisungRepository } from './repositories/prisma-psa-profil-zuweisung.repository';
+import { PrismaPsaProfilQuittungRepository } from './repositories/prisma-psa-profil-quittung.repository';
 import { EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-erstellt.adapter';
 import { EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-aktualisiert.adapter';
 import { EigenschutzSicherheitsregelAusgerufenEventAdapter } from './event-adapters/sicherheitsregel-ausgerufen.adapter';
 import { EigenschutzSicherheitsregelQuittiertEventAdapter } from './event-adapters/sicherheitsregel-quittiert.adapter';
+import { EigenschutzPsaProfilGeaendertEventAdapter } from './event-adapters/psa-profil-geaendert.adapter';
+import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-quittung-abgegeben.adapter';
 
 /**
  * Infrastructure-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -43,10 +50,15 @@ import { EigenschutzSicherheitsregelQuittiertEventAdapter } from './event-adapte
     { provide: SICHERHEITSREGEL_REPOSITORY, useClass: PrismaSicherheitsregelRepository },
     { provide: SICHERHEITSREGEL_VERSION_REPOSITORY, useClass: PrismaSicherheitsregelVersionRepository },
     { provide: SICHERHEITSREGEL_QUITTUNG_REPOSITORY, useClass: PrismaSicherheitsregelQuittungRepository },
+    { provide: PSA_PROFIL_ZUWEISUNG_REPOSITORY, useClass: PrismaPsaProfilZuweisungRepository },
+    { provide: PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY, useClass: PrismaPsaProfilZuweisungRepository },
+    { provide: PSA_PROFIL_QUITTUNG_REPOSITORY, useClass: PrismaPsaProfilQuittungRepository },
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
     EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,
     EigenschutzSicherheitsregelAusgerufenEventAdapter,
     EigenschutzSicherheitsregelQuittiertEventAdapter,
+    EigenschutzPsaProfilGeaendertEventAdapter,
+    EigenschutzQuittungAbgegebenEventAdapter,
   ],
   exports: [
     GEFAEHRDUNGSBEURTEILUNG_REPOSITORY,
@@ -55,10 +67,15 @@ import { EigenschutzSicherheitsregelQuittiertEventAdapter } from './event-adapte
     SICHERHEITSREGEL_REPOSITORY,
     SICHERHEITSREGEL_VERSION_REPOSITORY,
     SICHERHEITSREGEL_QUITTUNG_REPOSITORY,
+    PSA_PROFIL_ZUWEISUNG_REPOSITORY,
+    PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY,
+    PSA_PROFIL_QUITTUNG_REPOSITORY,
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
     EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,
     EigenschutzSicherheitsregelAusgerufenEventAdapter,
     EigenschutzSicherheitsregelQuittiertEventAdapter,
+    EigenschutzPsaProfilGeaendertEventAdapter,
+    EigenschutzQuittungAbgegebenEventAdapter,
   ],
 })
 export class EigenschutzInfrastructureModule {}

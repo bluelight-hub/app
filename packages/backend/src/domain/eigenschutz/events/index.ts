@@ -10,3 +10,6 @@ export { GefaehrdungsbeurteilungErstelltEvent } from './gefaehrdungsbeurteilung-
 export { SicherheitsregelAusgerufenEvent } from './sicherheitsregel-ausgerufen.event';
 export type { SicherheitsregelAusgerufenChangedFields, SicherheitsregelFieldKey } from './sicherheitsregel-ausgerufen.event';
 export { SicherheitsregelQuittiertEvent } from './sicherheitsregel-quittiert.event';
+export { PsaProfilGeaendertEvent } from './psa-profil-geaendert.event';
+export type { PsaProfilAktion } from './psa-profil-geaendert.event';
+export { QuittungAbgegebenEvent } from './quittung-abgegeben.event';

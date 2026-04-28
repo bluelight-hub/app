@@ -4,7 +4,7 @@
  *
  * **Lesepfad (Controller):**
  * ```typescript
- * const { einsatzRollenNamen, einsatzPermissions } = req.einsatzContext!;
+ * const { einsatzPermissions } = req.einsatzContext!;
  * ```
  *
  * **Warum `?`-optional im Declaration-Merging?** Routen ohne `EinsatzScopeGuard`
@@ -17,12 +17,6 @@
 export interface EinsatzRequestContext {
   /** Der im Request bestätigte, zugehörige Einsatz (aus Pfad-Parameter). */
   einsatzId: string;
-  /**
-   * Snapshot-Rollen-Namen aus `EinsatzRollenbesetzung.rollenName` (dedupliziert).
-   * Nachgelagerte Guards (Story 1.5: `EigenschutzRolleGuard`) konsumieren diese
-   * Liste für den Präfix-Match `^Eigenschutz: `.
-   */
-  einsatzRollenNamen: string[];
   /**
    * Globale User-Permissions aus `User.permissions` (JSON-Array, robust geparsed).
    * Leer bei null / ungültigem JSON / Nicht-Array-JSON.

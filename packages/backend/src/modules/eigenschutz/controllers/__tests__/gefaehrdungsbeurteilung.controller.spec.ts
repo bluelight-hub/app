@@ -14,7 +14,6 @@ import { GetGefaehrdungsbeurteilungHistorieQuery } from '@/application/eigenschu
 import { ListGefaehrdungsbeurteilungenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungen/list-gefaehrdungsbeurteilungen.query';
 import { ListGefaehrdungsbeurteilungsVorlagenQuery } from '@/application/eigenschutz/queries/list-gefaehrdungsbeurteilungs-vorlagen/list-gefaehrdungsbeurteilungs-vorlagen.query';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { EIGENSCHUTZ_ROLE_KEY } from '@/modules/auth/decorators/requires-eigenschutz-rolle.decorator';
 import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { GefaehrdungsbeurteilungController } from '../gefaehrdungsbeurteilung.controller';
@@ -105,13 +104,12 @@ describe('GefaehrdungsbeurteilungController', () => {
     });
   });
 
-  describe('Rollen-/Permission-Metadata pro Methode', () => {
-    it('setzt keine Eigenschutz-Rollen oder Permissions auf den Handlern', () => {
+  describe('Permission-Metadata pro Methode', () => {
+    it('setzt keine Eigenschutz-Permissions auf den Handlern', () => {
       const prototype = Object.getPrototypeOf(controller);
       const handlers = [prototype.listVorlagen, prototype.listBeurteilungen, prototype.createBeurteilung, prototype.updateItems, prototype.getBeurteilung, prototype.getHistorie];
 
       for (const handler of handlers) {
-        expect(Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, handler)).toBeUndefined();
         expect(Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, handler)).toBeUndefined();
       }
     });
@@ -314,7 +312,7 @@ describe('GefaehrdungsbeurteilungController', () => {
   });
 
   describe('updateItems (Story 2.2)', () => {
-    const USER = { userId: USER_ID, permissions: [], einsatzRollenNamen: [] } as never;
+    const USER = { userId: USER_ID, permissions: [] } as never;
 
     function buildBody(overrides: Partial<{ items: unknown; expectedVersion: number }> = {}): never {
       return {
@@ -468,11 +466,6 @@ describe('GefaehrdungsbeurteilungController', () => {
       const allGuards = [...(classGuards ?? []), ...(guards ?? [])];
       const names = allGuards.map((g) => g.name);
       expect(names).toEqual(['JwtAuthGuard']);
-    });
-
-    it('updateItems trägt keine Eigenschutz-Rollen-Metadata', () => {
-      const roles = Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, GefaehrdungsbeurteilungController.prototype.updateItems) as string[] | undefined;
-      expect(roles).toBeUndefined();
     });
 
     it('updateItems trägt keine Eigenschutz-Permission-Metadata', () => {

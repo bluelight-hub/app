@@ -148,18 +148,23 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       }
     });
 
-    it('Story-2.7-Fortschritt: `gefaehrdungsbeurteilung_erstellt` + `_aktualisiert` + `sicherheitsregel_ausgerufen` + `sicherheitsregel_quittiert` sind an 4/4 Stellen, die übrigen 10 weiterhin an 0/4', () => {
+    it('Story-3.4-Fortschritt: GB-erstellt + GB-aktualisiert + Sicherheitsregel-ausgerufen + Sicherheitsregel-quittiert + PsaProfil-geaendert + QuittungAbgegeben sind an 4/4 Stellen, die übrigen 8 weiterhin an 0/4', () => {
       const ERSTELLT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_ERSTELLT;
       const AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT;
       const SICHERHEITSREGEL_AUSGERUFEN = EVENT_NAMES.EIGENSCHUTZ.SICHERHEITSREGEL_AUSGERUFEN;
       const SICHERHEITSREGEL_QUITTIERT = EVENT_NAMES.EIGENSCHUTZ.SICHERHEITSREGEL_QUITTIERT;
+      const PSA_PROFIL_GEAENDERT = EVENT_NAMES.EIGENSCHUTZ.PSA_PROFIL_GEAENDERT;
+      const QUITTUNG_ABGEGEBEN = EVENT_NAMES.EIGENSCHUTZ.QUITTUNG_ABGEGEBEN;
       expect(sumTuple(countRegistrationSites(ERSTELLT))).toBe(4);
       expect(sumTuple(countRegistrationSites(AKTUALISIERT))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERHEITSREGEL_AUSGERUFEN))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERHEITSREGEL_QUITTIERT))).toBe(4);
+      expect(sumTuple(countRegistrationSites(PSA_PROFIL_GEAENDERT))).toBe(4);
+      expect(sumTuple(countRegistrationSites(QUITTUNG_ABGEGEBEN))).toBe(4);
 
+      const FULLY_REGISTERED = new Set<string>([ERSTELLT, AKTUALISIERT, SICHERHEITSREGEL_AUSGERUFEN, SICHERHEITSREGEL_QUITTIERT, PSA_PROFIL_GEAENDERT, QUITTUNG_ABGEGEBEN]);
       for (const eventName of EIGENSCHUTZ_NAMES) {
-        if (eventName === ERSTELLT || eventName === AKTUALISIERT || eventName === SICHERHEITSREGEL_AUSGERUFEN || eventName === SICHERHEITSREGEL_QUITTIERT) continue;
+        if (FULLY_REGISTERED.has(eventName)) continue;
         expect(sumTuple(countRegistrationSites(eventName))).toBe(0);
       }
     });

@@ -109,6 +109,8 @@ import type { GefaehrdungsbeurteilungErstelltEvent } from '@domain/eigenschutz/e
 import type { GefaehrdungsbeurteilungAktualisiertEvent } from '@domain/eigenschutz/events/gefaehrdungsbeurteilung-aktualisiert.event';
 import type { SicherheitsregelAusgerufenEvent } from '@domain/eigenschutz/events/sicherheitsregel-ausgerufen.event';
 import type { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
+import type { PsaProfilGeaendertEvent } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
+import type { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 
 // Alarmierung Events (Issue #408)
 import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
@@ -513,6 +515,10 @@ export class EventSerializer {
         return this.serializeSicherheitsregelAusgerufen(event as unknown as SicherheitsregelAusgerufenEvent);
       case 'eigenschutz.sicherheitsregel_quittiert':
         return this.serializeSicherheitsregelQuittiert(event as unknown as SicherheitsregelQuittiertEvent);
+      case 'eigenschutz.psa_profil_geaendert':
+        return this.serializePsaProfilGeaendert(event as unknown as PsaProfilGeaendertEvent);
+      case 'eigenschutz.quittung_abgegeben':
+        return this.serializeQuittungAbgegeben(event as unknown as QuittungAbgegebenEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1912,6 +1918,70 @@ export class EventSerializer {
       userId: event.userId,
       einheitId: event.einheitId,
       regelId: event.regelId,
+      propagationGroupId: event.propagationGroupId,
+      quittiertAm: event.quittiertAm.toISOString(),
+    };
+  }
+
+  /**
+   * Serialisiert `PsaProfilGeaendertEvent` (Story 3.1).
+   *
+   * Pflichtfelder: einsatzId, userId, einheitId, zuweisungId, propagationGroupId,
+   * profil, aktion, begruendung. Strikte Shape-Validation — ein korrupter
+   * Payload bricht den Outbox-Insert hart, damit der Replay konsistent bleibt
+   * (Pattern aus Story 2.7).
+   */
+  private serializePsaProfilGeaendert(event: PsaProfilGeaendertEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.einheitId !== 'string' ||
+      typeof event.zuweisungId !== 'string' ||
+      typeof event.propagationGroupId !== 'string' ||
+      typeof event.profil !== 'string' ||
+      typeof event.aktion !== 'string' ||
+      typeof event.begruendung !== 'string'
+    ) {
+      throw new Error('Invalid PsaProfilGeaendert event payload');
+    }
+    if (event.aktion !== 'AKTIVIERT' && event.aktion !== 'DEAKTIVIERT') {
+      throw new Error('Invalid PsaProfilGeaendert event payload');
+    }
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      zuweisungId: event.zuweisungId,
+      propagationGroupId: event.propagationGroupId,
+      profil: event.profil,
+      aktion: event.aktion,
+      begruendung: event.begruendung,
+    };
+  }
+
+  /**
+   * Serialisiert `QuittungAbgegebenEvent` (Story 3.4).
+   *
+   * Pflichtfelder: einsatzId, userId, einheitId, propagationGroupId,
+   * quittiertAm. Strikte Shape-Validation analog zu Story 2.7 — ein
+   * korrupter Payload bricht den Outbox-Insert hart, damit Replay
+   * konsistent bleibt.
+   */
+  private serializeQuittungAbgegeben(event: QuittungAbgegebenEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.einheitId !== 'string' ||
+      typeof event.propagationGroupId !== 'string' ||
+      !(event.quittiertAm instanceof Date)
+    ) {
+      throw new Error('Invalid QuittungAbgegeben event payload');
+    }
+
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
       propagationGroupId: event.propagationGroupId,
       quittiertAm: event.quittiertAm.toISOString(),
     };

@@ -2,6 +2,8 @@
 
 Status: done
 
+> **Update 2026-04-28:** Eigenschutz-Rollen-Schicht ist entfernt — Permission-Guard ist die einzige Autorisierungsquelle. Verweise auf die Vier-Schicht-Kette / `@RequiresEigenschutzRolle('Sicherheitsbeauftragter')` unten sind historisch; produktiv gilt die Drei-Schicht-Kette `JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard`.
+
 <!--
 Validierung: der Workflow-Step „Validate gegen checklist.md" wird bewusst als
 separater Quality-Gate über `validate-create-story` deferred — konsistent mit
