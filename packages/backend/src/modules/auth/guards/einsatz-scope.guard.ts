@@ -77,11 +77,9 @@ function parsePermissions(rawPermissions: string | null | undefined, warn: (reas
  * die an einen konkreten Einsatz gebunden sind.
  *
  * Der Guard prüft **ausschließlich Membership**: "Ist dieser authentifizierte
- * User aktuell in diesem Einsatz als Rollenbesetzung aktiv?". Die Prüfung
- * konkreter Rollen-Präfixe (z. B. `Eigenschutz: ...`) übernimmt ein
- * nachgelagerter Guard (`EigenschutzRolleGuard`, Story 1.5). Permissions-Flag-
- * Prüfung übernimmt `PermissionsGuard`. Drei orthogonale Schichten, gemeinsam
- * einsetzbar.
+ * User aktuell in diesem Einsatz als Rollenbesetzung aktiv?". Permissions-Flag-
+ * Prüfung übernimmt der nachgelagerte `PermissionsGuard`. Zwei orthogonale
+ * Schichten, gemeinsam einsetzbar (Drei-Schicht-Kette inkl. `JwtAuthGuard`).
  *
  * ### Guard-Kette (empfohlen)
  * ```typescript
@@ -91,7 +89,7 @@ function parsePermissions(rawPermissions: string | null | undefined, warn: (reas
  * ```
  *
  * ### Request-Kontext (nach erfolgreichem Guard-Pass)
- * `request.einsatzContext = { einsatzId, einsatzRollenNamen, einsatzPermissions }`
+ * `request.einsatzContext = { einsatzId, einsatzPermissions }`
  *
  * ### Fehlerpfade
  * - Kein Pfad-Parameter (Dev-Fehler) → 500 mit DX-Message (AC5)
@@ -182,16 +180,10 @@ export class EinsatzScopeGuard implements CanActivate {
       throw new ForbiddenException(FORBIDDEN_RESPONSE_BODY);
     }
 
-    // Defensiver Non-String-Filter — Schema garantiert zwar `rollenName String @db.Text`
-    // (non-null), aber fehlerhafte Mapper-Implementierungen oder zukünftige Schema-
-    // Drifts würden sonst `undefined` in `einsatzRollenNamen` leaken und downstream
-    // Präfix-Matcher brechen.
-    const einsatzRollenNamen = Array.from(new Set(besetzungen.map((b) => b.rollenName).filter((n): n is string => typeof n === 'string' && n.length > 0)));
     const einsatzPermissions = parsePermissions(userEntity.permissions, (reason) => this.logger.warn(buildSecurityLogPayload(validatedUser.userId, einsatzId, reason), LOG_CONTEXT));
 
     const einsatzContext: EinsatzRequestContext = {
       einsatzId,
-      einsatzRollenNamen,
       einsatzPermissions,
     };
     request.einsatzContext = einsatzContext;

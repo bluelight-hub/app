@@ -43,6 +43,20 @@ vi.mock('@/features/eigenschutz', () => ({
   EigenschutzEntryPage: ({ einsatzId }: { einsatzId: string }) => <div data-testid="entry-page">EntryPage:{einsatzId}</div>,
 }));
 
+vi.mock('@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner', () => ({
+  PsaProfilEmpfangBanner: ({ einsatzId }: { einsatzId: string }) => <div data-testid="psa-empfang-banner-mock">PsaBanner:{einsatzId}</div>,
+}));
+
+const { mockQuittungLive } = vi.hoisted(() => ({
+  mockQuittungLive: vi.fn(),
+}));
+vi.mock('@/features/eigenschutz/api/use-eigenschutz-psa-quittung-live', () => ({
+  useEigenschutzPsaQuittungLive: (...args: unknown[]) => {
+    mockQuittungLive(...args);
+    return { status: 'connected' };
+  },
+}));
+
 // Route-Import muss NACH den vi.mock-Aufrufen stehen (captured.component
 // wird beim Modul-Import vom gemockten createFileRoute befüllt).
 import '../eigenschutz';
@@ -84,6 +98,39 @@ describe('Eigenschutz Route (Story 1.6)', () => {
     // (/gefaehrdungen → GefaehrdungenPage, /gefaehrdungen/$id → DetailPage).
     expect(screen.getByTestId('outlet')).toBeInTheDocument();
     expect(screen.queryByTestId('entry-page')).toBeNull();
+  });
+
+  it('mountet den PSA-Empfangs-Banner als gemeinsamen Layout-Container (Story 3.3 AC8)', () => {
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
+    renderRoute();
+    expect(screen.getByTestId('psa-empfang-banner-mock')).toHaveTextContent('PsaBanner:einsatz-1');
+    expect(screen.getByTestId('entry-page')).toBeInTheDocument();
+  });
+
+  it('rendert PSA-Banner auch auf Child-Routen oberhalb des Outlets', () => {
+    renderRoute();
+    const banner = screen.getByTestId('psa-empfang-banner-mock');
+    const outlet = screen.getByTestId('outlet');
+    expect(banner).toBeInTheDocument();
+    expect(outlet).toBeInTheDocument();
+    // AC8: Banner muss DOM-mäßig **vor** Outlet stehen, damit er oberhalb des
+    // Inhalts sichtbar bleibt — sonst landet der CBRN-Banner unter dem Inhalt.
+    expect(banner.compareDocumentPosition(outlet) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('rendert PSA-Banner auch auf der Root-Route oberhalb der EntryPage', () => {
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
+    renderRoute();
+    const banner = screen.getByTestId('psa-empfang-banner-mock');
+    const entry = screen.getByTestId('entry-page');
+    expect(banner.compareDocumentPosition(entry) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('mountet den Sender-Live-Hook useEigenschutzPsaQuittungLive (Story 3.4 AC11)', () => {
+    mockQuittungLive.mockClear();
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
+    renderRoute();
+    expect(mockQuittungLive).toHaveBeenCalledWith(expect.objectContaining({ einsatzId: 'einsatz-1' }));
   });
 
   it('propagiert die aktuelle einsatzId an die EntryPage', () => {

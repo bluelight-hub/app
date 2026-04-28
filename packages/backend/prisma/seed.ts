@@ -230,8 +230,13 @@ async function seedKraefteConfig(systemUserId: string): Promise<void> {
  * Erstellt Eigenschutz-Stammdaten (Issue #415, Story 1.4).
  *
  * Seed-Inhalt:
- * 1. 4 RollenDefinitionen mit Präfix `Eigenschutz: ` für EinsatzScopeGuard + EigenschutzRolleGuard
- * 2. 5 GefaehrdungsbeurteilungVorlagen für die MVP-Szenarien (MANV, VU, Großveranstaltung, Betreuung, CBRN)
+ * 1. 5 GefaehrdungsbeurteilungVorlagen für die MVP-Szenarien (MANV, VU, Großveranstaltung, Betreuung, CBRN)
+ *
+ * Hinweis: Die ehemals 4 Eigenschutz-RollenDefinitionen (Sicherheitsbeauftragter,
+ * Abschnittsleiter, Einheitsführer, Nachbereitung) wurden mit der Konsolidierung
+ * der Guard-Kette auf drei Schichten (JwtAuthGuard → EinsatzScopeGuard →
+ * PermissionsGuard) entfernt. Schreibrechte laufen jetzt ausschließlich über
+ * `eigenschutz:psa:write` etc. — Rollen-Daten waren rein autorisierungsbezogen.
  *
  * Beide nutzen das Upsert-Pattern für Idempotenz bei mehrfacher Ausführung.
  *
@@ -249,44 +254,14 @@ async function seedEigenschutzConfig(systemUserId: string): Promise<void> {
   logger.log('Creating Eigenschutz-Stammdaten (Issue #415)...');
   logger.warn('Eigenschutz-Vorlagen: Beispielinhalte — vor produktivem Einsatz durch SiBe fachlich freigeben.');
 
-  // --- 4 Eigenschutz-RollenDefinitionen (AC5) ---
-  // Präfix `Eigenschutz: ` ist Pflicht für das Regex-Matching im EigenschutzRolleGuard (Story 1.5).
-  // sortOrder ≥ 100 trennt Eigenschutz-Rollen visuell von den Kräfte-Führungsrollen (1–10).
-  const eigenschutzRollen = [
-    {
-      name: 'Eigenschutz: Sicherheitsbeauftragter',
-      funkrufname: 'SiBe',
-      beschreibung: 'Verantwortlich für Gefährdungsbeurteilung, PSA-Profile, Sicherheitsregeln und Sicherungsposten im Einsatz (FR44–FR46, Eigenschutz-Pilot)',
-      sortOrder: 100,
-    },
-    {
-      name: 'Eigenschutz: Abschnittsleiter',
-      funkrufname: 'EALtr',
-      beschreibung: 'Empfängt kritische Bekanntgaben (PSA, Sicherheitsregeln) und quittiert für seinen Abschnitt (FR18, FR25)',
-      sortOrder: 101,
-    },
-    {
-      name: 'Eigenschutz: Einheitsführer',
-      funkrufname: 'EF',
-      beschreibung: 'Empfängt Bekanntgaben auf Einheits-Ebene und meldet Ausrüstungslücken zurück (FR20, Phase 2: FR21)',
-      sortOrder: 102,
-    },
-    {
-      name: 'Eigenschutz: Nachbereitung',
-      funkrufname: 'Nachber.',
-      beschreibung: 'Filtert Vorfälle und exportiert Unfallkassen-Meldungen (FR31–FR36, FR47)',
-      sortOrder: 103,
-    },
-  ];
-
-  for (const r of eigenschutzRollen) {
-    await prisma.rollenDefinition.upsert({
-      where: { name: r.name },
-      create: { ...r, createdBy: systemUserId },
-      update: {},
-    });
-  }
-  logger.log(`Created ${eigenschutzRollen.length} Eigenschutz-RollenDefinitionen`);
+  // Eigenschutz-RollenDefinitionen wurden mit der Konsolidierung der Guard-Kette
+  // (Drei-Schicht-Kette: JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard) entfernt.
+  // Schreibrechte für Eigenschutz-Aktionen werden jetzt ausschließlich über
+  // `eigenschutz:psa:write` etc. (User-Permissions) gesteuert. Die Plattform-
+  // Tabelle `RollenDefinition` bleibt erhalten — andere Domänen (Stab, Funkkanäle, …)
+  // legen weiterhin Rollen an. Hier wurden lediglich die vier Eigenschutz-Einträge
+  // (Sicherheitsbeauftragter / Abschnittsleiter / Einheitsführer / Nachbereitung)
+  // gestrichen, weil sie nicht mehr autorisierungsrelevant sind.
 
   // --- 5 GefaehrdungsbeurteilungVorlagen (AC6) ---
   // Items werden in Story 2.1 deep-kopiert (Item-Kopie, kein Live-Link → PRD-Mitigation „Vorlagen-Drift").

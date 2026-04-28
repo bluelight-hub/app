@@ -262,6 +262,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get sicherheitsregelQuittung() {
     return this._client.sicherheitsregelQuittung;
   }
+  get psaProfilZuweisung() {
+    return this._client.psaProfilZuweisung;
+  }
+  get psaProfilQuittung() {
+    return this._client.psaProfilQuittung;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

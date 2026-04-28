@@ -2,6 +2,8 @@
 
 Status: done
 
+> **Update 2026-04-28:** Eigenschutz-Rollen-Schicht ist entfernt — Permission-Guard ist die einzige Autorisierungsquelle. Der Health-Endpoint nutzt die Drei-Schicht-Kette `JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard`. `@RequiresEigenschutzRolle(...)` und der Rollen-bezogene EmptyState-Text in den ACs/Tasks unten sind historisch; produktiv ist Zugang an die Eigenschutz-Permission gebunden, der EmptyState-Wortlaut muss entsprechend ohne Rollen-Aufzählung formuliert werden.
+
 **Scope-Grenze (KRITISCH):** Diese Story liefert den **leer-aber-lauffähigen Einsprungspunkt** ins Eigenschutz-Modul. Konkret: einen Health-Endpoint mit vollständiger Guard-Kette, das leere Feature-Slice-Gerüst im Frontend + Backend, den Navigation-Flip in der Workspace-Registry, eine funktionierende Route mit Empty-State für nicht-berechtigte Nutzer und die `EigenschutzModule`-Registrierung in `AppModule`. **Nicht in dieser Story:**
 
 - **Keine fachlichen Features** — Gefährdungsbeurteilung, PSA-Profile, Sicherheitsregeln, Sicherungsposten, Vorfälle bleiben Epic 2–5.

@@ -9,7 +9,6 @@ import { KraefteInfrastructureModule } from '@/infrastructure/kraefte/kraefte-in
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './auth.service';
 import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
-import { EigenschutzRolleGuard } from './guards/eigenschutz-rolle.guard';
 import { EinsatzScopeGuard } from './guards/einsatz-scope.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
@@ -72,10 +71,9 @@ import './interfaces/einsatz-request-context';
     // Plattform-Pattern (ADR-012): Membership-Check für einsatz-scoped Routen.
     // Bewusst KEIN APP_GUARD — wird pro Controller via @UseGuards eingesetzt.
     EinsatzScopeGuard,
-    // Story 1.5 (AC1, AC3): Eigenschutz-Rolle- und Permission-Guards.
-    // Konsumieren `request.einsatzContext` aus `EinsatzScopeGuard` — Reihenfolge
+    // Story 1.5 (AC3): Permission-Guard.
+    // Konsumiert `request.einsatzContext` aus `EinsatzScopeGuard` — Reihenfolge
     // in `@UseGuards(...)` wird im Consumer-Controller sichergestellt.
-    EigenschutzRolleGuard,
     PermissionsGuard,
     ExchangeInviteHandler,
   ],
@@ -84,7 +82,6 @@ import './interfaces/einsatz-request-context';
     JwtModule,
     AdminJwtAuthGuard,
     EinsatzScopeGuard,
-    EigenschutzRolleGuard,
     PermissionsGuard,
     // Re-Export (ADR-014): macht KRAEFTE_REPOSITORIES.* Provider transitiv für
     // Consumer-Module sichtbar, die EinsatzScopeGuard via @UseGuards einsetzen.

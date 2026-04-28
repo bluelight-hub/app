@@ -9,6 +9,8 @@ import type {
   UpdateGefaehrdungsbeurteilungItemsInput,
 } from '../schemas/gefaehrdungsbeurteilung.schema';
 import type { CreateSicherheitsregelInput, SicherheitsregelDto, UpdateSicherheitsregelInput } from '../schemas/sicherheitsregel.schema';
+import { useCurrentUser } from '@/features/auth/api/use-current-user';
+import { eigenschutzTelemetryQueue, getOrCreateSessionId } from '../lib/telemetry-queue';
 
 /**
  * Zod-Guard für den 409-Response-Body-Context (Story 2.3, AC13).
@@ -108,6 +110,26 @@ export const EIGENSCHUTZ_QUERY_KEYS = {
    * gezielt invalidieren kann.
    */
   sicherheitsregelQuittungen: (einsatzId: string, regelId: string) => ['eigenschutz', einsatzId, 'sicherheitsregeln', 'quittungen', regelId] as const,
+  /**
+   * Aktive PSA-Profile einer Einheit (Story 3.1 AC9). Granularität pro
+   * Einheit, damit der Toggle-Hook nach Erfolg gezielt nur die
+   * betroffene Einheit invalidiert (nicht den ganzen Einsatz-Scope).
+   */
+  psaProfileByEinheit: (einsatzId: string, einheitId: string) => ['eigenschutz', einsatzId, 'psa-profile', einheitId] as const,
+  /**
+   * Quittungs-Liste pro PSA-Bekanntgabe-Gruppe (Story 3.4 AC8) — Sender-View.
+   * Granularität pro `propagationGroupId`, damit `useAckPsaQuittung.onSuccess`
+   * gezielt invalidieren kann, sobald ein Empfänger quittiert.
+   */
+  psaQuittungen: (einsatzId: string, propagationGroupId: string) => ['eigenschutz', einsatzId, 'psa-quittungen', propagationGroupId] as const,
+  /**
+   * Liste aller offenen (nicht vollständig quittierten) PSA-Bekanntgaben der
+   * letzten 24 h (Story 3.4 AC15). Wird von der Stab-Sicht
+   * (`PsaProfilePage`-Sektion „Offene PSA-Bekanntgaben") konsumiert; der
+   * Live-Hook `useEigenschutzPsaQuittungLive` invalidiert den Key, wenn ein
+   * `eigenschutz:psa-quittung-abgegeben`-Frame eintrifft.
+   */
+  offenePsaBekanntgaben: (einsatzId: string) => ['eigenschutz', einsatzId, 'psa-quittungen', 'offene-bekanntgaben'] as const,
 } as const;
 
 /**
@@ -723,5 +745,357 @@ export function useSicherheitsregelQuittungen(einsatzId: string, regelId: string
     retry: eigenschutzRetry,
     meta: { silentError: true },
     enabled: Boolean(einsatzId) && Boolean(regelId),
+  });
+}
+
+// ============================================================================
+// Story 3.1 — PSA-Profil aktivieren / deaktivieren
+// ============================================================================
+
+/**
+ * Strukturierter 409-Konflikt-Error für PSA-Profil-Mutationen (Story 3.1 AC4).
+ *
+ * Trägt entweder `currentVersion` (OCC-Verletzung beim Schließen) oder
+ * `rule = 'DuplicateActiveProfile'` (Race-bedingte Doppelaktivierung,
+ * AC8). UI rendert beide Fälle inline (Zero-Toast, UX-DR21).
+ */
+export class PsaProfilConflictError extends Error {
+  readonly statusCode = 409;
+  constructor(
+    readonly variant: 'OCC' | 'DuplicateActiveProfile',
+    readonly currentVersion: number | undefined,
+    readonly attemptedVersion: number | undefined,
+    readonly originalError: unknown,
+    /**
+     * Story 3.2 (AC6): bei Bulk-Konflikten trägt der 409-Body
+     * `context.einheitId` und `context.profil` mit, damit der Drawer den
+     * Banner mit der Einheit identifizieren kann. Im Single-Pfad sind die
+     * Felder optional (Server kann sie redundant zur Path-Param-Einheit
+     * mitsenden, aber das UI nutzt sie nur im Bulk-Modus).
+     */
+    readonly einheitId?: string,
+    readonly profil?: 'BASIS' | 'INFEKTION' | 'VU' | 'CBRN_PATIENT' | 'VOLLSCHUTZ',
+  ) {
+    super(variant === 'DuplicateActiveProfile' ? 'ConflictDetected:DuplicateActivePsaProfilZuweisung' : 'ConflictDetected:PsaProfilZuweisung');
+    this.name = 'PsaProfilConflictError';
+  }
+}
+
+const PsaProfilConflictContextSchema = z.object({
+  currentVersion: z.number().int().positive().optional(),
+  attemptedVersion: z.number().int().nonnegative().optional(),
+  rule: z.string().optional(),
+  einheitId: z.string().optional(),
+  profil: z.enum(['BASIS', 'INFEKTION', 'VU', 'CBRN_PATIENT', 'VOLLSCHUTZ']).optional(),
+});
+
+function extractPsaProfilConflictError(error: unknown, attemptedVersion: number | undefined): PsaProfilConflictError | null {
+  const status = (error as { response?: { status?: number } } | null)?.response?.status;
+  if (status !== 409) return null;
+  const dataCandidate = (error as { response?: { data?: unknown } } | null)?.response?.data;
+  const rawContext = (dataCandidate as { context?: unknown } | null)?.context;
+  const contextToValidate = rawContext !== null && typeof rawContext === 'object' && !Array.isArray(rawContext) ? rawContext : {};
+  const parsed = PsaProfilConflictContextSchema.safeParse(contextToValidate);
+  const ctx = parsed.success ? parsed.data : {};
+  // Variant explizit aufschlüsseln: nur bekannte rule-Werte mappen klar auf
+  // Banner-Texte. Unbekannte Werte (z. B. künftige Sentinel-Erweiterungen)
+  // fallen sicher auf den generischen OCC-Banner zurück, aber wir loggen
+  // sie, damit ein Drift im Dev-Konsolen-Log auffällt.
+  let variant: 'OCC' | 'DuplicateActiveProfile';
+  if (ctx.rule === 'DuplicateActiveProfile') {
+    variant = 'DuplicateActiveProfile';
+  } else if (ctx.rule === undefined || ctx.rule === 'OCC' || ctx.rule === 'PsaProfilZuweisung') {
+    variant = 'OCC';
+  } else {
+    console.warn('[extractPsaProfilConflictError] Unbekannter rule-Wert im 409-Body:', ctx.rule);
+    variant = 'OCC';
+  }
+  return new PsaProfilConflictError(variant, ctx.currentVersion, ctx.attemptedVersion ?? attemptedVersion, error, ctx.einheitId, ctx.profil);
+}
+
+export interface PsaProfileByEinheitDto {
+  id: string;
+  einsatzId: string;
+  einheitId: string;
+  profil: 'BASIS' | 'INFEKTION' | 'VU' | 'CBRN_PATIENT' | 'VOLLSCHUTZ';
+  gueltigVon: string;
+  gueltigBis: string | null;
+  aktiviertVonUserId: string;
+  begruendung: string;
+  propagationGroupId: string;
+  version: number;
+}
+
+/**
+ * Lädt die aktuell aktiven PSA-Profile einer Einheit (Story 3.1 AC9).
+ *
+ * Stale-Time analog zu den anderen Eigenschutz-Detail-Queries (15 s) —
+ * der WS-Adapter (`useEigenschutzPsaLiveBanner`, Story 3.1 später) wird
+ * im Erfolgsfall ohnehin invalidieren.
+ */
+export function usePsaProfileByEinheit(einsatzId: string, einheitId: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, einheitId),
+    queryFn: async (): Promise<PsaProfileByEinheitDto[]> => {
+      const response = await api.eigenschutz().psaProfilControllerGetPsaProfileVAlpha({ einsatzId, einheitId });
+      const rows = (response?.data ?? []) as PsaProfileByEinheitDto[];
+      return rows;
+    },
+    retry: eigenschutzRetry,
+    meta: { silentError: true },
+    staleTime: 15_000,
+    enabled: (options?.enabled ?? true) && Boolean(einsatzId) && Boolean(einheitId),
+  });
+}
+
+/**
+ * Story 3.2: der Hook akzeptiert sowohl `einheitId` (Single-Pfad) als auch
+ * `einheitIds` (Bulk-Pfad). Wenn `einheitIds.length > 1` ist, ruft der Hook
+ * den Bulk-Endpoint, sonst den Single-Endpoint. `einheitId` bleibt für
+ * Backward-Compat zur Story-3.1-Single-Drawer-API erhalten.
+ */
+export interface ChangePsaProfilHookInput {
+  /** Single-Modus (Story 3.1). Mutually exclusive mit `einheitIds`. */
+  einheitId?: string;
+  /** Bulk-Modus (Story 3.2). Wenn length > 1 → Bulk-Endpoint; length=1 → Single. */
+  einheitIds?: string[];
+  profilToggles: Array<{ profil: PsaProfileByEinheitDto['profil']; aktivieren: boolean; expectedVersion?: number }>;
+  begruendung: string;
+}
+
+export interface ChangePsaProfilHookResult {
+  propagationGroupId: string;
+  affected: PsaProfileByEinheitDto[];
+}
+
+function resolveEinheitIds(input: ChangePsaProfilHookInput): string[] {
+  if (input.einheitIds && input.einheitIds.length > 0) return input.einheitIds;
+  if (input.einheitId !== undefined) return [input.einheitId];
+  throw new Error('useChangePsaProfil: weder einheitId noch einheitIds gesetzt');
+}
+
+/**
+ * Toggle-Mutation für PSA-Profile einer oder mehrerer Einheiten
+ * (Story 3.1 AC1/AC9 + Story 3.2 AC4).
+ *
+ * **Retry-Policy:** kein Retry bei 403 (fehlende Permission/Rolle), 404
+ * (Active-Row inzwischen weg), 409 (OCC oder DUPLICATE) oder 422
+ * (BusinessRule). 5xx erlauben das default-Retry der Eigenschutz-Hooks.
+ *
+ * **Cache-Invalidation:** Granular pro betroffener Einheit + Kräfte-Liste.
+ *
+ * **Zero-Toast:** Fehler werden typisiert (`PsaProfilConflictError`)
+ * durchgereicht — der Drawer rendert sie inline.
+ */
+export function useChangePsaProfil(einsatzId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation<ChangePsaProfilHookResult, unknown, ChangePsaProfilHookInput>({
+    meta: { silentError: true },
+    retry: (failureCount, error) => {
+      if (error instanceof PsaProfilConflictError) return false;
+      const status = (error as { response?: { status?: number } } | null)?.response?.status;
+      if (status === 401 || status === 403 || status === 404 || status === 409 || status === 422) return false;
+      return failureCount < 1;
+    },
+    mutationFn: async (input): Promise<ChangePsaProfilHookResult> => {
+      const ids = resolveEinheitIds(input);
+      const isBulk = ids.length > 1;
+      try {
+        if (isBulk) {
+          const response = await api.eigenschutz().psaProfilControllerBulkChangePsaProfilVAlpha({
+            einsatzId,
+            bulkChangePsaProfilDto: {
+              einheitIds: ids,
+              profilToggles: input.profilToggles.map((t) => ({ profil: t.profil, aktivieren: t.aktivieren, expectedVersion: t.expectedVersion })),
+              begruendung: input.begruendung,
+            },
+          });
+          // F4: 2xx ohne Body bedeutet, dass Server oder Proxy den Response
+          // verschluckt hat. Silent Success würde den User glauben lassen, die
+          // Mutation sei durch — Drawer schließt, Selection wird geleert.
+          // Stattdessen werfen wir, damit der Drawer den Inline-Fehler-Pfad
+          // läuft und der User retry/refetch entscheiden kann.
+          if (!response?.data) {
+            throw new Error('Bulk-PSA-Mutation: Response ohne Body — Server-Status unbekannt');
+          }
+          return response.data as ChangePsaProfilHookResult;
+        }
+        const response = await api.eigenschutz().psaProfilControllerChangePsaProfilVAlpha({
+          einsatzId,
+          einheitId: ids[0]!,
+          changePsaProfilDto: {
+            profilToggles: input.profilToggles.map((t) => ({ profil: t.profil, aktivieren: t.aktivieren, expectedVersion: t.expectedVersion })),
+            begruendung: input.begruendung,
+          },
+        });
+        if (!response?.data) {
+          throw new Error('PSA-Mutation: Response ohne Body — Server-Status unbekannt');
+        }
+        return response.data as ChangePsaProfilHookResult;
+      } catch (error) {
+        const definedVersions = input.profilToggles.map((t) => t.expectedVersion).filter((v): v is number => typeof v === 'number');
+        const distinct = new Set(definedVersions);
+        const attempted = distinct.size === 1 ? definedVersions[0] : undefined;
+        const conflict = extractPsaProfilConflictError(error, attempted);
+        if (conflict) throw conflict;
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      const ids = resolveEinheitIds(variables);
+      // Story 3.2 AC7: pro betroffener Einheit gezielt invalidieren — kein
+      // grobes Page-Wide-Refetch.
+      for (const id of ids) {
+        void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, id) });
+      }
+      void queryClient.invalidateQueries({ queryKey: ['kraefte', einsatzId, 'einheiten'] });
+    },
+  });
+}
+
+// ============================================================================
+// Story 3.4 — PSA-Quittung + Quittungsstand-Anzeige
+// ============================================================================
+
+/**
+ * Input-Shape für `useAckPsaQuittung` (Story 3.4 AC9).
+ */
+export interface AckPsaQuittungInput {
+  propagationGroupId: string;
+  einheitId: string;
+}
+
+/**
+ * Eintrag in der Quittungs-Liste pro Bekanntgabe-Gruppe (Story 3.4 AC8).
+ *
+ * Status-Union enthält schon `OVERDUE` als Forward-Compat-Marker für
+ * Story 3.7 (`Re-Prompt-Scheduler`); Story 3.4-Daten liefern nur
+ * `AUSSTEHEND | QUITTIERT`.
+ */
+export interface PsaQuittungEntry {
+  einheitId: string;
+  einheitName: string;
+  status: 'AUSSTEHEND' | 'QUITTIERT' | 'OVERDUE';
+  quittiertAm?: string;
+  quittiertVonUserId?: string;
+  quittiertVonUserName?: string;
+}
+
+/**
+ * Aggregat-Eintrag in der „Offene PSA-Bekanntgaben"-Liste (Story 3.4 AC15).
+ */
+export interface OffenePsaBekanntgabeEntry {
+  propagationGroupId: string;
+  occurredAt: string;
+  begruendungAnriss: string;
+  profilToggles: Array<{ profil: PsaProfileByEinheitDto['profil']; aktion: 'AKTIVIERT' | 'DEAKTIVIERT' }>;
+  betroffeneEinheitIds: string[];
+  ackCount: number;
+  totalCount: number;
+  status: 'pending' | 'partial';
+}
+
+/**
+ * Quittiert eine PSA-Bekanntgabe für eine konkrete Einheit (Story 3.4 AC1, AC9).
+ *
+ * **Idempotenz** (AC3): Doppelte Sends ergeben 204; kein Server-Toast,
+ * kein Frontend-Sonner — der Banner verschwindet stumm aus der Hook-Queue
+ * (siehe `PsaProfilEmpfangBanner` Primary-Action).
+ *
+ * **Cache-Invalidation** (AC9, AC15):
+ * - `psaQuittungen(einsatzId, propagationGroupId)` — Sender-Counter aktualisieren.
+ * - `offenePsaBekanntgaben(einsatzId)` — vollständig quittierte Gruppe verschwindet aus der Liste.
+ * - `psaProfileByEinheit(einsatzId, einheitId)` — Empfänger-Detail-Refetch.
+ *
+ * **Telemetrie** (AC14): Bei Erfolgreich-Quittung wird genau ein
+ * `psa_quittung_abgegeben`-Event in die Telemetrie-Queue gepushed (für
+ * Story 3.11 End-zu-End-Trace `assess_started → all_banners_delivered →
+ * psa_quittung_abgegeben`). Bei Fehler kein Event.
+ *
+ * **Zero-Toast** (UX-DR21): Bei Mutation-Fehler (422/500/Network) wird der
+ * Error 1:1 weitergeworfen — `meta: { silentError: true }` greift, kein
+ * Sonner-Toast. Banner-Komponente rendert Inline-Error-Attribut.
+ */
+export function useAckPsaQuittung(einsatzId: string) {
+  const queryClient = useQueryClient();
+  const { user } = useCurrentUser();
+
+  return useMutation<void, unknown, AckPsaQuittungInput>({
+    meta: { silentError: true },
+    mutationFn: async (input) => {
+      await api.eigenschutz().psaProfilControllerQuittierenVAlpha({
+        einsatzId,
+        propagationGroupId: input.propagationGroupId,
+        ackPsaQuittungDto: { einheitId: input.einheitId },
+      });
+    },
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(einsatzId, variables.propagationGroupId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, variables.einheitId) });
+
+      // Telemetrie: AC14 — genau ein Event pro Erfolgreich-Quittung. Story
+      // 3.11 nutzt `psa_quittung_abgegeben` als dritte Marke im
+      // CBRN-End-zu-End-Trace.
+      // Wenn der User noch nicht geladen ist (sehr seltener Race), skippen
+      // wir die Telemetrie — ein Event ohne valide userId würde den
+      // End-zu-End-Trace verzerren statt ihn zu erweitern.
+      if (!user?.id) return;
+      eigenschutzTelemetryQueue.push({
+        eventName: 'psa_quittung_abgegeben',
+        propagationGroupIdCandidate: variables.propagationGroupId,
+        abschnittCount: 1,
+        userId: user.id,
+        sessionId: getOrCreateSessionId(),
+        clientTime: new Date().toISOString(),
+        metadata: { einheitIdCandidate: variables.einheitId },
+      });
+    },
+  });
+}
+
+/**
+ * Listet alle Quittungen einer PSA-Bekanntgabe-Gruppe — Sender-View
+ * (Story 3.4 AC8). Wird vom `AcknowledgmentStatusBadge`-Popover und der
+ * Sender-Sektion auf `PsaProfilePage` konsumiert.
+ *
+ * Stale-Time = 15 s (analog zu den anderen Eigenschutz-Detail-Queries) —
+ * der WS-Live-Hook (`useEigenschutzPsaQuittungLive`) invalidiert ohnehin
+ * sofort, sobald ein neuer Quittungs-Frame eintrifft.
+ */
+export function useEigenschutzPsaQuittungen(einsatzId: string, propagationGroupId: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(einsatzId, propagationGroupId),
+    queryFn: async (): Promise<PsaQuittungEntry[]> => {
+      const response = await api.eigenschutz().psaProfilControllerListQuittungenVAlpha({ einsatzId, propagationGroupId });
+      const rows = (response?.data ?? []) as PsaQuittungEntry[];
+      return rows;
+    },
+    retry: eigenschutzRetry,
+    meta: { silentError: true },
+    staleTime: 15_000,
+    enabled: (options?.enabled ?? true) && Boolean(einsatzId) && Boolean(propagationGroupId),
+  });
+}
+
+/**
+ * Listet alle offenen (nicht vollständig quittierten) PSA-Bekanntgaben der
+ * letzten 24 h (Story 3.4 AC15) — Sender-View für `PsaProfilePage`-Sektion
+ * „Offene PSA-Bekanntgaben". Phase-2-Migrate-Pfad (Story 6.2): Die Anzeige
+ * wandert in die `AmpelCard`; der Hook bleibt unverändert wiederverwendbar.
+ */
+export function useOffenePsaBekanntgaben(einsatzId: string, options?: { enabled?: boolean; seitISO?: string }) {
+  return useQuery({
+    queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId),
+    queryFn: async (): Promise<OffenePsaBekanntgabeEntry[]> => {
+      const response = await api.eigenschutz().psaProfilControllerListOffeneBekanntgabenVAlpha({ einsatzId, seit: options?.seitISO });
+      const rows = (response?.data ?? []) as OffenePsaBekanntgabeEntry[];
+      return rows;
+    },
+    retry: eigenschutzRetry,
+    meta: { silentError: true },
+    staleTime: 15_000,
+    enabled: (options?.enabled ?? true) && Boolean(einsatzId),
   });
 }

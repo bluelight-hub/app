@@ -2,6 +2,8 @@
 
 Status: done
 
+> **Update 2026-04-28:** Eigenschutz-Rollen-Schicht ist entfernt — Permission-Guard ist die einzige Autorisierungsquelle. Verweise auf `@RequiresEigenschutzRolle('Sicherheitsbeauftragter', 'Abschnittsleiter', 'Einheitsführer', 'Nachbereitung')` unten sind historisch; produktiv gilt die Drei-Schicht-Kette `JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard` mit `@RequiresPermission('eigenschutz:gefaehrdungsbeurteilung:read')` allein.
+
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
 ## Story

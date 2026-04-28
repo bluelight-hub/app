@@ -129,3 +129,15 @@ Abgelehnt. Würde `KRAEFTE_REPOSITORIES.ROLLEN_BESETZUNG` als zweiten Provider i
 - [CLAUDE.md](../../CLAUDE.md) — Backend-DI-Import-Regel (AC1) und hexagonale Layering-Konvention.
 
 > **Hinweis zu Planning-Quellen:** Detaillierte Architektur-/Epic-Dokumente liegen unter `_bmad-output/planning-artifacts/` als Workflow-Scratchpad und sind bewusst **nicht** im Repository versioniert. Für aktuelle Referenzen gelten ausschließlich die hier verlinkten versionierten Quellen (Schema, CLAUDE.md, andere ADRs).
+
+---
+
+## Append 2026-04-28: Eigenschutz-Rollen-Schicht entfernt
+
+Das Single-Import-Pattern dieser ADR bleibt **unverändert** — `AuthModule` re-exportiert weiterhin `KraefteInfrastructureModule` für Konsumenten der Guard-Kette. Geändert hat sich nur die exportierte Guard-Liste:
+
+- `EigenschutzRolleGuard` ist aus `AuthModule.providers`/`exports` entfernt; der Guard und sein Decorator `@RequiresEigenschutzRolle` existieren nicht mehr.
+- `AuthModule` exportiert jetzt nur noch `EinsatzScopeGuard` und `PermissionsGuard`.
+- Im Body der ADR aufgeführte Code-Beispiele, die `EigenschutzRolleGuard` in `exports`-Listen führen, gelten als historisch.
+
+Permission-Guard ist die einzige verbleibende Autorisierungsschicht für Eigenschutz-Endpoints. Begründung: doppelte Autorisierung (Rolle + Permission) erzeugte Pflege-Aufwand und User-facing-Verwirrung beim 403-Mapping; Permissions sind Source of Truth.

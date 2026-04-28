@@ -81,6 +81,7 @@ import { Route as AppEinsatzEinsatzIdBefehlBefehlIdRouteImport } from './routes/
 import { Route as AppEinsatzEinsatzIdSicherheitEigenschutzIndexRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/eigenschutz/index'
 import { Route as AppEinsatzEinsatzIdFChar252hrungEtbIndexRouteImport } from './routes/app/einsatz/$einsatzId/führung/etb/index'
 import { Route as AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln'
+import { Route as AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile'
 import { Route as AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen'
 import { Route as AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenIndexRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/index'
 import { Route as AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenIdRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/$id'
@@ -491,6 +492,12 @@ const AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRoute =
     path: '/sicherheitsregeln',
     getParentRoute: () => AppEinsatzEinsatzIdSicherheitEigenschutzRoute,
   } as any)
+const AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRoute =
+  AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRouteImport.update({
+    id: '/psa-profile',
+    path: '/psa-profile',
+    getParentRoute: () => AppEinsatzEinsatzIdSicherheitEigenschutzRoute,
+  } as any)
 const AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRoute =
   AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRouteImport.update({
     id: '/gefaehrdungen',
@@ -583,6 +590,7 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId/patienten/': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht/': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
   '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen': typeof AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRouteWithChildren
+  '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile': typeof AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRoute
   '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln': typeof AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRoute
   '/app/einsatz/$einsatzId/führung/etb/': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
   '/app/einsatz/$einsatzId/sicherheit/eigenschutz/': typeof AppEinsatzEinsatzIdSicherheitEigenschutzIndexRoute
@@ -654,6 +662,7 @@ export interface FileRoutesByTo {
   '/app/einsatz/$einsatzId/befehl': typeof AppEinsatzEinsatzIdBefehlIndexRoute
   '/app/einsatz/$einsatzId/patienten': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
+  '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile': typeof AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRoute
   '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln': typeof AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRoute
   '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
   '/app/einsatz/$einsatzId/sicherheit/eigenschutz': typeof AppEinsatzEinsatzIdSicherheitEigenschutzIndexRoute
@@ -732,6 +741,7 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId/patienten/': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht/': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
   '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen': typeof AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRouteWithChildren
+  '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile': typeof AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRoute
   '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln': typeof AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRoute
   '/app/einsatz/$einsatzId/führung/etb/': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
   '/app/einsatz/$einsatzId/sicherheit/eigenschutz/': typeof AppEinsatzEinsatzIdSicherheitEigenschutzIndexRoute
@@ -811,6 +821,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/patienten/'
     | '/app/einsatz/$einsatzId/übersicht/'
     | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen'
+    | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile'
     | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln'
     | '/app/einsatz/$einsatzId/führung/etb/'
     | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/'
@@ -882,6 +893,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/befehl'
     | '/app/einsatz/$einsatzId/patienten'
     | '/app/einsatz/$einsatzId/übersicht'
+    | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile'
     | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln'
     | '/app/einsatz/$einsatzId/führung/etb'
     | '/app/einsatz/$einsatzId/sicherheit/eigenschutz'
@@ -959,6 +971,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/patienten/'
     | '/app/einsatz/$einsatzId/übersicht/'
     | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen'
+    | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile'
     | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln'
     | '/app/einsatz/$einsatzId/führung/etb/'
     | '/app/einsatz/$einsatzId/sicherheit/eigenschutz/'
@@ -1483,6 +1496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzRoute
     }
+    '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile': {
+      id: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile'
+      path: '/psa-profile'
+      fullPath: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzRoute
+    }
     '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen': {
       id: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen'
       path: '/gefaehrdungen'
@@ -1602,6 +1622,7 @@ const AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRouteWithChildren =
 
 interface AppEinsatzEinsatzIdSicherheitEigenschutzRouteChildren {
   AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRouteWithChildren
+  AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRoute
   AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRoute
   AppEinsatzEinsatzIdSicherheitEigenschutzIndexRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzIndexRoute
 }
@@ -1610,6 +1631,8 @@ const AppEinsatzEinsatzIdSicherheitEigenschutzRouteChildren: AppEinsatzEinsatzId
   {
     AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRoute:
       AppEinsatzEinsatzIdSicherheitEigenschutzGefaehrdungenRouteWithChildren,
+    AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRoute:
+      AppEinsatzEinsatzIdSicherheitEigenschutzPsaProfileRoute,
     AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRoute:
       AppEinsatzEinsatzIdSicherheitEigenschutzSicherheitsregelnRoute,
     AppEinsatzEinsatzIdSicherheitEigenschutzIndexRoute:

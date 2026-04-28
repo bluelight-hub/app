@@ -6,16 +6,21 @@ import { EigenschutzInfrastructureModule } from '@/infrastructure/eigenschutz/ei
 import { KraefteInfrastructureModule } from '@/infrastructure/kraefte/kraefte-infrastructure.module';
 import { UserInfrastructureModule } from '@/infrastructure/user/user-infrastructure.module';
 import { EinsatzTeilnehmerModule } from '@/modules/einsatz-teilnehmer/einsatz-teilnehmer.module';
+import { AckPsaQuittungHandler } from './commands/ack-psa-quittung/ack-psa-quittung.handler';
 import { AckSicherheitsregelHandler } from './commands/ack-sicherheitsregel/ack-sicherheitsregel.handler';
+import { ChangePsaProfilHandler } from './commands/change-psa-profil/change-psa-profil.handler';
 import { CreateGefaehrdungsbeurteilungHandler } from './commands/create-gefaehrdungsbeurteilung/create-gefaehrdungsbeurteilung.handler';
 import { CreateSicherheitsregelHandler } from './commands/create-sicherheitsregel/create-sicherheitsregel.handler';
 import { UpdateGefaehrdungsbeurteilungItemsHandler } from './commands/update-gefaehrdungsbeurteilung-items/update-gefaehrdungsbeurteilung-items.handler';
 import { UpdateSicherheitsregelHandler } from './commands/update-sicherheitsregel/update-sicherheitsregel.handler';
 import { GetGefaehrdungsbeurteilungHandler } from './queries/get-gefaehrdungsbeurteilung/get-gefaehrdungsbeurteilung.handler';
+import { GetPsaProfileByEinheitHandler } from './queries/get-psa-profile-by-einheit/get-psa-profile-by-einheit.handler';
 import { GetGefaehrdungsbeurteilungHistorieHandler } from './queries/get-gefaehrdungsbeurteilung-historie/get-gefaehrdungsbeurteilung-historie.handler';
 import { GetSicherheitsregelHandler } from './queries/get-sicherheitsregel/get-sicherheitsregel.handler';
 import { ListGefaehrdungsbeurteilungenHandler } from './queries/list-gefaehrdungsbeurteilungen/list-gefaehrdungsbeurteilungen.handler';
 import { ListGefaehrdungsbeurteilungsVorlagenHandler } from './queries/list-gefaehrdungsbeurteilungs-vorlagen/list-gefaehrdungsbeurteilungs-vorlagen.handler';
+import { ListOffenePsaBekanntgabenHandler } from './queries/list-offene-psa-bekanntgaben/list-offene-psa-bekanntgaben.handler';
+import { ListPsaQuittungenHandler } from './queries/list-psa-quittungen/list-psa-quittungen.handler';
 import { ListSicherheitsregelnHandler } from './queries/list-sicherheitsregeln/list-sicherheitsregeln.handler';
 import { ListSicherheitsregelQuittungenHandler } from './queries/list-sicherheitsregel-quittungen/list-sicherheitsregel-quittungen.handler';
 
@@ -37,30 +42,40 @@ import { ListSicherheitsregelQuittungenHandler } from './queries/list-sicherheit
 @Module({
   imports: [CqrsModule, PrismaModule, OutboxModule, EigenschutzInfrastructureModule, KraefteInfrastructureModule, UserInfrastructureModule, EinsatzTeilnehmerModule],
   providers: [
+    AckPsaQuittungHandler,
     AckSicherheitsregelHandler,
+    ChangePsaProfilHandler,
     CreateGefaehrdungsbeurteilungHandler,
     CreateSicherheitsregelHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
     UpdateSicherheitsregelHandler,
     GetGefaehrdungsbeurteilungHandler,
     GetGefaehrdungsbeurteilungHistorieHandler,
+    GetPsaProfileByEinheitHandler,
     GetSicherheitsregelHandler,
     ListGefaehrdungsbeurteilungenHandler,
     ListGefaehrdungsbeurteilungsVorlagenHandler,
+    ListOffenePsaBekanntgabenHandler,
+    ListPsaQuittungenHandler,
     ListSicherheitsregelnHandler,
     ListSicherheitsregelQuittungenHandler,
   ],
   exports: [
+    AckPsaQuittungHandler,
     AckSicherheitsregelHandler,
+    ChangePsaProfilHandler,
     CreateGefaehrdungsbeurteilungHandler,
     CreateSicherheitsregelHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
     UpdateSicherheitsregelHandler,
     GetGefaehrdungsbeurteilungHandler,
     GetGefaehrdungsbeurteilungHistorieHandler,
+    GetPsaProfileByEinheitHandler,
     GetSicherheitsregelHandler,
     ListGefaehrdungsbeurteilungenHandler,
     ListGefaehrdungsbeurteilungsVorlagenHandler,
+    ListOffenePsaBekanntgabenHandler,
+    ListPsaQuittungenHandler,
     ListSicherheitsregelnHandler,
     ListSicherheitsregelQuittungenHandler,
   ],

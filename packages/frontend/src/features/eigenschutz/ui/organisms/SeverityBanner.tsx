@@ -17,9 +17,17 @@ export interface SeverityBannerProps {
   primaryActionLabel?: string;
   /** Wird beim Tap/Enter/Space auf Primary aufgerufen. */
   onPrimary?: () => void;
-  /** Optionale Sekundär-Action (z. B. „Details ansehen"). */
+  /** Optionale Sekundär-Action (z. B. „Später" — Snooze). */
   secondaryActionLabel?: string;
   onSecondary?: () => void;
+  /**
+   * Optionale Tertiär-Action („Details ansehen") — Story 3.5 AC9. Rendert
+   * als kompakter Inline-Button rechts neben Primary/Secondary, ≥ 44 × 44 px
+   * Touch-Target. Wenn `tertiaryActionLabel === undefined`, ist das Layout
+   * unverändert zu Story-3.4-Defaults (Defense-in-Depth für bestehende Tests).
+   */
+  tertiaryActionLabel?: string;
+  onTertiary?: () => void;
   /** Optionale Inline-Fehlerzeile (Zero-Toast-Policy, Story 2.7 AC14). */
   inlineError?: string;
   /**
@@ -69,6 +77,8 @@ export function SeverityBanner({
   onPrimary,
   secondaryActionLabel,
   onSecondary,
+  tertiaryActionLabel,
+  onTertiary,
   inlineError,
   onRetry,
   pending = false,
@@ -93,7 +103,7 @@ export function SeverityBanner({
       </header>
       {body !== undefined && body.length > 0 && <p className="text-foreground/80 dark:text-foreground/90 mt-2 text-sm">{body.length > 140 ? `${body.slice(0, 137)}…` : body}</p>}
       {footer !== undefined && <footer className="text-foreground/60 mt-2 text-xs">{footer}</footer>}
-      {(primaryActionLabel !== undefined || secondaryActionLabel !== undefined) && (
+      {(primaryActionLabel !== undefined || secondaryActionLabel !== undefined || tertiaryActionLabel !== undefined) && (
         <div className="mt-3 flex flex-wrap gap-2">
           {primaryActionLabel !== undefined && (
             <button
@@ -122,6 +132,25 @@ export function SeverityBanner({
               )}
             >
               {secondaryActionLabel}
+            </button>
+          )}
+          {tertiaryActionLabel !== undefined && (
+            <button
+              type="button"
+              onClick={onTertiary}
+              disabled={onTertiary === undefined}
+              data-testid="severity-banner-tertiary"
+              className={cn(
+                // Kompakter ghost-Stil: ≥ 44 × 44 px Touch-Target, aber
+                // visuell schwächer als Primary/Secondary (UX-DR21 — der
+                // Tertiary-Pfad ist ein Detail-View-Trigger, kein Mutator).
+                'inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium',
+                'text-foreground/80 hover:bg-foreground/5 hover:text-foreground',
+                'focus-visible:outline-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                'disabled:cursor-not-allowed disabled:opacity-50',
+              )}
+            >
+              {tertiaryActionLabel}
             </button>
           )}
         </div>

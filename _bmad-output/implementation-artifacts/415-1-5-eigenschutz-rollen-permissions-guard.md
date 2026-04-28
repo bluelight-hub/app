@@ -1,6 +1,17 @@
 # Story 1.5: Eigenschutz-Rollen + Permissions-Guard
 
-Status: done
+Status: superseded-by-permission-guard
+
+> **Update 2026-04-28:** Eigenschutz-Rollen-Schicht ist entfernt — Permission-Guard ist die einzige Autorisierungsquelle.
+>
+> Begründung: Die doppelte Autorisierung (Rollen-Match + Permission-Match) erzeugte Pflege-Aufwand und User-facing-Verwirrung beim 403-Mapping. Permissions sind jetzt die alleinige Source of Truth. Konkret entfernt:
+>
+> - Domain-Union-Type `EigenschutzRolle` (`Sicherheitsbeauftragter | Abschnittsleiter | Einheitsführer | Nachbereitung`).
+> - Decorator `@RequiresEigenschutzRolle` und Guard `EigenschutzRolleGuard`.
+> - Konstante `EIGENSCHUTZ_INSUFFICIENT_ROLE_BODY` (mit `error: 'InsufficientRole'`).
+> - Provider-Registrierungen + Specs.
+>
+> Verbleibend: `JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard` mit `@RequiresPermission(...)`. Die ACs unten bleiben **als Historik** stehen und sind nicht mehr Vertrag — Folge-Stories müssen die Drei-Schicht-Kette referenzieren. Siehe `deferred-work.md` Refactor 2026-04-28.
 
 **Scope-Grenze (KRITISCH):** Diese Story ist **Plattform-Backend + Eigenschutz-Guards**. Sie liefert den neuen `EigenschutzRolleGuard`, den neuen `PermissionsGuard`, die Begleit-Decorators `@RequiresEigenschutzRolle` + `@RequiresPermission`, den Domain-Union-Type `EigenschutzRolle`, die konstanten Permission-Strings und die AuthModule-Registrierung. **Nicht in dieser Story:**
 

@@ -53,6 +53,7 @@ apis/UsersApi.ts
 apis/WarnungenApi.ts
 apis/index.ts
 index.ts
+models/AckPsaQuittungDto.ts
 models/AckSicherheitsregelDto.ts
 models/ActivateFuehrungsrhythmusTemplateDto.ts
 models/ActivateFuehrungsrhythmusTemplateResponseDto.ts
@@ -182,8 +183,11 @@ models/BefehlsgeberVorschlagDto.ts
 models/BeitrittsanfrageResponseDto.ts
 models/BesatzungMemberDto.ts
 models/BesetzeRolleDto.ts
+models/BulkChangePsaProfilDto.ts
 models/ChangeEinsatzEinheitStatusDto.ts
 models/ChangeOperativeRoleDto.ts
+models/ChangePsaProfilDto.ts
+models/ChangePsaProfilResponseDto.ts
 models/CircuitBreakerStatusEntryDto.ts
 models/CompleteSetupDto.ts
 models/CompletenessResponseDto.ts
@@ -421,6 +425,8 @@ models/NinaWarnungDto.ts
 models/NotizControllerCreateVAlpha201Response.ts
 models/NotizControllerGetByEinsatzVAlpha200Response.ts
 models/NotizResponseDto.ts
+models/OffenePsaBekanntgabeEntryDto.ts
+models/OffenePsaBekanntgabeProfilToggleDto.ts
 models/OperativeRoleResponseDto.ts
 models/PersonRegisteredResponseDto.ts
 models/PersonStatistikDto.ts
@@ -435,6 +441,13 @@ models/PoiDto.ts
 models/PoiResponseDto.ts
 models/PositionDto.ts
 models/ProfileControllerUpdateProfileV1200Response.ts
+models/PsaProfilControllerChangePsaProfilVAlpha201Response.ts
+models/PsaProfilControllerGetPsaProfileVAlpha200Response.ts
+models/PsaProfilControllerListOffeneBekanntgabenVAlpha200Response.ts
+models/PsaProfilControllerListQuittungenVAlpha200Response.ts
+models/PsaProfilToggleDto.ts
+models/PsaProfilZuweisungDto.ts
+models/PsaQuittungEntryDto.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
 models/PushSubscriptionControllerRegisterV1201Response.ts

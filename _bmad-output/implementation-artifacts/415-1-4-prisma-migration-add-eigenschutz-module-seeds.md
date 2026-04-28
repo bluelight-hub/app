@@ -2,6 +2,8 @@
 
 Status: done
 
+> **Update 2026-04-28:** Eigenschutz-Rollen-Schicht ist entfernt — Permission-Guard ist die einzige Autorisierungsquelle. Die in dieser Story angelegten 4 Eigenschutz-`RollenDefinition`-Seeds bleiben in der DB als historische Daten erhalten, werden aber **nicht mehr** vom (entfernten) `EigenschutzRolleGuard` ausgewertet. Folge-Cleanup (Seeds entfernen oder als Pure-Data-Tags umdeuten) ist offene Aufgabe — siehe `deferred-work.md` Refactor 2026-04-28.
+
 **Scope-Grenze (KRITISCH):** Diese Story ist **Backend-only, Schema + Seeds**. Sie liefert **eine** Prisma-Migration `add_eigenschutz_module`, die alle Eigenschutz-Tabellen und Enums anlegt, und ergänzt `packages/backend/prisma/seed.ts` um die 4 Eigenschutz-`RollenDefinition`-Records und 5 `GefaehrdungsbeurteilungVorlage`-Records. **Nicht in dieser Story:**
 
 - Domain-Aggregates, Repositories, Commands, Queries, Event-Handler (Stories 2.x, 3.x, 4.x, 5.x)

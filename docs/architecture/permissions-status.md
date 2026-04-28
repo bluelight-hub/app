@@ -1,6 +1,10 @@
 # Eigenschutz-Permissions-Status — Audit Epic 2
 
-**Stand:** 2026-04-24
+> **Update 2026-04-28 — Eigenschutz-Rollen-Schicht entfernt:** Die ursprünglich vorgesehene **Vier-Schicht-Kette** (`JwtAuthGuard → EinsatzScopeGuard → EigenschutzRolleGuard → PermissionsGuard`) wurde auf eine **Drei-Schicht-Kette** reduziert: `JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard`. Domain-Enum `EigenschutzRolle`, Decorator `@RequiresEigenschutzRolle`, Guard `EigenschutzRolleGuard` und die Konstante `EIGENSCHUTZ_INSUFFICIENT_ROLE_BODY` sind entfernt. Permission-Guard ist die einzige verbleibende Autorisierungsschicht. Begründung: doppelte Autorisierung (Rolle + Permission) erzeugte Pflege-Aufwand und User-facing-Verwirrung beim 403-Mapping; Permissions sind jetzt die Source of Truth.
+>
+> Die Sections unten beschreiben den historischen Stand 2026-04-24. Konkretes neues Pattern siehe **Section 3 — Update-Banner** und **Section 6 — Update-Banner**.
+
+**Stand:** 2026-04-24 (historisch); Refactor-Stand 2026-04-28 siehe Banner oben
 **Geltungsbereich:** Branch `415-eigenschutz-einsatzkraefte-sicherheit-psa`, Eigenschutz-Feature-Slice (Issue #415)
 **Auslöser:** Action Item **B1** der Epic-2-Retrospektive (`_bmad-output/implementation-artifacts/epic-2-retro-2026-04-24.md` Section 3.1) — „Guards/Permissions — Late-Discovery (Hauptschmerz)".
 **Charakter:** **Status-Doc, kein Plan.** Beschreibt den **Ist-Zustand** der Guard- und Permissions-Verkabelung am Ende von Epic 2 plus die verbindliche **Soll-Konvention** für Stories 3.1+. Nicht-trivialen Retrofit der Bestands-Endpunkte regelt eine separate Story (Vorschlag siehe Section 5).
@@ -74,6 +78,17 @@ Belege: `grep -rn "RequiresEigenschutzRolle\|RequiresPermission" packages/backen
 ---
 
 ## 3. Soll-Konvention für Stories 3.1+ (verbindlich)
+
+> **Update 2026-04-28:** Folgende Subsections beschreiben die ursprüngliche Vier-Schicht-Kette mit `EigenschutzRolleGuard`. **Aktuell verbindlich** ist die **Drei-Schicht-Kette**:
+>
+> ```typescript
+> @Post('einheiten/:einheitId/psa-profil')
+> @RequiresPermission('eigenschutz:psa:write')
+> @UseGuards(JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard)
+> async setPsaProfil(...) { /* ... */ }
+> ```
+>
+> Read-Endpoints analog ohne `@RequiresEigenschutzRolle`. Klassen-Level-Defaults (Subsection 3.3) bleiben gültig — nur die Rollen-Schicht entfällt. Die fachliche Aufteilung „wer darf was" lebt jetzt **ausschließlich** in `EigenschutzPermission`-Strings + Permission-Seed-Mapping (P3); Subsection 3.4 ist obsolet.
 
 Stories 3.1+ verkabeln die volle Vier-Schicht-Kette **am Edge**, bevor sie Domain-Invarianten anhängen. Konkretes Copy-Paste-Pattern:
 
@@ -189,6 +204,8 @@ Die folgenden Stories sind **Empfehlungen**, nicht Bestandteil dieses Audits. Si
 ---
 
 ## 6. Verbindliche Konsequenzen für Story 3.1
+
+> **Update 2026-04-28:** Punkt 2 + 4 sind durch den Refactor obsolet. Aktuell gilt: **Drei-Schicht-Guard-Kette** (`@UseGuards(JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard)` + `@RequiresPermission('eigenschutz:psa:write')`); Test-Suite prüft drei Guard-Schichten (401/403/403). Punkte 1 + 3 (Single-Import + Domain-Invariante) bleiben unverändert gültig.
 
 Story 3.1 (`415-3-1-psa-profil-einer-einheit-aktivieren-deaktivieren`) **muss** nach diesem Audit:
 

@@ -2,6 +2,8 @@
 
 Status: done
 
+> **Update 2026-04-28:** Eigenschutz-Rollen-Schicht ist entfernt — Permission-Guard ist die einzige Autorisierungsquelle. Verweise auf die Vier-Schicht-Kette und `@RequiresEigenschutzRolle('Sicherheitsbeauftragter')` unten sind historisch; produktiv gilt die Drei-Schicht-Kette `JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard` mit `@RequiresPermission('eigenschutz:gefaehrdungsbeurteilung:write')` allein.
+
 > **✅ Story-Abschluss (2026-04-22):** Tasks 1–9 komplett. Backend-Controller + Guard-Kette live, API-Client regeneriert, Frontend-Hooks + Drawer + Page + Route-Pivot umgesetzt. Alle 143/143 Eigenschutz-Backend-Tests grün (7 skipped = Postgres-Integrationsmatrix, deferred nach Story 2.4). Frontend 51/51 in `features/eigenschutz` + Routes, Full-Suite 4670 passed / 21 preexisting skipped / 0 Regressions. `check:di:imports`, `check:arch`, `lint` sauber. Preexisting e2e/Integration-Flakes in unrelated Slices (`etb`/`einsatz`/`kraefte`/`funkkanal`) sind nicht Story-induziert — siehe Debug Log References.
 
 <!--

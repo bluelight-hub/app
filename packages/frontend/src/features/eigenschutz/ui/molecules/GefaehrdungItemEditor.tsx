@@ -21,6 +21,8 @@
 import { calculateRisikoklasse } from '@bluelight-hub/shared';
 import { GEFAEHRDUNG_ITEM_LIMITS, type GefaehrdungItem, type Risikoklasse } from '@bluelight-hub/shared/schemas';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { cn } from '@/shared/ui/cn';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { PiTrashLight } from 'react-icons/pi';
@@ -107,7 +109,7 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
           <label htmlFor={titleId} className="block text-sm font-medium text-text-primary">
             Titel <span className="text-status-danger-text">*</span>
           </label>
-          <input
+          <Input
             id={titleId}
             ref={titleRef}
             type="text"
@@ -118,11 +120,8 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
             onChange={(event) => update({ title: event.target.value })}
             aria-required="true"
             aria-invalid={titleTooLong || undefined}
-            className={cn(
-              'block min-h-[2.75rem] w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary',
-              'focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring',
-              titleTooLong ? 'border-status-danger-border' : null,
-            )}
+            variant={titleTooLong ? 'error' : 'default'}
+            className="min-h-[2.75rem] py-2"
             data-testid="gefaehrdung-item-title"
           />
         </div>
@@ -137,15 +136,14 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
         <label htmlFor={descriptionId} className="block text-sm font-medium text-text-primary">
           Beschreibung
         </label>
-        <textarea
+        <Textarea
           id={descriptionId}
           value={value.description ?? ''}
           disabled={disabled}
           readOnly={readOnly}
           maxLength={GEFAEHRDUNG_ITEM_LIMITS.descriptionMax + 1}
-          rows={2}
+          textareaSize="sm"
           onChange={(event) => update({ description: event.target.value })}
-          className="block w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring"
           data-testid="gefaehrdung-item-description"
         />
       </div>
@@ -170,20 +168,16 @@ export function GefaehrdungItemEditor({ value, onChange, onRemove, disabled = fa
           <label htmlFor={schutzmassnahmenId} className="block text-sm font-medium text-text-primary">
             Schutzmaßnahmen{risikoklasse && risikoklasse !== 'GRUEN' ? <span className="text-status-danger-text"> *</span> : null}
           </label>
-          <textarea
+          <Textarea
             id={schutzmassnahmenId}
             value={schutzmassnahmenText}
             disabled={disabled}
             readOnly={readOnly}
-            rows={3}
+            textareaSize="md"
+            variant={tooLong ? 'error' : 'default'}
             onChange={(event) => update({ schutzmassnahmen: event.target.value })}
             aria-describedby={cn(schutzmassnahmenHelpId, showCounter ? schutzmassnahmenCounterId : null, tooLong ? schutzmassnahmenErrorId : null)}
             aria-invalid={tooLong || undefined}
-            className={cn(
-              'block w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary',
-              'focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring',
-              tooLong ? 'border-status-danger-border' : null,
-            )}
             data-testid="gefaehrdung-item-schutzmassnahmen"
           />
           <p id={schutzmassnahmenHelpId} className="text-xs text-text-muted">

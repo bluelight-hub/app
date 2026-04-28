@@ -17,7 +17,6 @@ describe('PermissionsGuard', () => {
 
   interface MockEinsatzContext {
     einsatzId: string;
-    einsatzRollenNamen: string[];
     einsatzPermissions: string[];
   }
 
@@ -73,7 +72,6 @@ describe('PermissionsGuard', () => {
   function makeEinsatzContext(overrides?: Partial<MockEinsatzContext>): MockEinsatzContext {
     return {
       einsatzId: TEST_EINSATZ_ID,
-      einsatzRollenNamen: [],
       einsatzPermissions: [],
       ...overrides,
     };
@@ -123,6 +121,48 @@ describe('PermissionsGuard', () => {
 
     expect(guard.canActivate(context)).toBe(true);
     expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it('(j-Story34) eigenschutz:psa:acknowledge granted → true (Story 3.4 AC6)', () => {
+    class ProtectedController {
+      @RequiresPermission('eigenschutz:psa:acknowledge')
+      handler() {
+        return 'ok';
+      }
+    }
+    const controller = new ProtectedController();
+
+    const { context } = createMockContextAndRequest({
+      user: makeUser(),
+      einsatzContext: makeEinsatzContext({ einsatzPermissions: ['eigenschutz:psa:acknowledge'] }),
+      handler: controller.handler,
+      controllerClass: ProtectedController,
+    });
+
+    expect(guard.canActivate(context)).toBe(true);
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it('(k-Story34) eigenschutz:psa:acknowledge missing → 403 (Story 3.4 AC6)', () => {
+    // Caller darf zwar `:psa:write` (z. B. Sicherheitsbeauftragter), aber
+    // die Quittungs-Permission ist eine separate Permission. Exakter
+    // String-Match ohne Wildcard.
+    class ProtectedController {
+      @RequiresPermission('eigenschutz:psa:acknowledge')
+      handler() {
+        return 'ok';
+      }
+    }
+    const controller = new ProtectedController();
+
+    const { context } = createMockContextAndRequest({
+      user: makeUser(),
+      einsatzContext: makeEinsatzContext({ einsatzPermissions: ['eigenschutz:psa:write', 'eigenschutz:psa:read'] }),
+      handler: controller.handler,
+      controllerClass: ProtectedController,
+    });
+
+    expect(() => guard.canActivate(context)).toThrow();
   });
 
   it('(j-OR) Multi-Permission: mindestens eine matcht → true (OR-Semantik)', () => {

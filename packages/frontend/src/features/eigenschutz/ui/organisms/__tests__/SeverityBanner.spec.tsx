@@ -60,4 +60,38 @@ describe('SeverityBanner (Story 2.7 AC1)', () => {
     expect(onSecondary).toHaveBeenCalledTimes(1);
     expect(onPrimary).not.toHaveBeenCalled();
   });
+
+  describe('Tertiary-Action (Story 3.5 AC9)', () => {
+    it('rendert KEINEN Tertiary-Button, wenn tertiaryActionLabel undefined ist (Default-Layout-Schutz)', () => {
+      render(<SeverityBanner variant="info" headline="Test" primaryActionLabel="OK" onPrimary={() => undefined} />);
+      expect(screen.queryByTestId('severity-banner-tertiary')).toBeNull();
+    });
+
+    it('rendert Tertiary-Button und ruft onTertiary bei Klick', () => {
+      const onTertiary = vi.fn();
+      render(<SeverityBanner variant="critical" headline="Test" primaryActionLabel="Quittieren" onPrimary={() => undefined} tertiaryActionLabel="Details ansehen" onTertiary={onTertiary} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Details ansehen' }));
+      expect(onTertiary).toHaveBeenCalledTimes(1);
+    });
+
+    it('disabled Tertiary-Button wenn onTertiary undefined ist', () => {
+      render(<SeverityBanner variant="info" headline="Test" tertiaryActionLabel="Details ansehen" />);
+      expect(screen.getByRole('button', { name: 'Details ansehen' })).toBeDisabled();
+    });
+
+    it('Tertiary-Button hat Touch-Target ≥ 44 × 44 px (min-h-11/min-w-11)', () => {
+      render(<SeverityBanner variant="info" headline="Test" tertiaryActionLabel="Details ansehen" onTertiary={() => undefined} />);
+      const button = screen.getByTestId('severity-banner-tertiary');
+      expect(button.className).toMatch(/min-h-11/);
+      expect(button.className).toMatch(/min-w-11/);
+    });
+
+    it('Tertiary-Button ist Tastatur-fokussierbar (kein tabIndex=-1)', () => {
+      render(<SeverityBanner variant="info" headline="Test" tertiaryActionLabel="Details ansehen" onTertiary={() => undefined} />);
+      const button = screen.getByTestId('severity-banner-tertiary');
+      expect(button.getAttribute('tabindex')).not.toBe('-1');
+      button.focus();
+      expect(document.activeElement).toBe(button);
+    });
+  });
 });

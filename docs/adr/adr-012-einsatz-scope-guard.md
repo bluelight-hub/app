@@ -221,3 +221,17 @@ Abgelehnt durch Q4-Revision des Rollen-/Permission-Modells. Kein Prisma-Enum `Ei
 - [CLAUDE.md](../../CLAUDE.md) — Backend DI Import (AC1): `import type`-Verbot für Injectable-Klassen; Plattform-Konvention: Einsatz-scoped HTTP-Endpoints liegen unter `/api/einsaetze/:einsatzId/...`
 
 > **Hinweis zu Planning-Quellen:** Die detaillierten Architektur-/Epic-Dokumente liegen unter `_bmad-output/planning-artifacts/` als Workflow-Scratchpad und sind bewusst **nicht** im Repository versioniert. Für aktuelle Referenzen gelten ausschließlich die hier verlinkten versionierten Quellen (Schema, CLAUDE.md, andere ADRs).
+
+---
+
+## Append 2026-04-28: Eigenschutz-Rollen-Schicht entfernt
+
+`EinsatzScopeGuard` selbst bleibt **unverändert** Plattform-Pattern. Die nachgelagerte `EigenschutzRolleGuard`-Schicht aus Story 1.5 wurde aus dem Codebase entfernt — Domain-Enum `EigenschutzRolle`, Decorator `@RequiresEigenschutzRolle`, Guard `EigenschutzRolleGuard` und die zugehörige 403-Body-Konstante existieren nicht mehr. Permission-Guard (`PermissionsGuard` + `@RequiresPermission`) ist die einzige verbleibende Autorisierungsschicht für Eigenschutz-Endpoints.
+
+Auswirkung auf diese ADR:
+
+- Verweise im Body auf `[EigenschutzRolleGuard | PermissionsGuard]` als nachgelagerte Guards lesen sich jetzt als „nur `PermissionsGuard`".
+- Erwähnungen der Vier-Schicht-Kette (Section „Architektur-Platzierung", Code-Beispiele) gelten als historisch; produktive Soll-Kette ist `JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard`.
+- Die ADR-Entscheidung „kein Prisma-Enum `EigenschutzRolle`, keine Schema-Änderung an `EinsatzRollenbesetzung`" bleibt durch den Refactor weiter bestätigt.
+
+Begründung: doppelte Autorisierung (Rolle + Permission) erzeugte Pflege-Aufwand und User-facing-Verwirrung beim 403-Mapping; Permissions sind Source of Truth.

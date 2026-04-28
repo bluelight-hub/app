@@ -81,6 +81,11 @@ type PersonFormValues = {
 /**
  * Vordefinierte Funktionen für Dropdown
  * Häufig verwendete Rollen im Einsatz
+ *
+ * Hinweis (2026-04-28): Eigenschutz-spezifische Funktionen wie
+ * "Sicherheitsbeauftragter" werden nicht mehr über das Person-Funktion-Feld
+ * abgebildet — Eigenschutz-Rollen-Schicht wurde entfernt, Permission-Guard
+ * ist die einzige verbleibende Autorisierungsquelle.
  */
 const FUNKTIONEN = [
   'Helfer',
@@ -93,7 +98,6 @@ const FUNKTIONEN = [
   'Zugführer',
   'Einsatzleiter',
   'Verbindungsführer',
-  'Sicherheitsbeauftragter',
 ] as const;
 
 /**

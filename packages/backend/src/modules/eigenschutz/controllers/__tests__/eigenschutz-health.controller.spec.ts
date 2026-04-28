@@ -1,6 +1,5 @@
 import type { CanActivate } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { EIGENSCHUTZ_ROLE_KEY } from '@/modules/auth/decorators/requires-eigenschutz-rolle.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { EigenschutzHealthController } from '../eigenschutz-health.controller';
 
@@ -28,7 +27,7 @@ describe('EigenschutzHealthController', () => {
     };
   }
 
-  it('liefert { status: "ready" } ohne Einsatz- oder Eigenschutz-Rollenprüfung', async () => {
+  it('liefert { status: "ready" } ohne Einsatz-Rollenprüfung', async () => {
     const { controller } = await createSetup();
 
     await expect(controller.getHealth()).resolves.toEqual({ status: 'ready' });
@@ -40,12 +39,5 @@ describe('EigenschutzHealthController', () => {
     expect(guards).toBeDefined();
     expect(guards).toHaveLength(1);
     expect(guards[0]).toBe(JwtAuthGuard);
-  });
-
-  it('setzt keine Eigenschutz-Rollen-Metadata auf dem Health-Handler', async () => {
-    const { controller } = await createSetup();
-    const prototype = Object.getPrototypeOf(controller);
-
-    expect(Reflect.getMetadata(EIGENSCHUTZ_ROLE_KEY, prototype.getHealth)).toBeUndefined();
   });
 });

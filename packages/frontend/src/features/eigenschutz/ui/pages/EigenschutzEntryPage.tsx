@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { PiClipboardText, PiShieldCheck } from 'react-icons/pi';
+import { PiClipboardText, PiShield, PiShieldCheck } from 'react-icons/pi';
 
 export interface EigenschutzEntryPageProps {
   /**
@@ -51,6 +51,15 @@ export function EigenschutzEntryPage({ einsatzId }: EigenschutzEntryPageProps = 
             >
               <PiShieldCheck aria-hidden="true" className="h-4 w-4" />
               <span>Sicherheitsregeln verwalten</span>
+            </Link>
+            <Link
+              to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile"
+              params={{ einsatzId }}
+              data-testid="eigenschutz-psa-profile-link"
+              className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+            >
+              <PiShield aria-hidden="true" className="h-4 w-4" />
+              <span>PSA-Profile verwalten</span>
             </Link>
           </div>
         ) : null}
