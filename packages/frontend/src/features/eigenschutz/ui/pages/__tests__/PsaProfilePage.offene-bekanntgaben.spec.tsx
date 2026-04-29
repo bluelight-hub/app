@@ -201,4 +201,78 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
       expect(screen.queryByTestId('psa-profil-detail-luecke')).toBeNull();
     });
   });
+
+  describe('Story 3.6 AC13 — lueckenCount-Badge in der OffenePsaBekanntgabenSection', () => {
+    it('rendert luecke-badge bei lueckenCount > 0', () => {
+      mocks.offene = {
+        data: [
+          {
+            propagationGroupId: 'group-luecke',
+            occurredAt: '2026-04-24T08:30:00.000Z',
+            begruendungAnriss: 'Verdacht auf Kontamination',
+            profilToggles: [{ profil: 'CBRN_PATIENT', aktion: 'AKTIVIERT' }],
+            betroffeneEinheitIds: ['e1', 'e2'],
+            ackCount: 2,
+            totalCount: 2,
+            status: 'partial',
+            lueckenCount: 2,
+          },
+        ],
+        isLoading: false,
+      };
+      const client = makeClient();
+      render(<PsaProfilePage einsatzId="einsatz-1" />, { wrapper: wrapper(client) });
+
+      const badge = screen.getByTestId('luecke-badge-group-luecke');
+      expect(badge).toBeInTheDocument();
+      expect(badge).toHaveTextContent('2');
+      expect(badge).toHaveTextContent(/Lücken gemeldet/);
+    });
+
+    it('zeigt Singular bei lueckenCount === 1', () => {
+      mocks.offene = {
+        data: [
+          {
+            propagationGroupId: 'group-eins',
+            occurredAt: '2026-04-24T08:30:00.000Z',
+            begruendungAnriss: 'CBRN',
+            profilToggles: [{ profil: 'CBRN_PATIENT', aktion: 'AKTIVIERT' }],
+            betroffeneEinheitIds: ['e1'],
+            ackCount: 1,
+            totalCount: 1,
+            status: 'partial',
+            lueckenCount: 1,
+          },
+        ],
+        isLoading: false,
+      };
+      const client = makeClient();
+      render(<PsaProfilePage einsatzId="einsatz-1" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByTestId('luecke-badge-group-eins')).toHaveTextContent(/Lücke gemeldet/);
+    });
+
+    it('rendert KEIN luecke-badge bei lueckenCount === 0', () => {
+      mocks.offene = {
+        data: [
+          {
+            propagationGroupId: 'group-keine-luecke',
+            occurredAt: '2026-04-24T08:30:00.000Z',
+            begruendungAnriss: 'CBRN',
+            profilToggles: [{ profil: 'CBRN_PATIENT', aktion: 'AKTIVIERT' }],
+            betroffeneEinheitIds: ['e1'],
+            ackCount: 0,
+            totalCount: 1,
+            status: 'pending',
+            lueckenCount: 0,
+          },
+        ],
+        isLoading: false,
+      };
+      const client = makeClient();
+      render(<PsaProfilePage einsatzId="einsatz-1" />, { wrapper: wrapper(client) });
+
+      expect(screen.queryByTestId('luecke-badge-group-keine-luecke')).toBeNull();
+    });
+  });
 });

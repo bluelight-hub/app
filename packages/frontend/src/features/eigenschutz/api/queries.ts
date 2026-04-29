@@ -980,6 +980,10 @@ export interface PsaQuittungEntry {
   quittiertAm?: string;
   quittiertVonUserId?: string;
   quittiertVonUserName?: string;
+  /** Story 3.6 AC8 — true = Empfänger hat eine Ausrüstungs-Lücke gemeldet. */
+  lueckeGemeldet?: boolean;
+  /** Story 3.6 AC8 — Klartext der Lücken-Meldung. Nur gesetzt, wenn `lueckeGemeldet === true`. */
+  lueckeNotiz?: string;
 }
 
 /**
@@ -994,6 +998,8 @@ export interface OffenePsaBekanntgabeEntry {
   ackCount: number;
   totalCount: number;
   status: 'pending' | 'partial';
+  /** Story 3.6 AC8 — Anzahl Empfänger-Einheiten mit gemeldeter Ausrüstungs-Lücke. */
+  lueckenCount?: number;
 }
 
 /**
@@ -1051,6 +1057,75 @@ export function useAckPsaQuittung(einsatzId: string) {
         clientTime: new Date().toISOString(),
         metadata: { einheitIdCandidate: variables.einheitId },
       });
+    },
+  });
+}
+
+// ============================================================================
+// Story 3.6 — Lücke-Meldung (FR20)
+// ============================================================================
+
+/**
+ * Input-Shape für `useMeldeLuecke` (Story 3.6 AC10).
+ */
+export interface MeldeLueckeInput {
+  propagationGroupId: string;
+  einheitId: string;
+  /** Bereits vom Aufrufer getrimmt; Backend trimmt zusätzlich (Defense-in-Depth). */
+  meldung: string;
+}
+
+/**
+ * Meldet eine Ausrüstungs-Lücke zu einer PSA-Bekanntgabe (Story 3.6, FR20).
+ *
+ * **Cache-Invalidation** (analog `useAckPsaQuittung`):
+ * - `psaQuittungen(einsatzId, propagationGroupId)` — Sender-Counter sieht
+ *   `lueckeGemeldet=true` für die meldende Einheit.
+ * - `offenePsaBekanntgaben(einsatzId)` — `lueckenCount` aktualisiert sich.
+ * - `psaProfileByEinheit(einsatzId, einheitId)` — Empfänger-Detail-Refetch.
+ *
+ * **Telemetrie (AC15):** Bei Erfolg wird genau ein `luecke_gemeldet`-Event
+ * in die Telemetrie-Queue gepushed (analog `psa_quittung_abgegeben` Story
+ * 3.4). Bei `!user.id` (sehr seltener Race) kein Event — würde den
+ * End-zu-End-Trace verzerren.
+ *
+ * **Zero-Toast** (UX-DR21): `meta: { silentError: true }`. Inline-Error im
+ * `MeldeLueckeDialog` (AC11) — kein Sonner-Toast.
+ */
+export function useMeldeLuecke(einsatzId: string) {
+  const queryClient = useQueryClient();
+  const { user } = useCurrentUser();
+
+  return useMutation<void, unknown, MeldeLueckeInput>({
+    meta: { silentError: true },
+    mutationFn: async (input) => {
+      await api.eigenschutz().psaProfilControllerMeldeLueckeVAlpha({
+        einsatzId,
+        propagationGroupId: input.propagationGroupId,
+        meldeLueckeDto: { einheitId: input.einheitId, meldung: input.meldung },
+      });
+    },
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(einsatzId, variables.propagationGroupId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, variables.einheitId) });
+
+      if (!user?.id) return;
+      // Telemetrie darf den Mutation-Success-Pfad nicht zum Inline-Fehler
+      // umkippen lassen, falls die Queue (z. B. Quota-Overflow) wirft.
+      try {
+        eigenschutzTelemetryQueue.push({
+          eventName: 'luecke_gemeldet',
+          propagationGroupIdCandidate: variables.propagationGroupId,
+          abschnittCount: 1,
+          userId: user.id,
+          sessionId: getOrCreateSessionId(),
+          clientTime: new Date().toISOString(),
+          metadata: { einheitIdCandidate: variables.einheitId, meldungLength: variables.meldung.length },
+        });
+      } catch {
+        // Telemetrie ist best-effort — Mutation ist semantisch erfolgreich.
+      }
     },
   });
 }

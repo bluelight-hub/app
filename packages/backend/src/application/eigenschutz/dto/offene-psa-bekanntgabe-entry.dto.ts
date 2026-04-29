@@ -89,4 +89,20 @@ export class OffenePsaBekanntgabeEntryDto {
     example: 'partial',
   })
   status!: OffenePsaBekanntgabeStatus;
+
+  /**
+   * Story 3.6 AC8 — Aggregations-Counter für gemeldete Ausrüstungs-Lücken
+   * (additiv, kein Schema-Bruch). Anzahl der Empfänger-Einheiten, die eine
+   * Lücke gemeldet haben. Frontend rendert den Badge „N Lücke(n) gemeldet"
+   * im Listen-Eintrag (AC13).
+   *
+   * **Filter-Patch:** Eine Bekanntgabe mit `lueckenCount > 0` bleibt in der
+   * Liste sichtbar, auch wenn `ackCount === totalCount` (sonst würde der
+   * Lücken-Pfad still aus der Sicht verschwinden — siehe Handler).
+   */
+  @ApiProperty({
+    description: 'Anzahl der Empfänger-Einheiten, die eine Ausrüstungs-Lücke gemeldet haben (Story 3.6).',
+    example: 0,
+  })
+  lueckenCount!: number;
 }

@@ -77,4 +77,21 @@ describe('telemetry-queue (Story 3.1 AC10)', () => {
     expect(snapshot[0]?.eventName).toBe('all_banners_delivered');
     expect(snapshot[0]?.metadata?.receivedToggles).toBe(2);
   });
+
+  it('akzeptiert luecke_gemeldet als gültiges eventName (Story 3.6 AC15)', () => {
+    eigenschutzTelemetryQueue.push({
+      eventName: 'luecke_gemeldet',
+      propagationGroupIdCandidate: 'group-3-6-1',
+      abschnittCount: 1,
+      userId: 'user-empfaenger',
+      sessionId: 'session-3-6',
+      clientTime: '2026-04-29T12:00:00.000Z',
+      metadata: { einheitIdCandidate: 'einheit-2', meldungLength: 42 },
+    });
+
+    const snapshot = eigenschutzTelemetryQueue.snapshot();
+    expect(snapshot).toHaveLength(1);
+    expect(snapshot[0]?.eventName).toBe('luecke_gemeldet');
+    expect(snapshot[0]?.metadata?.meldungLength).toBe(42);
+  });
 });

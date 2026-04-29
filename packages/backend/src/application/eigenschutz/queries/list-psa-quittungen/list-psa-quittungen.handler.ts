@@ -52,11 +52,13 @@ export class ListPsaQuittungenHandler implements IQueryHandler<ListPsaQuittungen
     if (quittungenResult.isFailure) {
       return Result.fail<PsaQuittungEntryDto[]>(quittungenResult.error ?? 'PSA-Quittungen konnten nicht geladen werden');
     }
-    const quittungenByEinheit = new Map<string, { quittiertAm: Date; quittiertVonUserId: string }>();
+    const quittungenByEinheit = new Map<string, { quittiertAm: Date; quittiertVonUserId: string; lueckeGemeldet: boolean; lueckeNotiz: string | null }>();
     for (const row of quittungenResult.value ?? []) {
       quittungenByEinheit.set(row.einheitId, {
         quittiertAm: row.quittiertAm,
         quittiertVonUserId: row.quittiertVonUserId,
+        lueckeGemeldet: row.lueckeGemeldet,
+        lueckeNotiz: row.lueckeNotiz,
       });
     }
 
@@ -88,12 +90,16 @@ export class ListPsaQuittungenHandler implements IQueryHandler<ListPsaQuittungen
           status: 'QUITTIERT',
           quittiertAm: quittung.quittiertAm.toISOString(),
           quittiertVonUserId: quittung.quittiertVonUserId,
+          // Story 3.6 AC8 — Lücke-Marker durchreichen.
+          lueckeGemeldet: quittung.lueckeGemeldet,
+          ...(quittung.lueckeNotiz !== null ? { lueckeNotiz: quittung.lueckeNotiz } : {}),
         });
       } else {
         entries.push({
           einheitId,
           einheitName,
           status: 'AUSSTEHEND',
+          lueckeGemeldet: false,
         });
       }
     }

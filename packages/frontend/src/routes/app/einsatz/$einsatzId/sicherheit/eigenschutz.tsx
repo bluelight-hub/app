@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { EigenschutzEntryPage } from '@/features/eigenschutz';
 import { useEigenschutzPsaQuittungLive } from '@/features/eigenschutz/api/use-eigenschutz-psa-quittung-live';
+import { useEigenschutzLueckeGemeldetLive } from '@/features/eigenschutz/api/use-eigenschutz-luecke-gemeldet-live';
 import { PsaProfilEmpfangBanner } from '@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner';
 import { logger } from '@/shared/lib/logger';
 import { Outlet, createFileRoute, useLocation } from '@tanstack/react-router';
@@ -37,6 +38,10 @@ function EigenschutzRouteComponent() {
   // unabhängig — separater Channel + separater LRU-Cache + separater
   // Hook-Lifecycle, kein Cross-Talk.
   useEigenschutzPsaQuittungLive({ einsatzId });
+  // Story 3.6 AC14 — separate Subscription für `eigenschutz:luecke-gemeldet`
+  // (eigener Channel, eigener LRU-Cache, eigener Hook-Lifecycle). Keine
+  // Beeinflussung des Quittungs-Live-Hooks.
+  useEigenschutzLueckeGemeldetLive({ einsatzId });
 
   const isEigenschutzRoot = location.pathname.replace(/\/+$/, '').endsWith('/sicherheit/eigenschutz');
 

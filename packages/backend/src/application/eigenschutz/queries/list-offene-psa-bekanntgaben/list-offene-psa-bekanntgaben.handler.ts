@@ -136,14 +136,22 @@ export class ListOffenePsaBekanntgabenHandler implements IQueryHandler<ListOffen
         return Result.fail<OffenePsaBekanntgabeEntryDto[]>(quittungenResult.error ?? 'PSA-Quittungen konnten nicht geladen werden');
       }
       const ackEinheitIds = new Set<string>();
+      // Story 3.6 AC8 — Lücken-Counter aus dem bestehenden Aggregations-Loop
+      // (kein zusätzlicher Query): zählt distincte `einheitId`s mit
+      // `lueckeGemeldet === true` innerhalb der erwarteten Empfänger-Menge.
+      const lueckeEinheitIds = new Set<string>();
       for (const row of quittungenResult.value ?? []) {
         ackEinheitIds.add(row.einheitId);
+        if (row.lueckeGemeldet) {
+          lueckeEinheitIds.add(row.einheitId);
+        }
       }
 
       const totalCount = group.einheitIds.size;
       const ackCount = [...group.einheitIds].filter((id) => ackEinheitIds.has(id)).length;
+      const lueckenCount = [...group.einheitIds].filter((id) => lueckeEinheitIds.has(id)).length;
 
-      // Status-Ableitung — `complete` wird ausgefiltert.
+      // Status-Ableitung — `complete` wird normalerweise ausgefiltert.
       let status: 'pending' | 'partial' | 'complete';
       if (totalCount === 0 || ackCount === 0) {
         status = 'pending';
@@ -153,7 +161,11 @@ export class ListOffenePsaBekanntgabenHandler implements IQueryHandler<ListOffen
         status = 'complete';
       }
 
-      if (status === 'complete') {
+      // Story 3.6 AC8 — KRITISCHER FILTER-PATCH: Eine Bekanntgabe mit
+      // `lueckenCount > 0` bleibt sichtbar, auch wenn formal alle Empfänger
+      // geantwortet haben. Sonst würde der `lueckenCount`-Badge unsichtbar
+      // und der Sicherheitsbeauftragte sähe die Lücken nirgends (AC13 tot).
+      if (status === 'complete' && lueckenCount === 0) {
         continue;
       }
 
@@ -165,7 +177,11 @@ export class ListOffenePsaBekanntgabenHandler implements IQueryHandler<ListOffen
         betroffeneEinheitIds: [...group.einheitIds],
         ackCount,
         totalCount,
-        status,
+        // DTO-Status bleibt `'pending' | 'partial'` — bei `'complete' &&
+        // lueckenCount > 0` mappen wir auf `'partial'`, weil die Lücke noch
+        // offen ist (semantisch korrekt: organisatorische Klärung steht aus).
+        status: status === 'complete' ? 'partial' : status,
+        lueckenCount,
       });
     }
 

@@ -2285,14 +2285,16 @@ describe('EventDeserializer', () => {
       // + Gefahrenzone: Erstellt, GeometryGeaendert, Geloescht (Issue #627)
       // + Eigenschutz: GefaehrdungsbeurteilungErstellt (Story 2.1), GefaehrdungsbeurteilungAktualisiert (Story 2.2),
       //                SicherheitsregelAusgerufen (Story 2.6), SicherheitsregelQuittiert (Story 2.7),
-      //                PsaProfilGeaendert (Story 3.1), QuittungAbgegeben (Story 3.4)
-      expect(supportedTypes).toHaveLength(118);
+      //                PsaProfilGeaendert (Story 3.1), QuittungAbgegeben (Story 3.4),
+      //                LueckeGemeldet (Story 3.6)
+      expect(supportedTypes).toHaveLength(119);
       expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_erstellt');
       expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
       expect(supportedTypes).toContain('eigenschutz.sicherheitsregel_ausgerufen');
       expect(supportedTypes).toContain('eigenschutz.sicherheitsregel_quittiert');
       expect(supportedTypes).toContain('eigenschutz.psa_profil_geaendert');
       expect(supportedTypes).toContain('eigenschutz.quittung_abgegeben');
+      expect(supportedTypes).toContain('eigenschutz.luecke_gemeldet');
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');

@@ -158,4 +158,46 @@ describe('AcknowledgmentStatusBadge (Story 415-3-4 Task 9)', () => {
       expect(screen.getByTestId('acknowledgment-status-badge')).toHaveAttribute('data-status', 'complete');
     });
   });
+
+  describe('Story 3.6 AC13 — Lücke-Pill + Notiz im Popover', () => {
+    it('rendert Lücke-Pill für Empfänger mit `lueckeGemeldet === true`', async () => {
+      const user = userEvent.setup();
+      const entries: PsaQuittungEntry[] = [
+        buildEntry({ einheitId: 'a', status: 'QUITTIERT', quittiertAm: '2026-04-24T08:30:00.000Z', lueckeGemeldet: true, lueckeNotiz: 'Stiefel 44 fehlt' }),
+        buildEntry({ einheitId: 'b', status: 'AUSSTEHEND' }),
+      ];
+
+      render(<AcknowledgmentStatusBadge einsatzId="einsatz-1" propagationGroupId="prop-1" initialData={entries} />);
+      await user.click(screen.getByTestId('acknowledgment-status-badge'));
+
+      expect(await screen.findByTestId('acknowledgment-status-badge-luecke-a')).toBeInTheDocument();
+      expect(screen.getByText('Lücke gemeldet')).toBeInTheDocument();
+      expect(screen.getByTestId('acknowledgment-status-badge-luecke-notiz-a')).toHaveTextContent('Stiefel 44 fehlt');
+
+      // Empfänger ohne Lücke bekommt KEINEN Pill.
+      expect(screen.queryByTestId('acknowledgment-status-badge-luecke-b')).toBeNull();
+    });
+
+    it('Lücke-Pill wird ohne Notiz korrekt gerendert (Notiz-Block bleibt aus)', async () => {
+      const user = userEvent.setup();
+      const entries: PsaQuittungEntry[] = [buildEntry({ einheitId: 'a', status: 'QUITTIERT', quittiertAm: '2026-04-24T08:30:00.000Z', lueckeGemeldet: true })];
+
+      render(<AcknowledgmentStatusBadge einsatzId="einsatz-1" propagationGroupId="prop-1" initialData={entries} />);
+      await user.click(screen.getByTestId('acknowledgment-status-badge'));
+
+      expect(await screen.findByTestId('acknowledgment-status-badge-luecke-a')).toBeInTheDocument();
+      expect(screen.queryByTestId('acknowledgment-status-badge-luecke-notiz-a')).toBeNull();
+    });
+
+    it('rendert KEINEN Resolve-Button (Q1-Defer auf Story 6.x)', async () => {
+      const user = userEvent.setup();
+      const entries: PsaQuittungEntry[] = [buildEntry({ einheitId: 'a', status: 'QUITTIERT', quittiertAm: '2026-04-24T08:30:00.000Z', lueckeGemeldet: true, lueckeNotiz: 'Stiefel 44 fehlt' })];
+
+      render(<AcknowledgmentStatusBadge einsatzId="einsatz-1" propagationGroupId="prop-1" initialData={entries} />);
+      await user.click(screen.getByTestId('acknowledgment-status-badge'));
+
+      // Defense-in-Depth: kein „Lücke geklärt"-Button im Popover.
+      expect(screen.queryByRole('button', { name: /Lücke geklärt|geklärt|aufgelöst/ })).toBeNull();
+    });
+  });
 });

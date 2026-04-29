@@ -45,6 +45,10 @@ export interface PsaQuittungEntry {
   readonly quittiertAm?: string;
   readonly quittiertVonUserId?: string;
   readonly quittiertVonUserName?: string;
+  /** Story 3.6 AC8 — Empfänger hat eine Ausrüstungs-Lücke gemeldet. */
+  readonly lueckeGemeldet?: boolean;
+  /** Story 3.6 AC8 — Klartext der Lücken-Meldung. Nur gesetzt, wenn `lueckeGemeldet === true`. */
+  readonly lueckeNotiz?: string;
 }
 
 export interface AcknowledgmentStatusBadgeProps {
@@ -206,14 +210,28 @@ function RecipientList({ entries }: RecipientListProps) {
           <li
             key={entry.einheitId}
             data-testid={`acknowledgment-status-badge-row-${entry.einheitId}`}
-            className="flex items-center justify-between gap-3 border-b border-border-subtle px-3 py-2 text-sm last:border-b-0"
+            className="flex items-start justify-between gap-3 border-b border-border-subtle px-3 py-2 text-sm last:border-b-0"
           >
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-1 flex-col">
               <span className="font-medium text-text-primary">{entry.einheitName}</span>
               {isQuittiert ? (
                 <span className="text-xs text-text-muted">
                   <span className="tabular-nums">{formatHoursMinutes(entry.quittiertAm)}</span>
                   {entry.quittiertVonUserName ? <span> · {entry.quittiertVonUserName}</span> : null}
+                </span>
+              ) : null}
+              {/* Story 3.6 AC13 — Lücke-Pill + Notiz unter dem Empfänger-Namen.
+                  Severity warning (zu klärende Aufgabe, kein Notfall). */}
+              {entry.lueckeGemeldet ? (
+                <span data-testid={`acknowledgment-status-badge-luecke-${entry.einheitId}`} className="mt-1 inline-flex flex-col gap-1">
+                  <span className="inline-flex w-fit items-center rounded-control border border-status-warning-border bg-status-warning-surface px-2 py-0.5 text-xs font-semibold text-status-warning-text">
+                    Lücke gemeldet
+                  </span>
+                  {entry.lueckeNotiz ? (
+                    <span className="text-xs whitespace-pre-line text-text-muted" data-testid={`acknowledgment-status-badge-luecke-notiz-${entry.einheitId}`}>
+                      {entry.lueckeNotiz}
+                    </span>
+                  ) : null}
                 </span>
               ) : null}
             </div>

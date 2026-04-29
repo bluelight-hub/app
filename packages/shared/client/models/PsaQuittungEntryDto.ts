@@ -55,6 +55,18 @@ export interface PsaQuittungEntryDto {
      * @memberof PsaQuittungEntryDto
      */
     quittiertVonUserName?: string;
+    /**
+     * true = Empfänger hat eine Ausrüstungs-Lücke gemeldet (Story 3.6).
+     * @type {boolean}
+     * @memberof PsaQuittungEntryDto
+     */
+    lueckeGemeldet: boolean;
+    /**
+     * Klartext der Lücken-Meldung. Nur gesetzt, wenn `lueckeGemeldet === true`.
+     * @type {string}
+     * @memberof PsaQuittungEntryDto
+     */
+    lueckeNotiz?: string;
 }
 
 
@@ -75,6 +87,7 @@ export function instanceOfPsaQuittungEntryDto(value: object): value is PsaQuittu
     if (!('einheitId' in value) || value['einheitId'] === undefined) return false;
     if (!('einheitName' in value) || value['einheitName'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
+    if (!('lueckeGemeldet' in value) || value['lueckeGemeldet'] === undefined) return false;
     return true;
 }
 
@@ -94,6 +107,8 @@ export function PsaQuittungEntryDtoFromJSONTyped(json: any, ignoreDiscriminator:
         'quittiertAm': json['quittiertAm'] == null ? undefined : json['quittiertAm'],
         'quittiertVonUserId': json['quittiertVonUserId'] == null ? undefined : json['quittiertVonUserId'],
         'quittiertVonUserName': json['quittiertVonUserName'] == null ? undefined : json['quittiertVonUserName'],
+        'lueckeGemeldet': json['lueckeGemeldet'],
+        'lueckeNotiz': json['lueckeNotiz'] == null ? undefined : json['lueckeNotiz'],
     };
 }
 
@@ -114,6 +129,8 @@ export function PsaQuittungEntryDtoToJSONTyped(value?: PsaQuittungEntryDto | nul
         'quittiertAm': value['quittiertAm'],
         'quittiertVonUserId': value['quittiertVonUserId'],
         'quittiertVonUserName': value['quittiertVonUserName'],
+        'lueckeGemeldet': value['lueckeGemeldet'],
+        'lueckeNotiz': value['lueckeNotiz'],
     };
 }
 

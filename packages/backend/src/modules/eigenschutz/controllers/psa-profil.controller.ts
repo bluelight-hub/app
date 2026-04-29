@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
@@ -46,7 +47,10 @@ import { AckPsaQuittungCommand } from '@/application/eigenschutz/commands/ack-ps
 import type { AckPsaQuittungResult } from '@/application/eigenschutz/commands/ack-psa-quittung/ack-psa-quittung.handler';
 import { ChangePsaProfilCommand } from '@/application/eigenschutz/commands/change-psa-profil/change-psa-profil.command';
 import type { ChangePsaProfilResult } from '@/application/eigenschutz/commands/change-psa-profil/change-psa-profil.command';
+import { MeldeLueckeCommand } from '@/application/eigenschutz/commands/melde-luecke/melde-luecke.command';
+import type { MeldeLueckeResult } from '@/application/eigenschutz/commands/melde-luecke/melde-luecke.handler';
 import { AckPsaQuittungDto } from '@/application/eigenschutz/dto/ack-psa-quittung.dto';
+import { MeldeLueckeDto } from '@/application/eigenschutz/dto/melde-luecke.dto';
 import { BulkChangePsaProfilDto, ChangePsaProfilDto, ChangePsaProfilResponseDto, PsaProfilZuweisungDto } from '@/application/eigenschutz/dto/change-psa-profil.dto';
 import { OffenePsaBekanntgabeEntryDto } from '@/application/eigenschutz/dto/offene-psa-bekanntgabe-entry.dto';
 import { PsaQuittungEntryDto } from '@/application/eigenschutz/dto/psa-quittung-entry.dto';
@@ -203,6 +207,38 @@ export class PsaProfilController {
    *   Row für `(propagationGroupId, einheitId)` → 404 mit
    *   `context.resource = 'psapropagation'`.
    */
+  /**
+   * Meldet eine Ausrüstungs-Lücke zu einer offenen PSA-Bekanntgabe (Story 3.6 AC6, FR20).
+   *
+   * **Workflow-Variante** (Q2-Default): Lücke-Meldung impliziert eine Quittung
+   * — wenn keine `PsaProfilQuittung`-Row existiert, wird sie atomar mit
+   * `lueckeGemeldet=true` angelegt; existiert sie bereits (vorab quittiert),
+   * wird `lueckeGemeldet/lueckeNotiz` per UPDATE gesetzt. Beide Pfade
+   * emittieren genau ein `LueckeGemeldetEvent`, KEIN zusätzliches
+   * `QuittungAbgegebenEvent`.
+   */
+  @Post('propagation-groups/:propagationGroupId/luecke-melden')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RequiresPermission('eigenschutz:psa:acknowledge')
+  @ApiOperation({ summary: 'Ausrüstungs-Lücke zu einer PSA-Bekanntgabe melden — Story 3.6 AC6' })
+  @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
+  @ApiParam({ name: 'propagationGroupId', type: String, description: 'CUID der Bekanntgabe-Gruppe' })
+  @ApiBody({ type: MeldeLueckeDto })
+  @ApiNoContentResponse({ description: 'Lücke gemeldet (Erst-Insert oder Update einer bestehenden Quittung — kein Body).' })
+  @ApiBadRequestResponse({ description: 'DTO-Validation (cuid2-Regex / Length-Constraints)' })
+  @ApiNotFoundResponse({ description: 'Keine offene PsaProfilGeaendert-Outbox-Row für (propagationGroupId, einheitId)' })
+  @ApiUnprocessableEntityResponse({ description: 'Caller-Authorization (UnzulaessigeEinheitenZuordnung) oder LueckeNotizLeer (Whitespace-only)' })
+  @ApiForbiddenResponse({ description: 'Permission `eigenschutz:psa:acknowledge` fehlt' })
+  async meldeLuecke(@Param('einsatzId') einsatzId: string, @Param('propagationGroupId') propagationGroupId: string, @Body() body: MeldeLueckeDto, @CurrentUser() user: ValidatedUser): Promise<void> {
+    const command = new MeldeLueckeCommand(einsatzId, propagationGroupId, body.einheitId, body.meldung, user.userId);
+    const result = (await this.commandBus.execute(command)) as Result<MeldeLueckeResult>;
+    if (result.isFailure) {
+      throw this.mapAckError(result.error ?? 'PSA-Lücken-Meldung fehlgeschlagen');
+    }
+    // Beide Pfade (Create + Update) liefern 204 — der Controller unterscheidet
+    // nicht zwischen Erst-Meldung und Notiz-Korrektur (Idempotenz-fähig).
+  }
+
   @Post('propagation-groups/:propagationGroupId/quittieren')
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequiresPermission('eigenschutz:psa:acknowledge')

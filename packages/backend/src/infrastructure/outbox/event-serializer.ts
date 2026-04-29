@@ -111,6 +111,7 @@ import type { SicherheitsregelAusgerufenEvent } from '@domain/eigenschutz/events
 import type { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
 import type { PsaProfilGeaendertEvent } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
 import type { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
+import type { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 
 // Alarmierung Events (Issue #408)
 import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
@@ -519,6 +520,8 @@ export class EventSerializer {
         return this.serializePsaProfilGeaendert(event as unknown as PsaProfilGeaendertEvent);
       case 'eigenschutz.quittung_abgegeben':
         return this.serializeQuittungAbgegeben(event as unknown as QuittungAbgegebenEvent);
+      case 'eigenschutz.luecke_gemeldet':
+        return this.serializeLueckeGemeldet(event as unknown as LueckeGemeldetEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1984,6 +1987,36 @@ export class EventSerializer {
       einheitId: event.einheitId,
       propagationGroupId: event.propagationGroupId,
       quittiertAm: event.quittiertAm.toISOString(),
+    };
+  }
+
+  /**
+   * Serialisiert `LueckeGemeldetEvent` (Story 3.6, FR20).
+   *
+   * Pflichtfelder: einsatzId, userId, einheitId, propagationGroupId,
+   * meldung, gemeldetAm. Strikte Shape-Validation analog `QuittungAbgegeben`.
+   * `meldung`-Klartext bleibt im Outbox-Payload (Audit-Trail), wird aber
+   * NICHT im WS-Frame transportiert (siehe Adapter / AC7).
+   */
+  private serializeLueckeGemeldet(event: LueckeGemeldetEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.einheitId !== 'string' ||
+      typeof event.propagationGroupId !== 'string' ||
+      typeof event.meldung !== 'string' ||
+      !(event.gemeldetAm instanceof Date)
+    ) {
+      throw new Error('Invalid LueckeGemeldet event payload');
+    }
+
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      propagationGroupId: event.propagationGroupId,
+      meldung: event.meldung,
+      gemeldetAm: event.gemeldetAm.toISOString(),
     };
   }
 }

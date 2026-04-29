@@ -9,6 +9,7 @@ import type {
   PsaProfilQuittungReadModel,
   UpsertPsaProfilQuittungParams,
   UpsertPsaProfilQuittungResult,
+  UpsertWithLueckeParams,
 } from '@domain/eigenschutz/repositories/i-psa-profil-quittung.repository';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { isPrismaP2002 } from '@/shared/utils/prisma.util';
@@ -81,6 +82,53 @@ export class PrismaPsaProfilQuittungRepository implements IPsaProfilQuittungRepo
     }
   }
 
+  async upsertWithLuecke(tx: TransactionContext, params: UpsertWithLueckeParams): Promise<Result<UpsertPsaProfilQuittungResult>> {
+    const client = tx as PrismaTransactionClient;
+    try {
+      // Pre-Check: Row existieren? Wir nutzen das, damit wir das `created`-Flag
+      // für den Handler bestimmen können — Prisma's natives `upsert(...)`
+      // liefert allein keine Auskunft, ob Insert oder Update gegriffen hat.
+      const existing = await client.psaProfilQuittung.findUnique({
+        where: { propagationGroupId_einheitId: { propagationGroupId: params.propagationGroupId, einheitId: params.einheitId } },
+        select: { id: true },
+      });
+
+      const row = await client.psaProfilQuittung.upsert({
+        where: { propagationGroupId_einheitId: { propagationGroupId: params.propagationGroupId, einheitId: params.einheitId } },
+        create: {
+          propagationGroupId: params.propagationGroupId,
+          einheitId: params.einheitId,
+          einsatzId: params.einsatzId,
+          quittiertVonUserId: params.quittiertVonUserId,
+          lueckeGemeldet: true,
+          lueckeNotiz: params.lueckeNotiz,
+        },
+        // Defense-in-Depth: Update schreibt explizit NUR die Lücke-Felder —
+        // niemals `quittiertAm` (Audit-Pflicht der Quittung) oder
+        // `quittiertVonUserId` (ein anderer Empfänger darf später nicht den
+        // Erst-Quittierer überschreiben).
+        update: {
+          lueckeGemeldet: true,
+          lueckeNotiz: params.lueckeNotiz,
+        },
+      });
+
+      return Result.ok({
+        created: existing === null,
+        row: this.toReadModel(row),
+      });
+    } catch (error) {
+      this.logger.error('Fehler beim Upsert einer PsaProfilQuittung mit Lücke', {
+        propagationGroupId: params.propagationGroupId,
+        einheitId: params.einheitId,
+        einsatzId: params.einsatzId,
+        meldungLength: params.lueckeNotiz.length,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return Result.fail<UpsertPsaProfilQuittungResult>(this.wrapInfrastructureLueckeError(error));
+    }
+  }
+
   async findByGroup(propagationGroupId: string, tx?: TransactionContext): Promise<Result<PsaProfilQuittungReadModel[]>> {
     const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
     try {
@@ -123,6 +171,11 @@ export class PrismaPsaProfilQuittungRepository implements IPsaProfilQuittungRepo
   private wrapInfrastructureError(error: unknown): string {
     const raw = error instanceof Error ? error.message : 'Unbekannter Datenbankfehler';
     return `InfrastructureError:PsaProfilQuittung:${raw}`;
+  }
+
+  private wrapInfrastructureLueckeError(error: unknown): string {
+    const raw = error instanceof Error ? error.message : 'Unbekannter Datenbankfehler';
+    return `InfrastructureError:PsaProfilQuittung:Luecke:${raw}`;
   }
 
   /**

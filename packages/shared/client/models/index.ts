@@ -355,6 +355,7 @@ export * from './ManagedUserResponseDto';
 export * from './ManagedUserResponseDtoStammperson';
 export * from './MarkErledigtErinnerungDto';
 export * from './MeineEinsatzRolleDto';
+export * from './MeldeLueckeDto';
 export * from './MigrateLegacyRuntimeConfigRequestDto';
 export * from './MigrateLegacyRuntimeConfigResultDto';
 export * from './MigrateLegacyRuntimeConfigResultSummaryDto';

@@ -75,6 +75,12 @@ export interface OffenePsaBekanntgabeEntryDto {
      * @memberof OffenePsaBekanntgabeEntryDto
      */
     status: OffenePsaBekanntgabeEntryDtoStatusEnum;
+    /**
+     * Anzahl der Empfänger-Einheiten, die eine Ausrüstungs-Lücke gemeldet haben (Story 3.6).
+     * @type {number}
+     * @memberof OffenePsaBekanntgabeEntryDto
+     */
+    lueckenCount: number;
 }
 
 
@@ -100,6 +106,7 @@ export function instanceOfOffenePsaBekanntgabeEntryDto(value: object): value is 
     if (!('ackCount' in value) || value['ackCount'] === undefined) return false;
     if (!('totalCount' in value) || value['totalCount'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
+    if (!('lueckenCount' in value) || value['lueckenCount'] === undefined) return false;
     return true;
 }
 
@@ -121,6 +128,7 @@ export function OffenePsaBekanntgabeEntryDtoFromJSONTyped(json: any, ignoreDiscr
         'ackCount': json['ackCount'],
         'totalCount': json['totalCount'],
         'status': json['status'],
+        'lueckenCount': json['lueckenCount'],
     };
 }
 
@@ -143,6 +151,7 @@ export function OffenePsaBekanntgabeEntryDtoToJSONTyped(value?: OffenePsaBekannt
         'ackCount': value['ackCount'],
         'totalCount': value['totalCount'],
         'status': value['status'],
+        'lueckenCount': value['lueckenCount'],
     };
 }
 
