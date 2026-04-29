@@ -2,7 +2,9 @@ import { useCallback } from 'react';
 import { EigenschutzEntryPage } from '@/features/eigenschutz';
 import { useEigenschutzPsaQuittungLive } from '@/features/eigenschutz/api/use-eigenschutz-psa-quittung-live';
 import { useEigenschutzLueckeGemeldetLive } from '@/features/eigenschutz/api/use-eigenschutz-luecke-gemeldet-live';
+import { useEigenschutzQuittungUeberfaelligLive } from '@/features/eigenschutz/api/use-eigenschutz-quittung-ueberfaellig-live';
 import { PsaProfilEmpfangBanner } from '@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner';
+import { EinsatzleiterReprompEskalationBanner } from '@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanner';
 import { logger } from '@/shared/lib/logger';
 import { Outlet, createFileRoute, useLocation } from '@tanstack/react-router';
 
@@ -42,6 +44,11 @@ function EigenschutzRouteComponent() {
   // (eigener Channel, eigener LRU-Cache, eigener Hook-Lifecycle). Keine
   // Beeinflussung des Quittungs-Live-Hooks.
   useEigenschutzLueckeGemeldetLive({ einsatzId });
+  // Story 3.7 AC6 — Re-Prompt-Live-Hook für überfällige PSA-Quittungen.
+  // Liefert `notices` für sowohl Empfänger-Re-Prompt-Pfad (PsaProfilEmpfangBanner)
+  // als auch Einsatzleiter-Polite-Eskalation. Der Hook bleibt hier zentral
+  // gemountet, damit beide Konsumenten denselben Notice-Buffer teilen.
+  const reprompt = useEigenschutzQuittungUeberfaelligLive({ einsatzId });
 
   const isEigenschutzRoot = location.pathname.replace(/\/+$/, '').endsWith('/sicherheit/eigenschutz');
 
@@ -55,7 +62,8 @@ function EigenschutzRouteComponent() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PsaProfilEmpfangBanner einsatzId={einsatzId} onShowDetails={handleShowPsaDetails} />
+      <PsaProfilEmpfangBanner einsatzId={einsatzId} onShowDetails={handleShowPsaDetails} repromptNotices={reprompt.notices} onRepromptDismiss={reprompt.dismiss} />
+      <EinsatzleiterReprompEskalationBanner einsatzId={einsatzId} notices={reprompt.notices} onDismiss={reprompt.dismiss} />
       {isEigenschutzRoot ? <EigenschutzEntryPage einsatzId={einsatzId} /> : <Outlet />}
     </div>
   );

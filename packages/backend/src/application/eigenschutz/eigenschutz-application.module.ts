@@ -24,6 +24,7 @@ import { ListPsaQuittungenHandler } from './queries/list-psa-quittungen/list-psa
 import { ListSicherheitsregelnHandler } from './queries/list-sicherheitsregeln/list-sicherheitsregeln.handler';
 import { ListSicherheitsregelQuittungenHandler } from './queries/list-sicherheitsregel-quittungen/list-sicherheitsregel-quittungen.handler';
 import { MeldeLueckeHandler } from './commands/melde-luecke/melde-luecke.handler';
+import { EmitPsaQuittungUeberfaelligHandler } from './commands/emit-psa-quittung-ueberfaellig/emit-psa-quittung-ueberfaellig.handler';
 
 /**
  * Application-Layer-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -49,6 +50,7 @@ import { MeldeLueckeHandler } from './commands/melde-luecke/melde-luecke.handler
     CreateGefaehrdungsbeurteilungHandler,
     CreateSicherheitsregelHandler,
     MeldeLueckeHandler,
+    EmitPsaQuittungUeberfaelligHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
     UpdateSicherheitsregelHandler,
     GetGefaehrdungsbeurteilungHandler,
@@ -69,6 +71,7 @@ import { MeldeLueckeHandler } from './commands/melde-luecke/melde-luecke.handler
     CreateGefaehrdungsbeurteilungHandler,
     CreateSicherheitsregelHandler,
     MeldeLueckeHandler,
+    EmitPsaQuittungUeberfaelligHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
     UpdateSicherheitsregelHandler,
     GetGefaehrdungsbeurteilungHandler,

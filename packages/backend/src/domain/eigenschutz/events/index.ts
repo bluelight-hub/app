@@ -14,3 +14,4 @@ export { PsaProfilGeaendertEvent } from './psa-profil-geaendert.event';
 export type { PsaProfilAktion } from './psa-profil-geaendert.event';
 export { QuittungAbgegebenEvent } from './quittung-abgegeben.event';
 export { LueckeGemeldetEvent } from './luecke-gemeldet.event';
+export { QuittungUeberfaelligEvent } from './quittung-ueberfaellig.event';

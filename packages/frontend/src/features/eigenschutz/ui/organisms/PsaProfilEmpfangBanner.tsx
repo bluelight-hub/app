@@ -6,6 +6,7 @@ import { PSA_PROFIL_META } from '../../constants/psa-profil.constants';
 import { useAktiveEinsatzEinheit } from '../../hooks/use-aktive-einsatz-einheit';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { eigenschutzTelemetryQueue, getOrCreateSessionId } from '../../lib/telemetry-queue';
+import type { QuittungUeberfaelligEventNotice } from '../../api/use-eigenschutz-quittung-ueberfaellig-live';
 import { PsaProfilDetailDrawer } from './PsaProfilDetailDrawer';
 import { MeldeLueckeDialog } from './MeldeLueckeDialog';
 import { SeverityBanner } from './SeverityBanner';
@@ -26,6 +27,20 @@ export interface PsaProfilEmpfangBannerProps {
    * Prop wird aktuell nicht mehr für die Primary-Action verdrahtet.
    */
   readonly onShowDetails?: (propagationGroupId: string) => void;
+  /**
+   * Story 3.7 AC7 — Re-Prompt-Notices aus
+   * `useEigenschutzQuittungUeberfaelligLive`. Banner-Wrapper hängt ein
+   * `Erneut`-Tag an die Headline, wenn die `propagationGroupId+einheitId`
+   * in der aktiven Einheit getroffen ist. Optional, damit bestehende Tests
+   * (Story 3.3) unberührt bleiben.
+   */
+  readonly repromptNotices?: readonly QuittungUeberfaelligEventNotice[];
+  /**
+   * Story 3.7 AC7 — Wird aufgerufen, sobald der User den Re-Prompt-Banner
+   * (synthetisch oder mit `Erneut`-Tag) per Secondary-Action „Schließen"
+   * dismissen will. Identische Signatur zu `dismiss(...)` aus dem Hook.
+   */
+  readonly onRepromptDismiss?: (propagationGroupId: string, einheitId: string) => void;
 }
 
 /**
@@ -48,7 +63,7 @@ export interface PsaProfilEmpfangBannerProps {
  * Komponente-eigene Truncate + `motion-reduce:transition-none` von
  * `SeverityBanner` deckt CSS-Transitions ab.
  */
-export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEmpfangBannerProps) {
+export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails, repromptNotices, onRepromptDismiss }: PsaProfilEmpfangBannerProps) {
   const { einheitId, einheitName } = useAktiveEinsatzEinheit(einsatzId);
   const { banner, dismiss } = useEigenschutzPsaLiveBanner({ einsatzId, einheitId, enabled: einheitId !== null });
   const profileQuery = usePsaProfileByEinheit(einsatzId, einheitId ?? '', { enabled: einheitId !== null });
@@ -85,6 +100,34 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
   // Hook-Queue; ein späterer Event erzeugt einen frischen Eintrag.
   const visible = useMemo(() => banner.slice(0, MAX_VISIBLE), [banner]);
   const overflowCount = banner.length - visible.length;
+
+  // Story 3.7 AC7 — Re-Prompt-Set für die aktive Einheit. Liefert Group-IDs,
+  // deren überfälliger Reprompt aktuell aktiv ist. Headline-Tag „Erneut"
+  // wird angehängt, wenn der Banner sichtbar UND in `repromptedKeys` ist.
+  const repromptedKeys = useMemo(() => {
+    if (!repromptNotices || einheitId === null) return new Set<string>();
+    return new Set(repromptNotices.filter((n) => n.einheitId === einheitId).map((n) => n.propagationGroupId));
+  }, [repromptNotices, einheitId]);
+
+  // Story 3.7 AC7 — Pattern 2 (synthetisch): Re-Prompt-Notices, deren
+  // ursprünglicher Banner dismissed wurde (also nicht mehr in `banner`),
+  // werden als synthetische Einträge gerendert. Daten kommen aus
+  // `usePsaProfileByEinheit`-Cache (Story 3.3 — bereits in der Page-Lifetime
+  // geladen). Fallback bei leerem Cache: generischer Hinweis-Text.
+  const syntheticReprompts = useMemo(() => {
+    if (!repromptNotices || einheitId === null) return [] as Array<{ propagationGroupId: string; einheitId: string; begruendung: string | null }>;
+    const liveGroupIds = new Set(banner.map((b) => b.propagationGroupId));
+    return repromptNotices
+      .filter((n) => n.einheitId === einheitId && !liveGroupIds.has(n.propagationGroupId))
+      .map((n) => {
+        const cacheRow = (profileQuery.data ?? []).find((row) => row.propagationGroupId === n.propagationGroupId);
+        return {
+          propagationGroupId: n.propagationGroupId,
+          einheitId: n.einheitId,
+          begruendung: cacheRow?.begruendung ?? null,
+        };
+      });
+  }, [repromptNotices, einheitId, banner, profileQuery.data]);
 
   // AC9 — `all_banners_delivered`-Idempotenz pro propagationGroupId.
   const emittedRef = useRef<Set<string>>(new Set());
@@ -184,7 +227,7 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
   );
 
   if (einheitId === null) return null;
-  if (banner.length === 0) return null;
+  if (banner.length === 0 && syntheticReprompts.length === 0) return null;
 
   const overflowLabel = overflowCount === 1 ? `${overflowCount} weiteres kritisches Ereignis` : `${overflowCount} weitere kritische Ereignisse`;
 
@@ -199,7 +242,7 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
           <SeverityBanner
             variant="critical"
             tone="assertive"
-            headline={buildHeadline(eintrag)}
+            headline={appendRepromptTag(buildHeadline(eintrag), repromptedKeys.has(eintrag.propagationGroupId))}
             body={buildBody(eintrag, profileQuery.data, profileQuery.isPending)}
             footer={buildFooter(eintrag)}
             primaryActionLabel="Verstanden, Ausrüstung vorhanden"
@@ -209,6 +252,23 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
             tertiaryActionLabel="Details ansehen"
             onTertiary={() => setOpenDrawerForGroup(eintrag.propagationGroupId)}
             data-testid="psa-empfang-banner"
+          />
+        </div>
+      ))}
+      {syntheticReprompts.map((entry) => (
+        <div key={`reprompt-${entry.propagationGroupId}`} data-propagation-group-id={entry.propagationGroupId} data-reprompt-synthetic="true">
+          <SeverityBanner
+            variant="warning"
+            tone="assertive"
+            headline="PSA-Bekanntgabe wartet auf Quittung — Erneut"
+            body={entry.begruendung && entry.begruendung.trim().length > 0 ? `Grund: ${entry.begruendung}` : 'Eine PSA-Bekanntgabe für deine Einheit wartet auf Quittung — bitte erneut prüfen.'}
+            primaryActionLabel="Verstanden, Ausrüstung vorhanden"
+            onPrimary={() => handleAcknowledge(entry.propagationGroupId)}
+            secondaryActionLabel="Schließen"
+            onSecondary={() => onRepromptDismiss?.(entry.propagationGroupId, entry.einheitId)}
+            tertiaryActionLabel="Details ansehen"
+            onTertiary={() => setOpenDrawerForGroup(entry.propagationGroupId)}
+            data-testid="psa-empfang-banner-reprompt"
           />
         </div>
       ))}
@@ -282,6 +342,10 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
       />
     </div>
   );
+}
+
+function appendRepromptTag(headline: string, isReprompted: boolean): string {
+  return isReprompted ? `${headline} — Erneut` : headline;
 }
 
 function buildHeadline(eintrag: PsaProfilLiveBanner): string {

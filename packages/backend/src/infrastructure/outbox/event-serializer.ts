@@ -112,6 +112,7 @@ import type { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/
 import type { PsaProfilGeaendertEvent } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
 import type { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 import type { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
+import type { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 
 // Alarmierung Events (Issue #408)
 import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
@@ -522,6 +523,8 @@ export class EventSerializer {
         return this.serializeQuittungAbgegeben(event as unknown as QuittungAbgegebenEvent);
       case 'eigenschutz.luecke_gemeldet':
         return this.serializeLueckeGemeldet(event as unknown as LueckeGemeldetEvent);
+      case 'eigenschutz.quittung_ueberfaellig':
+        return this.serializeQuittungUeberfaellig(event as unknown as QuittungUeberfaelligEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -2017,6 +2020,38 @@ export class EventSerializer {
       propagationGroupId: event.propagationGroupId,
       meldung: event.meldung,
       gemeldetAm: event.gemeldetAm.toISOString(),
+    };
+  }
+
+  /**
+   * Serialisiert `QuittungUeberfaelligEvent` (Story 3.7, AR12).
+   *
+   * Pflichtfelder: einsatzId, einheitId, propagationGroupId, originalEventId,
+   * ueberfaelligSeitMin (≥ 0, integer), zuweisungId (string | null).
+   * `userId === 'SYSTEM'`-Sentinel — der Scheduler ist nicht user-getrieben.
+   */
+  private serializeQuittungUeberfaellig(event: QuittungUeberfaelligEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.einheitId !== 'string' ||
+      typeof event.propagationGroupId !== 'string' ||
+      typeof event.originalEventId !== 'string' ||
+      !Number.isInteger(event.ueberfaelligSeitMin) ||
+      event.ueberfaelligSeitMin < 0 ||
+      (event.zuweisungId !== null && typeof event.zuweisungId !== 'string')
+    ) {
+      throw new Error('Invalid QuittungUeberfaellig event payload');
+    }
+
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      propagationGroupId: event.propagationGroupId,
+      originalEventId: event.originalEventId,
+      ueberfaelligSeitMin: event.ueberfaelligSeitMin,
+      zuweisungId: event.zuweisungId,
     };
   }
 }

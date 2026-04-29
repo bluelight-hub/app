@@ -166,6 +166,7 @@ import { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/siche
 import { PsaProfilGeaendertEvent, type PsaProfilAktion } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
 import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
+import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 import { PsaProfil } from '@/generated/prisma/enums';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
@@ -445,6 +446,7 @@ export class EventDeserializer {
       ['eigenschutz.psa_profil_geaendert', deserializePsaProfilGeaendert],
       ['eigenschutz.quittung_abgegeben', deserializeQuittungAbgegeben],
       ['eigenschutz.luecke_gemeldet', deserializeLueckeGemeldet],
+      ['eigenschutz.quittung_ueberfaellig', deserializeQuittungUeberfaellig],
     ]);
   }
 
@@ -2942,5 +2944,34 @@ function deserializeLueckeGemeldet(payload: Record<string, unknown>, aggregateId
   }
 
   const event = new LueckeGemeldetEvent(einsatzId, userId, einheitId, propagationGroupId, meldung, gemeldetAm, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserializer für `eigenschutz.quittung_ueberfaellig` (Story 3.7, AR12).
+ *
+ * Pflichtfelder: einsatzId, einheitId, propagationGroupId, originalEventId,
+ * ueberfaelligSeitMin (≥ 0, integer), zuweisungId (string | null).
+ * `userId` muss `'SYSTEM'`-Sentinel sein — sonst Verstoß gegen Scheduler-Vertrag.
+ */
+function deserializeQuittungUeberfaellig(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const einheitId = payload.einheitId;
+  const propagationGroupId = payload.propagationGroupId;
+  const originalEventId = payload.originalEventId;
+  const ueberfaelligSeitMin = payload.ueberfaelligSeitMin;
+  const zuweisungId = payload.zuweisungId;
+
+  if (typeof einsatzId !== 'string' || typeof einheitId !== 'string' || typeof propagationGroupId !== 'string' || typeof originalEventId !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.quittung_ueberfaellig');
+  }
+  if (typeof ueberfaelligSeitMin !== 'number' || !Number.isInteger(ueberfaelligSeitMin) || ueberfaelligSeitMin < 0) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.quittung_ueberfaellig');
+  }
+  if (zuweisungId !== null && typeof zuweisungId !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.quittung_ueberfaellig');
+  }
+
+  const event = new QuittungUeberfaelligEvent(einsatzId, einheitId, propagationGroupId, originalEventId, ueberfaelligSeitMin, zuweisungId, aggregateId);
   return Result.ok<DomainEvent>(event);
 }

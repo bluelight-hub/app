@@ -461,4 +461,114 @@ describe('PsaProfilEmpfangBanner', () => {
       expect(events.filter((e) => e.propagationGroupIdCandidate === 'group-redo')).toHaveLength(2);
     });
   });
+
+  describe('Story 3.7 AC7 — Re-Prompt-Pfad (repromptedKeys + synthetischer Banner)', () => {
+    it('hängt „Erneut" an Headline, wenn Reprompt-Notice für die aktive Einheit eintrifft', () => {
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-A' })];
+      const repromptNotices = [
+        {
+          propagationGroupId: 'group-A',
+          einheitId: 'einheit-1',
+          ueberfaelligSeitMin: 6,
+          occurredAt: '2026-04-29T10:00:00.000Z',
+          zuweisungId: 'zuw-1',
+        },
+      ];
+
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" repromptNotices={repromptNotices} onRepromptDismiss={vi.fn()} />);
+
+      const headline = screen.getByTestId('psa-empfang-banner').querySelector('h3');
+      expect(headline?.textContent ?? '').toContain('Erneut');
+    });
+
+    it('rendert KEIN „Erneut"-Tag, wenn die Reprompt-Notice für eine ANDERE Einheit kommt', () => {
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-A' })];
+      const repromptNotices = [
+        {
+          propagationGroupId: 'group-A',
+          einheitId: 'einheit-andere',
+          ueberfaelligSeitMin: 6,
+          occurredAt: '2026-04-29T10:00:00.000Z',
+          zuweisungId: null,
+        },
+      ];
+
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" repromptNotices={repromptNotices} />);
+
+      const headline = screen.getByTestId('psa-empfang-banner').querySelector('h3');
+      expect(headline?.textContent ?? '').not.toContain('Erneut');
+    });
+
+    it('rendert synthetischen Reprompt-Banner, wenn ursprünglicher Banner dismissed wurde und neue Notice eintrifft', () => {
+      hookMock.banner = [];
+      const repromptNotices = [
+        {
+          propagationGroupId: 'group-X',
+          einheitId: 'einheit-1',
+          ueberfaelligSeitMin: 6,
+          occurredAt: '2026-04-29T10:00:00.000Z',
+          zuweisungId: null,
+        },
+      ];
+
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" repromptNotices={repromptNotices} />);
+
+      const synthetic = screen.getByTestId('psa-empfang-banner-reprompt');
+      expect(synthetic).toBeInTheDocument();
+      expect(synthetic).toHaveTextContent('PSA-Bekanntgabe wartet auf Quittung — Erneut');
+    });
+
+    it('synthetischer Banner liest begruendung aus React-Query-Cache (usePsaProfileByEinheit)', () => {
+      hookMock.banner = [];
+      profileMock.data = [
+        {
+          id: 'r1',
+          einsatzId: 'einsatz-1',
+          einheitId: 'einheit-1',
+          profil: 'CBRN_PATIENT',
+          gueltigVon: '2026-04-29T09:30:00.000Z',
+          gueltigBis: null,
+          aktiviertVonUserId: 'user-7',
+          begruendung: 'Verdacht auf Kontamination',
+          propagationGroupId: 'group-X',
+          version: 1,
+        },
+      ];
+      const repromptNotices = [
+        {
+          propagationGroupId: 'group-X',
+          einheitId: 'einheit-1',
+          ueberfaelligSeitMin: 6,
+          occurredAt: '2026-04-29T10:00:00.000Z',
+          zuweisungId: null,
+        },
+      ];
+
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" repromptNotices={repromptNotices} />);
+
+      expect(screen.getByTestId('psa-empfang-banner-reprompt')).toHaveTextContent('Grund: Verdacht auf Kontamination');
+    });
+
+    it('synthetischer Banner — Secondary-Action ruft onRepromptDismiss mit (groupId, einheitId)', () => {
+      hookMock.banner = [];
+      const onRepromptDismiss = vi.fn();
+      const repromptNotices = [
+        {
+          propagationGroupId: 'group-X',
+          einheitId: 'einheit-1',
+          ueberfaelligSeitMin: 6,
+          occurredAt: '2026-04-29T10:00:00.000Z',
+          zuweisungId: null,
+        },
+      ];
+
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" repromptNotices={repromptNotices} onRepromptDismiss={onRepromptDismiss} />);
+
+      const reprompt = screen.getByTestId('psa-empfang-banner-reprompt');
+      const secondary = within(reprompt).getByRole('button', { name: 'Schließen' });
+      fireEvent.click(secondary);
+
+      expect(onRepromptDismiss).toHaveBeenCalledWith('group-X', 'einheit-1');
+    });
+  });
 });

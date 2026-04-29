@@ -43,6 +43,7 @@ import { KategorieModule } from './modules/kategorie/kategorie.module';
 import { BefehlModule } from './modules/befehl/befehl.module';
 import { AufbewahrungModule } from './modules/aufbewahrung/aufbewahrung.module';
 import { SchedulerModule } from '@infrastructure/scheduler/scheduler.module';
+import { EigenschutzSchedulerModule } from '@infrastructure/eigenschutz/scheduler/eigenschutz-scheduler.module';
 import { MetricsModule } from '@infrastructure/metrics/metrics.module';
 import { MetricsInterceptor } from '@infrastructure/metrics/metrics.interceptor';
 import { DeprecationInterceptor } from './modules/common/interceptors/deprecation.interceptor';
@@ -154,6 +155,7 @@ import { EigenschutzModule } from './modules/eigenschutz/eigenschutz.module';
     WebsocketModule, // Einsatz-Events WebSocket-Gateway + Publisher (Issue #407, Task 18)
     PushNotificationsModule, // Plattform Push-Notifications (Story 1.1, ADR-011)
     EigenschutzModule, // Eigenschutz-Feature-Slice: Health-Endpoint + Guard-Kette (Story 1.6)
+    EigenschutzSchedulerModule, // Eigenschutz-Cron-Jobs (Story 3.7 — PSA-Quittung-Reprompt nach 5 min)
   ],
   controllers: [AppController],
   providers: [

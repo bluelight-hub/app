@@ -2,6 +2,7 @@ import { EventDeserializer } from '../event-deserializer';
 import { EventSerializer, type SerializedEvent } from '../event-serializer';
 import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
+import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 
 /**
  * Story 3.4 — Round-Trip-Test für `QuittungAbgegebenEvent`.
@@ -149,6 +150,109 @@ describe('EventDeserializer — Eigenschutz LueckeGemeldet (Story 3.6)', () => {
         propagationGroupId: 'group-1',
         meldung: 'Test-Lücke',
         gemeldetAm: 'not-a-date',
+      }),
+    );
+    expect(result.isFailure).toBe(true);
+  });
+});
+
+/**
+ * Story 3.7 — Round-Trip-Test für `QuittungUeberfaelligEvent`.
+ *
+ * Verifiziert, dass das Event über Serializer → Deserializer verlustfrei
+ * rekonstruiert wird (4-Stellen-Registry-Konsistenz, AC1) und dass der
+ * `userId === 'SYSTEM'`-Sentinel erhalten bleibt.
+ */
+describe('EventDeserializer — Eigenschutz QuittungUeberfaellig (Story 3.7)', () => {
+  const deserializer = new EventDeserializer();
+  const serializer = new EventSerializer();
+
+  function createSerialized(payload: Record<string, unknown>): SerializedEvent {
+    return {
+      eventId: 'test-evt-id',
+      eventName: 'eigenschutz.quittung_ueberfaellig',
+      eventVersion: 1,
+      occurredAt: new Date('2026-04-24T10:30:45.123Z').toISOString(),
+      aggregateId: 'group-cuid2-test:einheit-cuid2-test',
+      payload,
+    };
+  }
+
+  it('roundtrip: serialize → deserialize liefert äquivalentes Event', () => {
+    const original = new QuittungUeberfaelligEvent(
+      'einsatz-cuid2-1234567890123456',
+      'einheit-cuid2-1234567890123456',
+      'group-cuid2-12345678901234567',
+      'origevt-cuid2-1234567890123',
+      6,
+      'zuw-cuid2-1234567890123',
+    );
+
+    const serialized = serializer.serialize(original);
+    expect(serialized.eventName).toBe('eigenschutz.quittung_ueberfaellig');
+
+    const result = deserializer.deserialize(serialized);
+    expect(result.isSuccess).toBe(true);
+
+    const event = result.value as QuittungUeberfaelligEvent;
+    expect(event).toBeInstanceOf(QuittungUeberfaelligEvent);
+    expect(event.einsatzId).toBe(original.einsatzId);
+    expect(event.userId).toBe('SYSTEM');
+    expect(event.einheitId).toBe(original.einheitId);
+    expect(event.propagationGroupId).toBe(original.propagationGroupId);
+    expect(event.originalEventId).toBe(original.originalEventId);
+    expect(event.ueberfaelligSeitMin).toBe(original.ueberfaelligSeitMin);
+    expect(event.zuweisungId).toBe(original.zuweisungId);
+    expect(event.aggregateId).toBe(`${original.propagationGroupId}:${original.einheitId}`);
+  });
+
+  it('roundtrip: zuweisungId === null bleibt null', () => {
+    const original = new QuittungUeberfaelligEvent('einsatz-cuid2-1234567890123456', 'einheit-cuid2-1234567890123456', 'group-cuid2-12345678901234567', 'origevt-cuid2-1234567890123', 5, null);
+
+    const serialized = serializer.serialize(original);
+    const result = deserializer.deserialize(serialized);
+    expect(result.isSuccess).toBe(true);
+    const event = result.value as QuittungUeberfaelligEvent;
+    expect(event.zuweisungId).toBeNull();
+  });
+
+  it('schlägt fehl bei fehlender originalEventId', () => {
+    const result = deserializer.deserialize(
+      createSerialized({
+        einsatzId: 'einsatz-1',
+        einheitId: 'einheit-1',
+        propagationGroupId: 'group-1',
+        ueberfaelligSeitMin: 5,
+        zuweisungId: null,
+      }),
+    );
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toContain('eigenschutz.quittung_ueberfaellig');
+  });
+
+  it('schlägt fehl bei negativem ueberfaelligSeitMin', () => {
+    const result = deserializer.deserialize(
+      createSerialized({
+        einsatzId: 'einsatz-1',
+        einheitId: 'einheit-1',
+        propagationGroupId: 'group-1',
+        originalEventId: 'orig-1',
+        ueberfaelligSeitMin: -1,
+        zuweisungId: null,
+      }),
+    );
+    expect(result.isFailure).toBe(true);
+  });
+
+  it('schlägt fehl bei nicht-Integer ueberfaelligSeitMin', () => {
+    const result = deserializer.deserialize(
+      createSerialized({
+        einsatzId: 'einsatz-1',
+        einheitId: 'einheit-1',
+        propagationGroupId: 'group-1',
+        originalEventId: 'orig-1',
+        ueberfaelligSeitMin: 5.5,
+        zuweisungId: null,
       }),
     );
     expect(result.isFailure).toBe(true);

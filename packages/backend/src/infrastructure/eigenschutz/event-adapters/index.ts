@@ -12,3 +12,4 @@ export { EigenschutzSicherheitsregelQuittiertEventAdapter } from './sicherheitsr
 export { EigenschutzPsaProfilGeaendertEventAdapter } from './psa-profil-geaendert.adapter';
 export { EigenschutzQuittungAbgegebenEventAdapter } from './psa-quittung-abgegeben.adapter';
 export { EigenschutzLueckeGemeldetEventAdapter } from './luecke-gemeldet.adapter';
+export { EigenschutzQuittungUeberfaelligEventAdapter } from './quittung-ueberfaellig.adapter';

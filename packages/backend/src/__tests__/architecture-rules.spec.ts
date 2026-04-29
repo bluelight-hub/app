@@ -212,7 +212,6 @@ describe('Architecture Rules', () => {
       'eigenschutz.vorfall_gemeldet',
       'eigenschutz.vorfall_exportiert',
       'eigenschutz.quittung_abgegeben',
-      'eigenschutz.quittung_ueberfaellig',
       'eigenschutz.konflikt_erkannt',
       'eigenschutz.konflikt_aufgeloest',
     ];
