@@ -13,7 +13,15 @@
  * gepufferten Buffer ist trivial — die Public-API bleibt stabil.
  */
 
-export type EigenschutzTelemetryEventName = 'assess_started' | 'assess_completed' | 'assess_aborted' | 'cbrn_announced' | 'cbrn_acknowledged' | 'all_banners_delivered' | 'psa_quittung_abgegeben';
+export type EigenschutzTelemetryEventName =
+  | 'assess_started'
+  | 'assess_completed'
+  | 'assess_aborted'
+  | 'cbrn_announced'
+  | 'cbrn_acknowledged'
+  | 'all_banners_delivered'
+  | 'psa_quittung_abgegeben'
+  | 'luecke_gemeldet';
 
 export interface EigenschutzTelemetryEvent {
   readonly eventName: EigenschutzTelemetryEventName;

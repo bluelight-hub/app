@@ -37,6 +37,26 @@ export interface UpsertPsaProfilQuittungParams {
 }
 
 /**
+ * Parameter für `upsertWithLuecke(...)` (Story 3.6 AC3).
+ *
+ * **Semantik:** Quittung+Lücke atomar (Q2-Default). Wenn keine Row existiert,
+ * wird sie mit `lueckeGemeldet=true` + `lueckeNotiz` angelegt. Wenn eine
+ * Row existiert (vorab quittiert oder vorherige Lücke-Meldung), wird sie
+ * geupdated — `quittiertAm` bleibt erhalten (Audit-Pflicht).
+ *
+ * **`lueckeNotiz`:** Bereits getrimmt vom Caller (Handler trimmt vor
+ * Aufruf), Domain-Validation Min/Max im DTO. Schema-Constraint:
+ * `VARCHAR(1000)`.
+ */
+export interface UpsertWithLueckeParams {
+  propagationGroupId: string;
+  einheitId: string;
+  einsatzId: string;
+  quittiertVonUserId: string;
+  lueckeNotiz: string;
+}
+
+/**
  * Ergebnis des Upsert-Pfads. `created === true` markiert, dass eine neue
  * Quittung-Row angelegt wurde — der Handler emittiert in diesem Fall ein
  * `QuittungAbgegebenEvent`. `created === false` ist der idempotente
@@ -67,6 +87,28 @@ export interface IPsaProfilQuittungRepository {
    * - Unerwarteter DB-Fehler → `Result.fail(...'InfrastructureError:PsaProfilQuittung:…')`
    */
   upsert(tx: TransactionContext, params: UpsertPsaProfilQuittungParams): Promise<Result<UpsertPsaProfilQuittungResult>>;
+
+  /**
+   * Upsert mit Lücke-Markern (Story 3.6 AC3, FR20).
+   *
+   * **Verhalten:**
+   * - **Create-Pfad:** Keine Row existiert → Insert mit `lueckeGemeldet=true`
+   *   + `lueckeNotiz` → `{ created: true, row }`.
+   * - **Update-Pfad:** Row existiert (vorab quittiert oder doppelter Lücke-
+   *   Send) → Update von `lueckeGemeldet/lueckeNotiz` → `{ created: false,
+   *   row }`. **`quittiertAm` wird bewusst NICHT überschrieben** — die
+   *   ursprüngliche Quittungs-Zeit bleibt für den Audit-Trail erhalten.
+   *
+   * **Idempotenz:** Im Gegensatz zu `upsert(...)` ist hier KEIN P2002-Catch
+   * nötig — Prisma's natives Upsert-Pattern (`upsert({ where, create,
+   * update })`) löst die Race-Condition direkt auf DB-Ebene. Eine doppelte
+   * Lücke-Meldung mit anderer Notiz ist erlaubt (Notiz-Korrektur).
+   *
+   * **Sentinel-Verträge:**
+   * - Erfolg → `Result.ok({ created, row })`
+   * - DB-Fehler → `Result.fail('InfrastructureError:PsaProfilQuittung:Luecke:…')`
+   */
+  upsertWithLuecke(tx: TransactionContext, params: UpsertWithLueckeParams): Promise<Result<UpsertPsaProfilQuittungResult>>;
 
   /**
    * Listet alle Quittungen einer Bekanntgabe-Gruppe — sortiert nach

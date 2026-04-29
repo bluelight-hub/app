@@ -7,16 +7,17 @@
  * bei fehlender Einheit.
  */
 
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PsaProfilLiveBanner } from '../../../api/use-eigenschutz-psa-live-banner';
 
-const { hookMock, profileMock, einheitMock, userMock, ackMutationMock } = vi.hoisted(() => ({
+const { hookMock, profileMock, einheitMock, userMock, ackMutationMock, lueckeMutationMock } = vi.hoisted(() => ({
   hookMock: { banner: [] as PsaProfilLiveBanner[], dismiss: vi.fn() },
   profileMock: { data: undefined as unknown, isPending: false },
   einheitMock: { einheitId: 'einheit-1' as string | null },
   userMock: { user: { id: 'user-empf' } as { id: string } | null },
   ackMutationMock: { mutate: vi.fn() },
+  lueckeMutationMock: { mutateAsync: vi.fn().mockResolvedValue(undefined), isPending: false } as { mutateAsync: ReturnType<typeof vi.fn>; isPending: boolean },
 }));
 
 vi.mock('../../../api/use-eigenschutz-psa-live-banner', async (importOriginal) => {
@@ -37,6 +38,7 @@ vi.mock('../../../api/queries', async (importOriginal) => {
     ...actual,
     usePsaProfileByEinheit: () => profileMock,
     useAckPsaQuittung: () => ackMutationMock,
+    useMeldeLuecke: () => lueckeMutationMock,
   };
 });
 
@@ -71,6 +73,9 @@ beforeEach(() => {
   hookMock.banner = [];
   hookMock.dismiss.mockReset();
   ackMutationMock.mutate.mockReset();
+  lueckeMutationMock.mutateAsync.mockReset();
+  lueckeMutationMock.mutateAsync.mockResolvedValue(undefined);
+  lueckeMutationMock.isPending = false;
   profileMock.data = undefined;
   profileMock.isPending = false;
   einheitMock.einheitId = 'einheit-1';
@@ -362,6 +367,76 @@ describe('PsaProfilEmpfangBanner', () => {
       // mountet — die Quittungs-Wege selbst sind in
       // `PsaProfilDetailDrawer.spec.tsx` getestet.
       expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
+    });
+  });
+
+  describe('Story 3.6 AC12 — Lücke-Wiring (Drawer → Dialog → Mutation → Banner-Dismiss)', () => {
+    it('öffnet Lücke-Dialog, wenn Drawer-`onMeldeLuecke`-Callback feuert', () => {
+      // Wir simulieren den Drawer-Pfad indirekt: Tertiary „Details ansehen"
+      // mountet den Drawer; der Drawer (Story 3.5) hat bereits den Lücke-
+      // Button mit handleMeldeLuecke verdrahtet. Hier prüfen wir, dass das
+      // Banner-Wrapper-Wiring den Dialog-State setzt.
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-luecke' })];
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      // Drawer öffnen über Tertiary-Action.
+      fireEvent.click(screen.getByTestId('severity-banner-tertiary'));
+      expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
+
+      // Lücke-Footer-Button im Drawer ruft `onMeldeLuecke` auf, was den
+      // Dialog-State setzt → Dialog rendert.
+      // Pattern: Story 3.5 AC10 hat den Footer-Button per `data-testid` markiert.
+      const lueckeButton = screen.getByTestId('psa-profil-detail-luecke');
+      fireEvent.click(lueckeButton);
+      expect(screen.getByTestId('melde-luecke-dialog')).toBeInTheDocument();
+    });
+
+    it('Dialog-Submit ruft dismiss(propagationGroupId) und schließt den Drawer (Q6-Default)', async () => {
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-luecke-submit' })];
+      lueckeMutationMock.mutateAsync.mockResolvedValue(undefined);
+
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+      fireEvent.click(screen.getByTestId('severity-banner-tertiary'));
+
+      const lueckeButton = screen.getByTestId('psa-profil-detail-luecke');
+      fireEvent.click(lueckeButton);
+      const dialog = screen.getByTestId('melde-luecke-dialog');
+      expect(dialog).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('melde-luecke-submit'));
+
+      // mutateAsync feuert; onSuccess ruft dismiss() für die Group + schließt
+      // Drawer (Q6-Default).
+      await waitFor(() => expect(lueckeMutationMock.mutateAsync).toHaveBeenCalled());
+      await waitFor(() => expect(hookMock.dismiss).toHaveBeenCalledWith('group-luecke-submit'));
+      await waitFor(() => expect(screen.queryByTestId('melde-luecke-dialog')).toBeNull());
+      await waitFor(() => expect(screen.queryByTestId('psa-profil-detail-drawer')).toBeNull());
+    });
+
+    it('Per-Row-Lücke-Button öffnet Dialog → Submit dismiss + Drawer-Close (AC12)', async () => {
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-per-row' })];
+      lueckeMutationMock.mutateAsync.mockResolvedValue(undefined);
+
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+      fireEvent.click(screen.getByTestId('severity-banner-tertiary'));
+      expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
+
+      // EquipmentChecklist rendert pro Einheit eine Status-Row mit einem
+      // Lücke-Button (`aria-label="Lücke für Einheit … melden"`). Wir wählen
+      // den Per-Row-Button bewusst NICHT über `psa-profil-detail-luecke`
+      // (= Footer), sondern über `aria-label` (E2E-Wiring AC12).
+      const perRowButton = screen.getByRole('button', { name: /Lücke für Einheit .* melden/ });
+      fireEvent.click(perRowButton);
+
+      const dialog = screen.getByTestId('melde-luecke-dialog');
+      expect(dialog).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('melde-luecke-submit'));
+
+      await waitFor(() => expect(lueckeMutationMock.mutateAsync).toHaveBeenCalled());
+      await waitFor(() => expect(hookMock.dismiss).toHaveBeenCalledWith('group-per-row'));
+      await waitFor(() => expect(screen.queryByTestId('melde-luecke-dialog')).toBeNull());
+      await waitFor(() => expect(screen.queryByTestId('psa-profil-detail-drawer')).toBeNull());
     });
   });
 

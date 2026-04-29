@@ -76,11 +76,42 @@ describe('ListPsaQuittungenHandler (Story 3.4 AC8)', () => {
       status: 'QUITTIERT',
       quittiertAm: '2026-04-27T08:42:13.000Z',
       quittiertVonUserId: USER_ID,
+      lueckeGemeldet: false,
     });
     expect(entries[1]).toEqual({
       einheitId: EINHEIT_B,
       einheitName: '2. Sanitätsgruppe',
       status: 'AUSSTEHEND',
+      lueckeGemeldet: false,
+    });
+  });
+
+  it('Story 3.6 AC8 — liefert lueckeGemeldet=true + lueckeNotiz für Empfänger mit Lücke', async () => {
+    prisma.outboxEvent.findMany.mockResolvedValue([{ payload: { propagationGroupId: PROPAGATION_GROUP_ID, einheitId: EINHEIT_A, profil: 'BASIS', aktion: 'AKTIVIERT' } }]);
+    quittungRepo.findByEinsatzAndGroup.mockResolvedValue(
+      Result.ok([
+        {
+          id: 'q-1',
+          propagationGroupId: PROPAGATION_GROUP_ID,
+          einsatzId: EINSATZ_ID,
+          einheitId: EINHEIT_A,
+          quittiertAm: new Date('2026-04-27T08:42:13.000Z'),
+          quittiertVonUserId: USER_ID,
+          lueckeGemeldet: true,
+          lueckeNotiz: 'Schutzanzug Größe L fehlt — nachgeordert 14:28',
+        },
+      ]),
+    );
+
+    const result = await handler.execute(new ListPsaQuittungenQuery(EINSATZ_ID, PROPAGATION_GROUP_ID));
+
+    expect(result.isSuccess).toBe(true);
+    const entries = result.value!;
+    expect(entries[0]).toMatchObject({
+      einheitId: EINHEIT_A,
+      status: 'QUITTIERT',
+      lueckeGemeldet: true,
+      lueckeNotiz: 'Schutzanzug Größe L fehlt — nachgeordert 14:28',
     });
   });
 

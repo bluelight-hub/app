@@ -94,6 +94,56 @@ describe('ListOffenePsaBekanntgabenHandler (Story 3.4 AC15)', () => {
     expect(result.value).toEqual([]);
   });
 
+  it('Story 3.6 AC8 — zählt lueckenCount korrekt', async () => {
+    prisma.outboxEvent.findMany.mockResolvedValue([
+      makeOutboxRow({ einsatzId: EINSATZ_ID, einheitId: EINHEIT_1, propagationGroupId: GROUP_A, profil: 'BASIS', aktion: 'AKTIVIERT', begruendung: 'CBRN' }, '2026-04-27T08:00:00.000Z'),
+      makeOutboxRow({ einsatzId: EINSATZ_ID, einheitId: EINHEIT_2, propagationGroupId: GROUP_A, profil: 'BASIS', aktion: 'AKTIVIERT', begruendung: 'CBRN' }, '2026-04-27T08:00:00.000Z'),
+    ]);
+    quittungRepo.findByEinsatzAndGroup.mockResolvedValue(Result.ok([{ ...makeQuittungRow(GROUP_A, EINHEIT_1), lueckeGemeldet: true, lueckeNotiz: 'Stiefel 44 fehlt' }]));
+
+    const result = await handler.execute(new ListOffenePsaBekanntgabenQuery(EINSATZ_ID));
+
+    expect(result.isSuccess).toBe(true);
+    const entry = result.value![0];
+    expect(entry.propagationGroupId).toBe(GROUP_A);
+    expect(entry.lueckenCount).toBe(1);
+    expect(entry.ackCount).toBe(1);
+    expect(entry.totalCount).toBe(2);
+    expect(entry.status).toBe('partial');
+  });
+
+  it('Story 3.6 AC8 (Filter-Patch) — behält Bekanntgaben mit lueckenCount > 0 sichtbar, auch wenn ackCount === totalCount', async () => {
+    // Beide Empfänger haben "geantwortet" (lueckeGemeldet = Quittung implizit),
+    // aber lueckenCount > 0 ⇒ Eintrag bleibt in der Liste sichtbar (sonst tot
+    // für AC13: Sicherheitsbeauftragter sieht die Lücken nirgends).
+    prisma.outboxEvent.findMany.mockResolvedValue([
+      makeOutboxRow({ einsatzId: EINSATZ_ID, einheitId: EINHEIT_1, propagationGroupId: GROUP_A, profil: 'BASIS', aktion: 'AKTIVIERT', begruendung: 'CBRN' }, '2026-04-27T08:00:00.000Z'),
+    ]);
+    quittungRepo.findByEinsatzAndGroup.mockResolvedValue(Result.ok([{ ...makeQuittungRow(GROUP_A, EINHEIT_1), lueckeGemeldet: true, lueckeNotiz: 'fehlt' }]));
+
+    const result = await handler.execute(new ListOffenePsaBekanntgabenQuery(EINSATZ_ID));
+
+    expect(result.isSuccess).toBe(true);
+    const entries = result.value!;
+    expect(entries).toHaveLength(1);
+    expect(entries[0].lueckenCount).toBe(1);
+    // Status mappt auf `partial`, weil die Lücke noch organisatorisch zu klären ist.
+    expect(entries[0].status).toBe('partial');
+  });
+
+  it('Story 3.6 AC8 — lueckenCount = 0, wenn keine Lücke gemeldet wurde', async () => {
+    prisma.outboxEvent.findMany.mockResolvedValue([
+      makeOutboxRow({ einsatzId: EINSATZ_ID, einheitId: EINHEIT_1, propagationGroupId: GROUP_A, profil: 'BASIS', aktion: 'AKTIVIERT', begruendung: 'CBRN' }, '2026-04-27T08:00:00.000Z'),
+      makeOutboxRow({ einsatzId: EINSATZ_ID, einheitId: EINHEIT_2, propagationGroupId: GROUP_A, profil: 'BASIS', aktion: 'AKTIVIERT', begruendung: 'CBRN' }, '2026-04-27T08:00:00.000Z'),
+    ]);
+    quittungRepo.findByEinsatzAndGroup.mockResolvedValue(Result.ok([makeQuittungRow(GROUP_A, EINHEIT_1)]));
+
+    const result = await handler.execute(new ListOffenePsaBekanntgabenQuery(EINSATZ_ID));
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value![0].lueckenCount).toBe(0);
+  });
+
   it('seit-Filter wirkt — übergebenes ISO wird gegen `occurredAt` gefiltert', async () => {
     prisma.outboxEvent.findMany.mockResolvedValue([]);
 

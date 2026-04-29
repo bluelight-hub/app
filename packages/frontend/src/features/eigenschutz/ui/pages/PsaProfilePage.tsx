@@ -5,7 +5,7 @@ import { useEinsatzEinheiten } from '@/features/kraefte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
 import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
-import { PiShield, PiShieldCheck } from 'react-icons/pi';
+import { PiShield, PiShieldCheck, PiWarningOctagon } from 'react-icons/pi';
 import { PSA_PROFIL_META } from '../../constants/psa-profil.constants';
 import { useLongPress } from '../../hooks/use-long-press';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
@@ -276,6 +276,19 @@ function OffenePsaBekanntgabenSection({ einsatzId }: { readonly einsatzId: strin
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                {/* Story 3.6 AC13 — Lücken-Counter-Badge. Severity warning
+                    (zu klärende Aufgabe, kein Notfall). `tabular-nums` für
+                    stabile Ziffern-Breite. */}
+                {(eintrag.lueckenCount ?? 0) > 0 ? (
+                  <span
+                    data-testid={`luecke-badge-${eintrag.propagationGroupId}`}
+                    className="inline-flex items-center gap-1 rounded-full border border-status-warning-border bg-status-warning-surface px-2 py-0.5 text-xs font-medium text-status-warning-text"
+                    aria-label={`${eintrag.lueckenCount} Lücke${eintrag.lueckenCount === 1 ? '' : 'n'} gemeldet`}
+                  >
+                    <PiWarningOctagon aria-hidden="true" className="h-4 w-4" />
+                    <span className="tabular-nums">{eintrag.lueckenCount}</span> Lücke{eintrag.lueckenCount === 1 ? '' : 'n'} gemeldet
+                  </span>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => setChecklistDrawerGroup(eintrag.propagationGroupId)}

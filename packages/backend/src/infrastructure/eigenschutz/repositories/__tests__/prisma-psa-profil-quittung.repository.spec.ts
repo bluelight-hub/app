@@ -162,6 +162,119 @@ describe('PrismaPsaProfilQuittungRepository.upsert()', () => {
   });
 });
 
+describe('PrismaPsaProfilQuittungRepository.upsertWithLuecke() — Story 3.6 AC3', () => {
+  const LUECKE_NOTIZ = 'Schutzanzug Größe L fehlt Einheit 2 — nachgeordert 14:28';
+
+  it('Create-Pfad: keine Row → Insert mit lueckeGemeldet=true + Notiz, created=true', async () => {
+    const logger = createMockLogger();
+    const created = buildRow({ lueckeGemeldet: true, lueckeNotiz: LUECKE_NOTIZ });
+    const findUnique = jest.fn().mockResolvedValue(null);
+    const upsert = jest.fn().mockResolvedValue(created);
+    const tx = { psaProfilQuittung: { findUnique, upsert } };
+    const repo = new PrismaPsaProfilQuittungRepository({} as never, logger);
+
+    const result = await repo.upsertWithLuecke(tx as never, {
+      propagationGroupId: PROPAGATION_GROUP_ID,
+      einheitId: EINHEIT_ID,
+      einsatzId: EINSATZ_ID,
+      quittiertVonUserId: USER_ID,
+      lueckeNotiz: LUECKE_NOTIZ,
+    });
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value!.created).toBe(true);
+    expect(result.value!.row.lueckeGemeldet).toBe(true);
+    expect(result.value!.row.lueckeNotiz).toBe(LUECKE_NOTIZ);
+    expect(upsert).toHaveBeenCalledWith({
+      where: { propagationGroupId_einheitId: { propagationGroupId: PROPAGATION_GROUP_ID, einheitId: EINHEIT_ID } },
+      create: {
+        propagationGroupId: PROPAGATION_GROUP_ID,
+        einheitId: EINHEIT_ID,
+        einsatzId: EINSATZ_ID,
+        quittiertVonUserId: USER_ID,
+        lueckeGemeldet: true,
+        lueckeNotiz: LUECKE_NOTIZ,
+      },
+      update: {
+        lueckeGemeldet: true,
+        lueckeNotiz: LUECKE_NOTIZ,
+      },
+    });
+  });
+
+  it('Update-Pfad: existierende Quittung → Update mit Lücke, created=false, quittiertAm UNVERÄNDERT', async () => {
+    const logger = createMockLogger();
+    const originalQuittiertAm = new Date('2026-04-23T08:15:00.000Z');
+    const updated = buildRow({ quittiertAm: originalQuittiertAm, quittiertVonUserId: 'erster-quittierer', lueckeGemeldet: true, lueckeNotiz: LUECKE_NOTIZ });
+    const findUnique = jest.fn().mockResolvedValue({ id: ROW_ID });
+    const upsert = jest.fn().mockResolvedValue(updated);
+    const tx = { psaProfilQuittung: { findUnique, upsert } };
+    const repo = new PrismaPsaProfilQuittungRepository({} as never, logger);
+
+    const result = await repo.upsertWithLuecke(tx as never, {
+      propagationGroupId: PROPAGATION_GROUP_ID,
+      einheitId: EINHEIT_ID,
+      einsatzId: EINSATZ_ID,
+      quittiertVonUserId: USER_ID,
+      lueckeNotiz: LUECKE_NOTIZ,
+    });
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value!.created).toBe(false);
+    expect(result.value!.row.quittiertAm).toEqual(originalQuittiertAm);
+    expect(result.value!.row.quittiertVonUserId).toBe('erster-quittierer');
+    expect(result.value!.row.lueckeGemeldet).toBe(true);
+    // Defense-in-Depth: update payload enthält explizit nur Lücke-Felder.
+    const upsertArgs = upsert.mock.calls[0][0];
+    expect(upsertArgs.update).toEqual({ lueckeGemeldet: true, lueckeNotiz: LUECKE_NOTIZ });
+    expect(upsertArgs.update).not.toHaveProperty('quittiertAm');
+    expect(upsertArgs.update).not.toHaveProperty('quittiertVonUserId');
+  });
+
+  it('Update-Pfad: existierende Lücke → Notiz wird ersetzt (Idempotenz / Notiz-Korrektur)', async () => {
+    const logger = createMockLogger();
+    const NEW_NOTIZ = 'Korrektur: Stiefel Größe 44 fehlt — neu nachgeordert 15:02';
+    const updated = buildRow({ lueckeGemeldet: true, lueckeNotiz: NEW_NOTIZ });
+    const findUnique = jest.fn().mockResolvedValue({ id: ROW_ID });
+    const upsert = jest.fn().mockResolvedValue(updated);
+    const tx = { psaProfilQuittung: { findUnique, upsert } };
+    const repo = new PrismaPsaProfilQuittungRepository({} as never, logger);
+
+    const result = await repo.upsertWithLuecke(tx as never, {
+      propagationGroupId: PROPAGATION_GROUP_ID,
+      einheitId: EINHEIT_ID,
+      einsatzId: EINSATZ_ID,
+      quittiertVonUserId: USER_ID,
+      lueckeNotiz: NEW_NOTIZ,
+    });
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value!.created).toBe(false);
+    expect(result.value!.row.lueckeNotiz).toBe(NEW_NOTIZ);
+  });
+
+  it('verpackt DB-Fehler in InfrastructureError:PsaProfilQuittung:Luecke-Sentinel', async () => {
+    const logger = createMockLogger();
+    const findUnique = jest.fn().mockResolvedValue(null);
+    const upsert = jest.fn().mockRejectedValue(new Error('connection-lost'));
+    const tx = { psaProfilQuittung: { findUnique, upsert } };
+    const repo = new PrismaPsaProfilQuittungRepository({} as never, logger);
+
+    const result = await repo.upsertWithLuecke(tx as never, {
+      propagationGroupId: PROPAGATION_GROUP_ID,
+      einheitId: EINHEIT_ID,
+      einsatzId: EINSATZ_ID,
+      quittiertVonUserId: USER_ID,
+      lueckeNotiz: LUECKE_NOTIZ,
+    });
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toContain('InfrastructureError:PsaProfilQuittung:Luecke');
+    expect(result.error).toContain('connection-lost');
+    expect(logger.error).toHaveBeenCalled();
+  });
+});
+
 describe('PrismaPsaProfilQuittungRepository.findByGroup()', () => {
   it('liefert alle Quittungen einer Bekanntgabe-Gruppe sortiert', async () => {
     const logger = createMockLogger();

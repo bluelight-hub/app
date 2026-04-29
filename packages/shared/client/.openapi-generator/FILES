@@ -408,6 +408,7 @@ models/ManagedUserResponseDto.ts
 models/ManagedUserResponseDtoStammperson.ts
 models/MarkErledigtErinnerungDto.ts
 models/MeineEinsatzRolleDto.ts
+models/MeldeLueckeDto.ts
 models/MigrateLegacyRuntimeConfigRequestDto.ts
 models/MigrateLegacyRuntimeConfigResultDto.ts
 models/MigrateLegacyRuntimeConfigResultSummaryDto.ts

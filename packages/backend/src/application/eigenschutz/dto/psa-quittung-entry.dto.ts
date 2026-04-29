@@ -55,4 +55,25 @@ export class PsaQuittungEntryDto {
     example: 'Sanitäter Max Müller',
   })
   quittiertVonUserName?: string;
+
+  /**
+   * Story 3.6 AC8 — Lücke-Marker (additiv, kein Schema-Bruch).
+   *
+   * `lueckeGemeldet === true` ⇒ der Empfänger hat eine Ausrüstungs-Lücke
+   * gemeldet (mit oder ohne vorherige Quittung — Quittung+Lücke atomar via
+   * Q2-Default). Frontend rendert den Pill „Lücke gemeldet" zusätzlich zum
+   * Status — die Status-Union bleibt `'AUSSTEHEND' | 'QUITTIERT'`.
+   */
+  @ApiProperty({
+    description: 'true = Empfänger hat eine Ausrüstungs-Lücke gemeldet (Story 3.6).',
+    example: false,
+  })
+  lueckeGemeldet!: boolean;
+
+  @ApiProperty({
+    description: 'Klartext der Lücken-Meldung. Nur gesetzt, wenn `lueckeGemeldet === true`.',
+    required: false,
+    example: 'Schutzanzug Größe L fehlt Einheit 2 — nachgeordert 14:28',
+  })
+  lueckeNotiz?: string;
 }

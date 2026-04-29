@@ -165,6 +165,7 @@ import { SicherheitsregelAusgerufenEvent } from '@domain/eigenschutz/events/sich
 import { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
 import { PsaProfilGeaendertEvent, type PsaProfilAktion } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
 import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
+import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import { PsaProfil } from '@/generated/prisma/enums';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
@@ -443,6 +444,7 @@ export class EventDeserializer {
       ['eigenschutz.sicherheitsregel_quittiert', deserializeSicherheitsregelQuittiert],
       ['eigenschutz.psa_profil_geaendert', deserializePsaProfilGeaendert],
       ['eigenschutz.quittung_abgegeben', deserializeQuittungAbgegeben],
+      ['eigenschutz.luecke_gemeldet', deserializeLueckeGemeldet],
     ]);
   }
 
@@ -2911,5 +2913,34 @@ function deserializeQuittungAbgegeben(payload: Record<string, unknown>, aggregat
   }
 
   const event = new QuittungAbgegebenEvent(einsatzId, userId, einheitId, propagationGroupId, quittiertAm, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserializer für `eigenschutz.luecke_gemeldet` (Story 3.6, FR20).
+ *
+ * Pflichtfelder: einsatzId, userId, einheitId, propagationGroupId, meldung,
+ * gemeldetAm. Strikte Typ-Guards — der Replay verweigert korrupte Payloads.
+ */
+function deserializeLueckeGemeldet(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const propagationGroupId = payload.propagationGroupId;
+  const meldung = payload.meldung;
+  const gemeldetAmRaw = payload.gemeldetAm;
+
+  if (typeof einsatzId !== 'string' || typeof userId !== 'string' || typeof einheitId !== 'string' || typeof propagationGroupId !== 'string' || typeof meldung !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.luecke_gemeldet');
+  }
+  if (typeof gemeldetAmRaw !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.luecke_gemeldet');
+  }
+  const gemeldetAm = new Date(gemeldetAmRaw);
+  if (Number.isNaN(gemeldetAm.getTime())) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.luecke_gemeldet');
+  }
+
+  const event = new LueckeGemeldetEvent(einsatzId, userId, einheitId, propagationGroupId, meldung, gemeldetAm, aggregateId);
   return Result.ok<DomainEvent>(event);
 }

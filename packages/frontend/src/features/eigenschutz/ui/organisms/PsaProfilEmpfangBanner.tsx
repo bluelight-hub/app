@@ -7,6 +7,7 @@ import { useAktiveEinsatzEinheit } from '../../hooks/use-aktive-einsatz-einheit'
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { eigenschutzTelemetryQueue, getOrCreateSessionId } from '../../lib/telemetry-queue';
 import { PsaProfilDetailDrawer } from './PsaProfilDetailDrawer';
+import { MeldeLueckeDialog } from './MeldeLueckeDialog';
 import { SeverityBanner } from './SeverityBanner';
 
 /**
@@ -63,6 +64,13 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
   // Detail-Drawer. Single-Slot-State (Q4): ein zweiter Tap auf einen
   // anderen Banner ersetzt den ersten Drawer-Open.
   const [openDrawerForGroup, setOpenDrawerForGroup] = useState<string | null>(null);
+  // Story 3.6 AC12 — Lücke-Dialog-State (Single-Slot, analog Drawer).
+  const [lueckeDialogOpen, setLueckeDialogOpen] = useState<{
+    propagationGroupId: string;
+    einheitId: string;
+    einheitName: string;
+    vorbereiteteNotiz: string;
+  } | null>(null);
   // AC10: Reduced-Motion-Respekt — der CSS-Transition-Layer in `SeverityBanner`
   // nutzt `motion-reduce:transition-none`; diese explizite Konsultation hält die
   // wörtliche Spec-Vorgabe ein und macht den Wert für Test-Snapshots verfügbar.
@@ -245,10 +253,33 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails }: PsaProfilEm
             onQuittieren={() => {
               if (openDrawerForGroup !== null) dismiss(openDrawerForGroup);
             }}
-            // Story-3.6-Stub: KEIN onMeldeLuecke setzen — Lücke-Button ist disabled.
+            // Story 3.6 AC12 — Lücke-Button verdrahtet: öffnet den Inline-Dialog.
+            // Der Drawer übergibt die vorbereiteteNotiz aus
+            // `useEquipmentChecklistState.missingItemsFor` (Story 3.5 P4).
+            onMeldeLuecke={({ einheitId: targetEinheitId, vorbereiteteNotiz }) => {
+              if (openDrawerForGroup === null || einheitName === null) return;
+              setLueckeDialogOpen({
+                propagationGroupId: openDrawerForGroup,
+                einheitId: targetEinheitId,
+                einheitName,
+                vorbereiteteNotiz,
+              });
+            }}
           />
         );
       })()}
+      <MeldeLueckeDialog
+        einsatzId={einsatzId}
+        open={lueckeDialogOpen}
+        onClose={() => setLueckeDialogOpen(null)}
+        onSuccess={({ propagationGroupId }) => {
+          // Q6-Default: nach erfolgreicher Lücken-Meldung wird der Banner
+          // dismissed UND der Drawer geschlossen — die Aktion schließt die
+          // Bekanntgabe organisatorisch ab.
+          dismiss(propagationGroupId);
+          setOpenDrawerForGroup(null);
+        }}
+      />
     </div>
   );
 }

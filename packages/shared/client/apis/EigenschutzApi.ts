@@ -26,6 +26,7 @@ import type {
   GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response,
   GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200Response,
   GefaehrdungsbeurteilungControllerListVorlagenVAlpha200Response,
+  MeldeLueckeDto,
   PsaProfilControllerChangePsaProfilVAlpha201Response,
   PsaProfilControllerGetPsaProfileVAlpha200Response,
   PsaProfilControllerListOffeneBekanntgabenVAlpha200Response,
@@ -59,6 +60,8 @@ import {
     GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200ResponseToJSON,
     GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseFromJSON,
     GefaehrdungsbeurteilungControllerListVorlagenVAlpha200ResponseToJSON,
+    MeldeLueckeDtoFromJSON,
+    MeldeLueckeDtoToJSON,
     PsaProfilControllerChangePsaProfilVAlpha201ResponseFromJSON,
     PsaProfilControllerChangePsaProfilVAlpha201ResponseToJSON,
     PsaProfilControllerGetPsaProfileVAlpha200ResponseFromJSON,
@@ -136,6 +139,12 @@ export interface PsaProfilControllerListOffeneBekanntgabenVAlphaRequest {
 export interface PsaProfilControllerListQuittungenVAlphaRequest {
     einsatzId: string;
     propagationGroupId: string;
+}
+
+export interface PsaProfilControllerMeldeLueckeVAlphaRequest {
+    einsatzId: string;
+    propagationGroupId: string;
+    meldeLueckeDto: MeldeLueckeDto;
 }
 
 export interface PsaProfilControllerQuittierenVAlphaRequest {
@@ -661,6 +670,55 @@ export class EigenschutzApi extends runtime.BaseAPI {
     async psaProfilControllerListQuittungenVAlpha(requestParameters: PsaProfilControllerListQuittungenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PsaProfilControllerListQuittungenVAlpha200Response> {
         const response = await this.psaProfilControllerListQuittungenVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Ausrüstungs-Lücke zu einer PSA-Bekanntgabe melden — Story 3.6 AC6
+     */
+    async psaProfilControllerMeldeLueckeVAlphaRaw(requestParameters: PsaProfilControllerMeldeLueckeVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling psaProfilControllerMeldeLueckeVAlpha().'
+            );
+        }
+
+        if (requestParameters['propagationGroupId'] == null) {
+            throw new runtime.RequiredError(
+                'propagationGroupId',
+                'Required parameter "propagationGroupId" was null or undefined when calling psaProfilControllerMeldeLueckeVAlpha().'
+            );
+        }
+
+        if (requestParameters['meldeLueckeDto'] == null) {
+            throw new runtime.RequiredError(
+                'meldeLueckeDto',
+                'Required parameter "meldeLueckeDto" was null or undefined when calling psaProfilControllerMeldeLueckeVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/psa-profile/propagation-groups/{propagationGroupId}/luecke-melden`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"propagationGroupId"}}`, encodeURIComponent(String(requestParameters['propagationGroupId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: MeldeLueckeDtoToJSON(requestParameters['meldeLueckeDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Ausrüstungs-Lücke zu einer PSA-Bekanntgabe melden — Story 3.6 AC6
+     */
+    async psaProfilControllerMeldeLueckeVAlpha(requestParameters: PsaProfilControllerMeldeLueckeVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.psaProfilControllerMeldeLueckeVAlphaRaw(requestParameters, initOverrides);
     }
 
     /**

@@ -47,12 +47,19 @@ vi.mock('@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner', () => ({
   PsaProfilEmpfangBanner: ({ einsatzId }: { einsatzId: string }) => <div data-testid="psa-empfang-banner-mock">PsaBanner:{einsatzId}</div>,
 }));
 
-const { mockQuittungLive } = vi.hoisted(() => ({
+const { mockQuittungLive, mockLueckeLive } = vi.hoisted(() => ({
   mockQuittungLive: vi.fn(),
+  mockLueckeLive: vi.fn(),
 }));
 vi.mock('@/features/eigenschutz/api/use-eigenschutz-psa-quittung-live', () => ({
   useEigenschutzPsaQuittungLive: (...args: unknown[]) => {
     mockQuittungLive(...args);
+    return { status: 'connected' };
+  },
+}));
+vi.mock('@/features/eigenschutz/api/use-eigenschutz-luecke-gemeldet-live', () => ({
+  useEigenschutzLueckeGemeldetLive: (...args: unknown[]) => {
+    mockLueckeLive(...args);
     return { status: 'connected' };
   },
 }));
@@ -131,6 +138,13 @@ describe('Eigenschutz Route (Story 1.6)', () => {
     mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
     renderRoute();
     expect(mockQuittungLive).toHaveBeenCalledWith(expect.objectContaining({ einsatzId: 'einsatz-1' }));
+  });
+
+  it('mountet den Sender-Live-Hook useEigenschutzLueckeGemeldetLive (Story 3.6 AC14)', () => {
+    mockLueckeLive.mockClear();
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
+    renderRoute();
+    expect(mockLueckeLive).toHaveBeenCalledWith(expect.objectContaining({ einsatzId: 'einsatz-1' }));
   });
 
   it('propagiert die aktuelle einsatzId an die EntryPage', () => {
