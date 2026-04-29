@@ -47,9 +47,14 @@ vi.mock('@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner', () => ({
   PsaProfilEmpfangBanner: ({ einsatzId }: { einsatzId: string }) => <div data-testid="psa-empfang-banner-mock">PsaBanner:{einsatzId}</div>,
 }));
 
-const { mockQuittungLive, mockLueckeLive } = vi.hoisted(() => ({
+vi.mock('@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanner', () => ({
+  EinsatzleiterReprompEskalationBanner: ({ einsatzId }: { einsatzId: string }) => <div data-testid="einsatzleiter-reprompt-mock">EinsatzleiterReprompt:{einsatzId}</div>,
+}));
+
+const { mockQuittungLive, mockLueckeLive, mockUeberfaelligLive } = vi.hoisted(() => ({
   mockQuittungLive: vi.fn(),
   mockLueckeLive: vi.fn(),
+  mockUeberfaelligLive: vi.fn(),
 }));
 vi.mock('@/features/eigenschutz/api/use-eigenschutz-psa-quittung-live', () => ({
   useEigenschutzPsaQuittungLive: (...args: unknown[]) => {
@@ -61,6 +66,12 @@ vi.mock('@/features/eigenschutz/api/use-eigenschutz-luecke-gemeldet-live', () =>
   useEigenschutzLueckeGemeldetLive: (...args: unknown[]) => {
     mockLueckeLive(...args);
     return { status: 'connected' };
+  },
+}));
+vi.mock('@/features/eigenschutz/api/use-eigenschutz-quittung-ueberfaellig-live', () => ({
+  useEigenschutzQuittungUeberfaelligLive: (...args: unknown[]) => {
+    mockUeberfaelligLive(...args);
+    return { status: 'connected', notices: [], dismiss: () => {} };
   },
 }));
 
@@ -145,6 +156,19 @@ describe('Eigenschutz Route (Story 1.6)', () => {
     mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
     renderRoute();
     expect(mockLueckeLive).toHaveBeenCalledWith(expect.objectContaining({ einsatzId: 'einsatz-1' }));
+  });
+
+  it('mountet den Reprompt-Live-Hook useEigenschutzQuittungUeberfaelligLive (Story 3.7 AC6)', () => {
+    mockUeberfaelligLive.mockClear();
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
+    renderRoute();
+    expect(mockUeberfaelligLive).toHaveBeenCalledWith(expect.objectContaining({ einsatzId: 'einsatz-1' }));
+  });
+
+  it('mountet EinsatzleiterReprompEskalationBanner (Story 3.7 AC8)', () => {
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
+    renderRoute();
+    expect(screen.getByTestId('einsatzleiter-reprompt-mock')).toHaveTextContent('EinsatzleiterReprompt:einsatz-1');
   });
 
   it('propagiert die aktuelle einsatzId an die EntryPage', () => {

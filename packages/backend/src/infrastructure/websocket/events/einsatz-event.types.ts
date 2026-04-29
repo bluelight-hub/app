@@ -45,7 +45,9 @@ export type EinsatzEventName =
   // Eigenschutz — PSA-Quittung (Story 3.4)
   | 'eigenschutz:psa-quittung-abgegeben'
   // Eigenschutz — Ausrüstungs-Lücke gemeldet (Story 3.6)
-  | 'eigenschutz:luecke-gemeldet';
+  | 'eigenschutz:luecke-gemeldet'
+  // Eigenschutz — PSA-Quittung überfällig (Story 3.7)
+  | 'eigenschutz:quittung-ueberfaellig';
 
 /**
  * Port für den einsatzgebundenen WebSocket-Publisher.

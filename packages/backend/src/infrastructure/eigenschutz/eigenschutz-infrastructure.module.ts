@@ -7,6 +7,7 @@ import {
   GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY,
   LOGGER,
   PSA_PROFIL_QUITTUNG_REPOSITORY,
+  PSA_PROPAGATION_OVERDUE_QUERY,
   PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY,
   PSA_PROFIL_ZUWEISUNG_REPOSITORY,
   SICHERHEITSREGEL_QUITTUNG_REPOSITORY,
@@ -22,6 +23,7 @@ import { PrismaSicherheitsregelVersionRepository } from './repositories/prisma-s
 import { PrismaSicherheitsregelQuittungRepository } from './repositories/prisma-sicherheitsregel-quittung.repository';
 import { PrismaPsaProfilZuweisungRepository } from './repositories/prisma-psa-profil-zuweisung.repository';
 import { PrismaPsaProfilQuittungRepository } from './repositories/prisma-psa-profil-quittung.repository';
+import { PrismaPsaPropagationOverdueQueryRepository } from './repositories/prisma-psa-propagation-overdue-query.repository';
 import { EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-erstellt.adapter';
 import { EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-aktualisiert.adapter';
 import { EigenschutzSicherheitsregelAusgerufenEventAdapter } from './event-adapters/sicherheitsregel-ausgerufen.adapter';
@@ -53,6 +55,7 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
     { provide: PSA_PROFIL_ZUWEISUNG_REPOSITORY, useClass: PrismaPsaProfilZuweisungRepository },
     { provide: PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY, useClass: PrismaPsaProfilZuweisungRepository },
     { provide: PSA_PROFIL_QUITTUNG_REPOSITORY, useClass: PrismaPsaProfilQuittungRepository },
+    { provide: PSA_PROPAGATION_OVERDUE_QUERY, useClass: PrismaPsaPropagationOverdueQueryRepository },
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
     EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,
     EigenschutzSicherheitsregelAusgerufenEventAdapter,
@@ -70,6 +73,7 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
     PSA_PROFIL_ZUWEISUNG_REPOSITORY,
     PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY,
     PSA_PROFIL_QUITTUNG_REPOSITORY,
+    PSA_PROPAGATION_OVERDUE_QUERY,
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
     EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,
     EigenschutzSicherheitsregelAusgerufenEventAdapter,

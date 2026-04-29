@@ -21,7 +21,8 @@ export type EigenschutzTelemetryEventName =
   | 'cbrn_acknowledged'
   | 'all_banners_delivered'
   | 'psa_quittung_abgegeben'
-  | 'luecke_gemeldet';
+  | 'luecke_gemeldet'
+  | 'quittung_ueberfaellig';
 
 export interface EigenschutzTelemetryEvent {
   readonly eventName: EigenschutzTelemetryEventName;

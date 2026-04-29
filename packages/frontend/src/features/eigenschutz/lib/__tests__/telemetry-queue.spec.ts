@@ -94,4 +94,21 @@ describe('telemetry-queue (Story 3.1 AC10)', () => {
     expect(snapshot[0]?.eventName).toBe('luecke_gemeldet');
     expect(snapshot[0]?.metadata?.meldungLength).toBe(42);
   });
+
+  it('akzeptiert quittung_ueberfaellig als gültiges eventName (Story 3.7 AC9)', () => {
+    eigenschutzTelemetryQueue.push({
+      eventName: 'quittung_ueberfaellig',
+      propagationGroupIdCandidate: 'group-3-7-1',
+      abschnittCount: 1,
+      userId: 'user-empfaenger',
+      sessionId: 'session-3-7',
+      clientTime: '2026-04-29T12:00:00.000Z',
+      metadata: { einheitIdCandidate: 'einheit-2', ueberfaelligSeitMin: 7, originalEventIdCandidate: 'orig-1' },
+    });
+
+    const snapshot = eigenschutzTelemetryQueue.snapshot();
+    expect(snapshot).toHaveLength(1);
+    expect(snapshot[0]?.eventName).toBe('quittung_ueberfaellig');
+    expect(snapshot[0]?.metadata?.ueberfaelligSeitMin).toBe(7);
+  });
 });
