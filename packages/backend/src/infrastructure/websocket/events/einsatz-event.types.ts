@@ -49,7 +49,9 @@ export type EinsatzEventName =
   // Eigenschutz — PSA-Quittung überfällig (Story 3.7)
   | 'eigenschutz:quittung-ueberfaellig'
   // Eigenschutz — Sync-Konflikt erkannt (Story 3.9)
-  | 'eigenschutz:konflikt-erkannt';
+  | 'eigenschutz:konflikt-erkannt'
+  // Eigenschutz — Sync-Konflikt aufgelöst (Story 3.10)
+  | 'eigenschutz:konflikt-aufgeloest';
 
 /**
  * Port für den einsatzgebundenen WebSocket-Publisher.

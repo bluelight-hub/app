@@ -13,3 +13,4 @@ export * from './gefaehrdungsbeurteilung.schema.js';
 export * from './gefaehrdungsbeurteilung-vorlage.schema.js';
 export * from './sicherheitsregel.schema.js';
 export * from './psa-profil.schema.js';
+export * from './konflikt-aufgeloest-ws.schema.js';

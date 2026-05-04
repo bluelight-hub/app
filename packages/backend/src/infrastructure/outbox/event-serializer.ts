@@ -114,10 +114,15 @@ import type { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung
 import type { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import type { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 import type { KonfliktErkanntEvent, SyncConflictEntityType } from '@domain/eigenschutz/events/konflikt-erkannt.event';
+import type { KonfliktAufgeloestEvent, SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
 
 // Story 3.9 — Modul-Konstante (statt Funktionsrumpf-Allokation pro
 // Serialisierungs-Aufruf, Code-Review P12).
 const KONFLIKT_ERKANNT_ALLOWED_ENTITY_TYPES: ReadonlyArray<SyncConflictEntityType> = ['PSA_PROFIL_ZUWEISUNG', 'GEFAEHRDUNGSBEURTEILUNG_ITEM'];
+
+// Story 3.10 — Modul-Konstanten für KonfliktAufgeloest (Pattern Story 3.9 P12).
+const KONFLIKT_AUFGELOEST_ALLOWED_ENTITY_TYPES: ReadonlyArray<SyncConflictEntityType> = ['PSA_PROFIL_ZUWEISUNG', 'GEFAEHRDUNGSBEURTEILUNG_ITEM'];
+const KONFLIKT_AUFGELOEST_ALLOWED_RESOLUTIONS: ReadonlyArray<SyncConflictResolution> = ['SERVER_WINS', 'LOCAL_WINS', 'MERGED'];
 
 // Alarmierung Events (Issue #408)
 import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
@@ -532,6 +537,8 @@ export class EventSerializer {
         return this.serializeQuittungUeberfaellig(event as unknown as QuittungUeberfaelligEvent);
       case 'eigenschutz.konflikt_erkannt':
         return this.serializeKonfliktErkannt(event as unknown as KonfliktErkanntEvent);
+      case 'eigenschutz.konflikt_aufgeloest':
+        return this.serializeKonfliktAufgeloest(event as unknown as KonfliktAufgeloestEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -2109,6 +2116,49 @@ export class EventSerializer {
       localPayload: event.localPayload,
       serverVersion: event.serverVersion,
       localExpectedVersion: event.localExpectedVersion,
+    };
+  }
+
+  /**
+   * Serialisiert `KonfliktAufgeloestEvent` (Story 3.10, FR50, Architektur §B6 + §G1).
+   *
+   * Pflichtfelder:
+   * - `einsatzId`, `userId` (= resolvedByUserId), `einheitId` (string | null),
+   *   `syncConflictId`, `entityType` (∈ SyncConflictEntityType-Enum), `entityId`,
+   *   `fieldPath` (length 1..200), `resolution` (∈ SyncConflictResolution-Enum),
+   *   `resolvedAt` (Date).
+   *
+   * Defense-Validation analog Story 3.9 KonfliktErkannt — corrupteter Outbox-
+   * Eintrag würde sonst beim Replay ein WS-Frame mit Garbage-Daten produzieren.
+   */
+  private serializeKonfliktAufgeloest(event: KonfliktAufgeloestEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      (event.einheitId !== undefined && typeof event.einheitId !== 'string') ||
+      typeof event.syncConflictId !== 'string' ||
+      !KONFLIKT_AUFGELOEST_ALLOWED_ENTITY_TYPES.includes(event.entityType) ||
+      typeof event.entityId !== 'string' ||
+      typeof event.fieldPath !== 'string' ||
+      event.fieldPath.length < 1 ||
+      event.fieldPath.length > 200 ||
+      !KONFLIKT_AUFGELOEST_ALLOWED_RESOLUTIONS.includes(event.resolution) ||
+      !(event.resolvedAt instanceof Date) ||
+      Number.isNaN(event.resolvedAt.getTime())
+    ) {
+      throw new Error('Invalid KonfliktAufgeloest event payload');
+    }
+
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId ?? null,
+      syncConflictId: event.syncConflictId,
+      entityType: event.entityType,
+      entityId: event.entityId,
+      fieldPath: event.fieldPath,
+      resolution: event.resolution,
+      resolvedAt: event.resolvedAt.toISOString(),
     };
   }
 }
