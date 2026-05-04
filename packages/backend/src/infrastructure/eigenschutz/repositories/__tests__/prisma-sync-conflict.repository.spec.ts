@@ -180,3 +180,191 @@ describe('PrismaSyncConflictRepository.recordOrFindExisting()', () => {
     expect(logCall.fieldPath).toBe('profil');
   });
 });
+
+/**
+ * Story 3.10 — Tests für die neuen Read- und Resolve-Pfade.
+ */
+function makeRow(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    id: 'conflict-id',
+    einsatzId: EINSATZ_ID,
+    einheitId: EINHEIT_ID,
+    entityType: 'PSA_PROFIL_ZUWEISUNG',
+    entityId: ENTITY_ID,
+    fieldPath: 'profil',
+    localPayload: { toggles: [{ profil: 'BASIS', aktivieren: true }], begruendung: 'Race' },
+    serverVersion: 6,
+    localExpectedVersion: 5,
+    reportedAt: new Date('2026-05-04T10:00:00.000Z'),
+    reportedByUserId: REPORTER_ID,
+    resolvedAt: null,
+    resolvedByUserId: null,
+    resolution: null,
+    ...overrides,
+  };
+}
+
+describe('PrismaSyncConflictRepository.findOpenByEinsatzId() (Story 3.10)', () => {
+  it('Happy-Path: liefert alle offenen Konflikte sortiert reportedAt DESC, gecapped @ 200', async () => {
+    const logger = createMockLogger();
+    const findMany = jest.fn().mockResolvedValue([makeRow({ id: 'c-1', reportedAt: new Date('2026-05-04T11:00:00.000Z') }), makeRow({ id: 'c-2', reportedAt: new Date('2026-05-04T10:00:00.000Z') })]);
+    const prisma = { syncConflict: { findMany } } as never;
+    const repo = new PrismaSyncConflictRepository(prisma, logger);
+
+    const result = await repo.findOpenByEinsatzId(EINSATZ_ID);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toHaveLength(2);
+    expect(result.value?.[0].id).toBe('c-1');
+    expect(findMany).toHaveBeenCalledWith({
+      where: { einsatzId: EINSATZ_ID, resolvedAt: null },
+      orderBy: { reportedAt: 'desc' },
+      take: 200,
+    });
+  });
+
+  it('Filter entityType wird in WHERE durchgereicht', async () => {
+    const logger = createMockLogger();
+    const findMany = jest.fn().mockResolvedValue([]);
+    const prisma = { syncConflict: { findMany } } as never;
+    const repo = new PrismaSyncConflictRepository(prisma, logger);
+
+    await repo.findOpenByEinsatzId(EINSATZ_ID, { entityType: 'GEFAEHRDUNGSBEURTEILUNG_ITEM' });
+
+    const args = findMany.mock.calls[0][0];
+    expect(args.where).toEqual({ einsatzId: EINSATZ_ID, resolvedAt: null, entityType: 'GEFAEHRDUNGSBEURTEILUNG_ITEM' });
+  });
+
+  it('Filter einheitId wird in WHERE durchgereicht', async () => {
+    const logger = createMockLogger();
+    const findMany = jest.fn().mockResolvedValue([]);
+    const prisma = { syncConflict: { findMany } } as never;
+    const repo = new PrismaSyncConflictRepository(prisma, logger);
+
+    await repo.findOpenByEinsatzId(EINSATZ_ID, { einheitId: EINHEIT_ID });
+
+    const args = findMany.mock.calls[0][0];
+    expect(args.where).toEqual({ einsatzId: EINSATZ_ID, resolvedAt: null, einheitId: EINHEIT_ID });
+  });
+
+  it('mappt Row 1:1 in ReadModel inkl. localPayload als Object', async () => {
+    const logger = createMockLogger();
+    const row = makeRow({ id: 'c-9', resolvedAt: null });
+    const findMany = jest.fn().mockResolvedValue([row]);
+    const prisma = { syncConflict: { findMany } } as never;
+    const repo = new PrismaSyncConflictRepository(prisma, logger);
+
+    const result = await repo.findOpenByEinsatzId(EINSATZ_ID);
+
+    expect(result.value?.[0]).toEqual({
+      id: 'c-9',
+      einsatzId: EINSATZ_ID,
+      einheitId: EINHEIT_ID,
+      entityType: 'PSA_PROFIL_ZUWEISUNG',
+      entityId: ENTITY_ID,
+      fieldPath: 'profil',
+      localPayload: { toggles: [{ profil: 'BASIS', aktivieren: true }], begruendung: 'Race' },
+      serverVersion: 6,
+      localExpectedVersion: 5,
+      reportedAt: row.reportedAt,
+      reportedByUserId: REPORTER_ID,
+      resolvedAt: null,
+      resolvedByUserId: null,
+      resolution: null,
+    });
+  });
+
+  it('DB-Fehler → InfrastructureError-Sentinel', async () => {
+    const logger = createMockLogger();
+    const findMany = jest.fn().mockRejectedValue(new Error('connection-lost'));
+    const prisma = { syncConflict: { findMany } } as never;
+    const repo = new PrismaSyncConflictRepository(prisma, logger);
+
+    const result = await repo.findOpenByEinsatzId(EINSATZ_ID);
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toContain('InfrastructureError:SyncConflictRepository:connection-lost');
+  });
+});
+
+describe('PrismaSyncConflictRepository.findById() (Story 3.10)', () => {
+  it('Happy-Path: existierende ID liefert vollständiges ReadModel', async () => {
+    const logger = createMockLogger();
+    const findUnique = jest.fn().mockResolvedValue(makeRow({ id: 'c-1' }));
+    const prisma = { syncConflict: { findUnique } } as never;
+    const repo = new PrismaSyncConflictRepository(prisma, logger);
+
+    const result = await repo.findById('c-1');
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value?.id).toBe('c-1');
+    expect(findUnique).toHaveBeenCalledWith({ where: { id: 'c-1' } });
+  });
+
+  it('Not-Found liefert Result.ok(null), kein Fehler', async () => {
+    const logger = createMockLogger();
+    const findUnique = jest.fn().mockResolvedValue(null);
+    const prisma = { syncConflict: { findUnique } } as never;
+    const repo = new PrismaSyncConflictRepository(prisma, logger);
+
+    const result = await repo.findById('does-not-exist');
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toBeNull();
+  });
+});
+
+describe('PrismaSyncConflictRepository.markResolved() (Story 3.10)', () => {
+  it('Happy-Path: setzt resolvedAt/resolvedByUserId/resolution, alreadyResolved=false', async () => {
+    const logger = createMockLogger();
+    const updateMany = jest.fn().mockResolvedValue({ count: 1 });
+    const tx = { syncConflict: { updateMany } };
+    const repo = new PrismaSyncConflictRepository({} as never, logger);
+    const resolvedAt = new Date('2026-05-04T15:00:00.000Z');
+
+    const result = await repo.markResolved('c-1', 'SERVER_WINS', REPORTER_ID, resolvedAt, tx as never);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toEqual({ alreadyResolved: false });
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: 'c-1', resolvedAt: null },
+      data: { resolvedAt, resolvedByUserId: REPORTER_ID, resolution: 'SERVER_WINS' },
+    });
+  });
+
+  it('Idempotenz: bereits resolved-Row liefert alreadyResolved=true, keine Daten überschrieben', async () => {
+    const logger = createMockLogger();
+    const updateMany = jest.fn().mockResolvedValue({ count: 0 });
+    const tx = { syncConflict: { updateMany } };
+    const repo = new PrismaSyncConflictRepository({} as never, logger);
+
+    const result = await repo.markResolved('c-1', 'LOCAL_WINS', REPORTER_ID, new Date(), tx as never);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toEqual({ alreadyResolved: true });
+  });
+
+  it('Not-Found-ID liefert ebenfalls alreadyResolved=true (defensiv)', async () => {
+    const logger = createMockLogger();
+    const updateMany = jest.fn().mockResolvedValue({ count: 0 });
+    const tx = { syncConflict: { updateMany } };
+    const repo = new PrismaSyncConflictRepository({} as never, logger);
+
+    const result = await repo.markResolved('does-not-exist', 'MERGED', REPORTER_ID, new Date(), tx as never);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toEqual({ alreadyResolved: true });
+  });
+
+  it('DB-Fehler → InfrastructureError-Sentinel', async () => {
+    const logger = createMockLogger();
+    const updateMany = jest.fn().mockRejectedValue(new Error('write-conflict'));
+    const tx = { syncConflict: { updateMany } };
+    const repo = new PrismaSyncConflictRepository({} as never, logger);
+
+    const result = await repo.markResolved('c-1', 'SERVER_WINS', REPORTER_ID, new Date(), tx as never);
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toContain('InfrastructureError:SyncConflictRepository:write-conflict');
+  });
+});
