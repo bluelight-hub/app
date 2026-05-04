@@ -148,7 +148,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       }
     });
 
-    it('Story-3.9-Fortschritt: GB-erstellt + GB-aktualisiert + Sicherheitsregel-ausgerufen + Sicherheitsregel-quittiert + PsaProfil-geaendert + QuittungAbgegeben + LueckeGemeldet + QuittungUeberfaellig + KonfliktErkannt sind an 4/4 Stellen, die übrigen 5 weiterhin an 0/4', () => {
+    it('Story-3.10-Fortschritt: GB-erstellt + GB-aktualisiert + Sicherheitsregel-ausgerufen + Sicherheitsregel-quittiert + PsaProfil-geaendert + QuittungAbgegeben + LueckeGemeldet + QuittungUeberfaellig + KonfliktErkannt + KonfliktAufgeloest sind an 4/4 Stellen, die übrigen 4 weiterhin an 0/4', () => {
       const ERSTELLT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_ERSTELLT;
       const AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT;
       const SICHERHEITSREGEL_AUSGERUFEN = EVENT_NAMES.EIGENSCHUTZ.SICHERHEITSREGEL_AUSGERUFEN;
@@ -158,6 +158,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       const LUECKE_GEMELDET = EVENT_NAMES.EIGENSCHUTZ.LUECKE_GEMELDET;
       const QUITTUNG_UEBERFAELLIG = EVENT_NAMES.EIGENSCHUTZ.QUITTUNG_UEBERFAELLIG;
       const KONFLIKT_ERKANNT = EVENT_NAMES.EIGENSCHUTZ.KONFLIKT_ERKANNT;
+      const KONFLIKT_AUFGELOEST = EVENT_NAMES.EIGENSCHUTZ.KONFLIKT_AUFGELOEST;
       expect(sumTuple(countRegistrationSites(ERSTELLT))).toBe(4);
       expect(sumTuple(countRegistrationSites(AKTUALISIERT))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERHEITSREGEL_AUSGERUFEN))).toBe(4);
@@ -167,6 +168,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       expect(sumTuple(countRegistrationSites(LUECKE_GEMELDET))).toBe(4);
       expect(sumTuple(countRegistrationSites(QUITTUNG_UEBERFAELLIG))).toBe(4);
       expect(sumTuple(countRegistrationSites(KONFLIKT_ERKANNT))).toBe(4);
+      expect(sumTuple(countRegistrationSites(KONFLIKT_AUFGELOEST))).toBe(4);
 
       const FULLY_REGISTERED = new Set<string>([
         ERSTELLT,
@@ -178,6 +180,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
         LUECKE_GEMELDET,
         QUITTUNG_UEBERFAELLIG,
         KONFLIKT_ERKANNT,
+        KONFLIKT_AUFGELOEST,
       ]);
       for (const eventName of EIGENSCHUTZ_NAMES) {
         if (FULLY_REGISTERED.has(eventName)) continue;

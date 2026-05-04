@@ -4,6 +4,7 @@ import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abge
 import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 import { KonfliktErkanntEvent } from '@domain/eigenschutz/events/konflikt-erkannt.event';
+import { KonfliktAufgeloestEvent, type SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
 
 /**
  * Story 3.4 — Round-Trip-Test für `QuittungAbgegebenEvent`.
@@ -422,6 +423,156 @@ describe('EventDeserializer — Eigenschutz KonfliktErkannt (Story 3.9)', () => 
         localPayload: null,
         serverVersion: 2,
         localExpectedVersion: 1,
+      }),
+    );
+    expect(result.isFailure).toBe(true);
+  });
+});
+
+/**
+ * Story 3.10 — Round-Trip-Tests für `KonfliktAufgeloestEvent`.
+ *
+ * Verifiziert serialize → deserialize → äquivalentes Event über alle 3
+ * Resolution-Werte und beide EntityTypes (forward-kompatibel für Phase 2).
+ */
+describe('EventDeserializer — Eigenschutz KonfliktAufgeloest (Story 3.10)', () => {
+  const deserializer = new EventDeserializer();
+  const serializer = new EventSerializer();
+
+  function createSerialized(payload: Record<string, unknown>): SerializedEvent {
+    return {
+      eventId: 'test-evt-id',
+      eventName: 'eigenschutz.konflikt_aufgeloest',
+      eventVersion: 1,
+      occurredAt: new Date('2026-05-04T12:30:45.123Z').toISOString(),
+      aggregateId: 'sync-conflict-cuid2-test1',
+      payload,
+    };
+  }
+
+  it.each<SyncConflictResolution>(['SERVER_WINS', 'LOCAL_WINS', 'MERGED'])('roundtrip: serialize → deserialize liefert äquivalentes Event mit resolution=%s', (resolution) => {
+    const resolvedAt = new Date('2026-05-04T12:30:45.123Z');
+    const original = new KonfliktAufgeloestEvent(
+      'einsatz-cuid2-1234567890123456',
+      'user-cuid2-12345678901234',
+      'einheit-cuid2-1234567890123456',
+      'sync-conflict-cuid2-12345',
+      'PSA_PROFIL_ZUWEISUNG',
+      'zuweisung-cuid2-1234567890',
+      'profil',
+      resolution,
+      resolvedAt,
+    );
+
+    const serialized = serializer.serialize(original);
+    expect(serialized.eventName).toBe('eigenschutz.konflikt_aufgeloest');
+
+    const result = deserializer.deserialize(serialized);
+    expect(result.isSuccess).toBe(true);
+
+    const event = result.value as KonfliktAufgeloestEvent;
+    expect(event).toBeInstanceOf(KonfliktAufgeloestEvent);
+    expect(event.einsatzId).toBe(original.einsatzId);
+    expect(event.userId).toBe(original.userId);
+    expect(event.einheitId).toBe(original.einheitId);
+    expect(event.syncConflictId).toBe(original.syncConflictId);
+    expect(event.entityType).toBe('PSA_PROFIL_ZUWEISUNG');
+    expect(event.entityId).toBe(original.entityId);
+    expect(event.fieldPath).toBe('profil');
+    expect(event.resolution).toBe(resolution);
+    expect(event.resolvedAt.toISOString()).toBe(resolvedAt.toISOString());
+    expect(event.aggregateId).toBe(original.syncConflictId);
+  });
+
+  it('roundtrip: einheitId === null bleibt null (Phase-2-Forward-Compat für GEFAEHRDUNGSBEURTEILUNG_ITEM)', () => {
+    const resolvedAt = new Date('2026-05-04T13:00:00.000Z');
+    const original = new KonfliktAufgeloestEvent(
+      'einsatz-cuid2-1234567890123456',
+      'user-cuid2-12345678901234',
+      null,
+      'sync-conflict-cuid2-1234',
+      'GEFAEHRDUNGSBEURTEILUNG_ITEM',
+      'gb-item-cuid2-1234567890',
+      'risikoFaktor',
+      'SERVER_WINS',
+      resolvedAt,
+    );
+
+    const serialized = serializer.serialize(original);
+    const result = deserializer.deserialize(serialized);
+    expect(result.isSuccess).toBe(true);
+    const event = result.value as KonfliktAufgeloestEvent;
+    expect(event.einheitId).toBeUndefined();
+    expect(event.entityType).toBe('GEFAEHRDUNGSBEURTEILUNG_ITEM');
+  });
+
+  it('Serializer: ungültige resolution wirft', () => {
+    const original = new KonfliktAufgeloestEvent(
+      'einsatz-1',
+      'user-1',
+      'einheit-1',
+      'conflict-1',
+      'PSA_PROFIL_ZUWEISUNG',
+      'zuw-1',
+      'profil',
+      'INVALID' as SyncConflictResolution,
+      new Date('2026-05-04T12:00:00.000Z'),
+    );
+    expect(() => serializer.serialize(original)).toThrow('Invalid KonfliktAufgeloest event payload');
+  });
+
+  it('Serializer: ungültiges entityType wirft', () => {
+    const original = new KonfliktAufgeloestEvent('einsatz-1', 'user-1', 'einheit-1', 'conflict-1', 'GIBT_ES_NICHT' as never, 'zuw-1', 'profil', 'SERVER_WINS', new Date('2026-05-04T12:00:00.000Z'));
+    expect(() => serializer.serialize(original)).toThrow('Invalid KonfliktAufgeloest event payload');
+  });
+
+  it('Deserializer: resolvedAt als Zahl statt String → Failure', () => {
+    const result = deserializer.deserialize(
+      createSerialized({
+        einsatzId: 'einsatz-1',
+        userId: 'user-1',
+        einheitId: 'einheit-1',
+        syncConflictId: 'conflict-1',
+        entityType: 'PSA_PROFIL_ZUWEISUNG',
+        entityId: 'zuw-1',
+        fieldPath: 'profil',
+        resolution: 'SERVER_WINS',
+        resolvedAt: 1730000000000,
+      }),
+    );
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toContain('eigenschutz.konflikt_aufgeloest');
+  });
+
+  it('Deserializer: ungültiger resolution-Wert → Failure', () => {
+    const result = deserializer.deserialize(
+      createSerialized({
+        einsatzId: 'einsatz-1',
+        userId: 'user-1',
+        einheitId: null,
+        syncConflictId: 'conflict-1',
+        entityType: 'PSA_PROFIL_ZUWEISUNG',
+        entityId: 'zuw-1',
+        fieldPath: 'profil',
+        resolution: 'GIBT_ES_NICHT',
+        resolvedAt: '2026-05-04T12:00:00.000Z',
+      }),
+    );
+    expect(result.isFailure).toBe(true);
+  });
+
+  it('Deserializer: fehlende Pflichtfelder (syncConflictId) → Failure', () => {
+    const result = deserializer.deserialize(
+      createSerialized({
+        einsatzId: 'einsatz-1',
+        userId: 'user-1',
+        einheitId: null,
+        // syncConflictId fehlt
+        entityType: 'PSA_PROFIL_ZUWEISUNG',
+        entityId: 'zuw-1',
+        fieldPath: 'profil',
+        resolution: 'SERVER_WINS',
+        resolvedAt: '2026-05-04T12:00:00.000Z',
       }),
     );
     expect(result.isFailure).toBe(true);

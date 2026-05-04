@@ -213,7 +213,7 @@ describe('Architecture Rules', () => {
       'eigenschutz.vorfall_exportiert',
       'eigenschutz.quittung_abgegeben',
       // Story 3.9: konflikt_erkannt vollständig an allen 4 Stellen registriert.
-      'eigenschutz.konflikt_aufgeloest',
+      // Story 3.10: konflikt_aufgeloest vollständig an allen 4 Stellen registriert.
     ];
 
     /**

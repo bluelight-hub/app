@@ -17,3 +17,5 @@ export { LueckeGemeldetEvent } from './luecke-gemeldet.event';
 export { QuittungUeberfaelligEvent } from './quittung-ueberfaellig.event';
 export { KonfliktErkanntEvent } from './konflikt-erkannt.event';
 export type { SyncConflictEntityType } from './konflikt-erkannt.event';
+export { KonfliktAufgeloestEvent } from './konflikt-aufgeloest.event';
+export type { SyncConflictResolution } from './konflikt-aufgeloest.event';
