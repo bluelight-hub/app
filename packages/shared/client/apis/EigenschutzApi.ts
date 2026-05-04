@@ -32,10 +32,13 @@ import type {
   PsaProfilControllerListOffeneBekanntgabenVAlpha200Response,
   PsaProfilControllerListQuittungenVAlpha200Response,
   ReportSyncConflictDto,
+  ResolveSyncConflictDto,
   SicherheitsregelControllerGetRegelVAlpha200Response,
   SicherheitsregelControllerListQuittungenVAlpha200Response,
   SicherheitsregelControllerListRegelnVAlpha200Response,
+  SyncConflictControllerListSyncConflictsVAlpha200Response,
   SyncConflictControllerReportSyncConflictVAlpha200Response,
+  SyncConflictControllerResolveSyncConflictVAlpha200Response,
   UpdateGefaehrdungsbeurteilungItemsDto,
   UpdateSicherheitsregelDto,
 } from '../models/index';
@@ -74,14 +77,20 @@ import {
     PsaProfilControllerListQuittungenVAlpha200ResponseToJSON,
     ReportSyncConflictDtoFromJSON,
     ReportSyncConflictDtoToJSON,
+    ResolveSyncConflictDtoFromJSON,
+    ResolveSyncConflictDtoToJSON,
     SicherheitsregelControllerGetRegelVAlpha200ResponseFromJSON,
     SicherheitsregelControllerGetRegelVAlpha200ResponseToJSON,
     SicherheitsregelControllerListQuittungenVAlpha200ResponseFromJSON,
     SicherheitsregelControllerListQuittungenVAlpha200ResponseToJSON,
     SicherheitsregelControllerListRegelnVAlpha200ResponseFromJSON,
     SicherheitsregelControllerListRegelnVAlpha200ResponseToJSON,
+    SyncConflictControllerListSyncConflictsVAlpha200ResponseFromJSON,
+    SyncConflictControllerListSyncConflictsVAlpha200ResponseToJSON,
     SyncConflictControllerReportSyncConflictVAlpha200ResponseFromJSON,
     SyncConflictControllerReportSyncConflictVAlpha200ResponseToJSON,
+    SyncConflictControllerResolveSyncConflictVAlpha200ResponseFromJSON,
+    SyncConflictControllerResolveSyncConflictVAlpha200ResponseToJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoFromJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoToJSON,
     UpdateSicherheitsregelDtoFromJSON,
@@ -191,9 +200,21 @@ export interface SicherheitsregelControllerUpdateRegelVAlphaRequest {
     updateSicherheitsregelDto: UpdateSicherheitsregelDto;
 }
 
+export interface SyncConflictControllerListSyncConflictsVAlphaRequest {
+    einsatzId: string;
+    entityType?: SyncConflictControllerListSyncConflictsVAlphaEntityTypeEnum;
+    einheitId?: string;
+}
+
 export interface SyncConflictControllerReportSyncConflictVAlphaRequest {
     einsatzId: string;
     reportSyncConflictDto: ReportSyncConflictDto;
+}
+
+export interface SyncConflictControllerResolveSyncConflictVAlphaRequest {
+    einsatzId: string;
+    syncConflictId: string;
+    resolveSyncConflictDto: ResolveSyncConflictDto;
 }
 
 /**
@@ -1041,6 +1062,47 @@ export class EigenschutzApi extends runtime.BaseAPI {
     }
 
     /**
+     * Liste offener Sync-Konflikte für den Einsatz — Story 3.10 (FR50, UX-DR6)
+     */
+    async syncConflictControllerListSyncConflictsVAlphaRaw(requestParameters: SyncConflictControllerListSyncConflictsVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SyncConflictControllerListSyncConflictsVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling syncConflictControllerListSyncConflictsVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['entityType'] != null) {
+            queryParameters['entityType'] = requestParameters['entityType'];
+        }
+
+        if (requestParameters['einheitId'] != null) {
+            queryParameters['einheitId'] = requestParameters['einheitId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sync-conflicts`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SyncConflictControllerListSyncConflictsVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Liste offener Sync-Konflikte für den Einsatz — Story 3.10 (FR50, UX-DR6)
+     */
+    async syncConflictControllerListSyncConflictsVAlpha(requestParameters: SyncConflictControllerListSyncConflictsVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SyncConflictControllerListSyncConflictsVAlpha200Response> {
+        const response = await this.syncConflictControllerListSyncConflictsVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Sync-Konflikt aus 409-Mutation melden — Story 3.9 (FR50)
      */
     async syncConflictControllerReportSyncConflictVAlphaRaw(requestParameters: SyncConflictControllerReportSyncConflictVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SyncConflictControllerReportSyncConflictVAlpha200Response>> {
@@ -1083,4 +1145,63 @@ export class EigenschutzApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    /**
+     * Sync-Konflikt auflösen — Story 3.10 (FR50, UX-DR6)
+     */
+    async syncConflictControllerResolveSyncConflictVAlphaRaw(requestParameters: SyncConflictControllerResolveSyncConflictVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SyncConflictControllerResolveSyncConflictVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling syncConflictControllerResolveSyncConflictVAlpha().'
+            );
+        }
+
+        if (requestParameters['syncConflictId'] == null) {
+            throw new runtime.RequiredError(
+                'syncConflictId',
+                'Required parameter "syncConflictId" was null or undefined when calling syncConflictControllerResolveSyncConflictVAlpha().'
+            );
+        }
+
+        if (requestParameters['resolveSyncConflictDto'] == null) {
+            throw new runtime.RequiredError(
+                'resolveSyncConflictDto',
+                'Required parameter "resolveSyncConflictDto" was null or undefined when calling syncConflictControllerResolveSyncConflictVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sync-conflicts/{syncConflictId}/resolve`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"syncConflictId"}}`, encodeURIComponent(String(requestParameters['syncConflictId']))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ResolveSyncConflictDtoToJSON(requestParameters['resolveSyncConflictDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SyncConflictControllerResolveSyncConflictVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Sync-Konflikt auflösen — Story 3.10 (FR50, UX-DR6)
+     */
+    async syncConflictControllerResolveSyncConflictVAlpha(requestParameters: SyncConflictControllerResolveSyncConflictVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SyncConflictControllerResolveSyncConflictVAlpha200Response> {
+        const response = await this.syncConflictControllerResolveSyncConflictVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
+
+/**
+ * @export
+ */
+export const SyncConflictControllerListSyncConflictsVAlphaEntityTypeEnum = {
+    PsaProfilZuweisung: 'PSA_PROFIL_ZUWEISUNG',
+    GefaehrdungsbeurteilungItem: 'GEFAEHRDUNGSBEURTEILUNG_ITEM'
+} as const;
+export type SyncConflictControllerListSyncConflictsVAlphaEntityTypeEnum = typeof SyncConflictControllerListSyncConflictsVAlphaEntityTypeEnum[keyof typeof SyncConflictControllerListSyncConflictsVAlphaEntityTypeEnum];

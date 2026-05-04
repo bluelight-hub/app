@@ -468,6 +468,7 @@ models/ReorderFunkkanaeleDto.ts
 models/ReorderFunkkanalEntryDto.ts
 models/ReportSyncConflictDto.ts
 models/ResolveBeitrittsanfrageDto.ts
+models/ResolveSyncConflictDto.ts
 models/RevokeInviteResponseDto.ts
 models/RolleFreigegebenResponseDto.ts
 models/RollenBesetzungControllerBesetzeRolleVAlpha201Response.ts
@@ -511,8 +512,12 @@ models/StandardKontextDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
 models/StopRecurringSeriesDto.ts
+models/SyncConflictControllerListSyncConflictsVAlpha200Response.ts
 models/SyncConflictControllerReportSyncConflictVAlpha200Response.ts
+models/SyncConflictControllerResolveSyncConflictVAlpha200Response.ts
+models/SyncConflictListItemDto.ts
 models/SyncConflictRefDto.ts
+models/SyncConflictResolveResultDto.ts
 models/SystemHealthDto.ts
 models/TaktischeStaerkeDto.ts
 models/TaktischeZeichenControllerFindAllVAlpha200Response.ts
