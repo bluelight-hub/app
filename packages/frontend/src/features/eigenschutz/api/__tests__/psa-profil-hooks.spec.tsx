@@ -6,6 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockChangePsa = vi.fn();
 const mockGetPsa = vi.fn();
 const mockReportSyncConflict = vi.fn();
+const mockListSyncConflicts = vi.fn();
+const mockResolveSyncConflict = vi.fn();
 
 vi.mock('@/shared', () => ({
   api: {
@@ -13,11 +15,13 @@ vi.mock('@/shared', () => ({
       psaProfilControllerChangePsaProfilVAlpha: mockChangePsa,
       psaProfilControllerGetPsaProfileVAlpha: mockGetPsa,
       syncConflictControllerReportSyncConflictVAlpha: mockReportSyncConflict,
+      syncConflictControllerListSyncConflictsVAlpha: mockListSyncConflicts,
+      syncConflictControllerResolveSyncConflictVAlpha: mockResolveSyncConflict,
     }),
   },
 }));
 
-import { EIGENSCHUTZ_QUERY_KEYS, PsaProfilConflictError, useChangePsaProfil, usePsaProfileByEinheit } from '../queries';
+import { EIGENSCHUTZ_QUERY_KEYS, PsaProfilConflictError, useChangePsaProfil, usePsaProfileByEinheit, useResolveKonflikt, useSyncConflicts } from '../queries';
 
 const wrapper =
   (client: QueryClient) =>
@@ -243,5 +247,144 @@ describe('useChangePsaProfil — Story 3.9 AC7 Sync-Konflikt-Folgecall', () => {
     // Der Hook-Pfad selbst ist OBLIVIOUS zur 202-Response — `mutate(...)` ohne await.
     // Die Mutation propagiert NICHT als Hook-State zurück (kein .data o. ä.).
     expect(result.current.error).toBeInstanceOf(PsaProfilConflictError);
+  });
+});
+
+describe('useSyncConflicts (Story 3.10 AC7)', () => {
+  beforeEach(() => {
+    mockListSyncConflicts.mockReset();
+  });
+
+  it('Happy-Path: lädt Liste offener Sync-Konflikte', async () => {
+    const client = makeClient();
+    mockListSyncConflicts.mockResolvedValue({
+      data: [{ id: 'sc-1', einheitId: EINHEIT_ID, entityType: 'PSA_PROFIL_ZUWEISUNG', entityId: 'z1', fieldPath: 'profil' }],
+    });
+
+    const { result } = renderHook(() => useSyncConflicts(EINSATZ_ID), { wrapper: wrapper(client) });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockListSyncConflicts).toHaveBeenCalledWith({ einsatzId: EINSATZ_ID, entityType: undefined, einheitId: undefined });
+    expect(result.current.data).toHaveLength(1);
+  });
+
+  it('Filter-Pass-Through: entityType + einheitId werden 1:1 an den Endpoint durchgereicht', async () => {
+    const client = makeClient();
+    mockListSyncConflicts.mockResolvedValue({ data: [] });
+
+    const { result } = renderHook(() => useSyncConflicts(EINSATZ_ID, { entityType: 'PSA_PROFIL_ZUWEISUNG', einheitId: EINHEIT_ID }), { wrapper: wrapper(client) });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockListSyncConflicts).toHaveBeenCalledWith({ einsatzId: EINSATZ_ID, entityType: 'PSA_PROFIL_ZUWEISUNG', einheitId: EINHEIT_ID });
+  });
+
+  it('Filter-Cache-Separation: verschiedene Filter leben unter verschiedenen Query-Keys', async () => {
+    const client = makeClient();
+    mockListSyncConflicts.mockResolvedValue({ data: [] });
+
+    const { result: rUnfiltered } = renderHook(() => useSyncConflicts(EINSATZ_ID), { wrapper: wrapper(client) });
+    const { result: rFiltered } = renderHook(() => useSyncConflicts(EINSATZ_ID, { einheitId: EINHEIT_ID }), { wrapper: wrapper(client) });
+
+    await waitFor(() => expect(rUnfiltered.current.isSuccess).toBe(true));
+    await waitFor(() => expect(rFiltered.current.isSuccess).toBe(true));
+
+    const queries = client.getQueryCache().getAll();
+    const syncConflictKeys = queries.map((q) => q.queryKey).filter((k) => Array.isArray(k) && k[2] === 'sync-conflicts');
+    expect(syncConflictKeys.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('403 → kein Retry, silentError im meta gesetzt (Zero-Toast UX-DR21)', async () => {
+    const client = makeClient();
+    const err = Object.assign(new Error('forbidden'), { response: { status: 403 } });
+    mockListSyncConflicts.mockRejectedValue(err);
+
+    const { result } = renderHook(() => useSyncConflicts(EINSATZ_ID), { wrapper: wrapper(client) });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    // Genau ein Aufruf — kein Retry bei 403.
+    expect(mockListSyncConflicts).toHaveBeenCalledTimes(1);
+    const query = client.getQueryCache().find({ queryKey: EIGENSCHUTZ_QUERY_KEYS.syncConflicts(EINSATZ_ID) });
+    expect(query?.meta).toEqual(expect.objectContaining({ silentError: true }));
+  });
+
+  it('disabled wenn einsatzId leer ist', () => {
+    const client = makeClient();
+    renderHook(() => useSyncConflicts(''), { wrapper: wrapper(client) });
+    expect(mockListSyncConflicts).not.toHaveBeenCalled();
+  });
+});
+
+describe('useResolveKonflikt (Story 3.10 AC7)', () => {
+  beforeEach(() => {
+    mockResolveSyncConflict.mockReset();
+  });
+
+  it('Happy-Path SERVER_WINS: ruft Endpoint mit Resolution-DTO auf', async () => {
+    const client = makeClient();
+    mockResolveSyncConflict.mockResolvedValue({ data: { syncConflictId: 'sc-1', alreadyResolved: false, resolvedAt: new Date('2026-05-04T10:00:00.000Z') } });
+
+    const { result } = renderHook(() => useResolveKonflikt(EINSATZ_ID), { wrapper: wrapper(client) });
+    result.current.mutate({ syncConflictId: 'sc-1', resolution: 'SERVER_WINS' });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockResolveSyncConflict).toHaveBeenCalledWith({
+      einsatzId: EINSATZ_ID,
+      syncConflictId: 'sc-1',
+      resolveSyncConflictDto: { resolution: 'SERVER_WINS' },
+    });
+    expect(result.current.data?.syncConflictId).toBe('sc-1');
+  });
+
+  it('onSuccess SERVER_WINS: invalidiert sync-conflicts, NICHT psa-profile', async () => {
+    const client = makeClient();
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+    mockResolveSyncConflict.mockResolvedValue({ data: { syncConflictId: 'sc-1', alreadyResolved: false, resolvedAt: new Date() } });
+
+    const { result } = renderHook(() => useResolveKonflikt(EINSATZ_ID), { wrapper: wrapper(client) });
+    invalidateSpy.mockClear();
+    result.current.mutate({ syncConflictId: 'sc-1', resolution: 'SERVER_WINS' });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    const keys = invalidateSpy.mock.calls.map((c) => c[0]?.queryKey);
+    expect(keys).toEqual(expect.arrayContaining([['eigenschutz', EINSATZ_ID, 'sync-conflicts']]));
+    // Bei SERVER_WINS bleibt der lokale PSA-State unverändert (Server hat
+    // gewonnen; das PSA-Profile-Cache wird nicht angefasst).
+    expect(keys).not.toEqual(expect.arrayContaining([['eigenschutz', EINSATZ_ID, 'psa-profile']]));
+  });
+
+  it('onSuccess LOCAL_WINS: invalidiert sync-conflicts UND psa-profile', async () => {
+    const client = makeClient();
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+    mockResolveSyncConflict.mockResolvedValue({ data: { syncConflictId: 'sc-2', alreadyResolved: false, resolvedAt: new Date() } });
+
+    const { result } = renderHook(() => useResolveKonflikt(EINSATZ_ID), { wrapper: wrapper(client) });
+    invalidateSpy.mockClear();
+    result.current.mutate({ syncConflictId: 'sc-2', resolution: 'LOCAL_WINS' });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    const keys = invalidateSpy.mock.calls.map((c) => c[0]?.queryKey);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        ['eigenschutz', EINSATZ_ID, 'sync-conflicts'],
+        ['eigenschutz', EINSATZ_ID, 'psa-profile'],
+      ]),
+    );
+  });
+
+  it('Error-Path: Server-Sentinel propagiert unverändert (Zero-Toast: meta.silentError)', async () => {
+    const client = makeClient();
+    const err = Object.assign(new Error('409'), {
+      response: { status: 409, data: { context: { rule: 'ConflictAlreadyResolved' } } },
+    });
+    mockResolveSyncConflict.mockRejectedValue(err);
+
+    const { result } = renderHook(() => useResolveKonflikt(EINSATZ_ID), { wrapper: wrapper(client) });
+    result.current.mutate({ syncConflictId: 'sc-3', resolution: 'SERVER_WINS' });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error).toBe(err);
+    const cache = client.getMutationCache().getAll();
+    expect(cache.length).toBeGreaterThan(0);
+    expect(cache[cache.length - 1]?.meta).toEqual(expect.objectContaining({ silentError: true }));
   });
 });
