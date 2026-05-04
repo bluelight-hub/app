@@ -68,19 +68,17 @@ function EigenschutzRouteComponent() {
   useEigenschutzKonfliktAufgeloestLive({ einsatzId });
 
   const navigate = useNavigate();
-  // Story 3.10 AC7 §5 — Wiring der Mikro-Banner-Navigation aus Story 3.9.
-  // Klick auf „Konflikte ansehen" navigiert zur `SyncConflictsPage` (Route
-  // wird in Task 9 erzeugt); optionaler URL-Filter auf die spezifische
-  // Einheit. `as never`-Cast ist ein temporärer Workaround, weil die Route
-  // beim aktuellen Stand des `routeTree.gen.ts` noch nicht existiert; wird
-  // entfernt, sobald Task 9 die Route registriert.
+  // Story 3.10 AC9 §4 — Wiring der Mikro-Banner-Navigation aus Story 3.9.
+  // Klick auf „Konflikte ansehen" navigiert zur `SyncConflictsPage` (Task 9);
+  // optionaler URL-Filter auf die spezifische Einheit landet als Search-Param
+  // an der Route, wo das Zod-Schema ihn validiert.
   const handleOpenConflict = useCallback(
     (notice: KonfliktNotice) => {
-      navigate({
-        to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte' as never,
+      void navigate({
+        to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte',
         params: { einsatzId },
-        search: notice.einheitId ? { einheitId: notice.einheitId } : undefined,
-      } as never);
+        search: notice.einheitId ? { einheitId: notice.einheitId } : {},
+      });
     },
     [navigate, einsatzId],
   );
