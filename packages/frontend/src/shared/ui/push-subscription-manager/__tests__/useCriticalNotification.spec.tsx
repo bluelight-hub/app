@@ -208,6 +208,75 @@ describe('useCriticalNotification', () => {
     expect(options).not.toHaveProperty('priority');
   });
 
+  // ===== Story 3.8 AC7/AC9: WS+Push-Race-Dedup =====
+  // Beide Race-Tests dokumentieren den Vertrag aus AR §B7 (Server dedupt
+  // NICHT) und beweisen, dass die Client-LRU (Story 1.2) doppelte Banner
+  // unterdrückt — egal welcher Pfad zuerst eintrifft.
+
+  it('Push-Then-WS-Dedup (Story 3.8 AC7/AC9): bereits via push-delivered geseedete eventId blockiert WS-Banner', async () => {
+    // Simuliert: sw.js empfing push, postMessage → main.tsx:33 hat
+    // `eventIdLru.add(eventId)` aufgerufen, BEVOR ein WS-Frame mit
+    // identischer eventId bei `useCriticalNotification` ankommt.
+    isTauriMock.mockReturnValue(false);
+    checkPermissionMock.mockResolvedValue('granted');
+    const showNotification = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: { ready: Promise.resolve({ showNotification }) },
+      configurable: true,
+    });
+
+    // Seed: Push-Pfad hat eventId vorab eingetragen.
+    eventIdLru.add('race-evt-1');
+
+    const { result } = renderHook(() => useCriticalNotification());
+
+    await act(async () => {
+      await result.current({ title: 'PSA hochgestuft', body: 'CBRN', eventId: 'race-evt-1' });
+    });
+
+    expect(showNotification).not.toHaveBeenCalled();
+    expect(sendCriticalMock).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('WS-Then-Push-Idempotent (Story 3.8 AC7/AC9): LRU.add nach WS-Banner ist No-Op', async () => {
+    // Simuliert: WS-Frame kam zuerst, useCriticalNotification hat den Banner
+    // gezeigt UND die eventId in die LRU eingetragen. Wenn jetzt der Push-
+    // Pfad (main.tsx:33) `eventIdLru.add(eventId)` aufruft, MUSS das ein
+    // No-Op sein — die LRU implementiert einen Set-artigen Vertrag (Story
+    // 1.2 `event-id-lru.spec.ts`).
+    isTauriMock.mockReturnValue(false);
+    checkPermissionMock.mockResolvedValue('granted');
+    const showNotification = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: { ready: Promise.resolve({ showNotification }) },
+      configurable: true,
+    });
+
+    const { result } = renderHook(() => useCriticalNotification());
+
+    await act(async () => {
+      await result.current({ title: 'WS first', body: 'B', eventId: 'race-evt-2' });
+    });
+
+    expect(showNotification).toHaveBeenCalledTimes(1);
+    expect(eventIdLru.has('race-evt-2')).toBe(true);
+
+    // Push-Pfad simulieren: erneutes add — muss idempotent bleiben.
+    eventIdLru.add('race-evt-2');
+    expect(eventIdLru.has('race-evt-2')).toBe(true);
+
+    // Folgende WS-Frame mit derselben eventId darf KEINEN zweiten Banner
+    // auslösen (deckt den Fall „Server schickte Outbox-Row erneut nach
+    // Pod-Restart" ab — vgl. Story 3.8 Dev Notes „Outbox → @OnEvent
+    // At-Least-Once-Vertrag").
+    await act(async () => {
+      await result.current({ title: 'WS second', body: 'B2', eventId: 'race-evt-2' });
+    });
+
+    expect(showNotification).toHaveBeenCalledTimes(1);
+  });
+
   it('fällt beim showNotification-Fehler zurück auf Native Notification', async () => {
     isTauriMock.mockReturnValue(false);
     checkPermissionMock.mockResolvedValue('granted');

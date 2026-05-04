@@ -31,9 +31,11 @@ import type {
   PsaProfilControllerGetPsaProfileVAlpha200Response,
   PsaProfilControllerListOffeneBekanntgabenVAlpha200Response,
   PsaProfilControllerListQuittungenVAlpha200Response,
+  ReportSyncConflictDto,
   SicherheitsregelControllerGetRegelVAlpha200Response,
   SicherheitsregelControllerListQuittungenVAlpha200Response,
   SicherheitsregelControllerListRegelnVAlpha200Response,
+  SyncConflictControllerReportSyncConflictVAlpha200Response,
   UpdateGefaehrdungsbeurteilungItemsDto,
   UpdateSicherheitsregelDto,
 } from '../models/index';
@@ -70,12 +72,16 @@ import {
     PsaProfilControllerListOffeneBekanntgabenVAlpha200ResponseToJSON,
     PsaProfilControllerListQuittungenVAlpha200ResponseFromJSON,
     PsaProfilControllerListQuittungenVAlpha200ResponseToJSON,
+    ReportSyncConflictDtoFromJSON,
+    ReportSyncConflictDtoToJSON,
     SicherheitsregelControllerGetRegelVAlpha200ResponseFromJSON,
     SicherheitsregelControllerGetRegelVAlpha200ResponseToJSON,
     SicherheitsregelControllerListQuittungenVAlpha200ResponseFromJSON,
     SicherheitsregelControllerListQuittungenVAlpha200ResponseToJSON,
     SicherheitsregelControllerListRegelnVAlpha200ResponseFromJSON,
     SicherheitsregelControllerListRegelnVAlpha200ResponseToJSON,
+    SyncConflictControllerReportSyncConflictVAlpha200ResponseFromJSON,
+    SyncConflictControllerReportSyncConflictVAlpha200ResponseToJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoFromJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoToJSON,
     UpdateSicherheitsregelDtoFromJSON,
@@ -183,6 +189,11 @@ export interface SicherheitsregelControllerUpdateRegelVAlphaRequest {
     einsatzId: string;
     id: string;
     updateSicherheitsregelDto: UpdateSicherheitsregelDto;
+}
+
+export interface SyncConflictControllerReportSyncConflictVAlphaRequest {
+    einsatzId: string;
+    reportSyncConflictDto: ReportSyncConflictDto;
 }
 
 /**
@@ -1026,6 +1037,49 @@ export class EigenschutzApi extends runtime.BaseAPI {
      */
     async sicherheitsregelControllerUpdateRegelVAlpha(requestParameters: SicherheitsregelControllerUpdateRegelVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SicherheitsregelControllerListRegelnVAlpha200Response> {
         const response = await this.sicherheitsregelControllerUpdateRegelVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sync-Konflikt aus 409-Mutation melden — Story 3.9 (FR50)
+     */
+    async syncConflictControllerReportSyncConflictVAlphaRaw(requestParameters: SyncConflictControllerReportSyncConflictVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SyncConflictControllerReportSyncConflictVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling syncConflictControllerReportSyncConflictVAlpha().'
+            );
+        }
+
+        if (requestParameters['reportSyncConflictDto'] == null) {
+            throw new runtime.RequiredError(
+                'reportSyncConflictDto',
+                'Required parameter "reportSyncConflictDto" was null or undefined when calling syncConflictControllerReportSyncConflictVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sync-conflicts`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ReportSyncConflictDtoToJSON(requestParameters['reportSyncConflictDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SyncConflictControllerReportSyncConflictVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Sync-Konflikt aus 409-Mutation melden — Story 3.9 (FR50)
+     */
+    async syncConflictControllerReportSyncConflictVAlpha(requestParameters: SyncConflictControllerReportSyncConflictVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SyncConflictControllerReportSyncConflictVAlpha200Response> {
+        const response = await this.syncConflictControllerReportSyncConflictVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

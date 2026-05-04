@@ -48,25 +48,35 @@ function wrapInfrastructureError(error: string | undefined, fallback: string): s
 }
 
 /**
- * Story 3.2 (AC5): bei Conflict-Sentinels die `einheitId` und das `profil` an
+ * Story 3.2 (AC5) + Story 3.9 (AC1): bei Conflict-Sentinels die `einheitId`,
+ * das `profil` und (optional) die `zuweisungId` der konfliktierenden Row an
  * den Sentinel-String anhängen, damit der Controller-Mapper das im
- * 409-Body als `context.einheitId` / `context.profil` weiterreichen kann.
+ * 409-Body als `context.einheitId` / `context.profil` / `context.zuweisungId`
+ * weiterreichen kann.
  *
  * Nur konflikt-typisierte Sentinels werden annotiert (`ConflictDetected:` —
- * sowohl OCC `ConflictDetected:PsaProfilZuweisung[:current=<n>]` als auch
- * `ConflictDetected:DuplicateActivePsaProfilZuweisung`). Andere Sentinels
- * (`NotFound:`, `BusinessRule:` etc.) sind nicht-einheit-spezifisch oder
- * werden separat behandelt und bleiben unverändert.
+ * sowohl OCC `ConflictDetected:PsaProfilZuweisung[:current=<n>][:zuweisungId=<id>]`
+ * als auch `ConflictDetected:DuplicateActivePsaProfilZuweisung[:zuweisungId=<id>]`).
+ * Andere Sentinels (`NotFound:`, `BusinessRule:` etc.) sind nicht-einheit-
+ * spezifisch oder werden separat behandelt und bleiben unverändert.
+ *
+ * Die `zuweisungId` ist optional (Backward-Compat zu Story 3.1/3.2 Tests).
+ * Wenn das Sentinel-Suffix `:zuweisungId=<id>` bereits aus dem Aggregate /
+ * Repository stammt, fügen wir es nicht doppelt an.
  *
  * Das Sentinel-Format bleibt key=value-basiert, sodass die Reihenfolge der
  * Suffixe in `mapMutationError` nicht relevant ist und neue Schlüssel
  * additiv ergänzt werden können.
  */
-function annotateConflictWithEinheit(error: string, einheitId: string, profil: PsaProfil): string {
-  if (error.startsWith(PSA_PROFIL_CONFLICT_DETECTED) || error.startsWith('ConflictDetected:DuplicateActivePsaProfilZuweisung')) {
-    return `${error}:einheit=${einheitId}:profil=${profil}`;
+function annotateConflictWithEinheitAndZuweisung(error: string, einheitId: string, profil: PsaProfil, zuweisungId?: string): string {
+  if (!error.startsWith(PSA_PROFIL_CONFLICT_DETECTED) && !error.startsWith('ConflictDetected:DuplicateActivePsaProfilZuweisung')) {
+    return error;
   }
-  return error;
+  let annotated = `${error}:einheit=${einheitId}:profil=${profil}`;
+  if (zuweisungId !== undefined && !annotated.includes(':zuweisungId=')) {
+    annotated = `${annotated}:zuweisungId=${zuweisungId}`;
+  }
+  return annotated;
 }
 
 const EINHEIT_IDS_MAX = 50;
@@ -170,7 +180,7 @@ export class ChangePsaProfilHandler extends TransactionalCommandHandler<ChangePs
           // (Story 3.2 AC5/AC6) — gibt dem Frontend genug Kontext, den
           // Konflikt-Banner zu rendern und die richtige Einheit aus der
           // Selection zu entfernen.
-          return Result.fail<ChangePsaProfilResult>(annotateConflictWithEinheit(stepResult.error!, einheitId, toggle.profil));
+          return Result.fail<ChangePsaProfilResult>(annotateConflictWithEinheitAndZuweisung(stepResult.error!, einheitId, toggle.profil));
         }
         const step = stepResult.value!;
         events.push(...step.events);

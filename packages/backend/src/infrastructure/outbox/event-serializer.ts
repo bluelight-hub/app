@@ -113,6 +113,11 @@ import type { PsaProfilGeaendertEvent } from '@domain/eigenschutz/events/psa-pro
 import type { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 import type { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import type { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
+import type { KonfliktErkanntEvent, SyncConflictEntityType } from '@domain/eigenschutz/events/konflikt-erkannt.event';
+
+// Story 3.9 — Modul-Konstante (statt Funktionsrumpf-Allokation pro
+// Serialisierungs-Aufruf, Code-Review P12).
+const KONFLIKT_ERKANNT_ALLOWED_ENTITY_TYPES: ReadonlyArray<SyncConflictEntityType> = ['PSA_PROFIL_ZUWEISUNG', 'GEFAEHRDUNGSBEURTEILUNG_ITEM'];
 
 // Alarmierung Events (Issue #408)
 import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
@@ -525,6 +530,8 @@ export class EventSerializer {
         return this.serializeLueckeGemeldet(event as unknown as LueckeGemeldetEvent);
       case 'eigenschutz.quittung_ueberfaellig':
         return this.serializeQuittungUeberfaellig(event as unknown as QuittungUeberfaelligEvent);
+      case 'eigenschutz.konflikt_erkannt':
+        return this.serializeKonfliktErkannt(event as unknown as KonfliktErkanntEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -2052,6 +2059,56 @@ export class EventSerializer {
       originalEventId: event.originalEventId,
       ueberfaelligSeitMin: event.ueberfaelligSeitMin,
       zuweisungId: event.zuweisungId,
+    };
+  }
+
+  /**
+   * Serialisiert `KonfliktErkanntEvent` (Story 3.9, FR50, Architektur §B6 + §E).
+   *
+   * Pflichtfelder:
+   * - `einsatzId`, `userId` (= reportedByUserId), `einheitId` (string | null),
+   *   `entityType` (∈ SyncConflictEntityType-Enum), `entityId`,
+   *   `fieldPath` (length 1..200), `serverVersion` und `localExpectedVersion`
+   *   (integer ≥ 1), `localPayload` (Object, JSON.stringify ≤ 4096 Byte).
+   *
+   * Defense-Cap auf `localPayload` ist die letzte Verteidigungslinie zusätzlich
+   * zum Repository-Cap (AC3) — schützt einen zukünftigen Caller, der den
+   * Outbox-Pfad direkt nutzt.
+   */
+  private serializeKonfliktErkannt(event: KonfliktErkanntEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      (event.einheitId !== undefined && typeof event.einheitId !== 'string') ||
+      !KONFLIKT_ERKANNT_ALLOWED_ENTITY_TYPES.includes(event.entityType) ||
+      typeof event.entityId !== 'string' ||
+      typeof event.fieldPath !== 'string' ||
+      event.fieldPath.length < 1 ||
+      event.fieldPath.length > 200 ||
+      !Number.isInteger(event.serverVersion) ||
+      event.serverVersion < 1 ||
+      !Number.isInteger(event.localExpectedVersion) ||
+      event.localExpectedVersion < 1 ||
+      typeof event.localPayload !== 'object' ||
+      event.localPayload === null ||
+      Array.isArray(event.localPayload)
+    ) {
+      throw new Error('Invalid KonfliktErkannt event payload');
+    }
+    if (Buffer.byteLength(JSON.stringify(event.localPayload), 'utf8') > 4096) {
+      throw new Error('Invalid KonfliktErkannt event payload');
+    }
+
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId ?? null,
+      entityType: event.entityType,
+      entityId: event.entityId,
+      fieldPath: event.fieldPath,
+      localPayload: event.localPayload,
+      serverVersion: event.serverVersion,
+      localExpectedVersion: event.localExpectedVersion,
     };
   }
 }

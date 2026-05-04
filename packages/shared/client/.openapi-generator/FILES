@@ -466,6 +466,7 @@ models/RegistrierePersonDto.ts
 models/RegistrierePersonViaQrCodeDto.ts
 models/ReorderFunkkanaeleDto.ts
 models/ReorderFunkkanalEntryDto.ts
+models/ReportSyncConflictDto.ts
 models/ResolveBeitrittsanfrageDto.ts
 models/RevokeInviteResponseDto.ts
 models/RolleFreigegebenResponseDto.ts
@@ -510,6 +511,8 @@ models/StandardKontextDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
 models/StopRecurringSeriesDto.ts
+models/SyncConflictControllerReportSyncConflictVAlpha200Response.ts
+models/SyncConflictRefDto.ts
 models/SystemHealthDto.ts
 models/TaktischeStaerkeDto.ts
 models/TaktischeZeichenControllerFindAllVAlpha200Response.ts

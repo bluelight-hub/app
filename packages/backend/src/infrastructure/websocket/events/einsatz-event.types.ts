@@ -47,7 +47,9 @@ export type EinsatzEventName =
   // Eigenschutz — Ausrüstungs-Lücke gemeldet (Story 3.6)
   | 'eigenschutz:luecke-gemeldet'
   // Eigenschutz — PSA-Quittung überfällig (Story 3.7)
-  | 'eigenschutz:quittung-ueberfaellig';
+  | 'eigenschutz:quittung-ueberfaellig'
+  // Eigenschutz — Sync-Konflikt erkannt (Story 3.9)
+  | 'eigenschutz:konflikt-erkannt';
 
 /**
  * Port für den einsatzgebundenen WebSocket-Publisher.

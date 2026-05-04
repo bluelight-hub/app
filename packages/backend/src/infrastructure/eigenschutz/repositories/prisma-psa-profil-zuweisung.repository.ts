@@ -107,7 +107,10 @@ export class PrismaPsaProfilZuweisungRepository implements IPsaProfilZuweisungRe
         select: { id: true },
       });
       if (existing) {
-        return Result.fail<void>(PSA_PROFIL_DUPLICATE_ACTIVE);
+        // Story 3.9 AC1: zuweisungId der bereits aktiven Row im Sentinel
+        // mitgeben, damit der Frontend-Folgecall `POST /sync-conflicts` die
+        // Verlierer-Zeile referenzieren kann.
+        return Result.fail<void>(`${PSA_PROFIL_DUPLICATE_ACTIVE}:zuweisungId=${existing.id}`);
       }
 
       await client.psaProfilZuweisung.create({
@@ -135,6 +138,27 @@ export class PrismaPsaProfilZuweisungRepository implements IPsaProfilZuweisungRe
           einheitId: aggregate.einheitId,
           profil: aggregate.profil,
         });
+        // Story 3.9 AC1: kollidierende Zeile nachladen, um zuweisungId an
+        // den Sentinel zu hängen (Frontend-Folgecall braucht sie).
+        // Code-Review P3: Lookup eigens kapseln — wirft die DB hier, fällt
+        // der Sentinel auf den unmaskierten `DuplicateActive`-Code zurück
+        // statt zu einem 500 zu degradieren.
+        try {
+          const existing = await client.psaProfilZuweisung.findFirst({
+            where: { einsatzId: aggregate.einsatzId, einheitId: aggregate.einheitId, profil: aggregate.profil, gueltigBis: null },
+            select: { id: true },
+          });
+          if (existing) {
+            return Result.fail<void>(`${PSA_PROFIL_DUPLICATE_ACTIVE}:zuweisungId=${existing.id}`);
+          }
+        } catch (lookupError) {
+          this.logger.warn('zuweisungId-Lookup nach P2002 fehlgeschlagen — Sentinel ohne zuweisungId zurückgeben', {
+            einsatzId: aggregate.einsatzId,
+            einheitId: aggregate.einheitId,
+            profil: aggregate.profil,
+            error: lookupError instanceof Error ? lookupError.message : String(lookupError),
+          });
+        }
         return Result.fail<void>(PSA_PROFIL_DUPLICATE_ACTIVE);
       }
       this.logger.error('Fehler beim INSERT einer aktiven PsaProfilZuweisung', {
@@ -173,7 +197,10 @@ export class PrismaPsaProfilZuweisungRepository implements IPsaProfilZuweisungRe
           expectedVersion,
           currentVersion: current.version,
         });
-        return Result.fail<void>(`${PSA_PROFIL_CONFLICT_DETECTED}:current=${current.version}`);
+        // Story 3.9 AC1: Sentinel um `:zuweisungId=<id>` ergänzen, damit der
+        // Frontend-Folgecall `POST /sync-conflicts` die Verlierer-Row
+        // referenzieren kann.
+        return Result.fail<void>(`${PSA_PROFIL_CONFLICT_DETECTED}:current=${current.version}:zuweisungId=${current.id}`);
       }
       if (updateResult.count > 1) {
         // Unmöglich, weil `where: { id }` UNIQUE matched. Falls trotzdem

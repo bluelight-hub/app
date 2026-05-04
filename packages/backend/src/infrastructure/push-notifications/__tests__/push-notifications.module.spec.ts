@@ -1,8 +1,9 @@
 import { Test } from '@nestjs/testing';
 import type { IRuntimeConfigPort } from '@domain/ports/i-runtime-config.port';
-import { LOGGER, PUSH_SUBSCRIPTION_REPOSITORY, RUNTIME_CONFIG } from '@infrastructure/di-tokens';
+import { LOGGER, PUSH_NOTIFICATION_SERVICE, PUSH_SUBSCRIPTION_REPOSITORY, RUNTIME_CONFIG } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { PushNotificationsModule } from '../push-notifications.module';
+import { PushNotificationsService } from '../push-notifications.service';
 
 jest.mock('web-push', () => {
   const setVapidDetails = jest.fn();
@@ -157,6 +158,22 @@ describe('PushNotificationsModule Fail-Fast', () => {
     } catch {
       /* expected */
     }
+  });
+
+  it('binds PUSH_NOTIFICATION_SERVICE token to the same singleton as PushNotificationsService (Story 3.8 AC1)', async () => {
+    const app = await buildModule({
+      VAPID_PUBLIC_KEY: 'public-key',
+      VAPID_PRIVATE_KEY: 'private-key',
+      VAPID_SUBJECT: 'mailto:ops@example.org',
+    });
+
+    await app.init();
+
+    const viaToken = app.get(PUSH_NOTIFICATION_SERVICE);
+    const viaClass = app.get(PushNotificationsService);
+    expect(viaToken).toBe(viaClass);
+
+    await app.close();
   });
 
   it('does not log the actual key values in the fail-fast error', async () => {

@@ -96,7 +96,9 @@ describe('PrismaPsaProfilZuweisungRepository.saveActivation()', () => {
     const result = await repo.saveActivation(createActiveAggregate(), tx as never);
 
     expect(result.isFailure).toBe(true);
-    expect(result.error).toBe('ConflictDetected:DuplicateActivePsaProfilZuweisung');
+    // Story 3.9 (AC1): Sentinel trägt zuweisungId der bereits aktiven Row
+    // mit, damit der Frontend-Folgecall sie referenzieren kann.
+    expect(result.error).toBe('ConflictDetected:DuplicateActivePsaProfilZuweisung:zuweisungId=other-row');
     expect(create).not.toHaveBeenCalled();
   });
 
@@ -175,7 +177,10 @@ describe('PrismaPsaProfilZuweisungRepository.closeActiveZuweisung()', () => {
     const result = await repo.closeActiveZuweisung(aggregate, 1, tx as never);
 
     expect(result.isFailure).toBe(true);
-    expect(result.error).toBe('ConflictDetected:PsaProfilZuweisung:current=5');
+    // Story 3.9 (AC1): Repository-Sentinel trägt `:zuweisungId=<id>` mit; die
+    // ID stammt aus `current.id` (über findUnique geladene Row → buildRow()
+    // setzt id = aggregate.id.value, da unsere Mock-Row dieselbe ID nutzt).
+    expect(result.error).toBe(`ConflictDetected:PsaProfilZuweisung:current=5:zuweisungId=${aggregate.id.value}`);
   });
 
   it('liefert NotFound, wenn die Row in der Zwischenzeit verschwunden / fremd ist', async () => {

@@ -2266,7 +2266,7 @@ describe('EventDeserializer', () => {
       expect(deserializer.supportsEventType('')).toBe(false);
     });
 
-    it('should return all 120 supported event types', () => {
+    it('should return all 121 supported event types', () => {
       const supportedTypes = deserializer.getSupportedEventTypes();
 
       // 79 Event-Typen: Basis + Erinnerung + Erinnerungsvorlage + Notiz + Fuehrungsrhythmus
@@ -2286,8 +2286,9 @@ describe('EventDeserializer', () => {
       // + Eigenschutz: GefaehrdungsbeurteilungErstellt (Story 2.1), GefaehrdungsbeurteilungAktualisiert (Story 2.2),
       //                SicherheitsregelAusgerufen (Story 2.6), SicherheitsregelQuittiert (Story 2.7),
       //                PsaProfilGeaendert (Story 3.1), QuittungAbgegeben (Story 3.4),
-      //                LueckeGemeldet (Story 3.6), QuittungUeberfaellig (Story 3.7)
-      expect(supportedTypes).toHaveLength(120);
+      //                LueckeGemeldet (Story 3.6), QuittungUeberfaellig (Story 3.7),
+      //                KonfliktErkannt (Story 3.9)
+      expect(supportedTypes).toHaveLength(121);
       expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_erstellt');
       expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
       expect(supportedTypes).toContain('eigenschutz.sicherheitsregel_ausgerufen');
@@ -2296,6 +2297,7 @@ describe('EventDeserializer', () => {
       expect(supportedTypes).toContain('eigenschutz.quittung_abgegeben');
       expect(supportedTypes).toContain('eigenschutz.luecke_gemeldet');
       expect(supportedTypes).toContain('eigenschutz.quittung_ueberfaellig');
+      expect(supportedTypes).toContain('eigenschutz.konflikt_erkannt');
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
