@@ -9,6 +9,7 @@ import type {
   UpdateGefaehrdungsbeurteilungItemsInput,
 } from '../schemas/gefaehrdungsbeurteilung.schema';
 import type { CreateSicherheitsregelInput, SicherheitsregelDto, UpdateSicherheitsregelInput } from '../schemas/sicherheitsregel.schema';
+import type { ResolveSyncConflictDto, SyncConflictListItemDto, SyncConflictResolveResultDto } from '@bluelight-hub/shared/client';
 import { useCurrentUser } from '@/features/auth/api/use-current-user';
 import { eigenschutzTelemetryQueue, getOrCreateSessionId } from '../lib/telemetry-queue';
 
@@ -130,6 +131,18 @@ export const EIGENSCHUTZ_QUERY_KEYS = {
    * `eigenschutz:psa-quittung-abgegeben`-Frame eintrifft.
    */
   offenePsaBekanntgaben: (einsatzId: string) => ['eigenschutz', einsatzId, 'psa-quittungen', 'offene-bekanntgaben'] as const,
+  /**
+   * Listen-Scope der offenen Sync-Konflikte (Story 3.10 AC7).
+   *
+   * Object-Filter-Pattern analog `sicherheitsregeln(einsatzId, einheitId?)`:
+   * Verschiedene Filter-Kombinationen leben getrennt im Cache; das gemeinsame
+   * Prefix `[..., 'sync-conflicts']` erlaubt globale Invalidierung über
+   * `invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'sync-conflicts'] })`.
+   */
+  syncConflicts: (einsatzId: string, filter?: { entityType?: 'PSA_PROFIL_ZUWEISUNG' | 'GEFAEHRDUNGSBEURTEILUNG_ITEM'; einheitId?: string }) =>
+    filter === undefined || (filter.entityType === undefined && filter.einheitId === undefined)
+      ? (['eigenschutz', einsatzId, 'sync-conflicts', 'list'] as const)
+      : (['eigenschutz', einsatzId, 'sync-conflicts', 'list', filter] as const),
 } as const;
 
 /**
@@ -1277,5 +1290,103 @@ export function useOffenePsaBekanntgaben(einsatzId: string, options?: { enabled?
     meta: { silentError: true },
     staleTime: 15_000,
     enabled: (options?.enabled ?? true) && Boolean(einsatzId),
+  });
+}
+
+// ============================================================================
+// Story 3.10 — Sync-Konflikt-Liste & Auflösung (FR50, UX-DR6)
+// ============================================================================
+
+/**
+ * Filter-Shape für `useSyncConflicts` (Story 3.10 AC7).
+ *
+ * Optionale Server-seitige Filter:
+ * - `entityType`: nur PSA-Konflikte oder nur GB-Konflikte (Phase 2).
+ * - `einheitId`: nur Konflikte einer spezifischen Einheit.
+ *
+ * Filter-Felder werden per Query-Key strukturell separiert
+ * (`EIGENSCHUTZ_QUERY_KEYS.syncConflicts`) — verschiedene Filter-Kombinationen
+ * leben getrennt im Cache; gemeinsames Prefix erlaubt globale Invalidation.
+ */
+export interface SyncConflictsFilter {
+  entityType?: 'PSA_PROFIL_ZUWEISUNG' | 'GEFAEHRDUNGSBEURTEILUNG_ITEM';
+  einheitId?: string;
+}
+
+/**
+ * Listet offene Sync-Konflikte für den Einsatz (Story 3.10 AC7, FR50).
+ *
+ * **Pattern:** `useQuery` um `syncConflictControllerListSyncConflictsVAlpha`.
+ * Filter werden 1:1 an den Backend-Endpoint durchgereicht (`undefined`-Felder
+ * werden vom generierten Client ignoriert).
+ *
+ * **UX-DR21 Zero-Toast:** `meta: { silentError: true }` — die
+ * `ConflictResolutionList` (Task 8) rendert Fehler inline (Empty-State /
+ * Error-State), nicht über den globalen Sonner-Toast. 403 bricht die
+ * Retry-Schleife sofort ab (`eigenschutzRetry`).
+ */
+export function useSyncConflicts(einsatzId: string, filter?: SyncConflictsFilter) {
+  return useQuery({
+    queryKey: EIGENSCHUTZ_QUERY_KEYS.syncConflicts(einsatzId, filter),
+    queryFn: async (): Promise<SyncConflictListItemDto[]> => {
+      const response = await api.eigenschutz().syncConflictControllerListSyncConflictsVAlpha({
+        einsatzId,
+        entityType: filter?.entityType,
+        einheitId: filter?.einheitId,
+      });
+      // Defensive gegen Backend-Responseshape-Drift: ein nicht-Array-Payload
+      // würde in der List-Organism einen Laufzeit-Typfehler auslösen.
+      const rows = response?.data;
+      return Array.isArray(rows) ? (rows as SyncConflictListItemDto[]) : [];
+    },
+    retry: eigenschutzRetry,
+    meta: { silentError: true },
+    enabled: Boolean(einsatzId),
+  });
+}
+
+/**
+ * Löst einen Sync-Konflikt auf (Story 3.10 AC7, FR50).
+ *
+ * **Resolutions-Modi (Server-Sentinels, Story 3.10 AC5):**
+ * - `SERVER_WINS`: Server-State wird übernommen, Verlierer-Eingabe verworfen.
+ * - `LOCAL_WINS`: Verlierer-State wird re-applied — schreibt das PSA-Profil
+ *   neu (mit aktueller Server-Version als `expectedVersion`). Erzeugt eine
+ *   neue PSA-Profil-Mutation; der Live-Hook
+ *   (`useEigenschutzKonfliktAufgeloestLive`) invalidiert daraufhin auch das
+ *   `psa-profile`-Cache-Prefix.
+ * - `MERGED`: Beide Toggle-Sets werden vereint (Phase 2; Backend kann das
+ *   für Phase 1 mit `NotImplemented` ablehnen).
+ *
+ * **Cache-Invalidation:**
+ * - Immer: `['eigenschutz', einsatzId, 'sync-conflicts']` — der aufgelöste
+ *   Konflikt verschwindet aus der Liste (alle Filter-Varianten dank
+ *   gemeinsamem Prefix).
+ * - Bei `LOCAL_WINS`: zusätzlich `['eigenschutz', einsatzId, 'psa-profile']` —
+ *   der Server-State hat sich verschoben (Pattern Story 3.6
+ *   `useMeldeLuecke.onSuccess`).
+ *
+ * **Zero-Toast:** `meta: { silentError: true }` — die
+ * `ConflictResolutionList`-Organism rendert Fehler inline; Server-Sentinels
+ * (z. B. `ConflictAlreadyResolved`) werden vom UI als Hinweis angezeigt.
+ */
+export function useResolveKonflikt(einsatzId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<SyncConflictResolveResultDto, unknown, { syncConflictId: string; resolution: 'SERVER_WINS' | 'LOCAL_WINS' | 'MERGED' }>({
+    meta: { silentError: true },
+    mutationFn: async ({ syncConflictId, resolution }) => {
+      const response = await api.eigenschutz().syncConflictControllerResolveSyncConflictVAlpha({
+        einsatzId,
+        syncConflictId,
+        resolveSyncConflictDto: { resolution } as ResolveSyncConflictDto,
+      });
+      return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'sync-conflicts'] });
+      if (variables.resolution === 'LOCAL_WINS') {
+        void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'psa-profile'] });
+      }
+    },
   });
 }

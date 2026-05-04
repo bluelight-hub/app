@@ -4,11 +4,13 @@ import { useEigenschutzPsaQuittungLive } from '@/features/eigenschutz/api/use-ei
 import { useEigenschutzLueckeGemeldetLive } from '@/features/eigenschutz/api/use-eigenschutz-luecke-gemeldet-live';
 import { useEigenschutzQuittungUeberfaelligLive } from '@/features/eigenschutz/api/use-eigenschutz-quittung-ueberfaellig-live';
 import { useEigenschutzKonfliktErkanntLive } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live';
+import { useEigenschutzKonfliktAufgeloestLive } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-aufgeloest-live';
+import type { KonfliktNotice } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live';
 import { PsaProfilEmpfangBanner } from '@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner';
 import { EinsatzleiterReprompEskalationBanner } from '@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanner';
 import { KonfliktErkanntMikroBanner } from '@/features/eigenschutz/ui/molecules/KonfliktErkanntMikroBanner';
 import { logger } from '@/shared/lib/logger';
-import { Outlet, createFileRoute, useLocation } from '@tanstack/react-router';
+import { Outlet, createFileRoute, useLocation, useNavigate } from '@tanstack/react-router';
 
 /**
  * Layout-Route für den Eigenschutz-Bereich.
@@ -57,6 +59,31 @@ function EigenschutzRouteComponent() {
   // existiert noch nicht; Spec-Wortlaut „eigenschutz:psa:write" ist auf eine
   // Phase-2-Permission-Hook-Story aufgeschoben).
   const konfliktLive = useEigenschutzKonfliktErkanntLive({ einsatzId });
+  // Story 3.10 AC7 — Konflikt-Aufgelöst-Live-Hook. Cache-Invalidation only;
+  // kein Banner. Sofortiges Cross-Hook-Dismiss zwischen Erkannt- und
+  // Aufgelöst-Frames würde eine Schema-Erweiterung um `syncConflictId` als
+  // Korrelator auf dem Erkannt-Frame voraussetzen — als Schema-Bump
+  // (Story 3.9-Schema) auf eine separate Folgestory aufgeschoben. Der 30-s-
+  // Auto-Dismiss in `KonfliktErkanntMikroBanner` deckt die UX-Lücke.
+  useEigenschutzKonfliktAufgeloestLive({ einsatzId });
+
+  const navigate = useNavigate();
+  // Story 3.10 AC7 §5 — Wiring der Mikro-Banner-Navigation aus Story 3.9.
+  // Klick auf „Konflikte ansehen" navigiert zur `SyncConflictsPage` (Route
+  // wird in Task 9 erzeugt); optionaler URL-Filter auf die spezifische
+  // Einheit. `as never`-Cast ist ein temporärer Workaround, weil die Route
+  // beim aktuellen Stand des `routeTree.gen.ts` noch nicht existiert; wird
+  // entfernt, sobald Task 9 die Route registriert.
+  const handleOpenConflict = useCallback(
+    (notice: KonfliktNotice) => {
+      navigate({
+        to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte' as never,
+        params: { einsatzId },
+        search: notice.einheitId ? { einheitId: notice.einheitId } : undefined,
+      } as never);
+    },
+    [navigate, einsatzId],
+  );
 
   const isEigenschutzRoot = location.pathname.replace(/\/+$/, '').endsWith('/sicherheit/eigenschutz');
 
@@ -72,7 +99,7 @@ function EigenschutzRouteComponent() {
     <div className="flex flex-col gap-4">
       <PsaProfilEmpfangBanner einsatzId={einsatzId} onShowDetails={handleShowPsaDetails} repromptNotices={reprompt.notices} onRepromptDismiss={reprompt.dismiss} />
       <EinsatzleiterReprompEskalationBanner einsatzId={einsatzId} notices={reprompt.notices} onDismiss={reprompt.dismiss} />
-      <KonfliktErkanntMikroBanner einsatzId={einsatzId} notices={konfliktLive.notices} onDismiss={konfliktLive.dismissNotice} />
+      <KonfliktErkanntMikroBanner einsatzId={einsatzId} notices={konfliktLive.notices} onDismiss={konfliktLive.dismissNotice} onOpenConflict={handleOpenConflict} />
       {isEigenschutzRoot ? <EigenschutzEntryPage einsatzId={einsatzId} /> : <Outlet />}
     </div>
   );
