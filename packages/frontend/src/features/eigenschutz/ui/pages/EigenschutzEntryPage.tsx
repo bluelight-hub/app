@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import { PiClipboardText, PiShield, PiShieldCheck } from 'react-icons/pi';
+import { PiArrowsClockwise, PiClipboardText, PiShield, PiShieldCheck } from 'react-icons/pi';
+import { useSyncConflicts } from '@/features/eigenschutz/api/queries';
 
 export interface EigenschutzEntryPageProps {
   /**
@@ -32,38 +33,71 @@ export function EigenschutzEntryPage({ einsatzId }: EigenschutzEntryPageProps = 
       </header>
       <div className="space-y-3 rounded-lg bg-surface-panel p-4 shadow">
         <p className="text-text-muted">Hier entstehen Gefährdungsbeurteilung, PSA-Verwaltung, Sicherheitsregeln, Sicherungsposten und Vorfallmeldung.</p>
-        {einsatzId ? (
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen"
-              params={{ einsatzId }}
-              data-testid="eigenschutz-gefaehrdungen-link"
-              className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
-            >
-              <PiClipboardText aria-hidden="true" className="h-4 w-4" />
-              <span>Gefährdungsbeurteilungen verwalten</span>
-            </Link>
-            <Link
-              to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln"
-              params={{ einsatzId }}
-              data-testid="eigenschutz-sicherheitsregeln-link"
-              className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
-            >
-              <PiShieldCheck aria-hidden="true" className="h-4 w-4" />
-              <span>Sicherheitsregeln verwalten</span>
-            </Link>
-            <Link
-              to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile"
-              params={{ einsatzId }}
-              data-testid="eigenschutz-psa-profile-link"
-              className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
-            >
-              <PiShield aria-hidden="true" className="h-4 w-4" />
-              <span>PSA-Profile verwalten</span>
-            </Link>
-          </div>
-        ) : null}
+        {einsatzId ? <EigenschutzNavLinks einsatzId={einsatzId} /> : null}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Navigations-Bereich (Story 3.10 AC9): Sub-Routen-Links inkl. neuem
+ * „Konflikte"-Eintrag mit Count-Badge. Eigene Komponente, damit der
+ * `useSyncConflicts`-Hook nur dann ausgeführt wird, wenn auch eine
+ * `einsatzId` vorliegt — sonst wäre der Hook-Aufruf zwar harmlos
+ * (`enabled: false`), aber konzeptionell unsauber (Hook ohne Kontext).
+ */
+function EigenschutzNavLinks({ einsatzId }: { einsatzId: string }) {
+  const conflictsQuery = useSyncConflicts(einsatzId);
+  const conflictCount = conflictsQuery.data?.length ?? 0;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Link
+        to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen"
+        params={{ einsatzId }}
+        data-testid="eigenschutz-gefaehrdungen-link"
+        className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+      >
+        <PiClipboardText aria-hidden="true" className="h-4 w-4" />
+        <span>Gefährdungsbeurteilungen verwalten</span>
+      </Link>
+      <Link
+        to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln"
+        params={{ einsatzId }}
+        data-testid="eigenschutz-sicherheitsregeln-link"
+        className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+      >
+        <PiShieldCheck aria-hidden="true" className="h-4 w-4" />
+        <span>Sicherheitsregeln verwalten</span>
+      </Link>
+      <Link
+        to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile"
+        params={{ einsatzId }}
+        data-testid="eigenschutz-psa-profile-link"
+        className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+      >
+        <PiShield aria-hidden="true" className="h-4 w-4" />
+        <span>PSA-Profile verwalten</span>
+      </Link>
+      <Link
+        to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte"
+        params={{ einsatzId }}
+        data-testid="eigenschutz-sync-konflikte-link"
+        activeProps={{ 'aria-current': 'page' }}
+        className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+      >
+        <PiArrowsClockwise aria-hidden="true" className="h-4 w-4" />
+        <span>Konflikte</span>
+        {conflictCount > 0 ? (
+          <span
+            data-testid="eigenschutz-sync-konflikte-badge"
+            aria-label={`${conflictCount} offene Konflikte`}
+            className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full border border-status-warning-border bg-status-warning-surface px-1.5 py-0.5 text-xs font-semibold text-status-warning-text"
+          >
+            {conflictCount}
+          </span>
+        ) : null}
+      </Link>
     </div>
   );
 }
