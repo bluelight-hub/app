@@ -203,7 +203,8 @@ describe('PsaProfilZuweisung Aggregate (Story 3.1)', () => {
       expect(result.isFailure).toBe(true);
       // AC5 (Story 3.2): Aggregate-OCC trägt `:current=<n>` mit der tatsächlichen
       // Aggregate-Version, damit der Controller `currentVersion` in den 409-Body hebt.
-      expect(result.error).toBe(`${PSA_PROFIL_CONFLICT_DETECTED}:current=1`);
+      // Story 3.9 (AC1): zusätzlich `:zuweisungId=<id>` für den Sync-Conflict-Folgecall.
+      expect(result.error).toBe(`${PSA_PROFIL_CONFLICT_DETECTED}:current=1:zuweisungId=${aggregate.id.value}`);
     });
 
     it('(3) Doppel-Deaktivierung liefert BusinessRule-Sentinel', () => {

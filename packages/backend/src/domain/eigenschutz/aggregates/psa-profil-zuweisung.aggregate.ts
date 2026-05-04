@@ -250,7 +250,9 @@ export class PsaProfilZuweisung extends AggregateRoot<PsaProfilZuweisungId> {
       // `:current=<n>`, damit der Controller `currentVersion` in den 409-Body
       // hebt. Format-Vertrag mit `mapMutationError`: `key=value`-Suffixe,
       // Reihenfolge nicht verbindlich.
-      return Result.fail<void>(`${PSA_PROFIL_CONFLICT_DETECTED}:current=${this._version}`);
+      // Story 3.9 AC1: zusätzlich `:zuweisungId=<id>`, damit der Frontend-
+      // Folgecall `POST /sync-conflicts` die Verlierer-Row referenzieren kann.
+      return Result.fail<void>(`${PSA_PROFIL_CONFLICT_DETECTED}:current=${this._version}:zuweisungId=${this.id.value}`);
     }
     if (!props.userId || props.userId.trim().length === 0) {
       return Result.fail<void>('userId ist erforderlich');

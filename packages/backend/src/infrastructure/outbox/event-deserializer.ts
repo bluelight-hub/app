@@ -167,6 +167,7 @@ import { PsaProfilGeaendertEvent, type PsaProfilAktion } from '@domain/eigenschu
 import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
+import { KonfliktErkanntEvent, type SyncConflictEntityType } from '@domain/eigenschutz/events/konflikt-erkannt.event';
 import { PsaProfil } from '@/generated/prisma/enums';
 import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
@@ -447,6 +448,7 @@ export class EventDeserializer {
       ['eigenschutz.quittung_abgegeben', deserializeQuittungAbgegeben],
       ['eigenschutz.luecke_gemeldet', deserializeLueckeGemeldet],
       ['eigenschutz.quittung_ueberfaellig', deserializeQuittungUeberfaellig],
+      ['eigenschutz.konflikt_erkannt', deserializeKonfliktErkannt],
     ]);
   }
 
@@ -2973,5 +2975,68 @@ function deserializeQuittungUeberfaellig(payload: Record<string, unknown>, aggre
   }
 
   const event = new QuittungUeberfaelligEvent(einsatzId, einheitId, propagationGroupId, originalEventId, ueberfaelligSeitMin, zuweisungId, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserializer für `eigenschutz.konflikt_erkannt` (Story 3.9, FR50).
+ *
+ * Pflichtfelder: einsatzId, userId (= reportedByUserId), einheitId (string | null),
+ * entityType (∈ SyncConflictEntityType), entityId, fieldPath (length 1..200),
+ * serverVersion und localExpectedVersion (integer ≥ 1), localPayload (Object).
+ *
+ * Round-Trip-Vertrag: `serialize → deserialize → serialize` ergibt identische
+ * Payloads. Strikte Defense-Validation, weil ein corrupteter Outbox-Eintrag
+ * sonst beim Replay einen UI-Banner mit Garbage-Daten liefern würde.
+ */
+// Story 3.9 — Modul-Konstante (statt Funktionsrumpf-Allokation pro
+// Deserialisierungs-Aufruf, Code-Review P12).
+const KONFLIKT_ERKANNT_ALLOWED_ENTITY_TYPES: ReadonlyArray<SyncConflictEntityType> = ['PSA_PROFIL_ZUWEISUNG', 'GEFAEHRDUNGSBEURTEILUNG_ITEM'];
+
+function deserializeKonfliktErkannt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const entityType = payload.entityType;
+  const entityId = payload.entityId;
+  const fieldPath = payload.fieldPath;
+  const localPayload = payload.localPayload;
+  const serverVersion = payload.serverVersion;
+  const localExpectedVersion = payload.localExpectedVersion;
+
+  if (typeof einsatzId !== 'string' || typeof userId !== 'string' || typeof entityId !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.konflikt_erkannt');
+  }
+  if (einheitId !== null && typeof einheitId !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.konflikt_erkannt');
+  }
+  if (typeof entityType !== 'string' || !KONFLIKT_ERKANNT_ALLOWED_ENTITY_TYPES.includes(entityType as SyncConflictEntityType)) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.konflikt_erkannt');
+  }
+  if (typeof fieldPath !== 'string' || fieldPath.length < 1 || fieldPath.length > 200) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.konflikt_erkannt');
+  }
+  if (typeof serverVersion !== 'number' || !Number.isInteger(serverVersion) || serverVersion < 1) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.konflikt_erkannt');
+  }
+  if (typeof localExpectedVersion !== 'number' || !Number.isInteger(localExpectedVersion) || localExpectedVersion < 1) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.konflikt_erkannt');
+  }
+  if (typeof localPayload !== 'object' || localPayload === null || Array.isArray(localPayload)) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.konflikt_erkannt');
+  }
+
+  const event = new KonfliktErkanntEvent(
+    einsatzId,
+    userId,
+    einheitId as string | null,
+    entityType as SyncConflictEntityType,
+    entityId,
+    fieldPath,
+    localPayload as Record<string, unknown>,
+    serverVersion,
+    localExpectedVersion,
+    aggregateId,
+  );
   return Result.ok<DomainEvent>(event);
 }

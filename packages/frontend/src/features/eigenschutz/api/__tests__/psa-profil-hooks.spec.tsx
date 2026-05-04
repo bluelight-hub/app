@@ -5,12 +5,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockChangePsa = vi.fn();
 const mockGetPsa = vi.fn();
+const mockReportSyncConflict = vi.fn();
 
 vi.mock('@/shared', () => ({
   api: {
     eigenschutz: () => ({
       psaProfilControllerChangePsaProfilVAlpha: mockChangePsa,
       psaProfilControllerGetPsaProfileVAlpha: mockGetPsa,
+      syncConflictControllerReportSyncConflictVAlpha: mockReportSyncConflict,
     }),
   },
 }));
@@ -81,6 +83,32 @@ describe('useChangePsaProfil (Story 3.1 AC1+AC9)', () => {
     expect((result.current.error as PsaProfilConflictError).currentVersion).toBe(5);
   });
 
+  it('Story 3.9 AC1: extrahiert context.zuweisungId aus 409-Body in PsaProfilConflictError.zuweisungId', async () => {
+    const client = makeClient();
+    mockChangePsa.mockRejectedValue(
+      Object.assign(new Error('409'), {
+        response: { status: 409, data: { context: { currentVersion: 5, zuweisungId: 'clw3h8x9y0000qwertyuiloser1' } } },
+      }),
+    );
+    const { result } = renderHook(() => useChangePsaProfil(EINSATZ_ID), { wrapper: wrapper(client) });
+
+    result.current.mutate({ einheitId: EINHEIT_ID, profilToggles: [{ profil: 'BASIS', aktivieren: false, expectedVersion: 1 }], begruendung: 'X' });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect((result.current.error as PsaProfilConflictError).zuweisungId).toBe('clw3h8x9y0000qwertyuiloser1');
+  });
+
+  it('Story 3.9 AC1: 409-Body ohne zuweisungId hält PsaProfilConflictError.zuweisungId === undefined (Backward-Compat)', async () => {
+    const client = makeClient();
+    mockChangePsa.mockRejectedValue(Object.assign(new Error('409'), { response: { status: 409, data: { context: { currentVersion: 5 } } } }));
+    const { result } = renderHook(() => useChangePsaProfil(EINSATZ_ID), { wrapper: wrapper(client) });
+
+    result.current.mutate({ einheitId: EINHEIT_ID, profilToggles: [{ profil: 'BASIS', aktivieren: false, expectedVersion: 1 }], begruendung: 'X' });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect((result.current.error as PsaProfilConflictError).zuweisungId).toBeUndefined();
+  });
+
   it('mappt 409 mit context.rule=DuplicateActiveProfile auf PsaProfilConflictError (Duplicate-Variante)', async () => {
     const client = makeClient();
     mockChangePsa.mockRejectedValue(Object.assign(new Error('409'), { response: { status: 409, data: { context: { rule: 'DuplicateActiveProfile' } } } }));
@@ -127,5 +155,93 @@ describe('useChangePsaProfil (Story 3.1 AC1+AC9)', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     const query = client.getQueryCache().find({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(EINSATZ_ID, EINHEIT_ID) });
     expect(query?.meta).toEqual(expect.objectContaining({ silentError: true }));
+  });
+});
+
+describe('useChangePsaProfil — Story 3.9 AC7 Sync-Konflikt-Folgecall', () => {
+  beforeEach(() => {
+    mockChangePsa.mockReset();
+    mockReportSyncConflict.mockReset();
+  });
+
+  it('409-Path mit context.zuweisungId triggert syncConflictControllerReportSyncConflictVAlpha genau einmal', async () => {
+    const client = makeClient();
+    mockChangePsa.mockRejectedValue(
+      Object.assign(new Error('409'), {
+        response: { status: 409, data: { context: { currentVersion: 6, attemptedVersion: 5, einheitId: EINHEIT_ID, profil: 'BASIS', zuweisungId: 'clw3h8x9y0000qwertyuiloser1' } } },
+      }),
+    );
+    mockReportSyncConflict.mockResolvedValue({ data: { syncConflictId: 'sc-1', alreadyExisted: false } });
+
+    const { result } = renderHook(() => useChangePsaProfil(EINSATZ_ID), { wrapper: wrapper(client) });
+    result.current.mutate({ einheitId: EINHEIT_ID, profilToggles: [{ profil: 'BASIS', aktivieren: false, expectedVersion: 5 }], begruendung: 'CBRN' });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    await waitFor(() => expect(mockReportSyncConflict).toHaveBeenCalledTimes(1));
+    const callArgs = mockReportSyncConflict.mock.calls[0][0] as { einsatzId: string; reportSyncConflictDto: Record<string, unknown> };
+    expect(callArgs.einsatzId).toBe(EINSATZ_ID);
+    expect(callArgs.reportSyncConflictDto).toEqual(
+      expect.objectContaining({
+        einheitId: EINHEIT_ID,
+        entityId: 'clw3h8x9y0000qwertyuiloser1',
+        fieldPath: 'profil',
+        serverVersion: 6,
+        localExpectedVersion: 5,
+      }),
+    );
+    // localPayload trägt das vollständige Hook-Input (Toggle-Set + Begründung).
+    const lp = callArgs.reportSyncConflictDto.localPayload as Record<string, unknown>;
+    expect(lp).toHaveProperty('toggles');
+    expect(lp).toHaveProperty('begruendung', 'CBRN');
+  });
+
+  it('Backward-Compat: 409 ohne zuweisungId → reportSyncConflict NICHT aufgerufen, console.warn genau einmal', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const client = makeClient();
+    mockChangePsa.mockRejectedValue(Object.assign(new Error('409'), { response: { status: 409, data: { context: { currentVersion: 6, attemptedVersion: 5 } } } }));
+
+    const { result } = renderHook(() => useChangePsaProfil(EINSATZ_ID), { wrapper: wrapper(client) });
+    result.current.mutate({ einheitId: EINHEIT_ID, profilToggles: [{ profil: 'BASIS', aktivieren: false, expectedVersion: 5 }], begruendung: 'X' });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(mockReportSyncConflict).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('zuweisungId'));
+    warnSpy.mockRestore();
+  });
+
+  it('Promise-Chain: useChangePsaProfil wirft weiterhin den PsaProfilConflictError trotz Folgecall (Drawer-Banner-Pfad bleibt)', async () => {
+    const client = makeClient();
+    mockChangePsa.mockRejectedValue(
+      Object.assign(new Error('409'), {
+        response: { status: 409, data: { context: { currentVersion: 6, attemptedVersion: 5, zuweisungId: 'clw3h8x9y0000qwertyuiloser1' } } },
+      }),
+    );
+    mockReportSyncConflict.mockResolvedValue({ data: { syncConflictId: 'sc-2', alreadyExisted: false } });
+
+    const { result } = renderHook(() => useChangePsaProfil(EINSATZ_ID), { wrapper: wrapper(client) });
+    result.current.mutate({ einheitId: EINHEIT_ID, profilToggles: [{ profil: 'BASIS', aktivieren: false, expectedVersion: 5 }], begruendung: 'X' });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error).toBeInstanceOf(PsaProfilConflictError);
+    expect((result.current.error as PsaProfilConflictError).zuweisungId).toBe('clw3h8x9y0000qwertyuiloser1');
+  });
+
+  it('Idempotenz-Echo: 202-Response mit alreadyExisted=true erzeugt keinen Frontend-Effekt (Banner kommt aus WS-Frame)', async () => {
+    const client = makeClient();
+    mockChangePsa.mockRejectedValue(
+      Object.assign(new Error('409'), {
+        response: { status: 409, data: { context: { currentVersion: 6, attemptedVersion: 5, zuweisungId: 'clw3h8x9y0000qwertyuiloser1' } } },
+      }),
+    );
+    mockReportSyncConflict.mockResolvedValue({ data: { syncConflictId: 'sc-existing', alreadyExisted: true } });
+
+    const { result } = renderHook(() => useChangePsaProfil(EINSATZ_ID), { wrapper: wrapper(client) });
+    result.current.mutate({ einheitId: EINHEIT_ID, profilToggles: [{ profil: 'BASIS', aktivieren: false, expectedVersion: 5 }], begruendung: 'X' });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    await waitFor(() => expect(mockReportSyncConflict).toHaveBeenCalledTimes(1));
+    // Der Hook-Pfad selbst ist OBLIVIOUS zur 202-Response — `mutate(...)` ohne await.
+    // Die Mutation propagiert NICHT als Hook-State zurück (kein .data o. ä.).
+    expect(result.current.error).toBeInstanceOf(PsaProfilConflictError);
   });
 });

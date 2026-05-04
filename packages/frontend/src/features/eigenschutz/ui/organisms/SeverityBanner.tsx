@@ -39,6 +39,8 @@ export interface SeverityBannerProps {
   pending?: boolean;
   /** Optional: Test-Identifier. */
   'data-testid'?: string;
+  /** Optional: Test-Identifier am Primary-Action-Button (Story 3.9 P11). */
+  primaryActionTestId?: string;
 }
 
 /**
@@ -83,6 +85,7 @@ export function SeverityBanner({
   onRetry,
   pending = false,
   'data-testid': dataTestId,
+  primaryActionTestId,
 }: SeverityBannerProps) {
   const toneClass: Record<SeverityBannerVariant, string> = {
     critical: 'border-red-600 bg-red-50 dark:border-red-500 dark:bg-red-950/40',
@@ -110,6 +113,7 @@ export function SeverityBanner({
               type="button"
               onClick={onPrimary}
               disabled={pending || onPrimary === undefined}
+              data-testid={primaryActionTestId}
               className={cn(
                 'inline-flex min-h-12 min-w-12 items-center justify-center rounded-md px-4 py-2 text-sm font-medium',
                 'bg-foreground text-background hover:bg-foreground/90',

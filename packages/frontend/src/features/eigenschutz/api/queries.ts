@@ -775,6 +775,14 @@ export class PsaProfilConflictError extends Error {
      */
     readonly einheitId?: string,
     readonly profil?: 'BASIS' | 'INFEKTION' | 'VU' | 'CBRN_PATIENT' | 'VOLLSCHUTZ',
+    /**
+     * Story 3.9 (AC1): bei OCC- und DuplicateActive-Konflikten trägt der
+     * 409-Body die `zuweisungId` der konfliktierenden `PsaProfilZuweisung`-Row
+     * mit. Sie wird vom 409-Folgecall `POST /sync-conflicts` als `entityId`
+     * benötigt. Bei älteren Backend-Ständen (vor AC1) fehlt das Feld; der
+     * Folgecall wird dann übersprungen (siehe useChangePsaProfil).
+     */
+    readonly zuweisungId?: string,
   ) {
     super(variant === 'DuplicateActiveProfile' ? 'ConflictDetected:DuplicateActivePsaProfilZuweisung' : 'ConflictDetected:PsaProfilZuweisung');
     this.name = 'PsaProfilConflictError';
@@ -787,6 +795,8 @@ const PsaProfilConflictContextSchema = z.object({
   rule: z.string().optional(),
   einheitId: z.string().optional(),
   profil: z.enum(['BASIS', 'INFEKTION', 'VU', 'CBRN_PATIENT', 'VOLLSCHUTZ']).optional(),
+  // Story 3.9 (AC1): cuid2-Format der Verlierer-PsaProfilZuweisung-Row.
+  zuweisungId: z.string().optional(),
 });
 
 function extractPsaProfilConflictError(error: unknown, attemptedVersion: number | undefined): PsaProfilConflictError | null {
@@ -810,7 +820,7 @@ function extractPsaProfilConflictError(error: unknown, attemptedVersion: number 
     console.warn('[extractPsaProfilConflictError] Unbekannter rule-Wert im 409-Body:', ctx.rule);
     variant = 'OCC';
   }
-  return new PsaProfilConflictError(variant, ctx.currentVersion, ctx.attemptedVersion ?? attemptedVersion, error, ctx.einheitId, ctx.profil);
+  return new PsaProfilConflictError(variant, ctx.currentVersion, ctx.attemptedVersion ?? attemptedVersion, error, ctx.einheitId, ctx.profil, ctx.zuweisungId);
 }
 
 export interface PsaProfileByEinheitDto {
@@ -889,6 +899,10 @@ function resolveEinheitIds(input: ChangePsaProfilHookInput): string[] {
  */
 export function useChangePsaProfil(einsatzId: string) {
   const queryClient = useQueryClient();
+  // Story 3.9 AC7: Folgecall-Hook für Sync-Konflikt-Audit. Wird ohne `await`
+  // im 409-Pfad getriggert — der UI-Banner kommt aus dem WS-Frame
+  // `eigenschutz:konflikt-erkannt` parallel zum Drawer-Banner.
+  const reportSyncConflict = useReportSyncConflict(einsatzId);
 
   return useMutation<ChangePsaProfilHookResult, unknown, ChangePsaProfilHookInput>({
     meta: { silentError: true },
@@ -938,7 +952,46 @@ export function useChangePsaProfil(einsatzId: string) {
         const distinct = new Set(definedVersions);
         const attempted = distinct.size === 1 ? definedVersions[0] : undefined;
         const conflict = extractPsaProfilConflictError(error, attempted);
-        if (conflict) throw conflict;
+        if (conflict) {
+          // Story 3.9 AC7: Best-Effort-Folgecall an `POST /sync-conflicts`,
+          // damit der Verlierer-State auditierbar in `sync_conflicts` landet
+          // und der WS-Mikro-Banner getriggert wird. KEIN await — der Drawer-
+          // Banner bleibt der primäre UX-Pfad, der 202-Echo zählt nicht für
+          // die Promise-Latenz.
+          if (conflict.zuweisungId) {
+            // Code-Review P9: Reporting nur, wenn beide Versions-Felder
+            // tatsächlich vom Backend gekommen sind. Ein 0-Fallback würde
+            // gegen die Backend-Validation `>= 1` laufen → 422
+            // `VersionInvalid`/`VERSION_NOT_CONFLICT`, das `meta.silentError`
+            // verschluckt. Folge: Audit-Eintrag für den Verlierer ginge
+            // verloren, ohne sichtbare Fehlerquelle. Lieber loggen und nicht
+            // melden — Backend-Backward-Compat-Fall.
+            if (typeof conflict.currentVersion !== 'number' || typeof conflict.attemptedVersion !== 'number') {
+              console.warn('[useChangePsaProfil] 409 ohne currentVersion/attemptedVersion — Sync-Conflict-Folgecall übersprungen (alter Backend-Stand?)', {
+                hasCurrentVersion: typeof conflict.currentVersion === 'number',
+                hasAttemptedVersion: typeof conflict.attemptedVersion === 'number',
+              });
+            } else {
+              const conflictedEinheitId = conflict.einheitId ?? input.einheitId ?? null;
+              const localPayload: Record<string, unknown> = {
+                toggles: input.profilToggles.map((t) => ({ profil: t.profil, aktivieren: t.aktivieren, expectedVersion: t.expectedVersion })),
+                begruendung: input.begruendung,
+                resolvedEinheitIds: resolveEinheitIds(input),
+              };
+              reportSyncConflict.mutate({
+                einheitId: conflictedEinheitId,
+                entityId: conflict.zuweisungId,
+                fieldPath: 'profil',
+                localPayload,
+                serverVersion: conflict.currentVersion,
+                localExpectedVersion: conflict.attemptedVersion,
+              });
+            }
+          } else {
+            console.warn('[useChangePsaProfil] 409 ohne zuweisungId — Konflikt nicht meldbar (alter Backend-Stand?)');
+          }
+          throw conflict;
+        }
         throw error;
       }
     },
@@ -1126,6 +1179,58 @@ export function useMeldeLuecke(einsatzId: string) {
       } catch {
         // Telemetrie ist best-effort — Mutation ist semantisch erfolgreich.
       }
+    },
+  });
+}
+
+// ============================================================================
+// Story 3.9 — Sync-Konflikt-Folgecall (FR50)
+// ============================================================================
+
+/**
+ * Input-Shape für `useReportSyncConflict` (Story 3.9 AC7).
+ *
+ * Wird vom 409-Pfad in `useChangePsaProfil` ohne `await` getriggert
+ * (Best-Effort-Audit). Der Verlierer-State (`localPayload`) trägt das
+ * vollständige Hook-Input — Story 3.10 zeigt es in der `ConflictResolutionList`.
+ */
+export interface ReportSyncConflictInput {
+  einheitId: string | null;
+  entityId: string;
+  fieldPath: string;
+  localPayload: Record<string, unknown>;
+  serverVersion: number;
+  localExpectedVersion: number;
+}
+
+/**
+ * Meldet einen Sync-Konflikt nach 409-Mutation (Story 3.9 AC7, FR50).
+ *
+ * Pattern: TanStack-Mutation um den generierten Client-Call. Best-Effort-
+ * Audit: Mutation-Fehler werden silent verworfen (`meta.silentError`),
+ * weil der UI-Banner ohnehin via WS-Frame `eigenschutz:konflikt-erkannt`
+ * kommt und die Drawer-Banner-UX vom 409 selbst getragen wird.
+ */
+export function useReportSyncConflict(einsatzId: string) {
+  return useMutation<{ syncConflictId: string; alreadyExisted: boolean }, unknown, ReportSyncConflictInput>({
+    meta: { silentError: true },
+    mutationFn: async (input) => {
+      const response = await api.eigenschutz().syncConflictControllerReportSyncConflictVAlpha({
+        einsatzId,
+        reportSyncConflictDto: {
+          einheitId: input.einheitId ?? undefined,
+          entityId: input.entityId,
+          fieldPath: input.fieldPath,
+          localPayload: input.localPayload,
+          serverVersion: input.serverVersion,
+          localExpectedVersion: input.localExpectedVersion,
+        },
+      });
+      const data = (response?.data ?? {}) as { syncConflictId?: string; alreadyExisted?: boolean };
+      return {
+        syncConflictId: data.syncConflictId ?? '',
+        alreadyExisted: data.alreadyExisted ?? false,
+      };
     },
   });
 }

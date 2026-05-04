@@ -4,8 +4,10 @@ import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { EigenschutzInfrastructureModule } from '@/infrastructure/eigenschutz/eigenschutz-infrastructure.module';
 import { KraefteInfrastructureModule } from '@/infrastructure/kraefte/kraefte-infrastructure.module';
+import { PushNotificationsModule } from '@infrastructure/push-notifications/push-notifications.module';
 import { UserInfrastructureModule } from '@/infrastructure/user/user-infrastructure.module';
 import { EinsatzTeilnehmerModule } from '@/modules/einsatz-teilnehmer/einsatz-teilnehmer.module';
+import { EmitCriticalPushOnPsaProfilGeaendertHandler } from './event-handlers/emit-critical-push-on-psa-profil-geaendert.handler';
 import { AckPsaQuittungHandler } from './commands/ack-psa-quittung/ack-psa-quittung.handler';
 import { AckSicherheitsregelHandler } from './commands/ack-sicherheitsregel/ack-sicherheitsregel.handler';
 import { ChangePsaProfilHandler } from './commands/change-psa-profil/change-psa-profil.handler';
@@ -25,6 +27,7 @@ import { ListSicherheitsregelnHandler } from './queries/list-sicherheitsregeln/l
 import { ListSicherheitsregelQuittungenHandler } from './queries/list-sicherheitsregel-quittungen/list-sicherheitsregel-quittungen.handler';
 import { MeldeLueckeHandler } from './commands/melde-luecke/melde-luecke.handler';
 import { EmitPsaQuittungUeberfaelligHandler } from './commands/emit-psa-quittung-ueberfaellig/emit-psa-quittung-ueberfaellig.handler';
+import { ReportSyncConflictHandler } from './commands/report-sync-conflict/report-sync-conflict.handler';
 
 /**
  * Application-Layer-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -42,15 +45,17 @@ import { EmitPsaQuittungUeberfaelligHandler } from './commands/emit-psa-quittung
  * `NotizModule`/`EtbApplicationModule`).
  */
 @Module({
-  imports: [CqrsModule, PrismaModule, OutboxModule, EigenschutzInfrastructureModule, KraefteInfrastructureModule, UserInfrastructureModule, EinsatzTeilnehmerModule],
+  imports: [CqrsModule, PrismaModule, OutboxModule, EigenschutzInfrastructureModule, KraefteInfrastructureModule, PushNotificationsModule, UserInfrastructureModule, EinsatzTeilnehmerModule],
   providers: [
     AckPsaQuittungHandler,
     AckSicherheitsregelHandler,
     ChangePsaProfilHandler,
     CreateGefaehrdungsbeurteilungHandler,
     CreateSicherheitsregelHandler,
+    EmitCriticalPushOnPsaProfilGeaendertHandler,
     MeldeLueckeHandler,
     EmitPsaQuittungUeberfaelligHandler,
+    ReportSyncConflictHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
     UpdateSicherheitsregelHandler,
     GetGefaehrdungsbeurteilungHandler,
@@ -70,8 +75,10 @@ import { EmitPsaQuittungUeberfaelligHandler } from './commands/emit-psa-quittung
     ChangePsaProfilHandler,
     CreateGefaehrdungsbeurteilungHandler,
     CreateSicherheitsregelHandler,
+    EmitCriticalPushOnPsaProfilGeaendertHandler,
     MeldeLueckeHandler,
     EmitPsaQuittungUeberfaelligHandler,
+    ReportSyncConflictHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
     UpdateSicherheitsregelHandler,
     GetGefaehrdungsbeurteilungHandler,

@@ -3,7 +3,7 @@ import webpush from 'web-push';
 import type { IRuntimeConfigPort } from '@domain/ports/i-runtime-config.port';
 import { InfrastructureCommonModule } from '@infrastructure/common.module';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
-import { PUSH_SUBSCRIPTION_REPOSITORY, RUNTIME_CONFIG } from '@infrastructure/di-tokens';
+import { PUSH_NOTIFICATION_SERVICE, PUSH_SUBSCRIPTION_REPOSITORY, RUNTIME_CONFIG } from '@infrastructure/di-tokens';
 import { PrismaPushSubscriptionRepository } from './prisma-push-subscription.repository';
 import { PushNotificationsService } from './push-notifications.service';
 
@@ -37,8 +37,12 @@ const VAPID_MISSING_HINT = 'VAPID keypair missing — set VAPID_PUBLIC_KEY, VAPI
       useExisting: PrismaPushSubscriptionRepository,
     },
     PushNotificationsService,
+    {
+      provide: PUSH_NOTIFICATION_SERVICE,
+      useExisting: PushNotificationsService,
+    },
   ],
-  exports: [PushNotificationsService, PUSH_SUBSCRIPTION_REPOSITORY],
+  exports: [PushNotificationsService, PUSH_NOTIFICATION_SERVICE, PUSH_SUBSCRIPTION_REPOSITORY],
 })
 export class PushNotificationsModule implements OnModuleInit {
   constructor(@Inject(RUNTIME_CONFIG) private readonly runtimeConfig: IRuntimeConfigPort) {}

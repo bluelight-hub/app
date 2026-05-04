@@ -115,9 +115,39 @@ describe('PsaProfilController (Story 3.1)', () => {
       }
     });
 
+    it('Story 3.9 AC1: 409 ConflictException trägt context.zuweisungId, wenn Sentinel `:zuweisungId=<id>` enthält', async () => {
+      const loserCuid = 'clw3h8x9y0000qwertyuiloser1';
+      commandBus.execute.mockResolvedValue(Result.fail(`${CHANGE_PSA_PROFIL_ERROR_CODES.CONFLICT_DETECTED}:current=5:einheit=${EINHEIT_ID}:profil=BASIS:zuweisungId=${loserCuid}`));
+      try {
+        await callChange();
+        throw new Error('expected ConflictException');
+      } catch (e) {
+        expect(e).toBeInstanceOf(ConflictException);
+        const response = (e as ConflictException).getResponse() as { context: { currentVersion?: number; zuweisungId?: string; einheitId?: string; profil?: string } };
+        expect(response.context.currentVersion).toBe(5);
+        expect(response.context.einheitId).toBe(EINHEIT_ID);
+        expect(response.context.profil).toBe('BASIS');
+        expect(response.context.zuweisungId).toBe(loserCuid);
+      }
+    });
+
     it('409 ConflictException mit rule=DuplicateActiveProfile bei DUPLICATE-Sentinel', async () => {
       commandBus.execute.mockResolvedValue(Result.fail(CHANGE_PSA_PROFIL_ERROR_CODES.DUPLICATE_ACTIVE));
       await expect(callChange()).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('Story 3.9 AC1: DUPLICATE-Sentinel mit `:zuweisungId=<id>` propagiert sie in context.zuweisungId', async () => {
+      const activeCuid = 'clw3h8x9y0000qwertyuiactive';
+      commandBus.execute.mockResolvedValue(Result.fail(`${CHANGE_PSA_PROFIL_ERROR_CODES.DUPLICATE_ACTIVE}:einheit=${EINHEIT_ID}:profil=BASIS:zuweisungId=${activeCuid}`));
+      try {
+        await callChange();
+        throw new Error('expected ConflictException');
+      } catch (e) {
+        expect(e).toBeInstanceOf(ConflictException);
+        const response = (e as ConflictException).getResponse() as { context: { rule: string; zuweisungId?: string } };
+        expect(response.context.rule).toBe('DuplicateActiveProfile');
+        expect(response.context.zuweisungId).toBe(activeCuid);
+      }
     });
 
     it('404 NotFoundException bei NotFound-Sentinel', async () => {

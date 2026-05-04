@@ -62,6 +62,28 @@ export const EINSATZ_TEILNEHMER_REPOSITORY = Symbol('IEinsatzTeilnehmerRepositor
 export const PUSH_SUBSCRIPTION_REPOSITORY = Symbol('IPushSubscriptionRepository');
 
 /**
+ * Service-Token für `IPushNotificationService` (Story 3.8 / ADR-011).
+ *
+ * Wird von Application-Handlern (z. B. `EmitCriticalPushOnPsaProfilGeaendertHandler`)
+ * injiziert; die Konsumenten programmieren ausschließlich gegen das Domain-
+ * Interface `@domain/push-notifications/i-push-notification.service`. Die
+ * Layer-Boundary wird durch dieses Interface gesichert — der Token bindet
+ * via `useExisting` an denselben Singleton wie `PushNotificationsService`
+ * aus `PushNotificationsModule`, vermeidet Provider-Doppel und macht die
+ * konkrete Implementierung austauschbar, ohne die Konsumenten zu rühren.
+ */
+export const PUSH_NOTIFICATION_SERVICE = Symbol('IPushNotificationService');
+
+/**
+ * Lookup-Port-Token für `IPushRecipientLookupPort` (Story 3.8 AC2).
+ *
+ * Wird vom Bridge-Handler `EmitCriticalPushOnPsaProfilGeaendertHandler`
+ * injiziert. Implementierung im Infrastructure-Layer:
+ * `PrismaPushRecipientLookupRepository`.
+ */
+export const PUSH_RECIPIENT_LOOKUP = Symbol('IPushRecipientLookupPort');
+
+/**
  * DI Token für IErinnerungRepository Port.
  *
  * Verwendung in Handlers:
@@ -499,6 +521,30 @@ export const PSA_PROFIL_ZUWEISUNG_REPOSITORY = Symbol('IPsaProfilZuweisungReposi
  * `PrismaPsaProfilQuittungRepository`.
  */
 export const PSA_PROFIL_QUITTUNG_REPOSITORY = Symbol('IPsaProfilQuittungRepository');
+
+/**
+ * Repository Token für `ISyncConflictRepository` (Story 3.9).
+ *
+ * Wird vom `ReportSyncConflictHandler` injiziert, um Konflikt-Rows in
+ * `sync_conflicts` idempotent zu persistieren (Idempotenz-Schlüssel:
+ * `einsatzId + entityId + localExpectedVersion + reportedByUserId`,
+ * resolvedAt IS NULL — Tab-Reload-Schutz).
+ *
+ * Implementierung im Infrastructure-Layer:
+ * `PrismaSyncConflictRepository`.
+ */
+export const SYNC_CONFLICT_REPOSITORY = Symbol('ISyncConflictRepository');
+
+/**
+ * Query-Port-Token für `IPsaPropagationOverdueQueryPort` (Story 3.7 AC2).
+ *
+ * Wird vom `RepromptPsaQuittungScheduler` injiziert, um überfällige PSA-
+ * Bekanntgaben (`PsaProfilGeaendert` ohne `PsaProfilQuittung`,
+ * `occurredAt < threshold`, idempotent ggü. bereits emittierten
+ * `QuittungUeberfaellig`-Events) zu finden. Implementierung im Infrastructure-
+ * Layer: `PrismaPsaPropagationOverdueQueryRepository`.
+ */
+export const PSA_PROPAGATION_OVERDUE_QUERY = Symbol('IPsaPropagationOverdueQueryPort');
 
 /**
  * Read-Repository Token für `IPsaProfilZuweisungReadRepository` (Story 3.1).

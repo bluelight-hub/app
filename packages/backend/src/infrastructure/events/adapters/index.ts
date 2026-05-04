@@ -78,3 +78,5 @@ export * from './eigenschutz-sicherheitsregel-quittiert-event.adapter';
 export * from './eigenschutz-psa-profil-geaendert-event.adapter';
 export * from './eigenschutz-quittung-abgegeben-event.adapter';
 export * from './eigenschutz-luecke-gemeldet-event.adapter';
+export * from './eigenschutz-quittung-ueberfaellig-event.adapter';
+export * from './eigenschutz-konflikt-erkannt-event.adapter';

@@ -481,22 +481,22 @@ export class PsaProfilController {
     attemptedVersionFor: (profilHint?: string) => number | undefined,
   ): ConflictException | NotFoundException | UnprocessableEntityException | InternalServerErrorException {
     if (error.startsWith('ConflictDetected:DuplicateActivePsaProfilZuweisung')) {
-      const { einheitId, profil } = parseConflictAnnotations(error);
+      const { einheitId, profil, zuweisungId } = parseConflictAnnotations(error);
       return new ConflictException({
         statusCode: 409,
         error: 'Conflict',
         message: 'ConflictDetected:DuplicateActivePsaProfilZuweisung',
-        context: { rule: 'DuplicateActiveProfile', einheitId, profil },
+        context: { rule: 'DuplicateActiveProfile', einheitId, profil, zuweisungId },
       });
     }
     if (error.startsWith(PSA_PROFIL_CONFLICT_DETECTED)) {
-      // Story 3.2 (AC5): Sentinel kann mehrere `key=value`-Suffixe tragen
-      // (`current=`, `einheit=`, `profil=`) — Reihenfolge ist nicht
-      // verbindlich. Wir parsen pro Schlüssel separat.
+      // Story 3.2 (AC5) + Story 3.9 (AC1): Sentinel kann mehrere
+      // `key=value`-Suffixe tragen (`current=`, `einheit=`, `profil=`,
+      // `zuweisungId=`) — Reihenfolge ist nicht verbindlich.
       const currentMatch = error.match(/:current=(\d+)(?:$|:)/);
       const parsed = currentMatch?.[1] !== undefined ? Number.parseInt(currentMatch[1], 10) : undefined;
       const currentVersion = parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined;
-      const { einheitId, profil } = parseConflictAnnotations(error);
+      const { einheitId, profil, zuweisungId } = parseConflictAnnotations(error);
       // E11: `attemptedVersion` an das konkret konfliktierende Profil binden,
       // damit der UI-Banner nicht aus Versehen die `expectedVersion` eines
       // fremden Toggles als „erwartet" rendert.
@@ -505,7 +505,7 @@ export class PsaProfilController {
         statusCode: 409,
         error: 'Conflict',
         message: PSA_PROFIL_CONFLICT_DETECTED,
-        context: { currentVersion, attemptedVersion, einheitId, profil },
+        context: { currentVersion, attemptedVersion, einheitId, profil, zuweisungId },
       });
     }
     if (error.startsWith('NotFound:')) {
@@ -635,19 +635,24 @@ function extractAttemptedVersion(body: ChangePsaProfilDto | BulkChangePsaProfilD
 }
 
 /**
- * Parsed die Story-3.2-Sentinel-Suffixe `:einheit=<id>` und `:profil=<p>`
- * aus einem Conflict-String. Reihenfolge ist nicht verbindlich; fehlende
- * Schlüssel liefern `undefined`. Beide Werte landen als `context.einheitId`
- * / `context.profil` im 409-Response-Body, damit der Frontend-Banner die
- * konfliktierende Einheit/Profil-Kombination identifizieren kann (AC6).
+ * Parsed die Story-3.2-Sentinel-Suffixe `:einheit=<id>` / `:profil=<p>` und
+ * den Story-3.9-Suffix `:zuweisungId=<id>` aus einem Conflict-String.
+ * Reihenfolge ist nicht verbindlich; fehlende Schlüssel liefern `undefined`.
+ * Die Werte landen als `context.einheitId` / `context.profil` /
+ * `context.zuweisungId` im 409-Response-Body, damit der Frontend-Banner die
+ * konfliktierende Einheit/Profil-Kombination identifizieren (AC6) und der
+ * Sync-Conflict-Folgecall die Verlierer-Row referenzieren kann (Story 3.9 AC1).
  */
-function parseConflictAnnotations(error: string): { einheitId?: string; profil?: string } {
+function parseConflictAnnotations(error: string): { einheitId?: string; profil?: string; zuweisungId?: string } {
   // einheit-Wert ist eine CUID — die ist alphanumerisch, hat keine Doppelpunkte.
   const einheitMatch = error.match(/:einheit=([^:]+)/);
   // profil-Wert ist ein PsaProfil-Enum — UPPERCASE + Underscore.
   const profilMatch = error.match(/:profil=([A-Z_]+)/);
+  // zuweisungId ist eine cuid2 (lowercase a-z + 0-9, keine Doppelpunkte).
+  const zuweisungMatch = error.match(/:zuweisungId=([a-z0-9]+)(?:$|:)/);
   return {
     einheitId: einheitMatch?.[1],
     profil: profilMatch?.[1],
+    zuweisungId: zuweisungMatch?.[1],
   };
 }

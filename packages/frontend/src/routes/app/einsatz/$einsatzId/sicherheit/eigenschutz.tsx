@@ -3,8 +3,10 @@ import { EigenschutzEntryPage } from '@/features/eigenschutz';
 import { useEigenschutzPsaQuittungLive } from '@/features/eigenschutz/api/use-eigenschutz-psa-quittung-live';
 import { useEigenschutzLueckeGemeldetLive } from '@/features/eigenschutz/api/use-eigenschutz-luecke-gemeldet-live';
 import { useEigenschutzQuittungUeberfaelligLive } from '@/features/eigenschutz/api/use-eigenschutz-quittung-ueberfaellig-live';
+import { useEigenschutzKonfliktErkanntLive } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live';
 import { PsaProfilEmpfangBanner } from '@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner';
 import { EinsatzleiterReprompEskalationBanner } from '@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanner';
+import { KonfliktErkanntMikroBanner } from '@/features/eigenschutz/ui/molecules/KonfliktErkanntMikroBanner';
 import { logger } from '@/shared/lib/logger';
 import { Outlet, createFileRoute, useLocation } from '@tanstack/react-router';
 
@@ -49,6 +51,12 @@ function EigenschutzRouteComponent() {
   // als auch Einsatzleiter-Polite-Eskalation. Der Hook bleibt hier zentral
   // gemountet, damit beide Konsumenten denselben Notice-Buffer teilen.
   const reprompt = useEigenschutzQuittungUeberfaelligLive({ einsatzId });
+  // Story 3.9 AC8 — Konflikt-Erkannt-Live-Hook + Mikro-Banner. Pattern Story
+  // 3.7 (`reprompt`): Hook liefert notices + dismiss; Banner gated
+  // intern auf `BEFEHLSGEBER`-Rolle (Pattern Story 3.7 — `useMyEinsatzPermissions`
+  // existiert noch nicht; Spec-Wortlaut „eigenschutz:psa:write" ist auf eine
+  // Phase-2-Permission-Hook-Story aufgeschoben).
+  const konfliktLive = useEigenschutzKonfliktErkanntLive({ einsatzId });
 
   const isEigenschutzRoot = location.pathname.replace(/\/+$/, '').endsWith('/sicherheit/eigenschutz');
 
@@ -64,6 +72,7 @@ function EigenschutzRouteComponent() {
     <div className="flex flex-col gap-4">
       <PsaProfilEmpfangBanner einsatzId={einsatzId} onShowDetails={handleShowPsaDetails} repromptNotices={reprompt.notices} onRepromptDismiss={reprompt.dismiss} />
       <EinsatzleiterReprompEskalationBanner einsatzId={einsatzId} notices={reprompt.notices} onDismiss={reprompt.dismiss} />
+      <KonfliktErkanntMikroBanner einsatzId={einsatzId} notices={konfliktLive.notices} onDismiss={konfliktLive.dismissNotice} />
       {isEigenschutzRoot ? <EigenschutzEntryPage einsatzId={einsatzId} /> : <Outlet />}
     </div>
   );

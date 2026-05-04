@@ -268,6 +268,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get psaProfilQuittung() {
     return this._client.psaProfilQuittung;
   }
+  get syncConflict() {
+    return this._client.syncConflict;
+  }
 
   // Delegate Prisma Client methods
   $connect() {
