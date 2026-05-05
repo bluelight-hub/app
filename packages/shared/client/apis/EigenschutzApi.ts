@@ -22,6 +22,7 @@ import type {
   CreateGefaehrdungsbeurteilungDto,
   CreateSicherheitsregelDto,
   EigenschutzHealthControllerGetHealthVAlpha200Response,
+  EigenschutzTelemetryControllerIngestVAlpha200Response,
   GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response,
   GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response,
   GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200Response,
@@ -39,6 +40,7 @@ import type {
   SyncConflictControllerListSyncConflictsVAlpha200Response,
   SyncConflictControllerReportSyncConflictVAlpha200Response,
   SyncConflictControllerResolveSyncConflictVAlpha200Response,
+  TelemetryEventBatchDto,
   UpdateGefaehrdungsbeurteilungItemsDto,
   UpdateSicherheitsregelDto,
 } from '../models/index';
@@ -57,6 +59,8 @@ import {
     CreateSicherheitsregelDtoToJSON,
     EigenschutzHealthControllerGetHealthVAlpha200ResponseFromJSON,
     EigenschutzHealthControllerGetHealthVAlpha200ResponseToJSON,
+    EigenschutzTelemetryControllerIngestVAlpha200ResponseFromJSON,
+    EigenschutzTelemetryControllerIngestVAlpha200ResponseToJSON,
     GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseFromJSON,
     GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseToJSON,
     GefaehrdungsbeurteilungControllerGetHistorieVAlpha200ResponseFromJSON,
@@ -91,6 +95,8 @@ import {
     SyncConflictControllerReportSyncConflictVAlpha200ResponseToJSON,
     SyncConflictControllerResolveSyncConflictVAlpha200ResponseFromJSON,
     SyncConflictControllerResolveSyncConflictVAlpha200ResponseToJSON,
+    TelemetryEventBatchDtoFromJSON,
+    TelemetryEventBatchDtoToJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoFromJSON,
     UpdateGefaehrdungsbeurteilungItemsDtoToJSON,
     UpdateSicherheitsregelDtoFromJSON,
@@ -99,6 +105,11 @@ import {
 
 export interface EigenschutzHealthControllerGetHealthVAlphaRequest {
     einsatzId: string;
+}
+
+export interface EigenschutzTelemetryControllerIngestVAlphaRequest {
+    einsatzId: string;
+    telemetryEventBatchDto: TelemetryEventBatchDto;
 }
 
 export interface GefaehrdungsbeurteilungControllerCreateBeurteilungVAlphaRequest {
@@ -252,6 +263,49 @@ export class EigenschutzApi extends runtime.BaseAPI {
      */
     async eigenschutzHealthControllerGetHealthVAlpha(requestParameters: EigenschutzHealthControllerGetHealthVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzHealthControllerGetHealthVAlpha200Response> {
         const response = await this.eigenschutzHealthControllerGetHealthVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Telemetrie-Batch (1–50 Events) für CBRN-Moment-Auswertung — Story 3.11 (FR21, AR8)
+     */
+    async eigenschutzTelemetryControllerIngestVAlphaRaw(requestParameters: EigenschutzTelemetryControllerIngestVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EigenschutzTelemetryControllerIngestVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling eigenschutzTelemetryControllerIngestVAlpha().'
+            );
+        }
+
+        if (requestParameters['telemetryEventBatchDto'] == null) {
+            throw new runtime.RequiredError(
+                'telemetryEventBatchDto',
+                'Required parameter "telemetryEventBatchDto" was null or undefined when calling eigenschutzTelemetryControllerIngestVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/telemetry`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: TelemetryEventBatchDtoToJSON(requestParameters['telemetryEventBatchDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EigenschutzTelemetryControllerIngestVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Telemetrie-Batch (1–50 Events) für CBRN-Moment-Auswertung — Story 3.11 (FR21, AR8)
+     */
+    async eigenschutzTelemetryControllerIngestVAlpha(requestParameters: EigenschutzTelemetryControllerIngestVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzTelemetryControllerIngestVAlpha200Response> {
+        const response = await this.eigenschutzTelemetryControllerIngestVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

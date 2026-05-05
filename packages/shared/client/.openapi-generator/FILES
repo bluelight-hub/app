@@ -236,6 +236,7 @@ models/DmoDetailsDto.ts
 models/DwdWarnungDto.ts
 models/EigenschutzHealthControllerGetHealthVAlpha200Response.ts
 models/EigenschutzHealthDto.ts
+models/EigenschutzTelemetryControllerIngestVAlpha200Response.ts
 models/EinheitCreatedResponseDto.ts
 models/EinsatzBeitrittControllerCreateVAlpha201Response.ts
 models/EinsatzBeitrittControllerFindAllVAlpha200Response.ts
@@ -525,6 +526,9 @@ models/TaktischeZeichenControllerGetDefaultsFahrzeugtypenVAlpha200Response.ts
 models/TaktischeZeichenControllerGetKatalogVAlpha200Response.ts
 models/TaktischeZeichenControllerSetDefaultFahrzeugtypVAlpha200Response.ts
 models/TaktischesZeichenResponseDto.ts
+models/TelemetryEventBatchDto.ts
+models/TelemetryEventDto.ts
+models/TelemetryIngestResultDto.ts
 models/TextbausteinDto.ts
 models/TimelineUserDto.ts
 models/TmoDetailsDto.ts

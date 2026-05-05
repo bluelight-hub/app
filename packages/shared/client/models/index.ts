@@ -183,6 +183,7 @@ export * from './DmoDetailsDto';
 export * from './DwdWarnungDto';
 export * from './EigenschutzHealthControllerGetHealthVAlpha200Response';
 export * from './EigenschutzHealthDto';
+export * from './EigenschutzTelemetryControllerIngestVAlpha200Response';
 export * from './EinheitCreatedResponseDto';
 export * from './EinsatzBeitrittControllerCreateVAlpha201Response';
 export * from './EinsatzBeitrittControllerFindAllVAlpha200Response';
@@ -472,6 +473,9 @@ export * from './TaktischeZeichenControllerGetDefaultsFahrzeugtypenVAlpha200Resp
 export * from './TaktischeZeichenControllerGetKatalogVAlpha200Response';
 export * from './TaktischeZeichenControllerSetDefaultFahrzeugtypVAlpha200Response';
 export * from './TaktischesZeichenResponseDto';
+export * from './TelemetryEventBatchDto';
+export * from './TelemetryEventDto';
+export * from './TelemetryIngestResultDto';
 export * from './TextbausteinDto';
 export * from './TimelineUserDto';
 export * from './TmoDetailsDto';

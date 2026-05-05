@@ -18,6 +18,7 @@ vi.mock('../../../api/queries', async (importOriginal) => {
 });
 
 import { PsaProfilDetailDrawer } from '../PsaProfilDetailDrawer';
+import { eigenschutzTelemetryQueue } from '../../../lib/telemetry-queue';
 
 const EINHEITEN: EquipmentChecklistEinheit[] = [{ einheitId: 'einheit-1', einheitName: 'Sani-1' }];
 
@@ -25,10 +26,12 @@ beforeEach(() => {
   ackMutationMock.mutateAsync.mockReset();
   ackMutationMock.mutateAsync.mockResolvedValue(undefined);
   ackMutationMock.isPending = false;
+  eigenschutzTelemetryQueue.drain();
 });
 
 afterEach(() => {
   vi.clearAllMocks();
+  eigenschutzTelemetryQueue.drain();
 });
 
 describe('PsaProfilDetailDrawer (Story 3.5 AC7/AC14)', () => {
@@ -181,6 +184,35 @@ describe('PsaProfilDetailDrawer (Story 3.5 AC7/AC14)', () => {
     );
     expect(screen.getByTestId('psa-profil-detail-profile-loading')).toBeInTheDocument();
     expect(screen.getByTestId('psa-profil-detail-checklist-loading')).toBeInTheDocument();
+  });
+
+  it('Story 3.11 AC10 — Drawer-Quittung erzeugt KEIN blind_ack-Event (Banner-only)', async () => {
+    // AC10 sagt explizit: blind_ack ist Banner-only. Der Drawer-Pfad hat
+    // keinen Banner-Open-Kontext (das `bannerOpenedAtRef` lebt im Banner-
+    // Komponenten-Closure). Würde die Mutation selbst `blind_ack` emittieren,
+    // erzeugte das in Drawer-Quittungen False-Positives. Dieser Negativ-Test
+    // belegt: auch ein sofortiger Drawer-Quittungs-Klick (< 2 s nach
+    // Drawer-Open) schiebt KEIN `blind_ack` in die Telemetrie-Queue.
+    render(
+      <PsaProfilDetailDrawer
+        einsatzId="einsatz-1"
+        propagationGroupId="pg-blind"
+        einheiten={EINHEITEN}
+        aktiveProfile={['BASIS']}
+        begruendung="Test"
+        onClose={() => undefined}
+        onQuittieren={() => undefined}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('psa-profil-detail-quittieren'));
+
+    await waitFor(() => {
+      expect(ackMutationMock.mutateAsync).toHaveBeenCalledWith({ propagationGroupId: 'pg-blind', einheitId: 'einheit-1' });
+    });
+
+    const blindAcks = eigenschutzTelemetryQueue.snapshot().filter((e) => e.eventName === 'blind_ack');
+    expect(blindAcks).toHaveLength(0);
   });
 
   it('profilToggles differenziert Section B in Aktiviert + Deaktiviert (Decision)', () => {

@@ -8,6 +8,7 @@ import { GefaehrdungsbeurteilungController } from './controllers/gefaehrdungsbeu
 import { PsaProfilController } from './controllers/psa-profil.controller';
 import { SicherheitsregelController } from './controllers/sicherheitsregel.controller';
 import { SyncConflictController } from './controllers/sync-conflict.controller';
+import { EigenschutzTelemetryController } from './controllers/eigenschutz-telemetry.controller';
 
 /**
  * HTTP-Modul für den Eigenschutz-Feature-Slice.
@@ -28,6 +29,6 @@ import { SyncConflictController } from './controllers/sync-conflict.controller';
  */
 @Module({
   imports: [AuthModule, CqrsModule, EigenschutzApplicationModule, EigenschutzInfrastructureModule],
-  controllers: [EigenschutzHealthController, GefaehrdungsbeurteilungController, SicherheitsregelController, PsaProfilController, SyncConflictController],
+  controllers: [EigenschutzHealthController, GefaehrdungsbeurteilungController, SicherheitsregelController, PsaProfilController, SyncConflictController, EigenschutzTelemetryController],
 })
 export class EigenschutzModule {}

@@ -5,6 +5,7 @@ import { useEigenschutzLueckeGemeldetLive } from '@/features/eigenschutz/api/use
 import { useEigenschutzQuittungUeberfaelligLive } from '@/features/eigenschutz/api/use-eigenschutz-quittung-ueberfaellig-live';
 import { useEigenschutzKonfliktErkanntLive } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live';
 import { useEigenschutzKonfliktAufgeloestLive } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-aufgeloest-live';
+import { useEigenschutzTelemetry } from '@/features/eigenschutz/hooks/useEigenschutzTelemetry';
 import type { KonfliktNotice } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live';
 import { PsaProfilEmpfangBanner } from '@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner';
 import { EinsatzleiterReprompEskalationBanner } from '@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanner';
@@ -66,6 +67,11 @@ function EigenschutzRouteComponent() {
   // (Story 3.9-Schema) auf eine separate Folgestory aufgeschoben. Der 30-s-
   // Auto-Dismiss in `KonfliktErkanntMikroBanner` deckt die UX-Lücke.
   useEigenschutzKonfliktAufgeloestLive({ einsatzId });
+  // Story 3.11 Task 9.3 — Telemetrie-Flush-Hook am Layout-Mount: drei
+  // unabhängige Trigger (10-s-Timer, Threshold ≥ 50 Events,
+  // Visibility/Pagehide). Die Queue selbst lebt modul-global; der Hook
+  // bindet nur den Flush-Pfad an den Einsatz-Kontext.
+  useEigenschutzTelemetry(einsatzId);
 
   const navigate = useNavigate();
   // Story 3.10 AC9 §4 — Wiring der Mikro-Banner-Navigation aus Story 3.9.

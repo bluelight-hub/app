@@ -454,6 +454,21 @@ export const METRICS = {
   WS_CONNECTIONS: Symbol('WebSocketConnectionsGauge'),
   /** Outbox Queue Depth Gauge */
   OUTBOX_QUEUE_DEPTH: Symbol('OutboxQueueDepthGauge'),
+  /**
+   * Histogram für End-to-End-Latenz `assess_started → all_banners_delivered`
+   * (Story 3.11 AC4 / NFR-P1: Ziel-Fenster ≤ 90 s als explizite Bucket-Grenze).
+   */
+  EIGENSCHUTZ_PSA_PROPAGATION_DURATION: Symbol('EigenschutzPsaPropagationDurationHistogram'),
+  /**
+   * Histogram für Latenz `all_banners_delivered → psa_quittung_abgegeben`
+   * (Story 3.11 AC4). Niedrig-kardinal (`einheit_id_bucket: 'present' | 'absent'`).
+   */
+  EIGENSCHUTZ_QUITTUNG_LATENCY: Symbol('EigenschutzQuittungLatencyHistogram'),
+  /**
+   * Counter für Blind-Acknowledgments (Quittung < 2 s nach Banner-Öffnen,
+   * Story 3.11 AC4 + AC10). Coaching-Signal pro Einheit.
+   */
+  EIGENSCHUTZ_BLIND_ACK_TOTAL: Symbol('EigenschutzBlindAckTotalCounter'),
 } as const;
 
 /**
@@ -534,6 +549,16 @@ export const PSA_PROFIL_QUITTUNG_REPOSITORY = Symbol('IPsaProfilQuittungReposito
  * `PrismaSyncConflictRepository`.
  */
 export const SYNC_CONFLICT_REPOSITORY = Symbol('ISyncConflictRepository');
+
+/**
+ * Repository Token für `IEigenschutzTelemetryRepository` (Story 3.11).
+ *
+ * Wird vom `TelemetryIngestService` injiziert, um Telemetrie-Batches
+ * (1–50 Events) atomar in `eigenschutz_telemetry_events` zu persistieren.
+ * Implementierung im Infrastructure-Layer:
+ * `PrismaEigenschutzTelemetryRepository`.
+ */
+export const EIGENSCHUTZ_TELEMETRY_REPOSITORY = Symbol('IEigenschutzTelemetryRepository');
 
 /**
  * Query-Port-Token für `IPsaPropagationOverdueQueryPort` (Story 3.7 AC2).
