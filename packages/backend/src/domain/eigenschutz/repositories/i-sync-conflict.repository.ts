@@ -108,8 +108,12 @@ export interface ISyncConflictRepository {
 
   /**
    * Single-Row-Lookup (Story 3.10 AC2). `null` bei Not-Found (kein Fehler).
+   *
+   * **TX-Kontext:** Wird `tx` übergeben, läuft der Read im selben TX-Kontext
+   * wie der nachfolgende `markResolved` — nötig, damit `findById` und
+   * `markResolved` einen kohärenten Snapshot sehen (Story 3.10 Code-Review F2).
    */
-  findById(syncConflictId: string): Promise<Result<SyncConflictReadModel | null>>;
+  findById(syncConflictId: string, tx?: TransactionContext): Promise<Result<SyncConflictReadModel | null>>;
 
   /**
    * Markiert einen Konflikt als aufgelöst (Story 3.10 AC2). Idempotent via

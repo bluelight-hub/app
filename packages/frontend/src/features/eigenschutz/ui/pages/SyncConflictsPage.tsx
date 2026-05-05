@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { useEinsatzRolleContext } from '@/features/einsatz';
 import { ConflictResolutionList } from '../organisms/ConflictResolutionList';
@@ -43,13 +44,18 @@ export function SyncConflictsPage({ einsatzId }: SyncConflictsPageProps) {
   const { meineRolle } = useEinsatzRolleContext();
   const canResolve = meineRolle?.rolle === 'BEFEHLSGEBER';
 
+  // Stabile `initialFilter`-Referenz — ohne `useMemo` würde jeder Re-Render
+  // ein neues Objekt erzeugen, der `useEffect` in `ConflictResolutionList`
+  // (URL → State Sync, F8) liefe in eine harmlose, aber überflüssige Schleife.
+  const initialFilter = useMemo(() => ({ entityType: search?.entityType, einheitId: search?.einheitId }), [search?.entityType, search?.einheitId]);
+
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold text-text-primary">Sync-Konflikte</h1>
         <p className="text-sm text-text-muted">Multi-Device-Konflikte (FR50) — auf jeder Zeile entscheiden, welche Version gilt.</p>
       </header>
-      <ConflictResolutionList einsatzId={einsatzId} initialFilter={{ entityType: search?.entityType, einheitId: search?.einheitId }} canResolve={canResolve} />
+      <ConflictResolutionList einsatzId={einsatzId} initialFilter={initialFilter} canResolve={canResolve} />
     </div>
   );
 }

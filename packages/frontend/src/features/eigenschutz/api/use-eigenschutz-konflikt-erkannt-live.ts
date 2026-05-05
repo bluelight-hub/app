@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { io, type Socket } from 'socket.io-client';
 import { z } from 'zod';
@@ -60,6 +60,66 @@ interface UseEigenschutzKonfliktErkanntLiveResult {
 const getWsBaseUrl = (): string => getBaseUrl() || 'http://localhost:3091';
 
 /**
+ * **Cross-Hook-Notice-Registry** (Story 3.10 AC7 §4):
+ *
+ * Der Aufgeloest-Hook braucht eine Möglichkeit, eine Erkannt-Notice anhand
+ * eines Composite-Keys (`entityId + entityType + fieldPath`) zu dismissen,
+ * sobald der zugehörige Auflösungs-Frame eintrifft. Variante A aus dem
+ * Patch-Plan (kein Backend-Schema-Bump nötig).
+ *
+ * **Warum module-level statt React-Context?** Der Aufgeloest-Hook lebt
+ * in einer separaten Subtree-Position; ein Context-Provider müsste beide
+ * Hooks umschließen — zu invasiv. Module-level Registry hält die
+ * Cross-Hook-Komplexität lokal in dieser Datei und exportiert ein schmales
+ * `findAndDismissNoticeByEntity`-API.
+ *
+ * **StrictMode-Robustheit:** unter React-StrictMode wird der Effect-Cycle
+ * doppelt gemountet. Wir verwenden `useId()` als Hook-Instance-Key —
+ * Re-Mounts mit neuem Effect bekommen eine neue Eintrags-ID, der alte
+ * unregister-Pfad räumt nur seinen eigenen Eintrag.
+ *
+ * **Test-Isolation:** `__resetKonfliktErkanntRegistryForTests` exportiert.
+ */
+type RegistryEntry = {
+  einsatzId: string;
+  getNotices: () => KonfliktNotice[];
+  dismissNotice: (eventId: string) => void;
+};
+
+const noticeRegistry = new Map<string, RegistryEntry>();
+
+/** Nur für Tests — räumt module-level State zwischen Test-Cases. */
+export function __resetKonfliktErkanntRegistryForTests(): void {
+  noticeRegistry.clear();
+}
+
+/**
+ * Sucht in allen registrierten Erkannt-Hook-Instanzen für `einsatzId`
+ * eine Notice mit passendem Composite-Key (`entityId + entityType +
+ * fieldPath`) und ruft `dismissNotice(notice.eventId)`. Liefert die Anzahl
+ * der dismissten Notices (typischerweise 0 oder 1, kann theoretisch >1
+ * sein, falls mehrere Browser-Tabs ineinandergeschachtelt rendern —
+ * dann ist der Konflikt logisch derselbe und alle dürfen weg).
+ *
+ * @param criteria Composite-Korrelator aus dem Aufgeloest-Frame.
+ * @returns Anzahl der dismissten Notices.
+ */
+export function findAndDismissNoticeByEntity(criteria: { einsatzId: string; entityId: string; entityType: KonfliktErkanntLive['entityType']; fieldPath: string }): number {
+  let dismissed = 0;
+  for (const entry of noticeRegistry.values()) {
+    if (entry.einsatzId !== criteria.einsatzId) continue;
+    const notices = entry.getNotices();
+    for (const notice of notices) {
+      if (notice.entityId === criteria.entityId && notice.entityType === criteria.entityType && notice.fieldPath === criteria.fieldPath) {
+        entry.dismissNotice(notice.eventId);
+        dismissed += 1;
+      }
+    }
+  }
+  return dismissed;
+}
+
+/**
  * Live-Subscriber für `eigenschutz:konflikt-erkannt` (Story 3.9 AC8).
  *
  * **Verantwortung:**
@@ -75,6 +135,11 @@ const getWsBaseUrl = (): string => getBaseUrl() || 'http://localhost:3091';
  * **Sichtbarkeits-Filter (Konsumentenseite):** Alle Empfänger im Einsatz
  * erhalten den Frame; nur User mit `eigenschutz:psa:write` rendern den
  * `KonfliktErkanntMikroBanner` (Pattern Story 3.7 BEFEHLSGEBER-Gating).
+ *
+ * **Story 3.10 AC7 §4 — Cross-Hook-Dismiss:** der Hook registriert sich
+ * in `noticeRegistry` (s. o.); der Aufgeloest-Hook konsumiert
+ * `findAndDismissNoticeByEntity`, um den Mikro-Banner sofort zu schließen,
+ * wenn der zugehörige Auflösungs-Frame eintrifft.
  */
 export function useEigenschutzKonfliktErkanntLive({ einsatzId, enabled = true }: UseEigenschutzKonfliktErkanntLiveOptions): UseEigenschutzKonfliktErkanntLiveResult {
   const queryClient = useQueryClient();
@@ -86,6 +151,9 @@ export function useEigenschutzKonfliktErkanntLive({ einsatzId, enabled = true }:
   const eventIdOrderRef = useRef<string[]>([]);
   const [status, setStatus] = useState<UseEigenschutzKonfliktErkanntLiveResult['status']>(enabled && einsatzId ? 'connecting' : 'disconnected');
   const [notices, setNotices] = useState<KonfliktNotice[]>([]);
+  const noticesRef = useRef<KonfliktNotice[]>([]);
+  noticesRef.current = notices;
+  const instanceId = useId();
 
   const dedupAdd = useCallback((eventId: string): boolean => {
     if (eventIdCacheRef.current.has(eventId)) return false;
@@ -101,6 +169,22 @@ export function useEigenschutzKonfliktErkanntLive({ einsatzId, enabled = true }:
   const dismissNotice = useCallback((eventId: string) => {
     setNotices((prev) => prev.filter((n) => n.eventId !== eventId));
   }, []);
+
+  // Registry-Eintrag für Cross-Hook-Dismiss (Story 3.10 AC7 §4).
+  // Eigener Effect, damit `einsatzId`-Wechsel den alten Eintrag sauber
+  // entfernt und einen neuen registriert. `dismissNotice` ist stabil
+  // (useCallback ohne Deps), `noticesRef` synchronisiert per Render.
+  useEffect(() => {
+    if (!einsatzId) return undefined;
+    noticeRegistry.set(instanceId, {
+      einsatzId,
+      getNotices: () => noticesRef.current,
+      dismissNotice,
+    });
+    return () => {
+      noticeRegistry.delete(instanceId);
+    };
+  }, [einsatzId, instanceId, dismissNotice]);
 
   useEffect(() => {
     eventIdCacheRef.current = new Set();

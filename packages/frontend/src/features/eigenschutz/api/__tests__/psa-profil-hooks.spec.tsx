@@ -335,7 +335,7 @@ describe('useResolveKonflikt (Story 3.10 AC7)', () => {
     expect(result.current.data?.syncConflictId).toBe('sc-1');
   });
 
-  it('onSuccess SERVER_WINS: invalidiert sync-conflicts, NICHT psa-profile', async () => {
+  it('onSuccess SERVER_WINS: invalidiert sync-conflicts UND psa-profile (Story 3.10 F3)', async () => {
     const client = makeClient();
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
     mockResolveSyncConflict.mockResolvedValue({ data: { syncConflictId: 'sc-1', alreadyResolved: false, resolvedAt: new Date() } });
@@ -346,10 +346,15 @@ describe('useResolveKonflikt (Story 3.10 AC7)', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     const keys = invalidateSpy.mock.calls.map((c) => c[0]?.queryKey);
-    expect(keys).toEqual(expect.arrayContaining([['eigenschutz', EINSATZ_ID, 'sync-conflicts']]));
-    // Bei SERVER_WINS bleibt der lokale PSA-State unverändert (Server hat
-    // gewonnen; das PSA-Profile-Cache wird nicht angefasst).
-    expect(keys).not.toEqual(expect.arrayContaining([['eigenschutz', EINSATZ_ID, 'psa-profile']]));
+    // F3: Auch SERVER_WINS invalidiert psa-profile, weil der Server-State
+    // sich beim Konflikt-Resolve verschoben haben kann und der WS-Frame
+    // nicht garantiert zuerst eintrifft.
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        ['eigenschutz', EINSATZ_ID, 'sync-conflicts'],
+        ['eigenschutz', EINSATZ_ID, 'psa-profile'],
+      ]),
+    );
   });
 
   it('onSuccess LOCAL_WINS: invalidiert sync-conflicts UND psa-profile', async () => {
@@ -363,6 +368,27 @@ describe('useResolveKonflikt (Story 3.10 AC7)', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     const keys = invalidateSpy.mock.calls.map((c) => c[0]?.queryKey);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        ['eigenschutz', EINSATZ_ID, 'sync-conflicts'],
+        ['eigenschutz', EINSATZ_ID, 'psa-profile'],
+      ]),
+    );
+  });
+
+  it('onSuccess MERGED: invalidiert sync-conflicts UND psa-profile (Story 3.10 F3)', async () => {
+    const client = makeClient();
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+    mockResolveSyncConflict.mockResolvedValue({ data: { syncConflictId: 'sc-merged', alreadyResolved: false, resolvedAt: new Date() } });
+
+    const { result } = renderHook(() => useResolveKonflikt(EINSATZ_ID), { wrapper: wrapper(client) });
+    invalidateSpy.mockClear();
+    result.current.mutate({ syncConflictId: 'sc-merged', resolution: 'MERGED' });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    const keys = invalidateSpy.mock.calls.map((c) => c[0]?.queryKey);
+    // F3: MERGED vereint Toggle-Sets (Phase 2), Server-State ändert sich —
+    // psa-profile muss invalidiert werden.
     expect(keys).toEqual(
       expect.arrayContaining([
         ['eigenschutz', EINSATZ_ID, 'sync-conflicts'],

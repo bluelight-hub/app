@@ -8,12 +8,14 @@
  * den `@RequiresPermission('eigenschutz:psa:write')`-Decorator trägt.
  * Pattern Story 3.6 Code-Review-Patches.
  */
-import { InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { ConflictException, InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
 import { ReportSyncConflictCommand } from '@/application/eigenschutz/commands/report-sync-conflict/report-sync-conflict.command';
 import { REPORT_SYNC_CONFLICT_ERROR_CODES } from '@/application/eigenschutz/commands/report-sync-conflict/report-sync-conflict.handler';
+import { ResolveKonfliktCommand } from '@/application/eigenschutz/commands/resolve-konflikt/resolve-konflikt.command';
+import { ListSyncConflictsQuery } from '@/application/eigenschutz/queries/list-sync-conflicts/list-sync-conflicts.query';
 import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
 import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -29,14 +31,17 @@ const USER_ID = 'clw3h8x9y0000qwertyui00099';
 describe('SyncConflictController — Story 3.9 (Sync-Konflikt-Folgecall)', () => {
   let controller: SyncConflictController;
   let commandBus: { execute: jest.Mock };
+  let queryBus: { execute: jest.Mock };
 
   beforeEach(async () => {
     commandBus = { execute: jest.fn() };
+    queryBus = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SyncConflictController],
       providers: [
         { provide: CommandBus, useValue: commandBus },
+        { provide: QueryBus, useValue: queryBus },
         { provide: LOGGER, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() } },
       ],
     })
@@ -167,5 +172,141 @@ describe('SyncConflictController — Story 3.9 (Sync-Konflikt-Folgecall)', () =>
   it('500 InternalServerError bei unbekanntem Sentinel', async () => {
     commandBus.execute.mockResolvedValue(Result.fail('boom'));
     await expect(callReport()).rejects.toBeInstanceOf(InternalServerErrorException);
+  });
+
+  // Story 3.10 — neue Endpoints im selben Controller.
+  describe('GET /sync-conflicts (Story 3.10 AC5)', () => {
+    it('listSyncConflicts-Handler trägt @RequiresPermission("eigenschutz:psa:read")', () => {
+      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SyncConflictController.prototype.listSyncConflicts);
+      expect(required).toEqual(['eigenschutz:psa:read']);
+    });
+
+    function callList(filter: { entityType?: string; einheitId?: string } = {}) {
+      return controller.listSyncConflicts(EINSATZ_ID, filter as never, { userId: USER_ID } as never);
+    }
+
+    it('200: Query mit einsatzId+callerUserId+leerem Filter konstruiert; Mapping mappt Date → ISO-String', async () => {
+      const reportedAt = new Date('2026-05-04T10:30:45.123Z');
+      queryBus.execute.mockResolvedValue(
+        Result.ok({
+          conflicts: [
+            {
+              id: 'sc-1',
+              einheitId: EINHEIT_ID,
+              entityType: 'PSA_PROFIL_ZUWEISUNG' as const,
+              entityId: ENTITY_ID,
+              fieldPath: 'profil',
+              localPayload: { toggles: [] },
+              serverVersion: 6,
+              localExpectedVersion: 5,
+              reportedAt,
+              reportedByUserId: USER_ID,
+            },
+          ],
+        }),
+      );
+
+      const response = await callList();
+
+      expect(response).toHaveLength(1);
+      expect(response[0].reportedAt).toBe(reportedAt.toISOString());
+      const query = queryBus.execute.mock.calls[0][0] as ListSyncConflictsQuery;
+      expect(query).toBeInstanceOf(ListSyncConflictsQuery);
+      expect(query.einsatzId).toBe(EINSATZ_ID);
+      expect(query.callerUserId).toBe(USER_ID);
+    });
+
+    it('Filter entityType wird in Query.filter durchgereicht', async () => {
+      queryBus.execute.mockResolvedValue(Result.ok({ conflicts: [] }));
+      await callList({ entityType: 'PSA_PROFIL_ZUWEISUNG' });
+      const query = queryBus.execute.mock.calls[0][0] as ListSyncConflictsQuery;
+      expect(query.filter).toEqual({ entityType: 'PSA_PROFIL_ZUWEISUNG', einheitId: undefined });
+    });
+
+    it('Filter einheitId wird in Query.filter durchgereicht', async () => {
+      queryBus.execute.mockResolvedValue(Result.ok({ conflicts: [] }));
+      await callList({ einheitId: EINHEIT_ID });
+      const query = queryBus.execute.mock.calls[0][0] as ListSyncConflictsQuery;
+      expect(query.filter).toEqual({ entityType: undefined, einheitId: EINHEIT_ID });
+    });
+
+    it('Empty-Liste → 200 mit leerem Array (Q6)', async () => {
+      queryBus.execute.mockResolvedValue(Result.ok({ conflicts: [] }));
+      const response = await callList();
+      expect(response).toEqual([]);
+    });
+
+    it('422 UnprocessableEntity bei NOT_TEILNEHMER', async () => {
+      queryBus.execute.mockResolvedValue(Result.fail('BusinessRule:UnzulaessigeEinheitenZuordnung'));
+      await expect(callList()).rejects.toBeInstanceOf(UnprocessableEntityException);
+    });
+  });
+
+  describe('PATCH /sync-conflicts/:syncConflictId/resolve (Story 3.10 AC5)', () => {
+    it('resolveSyncConflict-Handler trägt @RequiresPermission("eigenschutz:psa:write")', () => {
+      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SyncConflictController.prototype.resolveSyncConflict);
+      expect(required).toEqual(['eigenschutz:psa:write']);
+    });
+
+    function callResolve(syncConflictId = 'sc-1', resolution: 'SERVER_WINS' | 'LOCAL_WINS' | 'MERGED' = 'SERVER_WINS') {
+      return controller.resolveSyncConflict(EINSATZ_ID, syncConflictId, { resolution } as never, { userId: USER_ID } as never);
+    }
+
+    it('200: Command mit allen Feldern konstruiert; resolvedAt als ISO-String im Response', async () => {
+      const resolvedAt = new Date('2026-05-04T15:00:00.000Z');
+      commandBus.execute.mockResolvedValue(Result.ok({ syncConflictId: 'sc-1', alreadyResolved: false, resolvedAt }));
+
+      const response = await callResolve('sc-1', 'LOCAL_WINS');
+
+      expect(response).toEqual({ syncConflictId: 'sc-1', alreadyResolved: false, resolvedAt: resolvedAt.toISOString() });
+      const cmd = commandBus.execute.mock.calls[0][0] as ResolveKonfliktCommand;
+      expect(cmd).toBeInstanceOf(ResolveKonfliktCommand);
+      expect(cmd.einsatzId).toBe(EINSATZ_ID);
+      expect(cmd.syncConflictId).toBe('sc-1');
+      expect(cmd.resolution).toBe('LOCAL_WINS');
+      expect(cmd.callerUserId).toBe(USER_ID);
+    });
+
+    it('200 mit alreadyResolved=true (Idempotenz-Pfad)', async () => {
+      const resolvedAt = new Date('2026-05-04T14:00:00.000Z');
+      commandBus.execute.mockResolvedValue(Result.ok({ syncConflictId: 'sc-2', alreadyResolved: true, resolvedAt }));
+      const response = await callResolve('sc-2');
+      expect(response.alreadyResolved).toBe(true);
+    });
+
+    it('404 NotFoundException bei NotFound:SyncConflict', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('NotFound:SyncConflict'));
+      await expect(callResolve()).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('422 UnprocessableEntity bei BusinessRule:EntityTypeNotSupportedInStory310', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('BusinessRule:EntityTypeNotSupportedInStory310'));
+      await expect(callResolve('sc-3', 'LOCAL_WINS')).rejects.toBeInstanceOf(UnprocessableEntityException);
+    });
+
+    it('422 UnprocessableEntity bei BusinessRule:LocalWinsNichtMoeglich:AggregateNichtGefunden', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('BusinessRule:LocalWinsNichtMoeglich:AggregateNichtGefunden'));
+      await expect(callResolve('sc-4', 'LOCAL_WINS')).rejects.toBeInstanceOf(UnprocessableEntityException);
+    });
+
+    it('422 UnprocessableEntity bei BusinessRule:KonfliktNichtImEinsatz (Cross-Einsatz-Defense)', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('BusinessRule:KonfliktNichtImEinsatz'));
+      await expect(callResolve('sc-5')).rejects.toBeInstanceOf(UnprocessableEntityException);
+    });
+
+    it('422 UnprocessableEntity bei ValidationFailed:LocalWinsPayloadInvalid', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('ValidationFailed:LocalWinsPayloadInvalid'));
+      await expect(callResolve('sc-6', 'LOCAL_WINS')).rejects.toBeInstanceOf(UnprocessableEntityException);
+    });
+
+    it('409 ConflictException bei ConflictDetected:* (sekundärer Konflikt im LOCAL_WINS-Reapply)', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('ConflictDetected:PsaProfilZuweisung:current=8:zuweisungId=zuw-1'));
+      await expect(callResolve('sc-7', 'LOCAL_WINS')).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('500 InternalServerError bei InfrastructureError-Sentinel', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail('InfrastructureError:Eigenschutz:db-down'));
+      await expect(callResolve()).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
   });
 });

@@ -3,7 +3,7 @@
  * (Story 3.10 AC8, FR50, UX-DR6).
  *
  * **Anatomie:**
- * - Filter-Bar (Entitätstyp + Einheit + Reset).
+ * - Filter-Bar (Entitätstyp + Einheit + Reset) mit URL-Persistenz (`replace: true`).
  * - Virtualisierte Tabelle (`role="table"`, `useVirtualizer`).
  * - Sortierbare Spalten via `aria-sort` + Keyboard-Toggle.
  * - 3 Resolve-Aktionen pro Row (Server / Lokal / Merge), je ≥ 48 px Touch-Target.
@@ -11,13 +11,20 @@
  * - Polite Live-Region für SR-Ansage nach erfolgreichem Resolve.
  *
  * **Read-Only-Modus:**
- * Wird über das `canResolve`-Prop gesteuert. Default ist `true`; die Page-
- * Komponente (Task 9) verkabelt das mit `useMyEinsatzRolle`-basierter
- * BEFEHLSGEBER-Permission. Liefert `canResolve === false` werden alle drei
- * Action-Buttons via `disabled` + `aria-disabled` deaktiviert.
+ * Wird über das `canResolve`-Prop gesteuert (required). Die Page-Komponente
+ * (Task 9) verkabelt das mit `useMyEinsatzRolle`-basierter BEFEHLSGEBER-
+ * Permission. `canResolve === false` deaktiviert alle drei Action-Buttons via
+ * `disabled` + `aria-disabled` und blendet den Read-Only-Hinweis ein.
+ *
+ * **Per-Row-Disabling:**
+ * Während eine Resolve-Mutation für eine konkrete Konflikt-Id läuft, wird
+ * NUR die betroffene Row deaktiviert (lokaler `resolvingIds`-Set). Andere
+ * Konflikt-Rows bleiben bedienbar — sonst friert eine laufende Aktion die
+ * gesamte Liste ein (F10).
  */
 
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { PiCheckCircle, PiArrowsClockwise } from 'react-icons/pi';
 import type { SyncConflictListItemDto } from '@bluelight-hub/shared/client';
@@ -36,19 +43,30 @@ type EntityType = SyncConflictListItemDto['entityType'];
 type SortColumn = 'reportedAt' | 'entityType' | 'einheitName' | 'serverVersion' | 'localExpectedVersion';
 type SortDirection = 'asc' | 'desc';
 
+/**
+ * cuid2-Default-Länge ist 24 Zeichen (lowercase a-z + 0-9). Die Filter-Eingabe
+ * für `einheitId` wird gegen dieses Pattern validiert, um Junk-Filter (z. B.
+ * Tippfehler aus der Zwischenablage) bereits clientseitig zu blocken — sonst
+ * landet ein 404-Backend-Roundtrip im Cache und der User sieht „leere Liste"
+ * ohne klaren Hinweis (F17).
+ */
+const CUID2_PATTERN = /^[a-z0-9]{24}$/;
+
 export interface ConflictResolutionListProps {
   einsatzId: string;
   /**
    * Initialer Filter (z. B. aus URL-Search-Params der Page-Komponente).
-   * Wird in lokalen State übernommen — die Filter-Persistenz in der URL
-   * ist Aufgabe der `SyncConflictsPage` (Task 9).
+   * Wird bei Änderung des Werts in den lokalen State übernommen — die
+   * Komponente schreibt selbst über `useNavigate` zurück in die URL
+   * (`replace: true`), sodass URL und Filter-State synchron bleiben.
    */
   initialFilter?: SyncConflictsFilter;
   /**
    * Steuert den Read-Only-Modus. `false` deaktiviert alle Resolve-Buttons.
-   * Default `true`; die Page-Komponente verkabelt das mit der Rolle.
+   * **Required** — kein Default, damit der Sicherheits-Vertrag explizit ist
+   * (Fail-Safe statt Fail-Open, F7).
    */
-  canResolve?: boolean;
+  canResolve: boolean;
 }
 
 const ENTITY_TYPE_OPTIONS: ReadonlyArray<{ value: EntityType; label: string }> = [
@@ -82,13 +100,42 @@ const BUTTON_CLASSES: Record<ResolveButtonSpec['intent'], string> = {
   merge: 'border-border-subtle bg-surface-panel text-text-primary hover:border-border-strong hover:bg-action-secondary-hover',
 };
 
-export function ConflictResolutionList({ einsatzId, initialFilter, canResolve = true }: ConflictResolutionListProps) {
-  const [filter, setFilter] = useState<SyncConflictsFilter>(() => ({ ...initialFilter }));
+export function ConflictResolutionList({ einsatzId, initialFilter, canResolve }: ConflictResolutionListProps) {
+  const navigate = useNavigate();
+  const [filter, setFilterState] = useState<SyncConflictsFilter>(() => sanitizeFilter(initialFilter));
   const [sortColumn, setSortColumn] = useState<SortColumn>('reportedAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [openSnapshotId, setOpenSnapshotId] = useState<string | null>(null);
   const [rowErrors, setRowErrors] = useState<Map<string, string>>(() => new Map());
+  const [resolvingIds, setResolvingIds] = useState<Set<string>>(() => new Set());
   const [announcement, setAnnouncement] = useState<string>('');
+
+  // URL ↔ Filter-Sync: wenn `initialFilter` (= Search-Params der Page) sich
+  // ändert (z. B. Browser-Back, Deep-Link-Navigation), übernehmen wir die
+  // Werte in den State. Die andere Richtung (State → URL) wird in
+  // `setFilter` direkt beim User-Input erledigt (replace: true).
+  const initialFilterKey = useMemo(() => stableFilterKey(initialFilter), [initialFilter]);
+  const lastSyncedKeyRef = useRef<string>(stableFilterKey(initialFilter));
+  useEffect(() => {
+    if (lastSyncedKeyRef.current === initialFilterKey) return;
+    lastSyncedKeyRef.current = initialFilterKey;
+    setFilterState(sanitizeFilter(initialFilter));
+  }, [initialFilter, initialFilterKey]);
+
+  const setFilter = (next: SyncConflictsFilter) => {
+    const sanitized = sanitizeFilter(next);
+    setFilterState(sanitized);
+    const nextKey = stableFilterKey(sanitized);
+    lastSyncedKeyRef.current = nextKey;
+    // URL-Persistenz (AC8 + F8): replace, damit der History-Stack nicht jeden
+    // Filter-Toggle akkumuliert und Browser-Back nicht durch Filter-Schritte
+    // wandert.
+    void navigate({
+      to: '.',
+      search: (prev) => ({ ...(prev as Record<string, unknown>), entityType: sanitized.entityType, einheitId: sanitized.einheitId }) as never,
+      replace: true,
+    });
+  };
 
   const conflictsQuery = useSyncConflicts(einsatzId, filter);
   const resolveMutation = useResolveKonflikt(einsatzId);
@@ -137,8 +184,23 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve = 
     }
   };
 
+  const removeResolvingId = (conflictId: string) => {
+    setResolvingIds((prev) => {
+      if (!prev.has(conflictId)) return prev;
+      const next = new Set(prev);
+      next.delete(conflictId);
+      return next;
+    });
+  };
+
   const handleResolve = (conflict: SyncConflictListItemDto, resolution: Resolution) => {
     if (!canResolve) return;
+    if (resolvingIds.has(conflict.id)) return;
+    setResolvingIds((prev) => {
+      const next = new Set(prev);
+      next.add(conflict.id);
+      return next;
+    });
     setRowErrors((prev) => {
       if (!prev.has(conflict.id)) return prev;
       const next = new Map(prev);
@@ -150,12 +212,19 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve = 
       {
         onSuccess: () => {
           setAnnouncement(`Konflikt aufgelöst: ${RESOLUTION_ANNOUNCEMENT[resolution]}`);
+          removeResolvingId(conflict.id);
         },
         onError: (error: unknown) => {
-          setRowErrors((prev) => {
-            const next = new Map(prev);
-            next.set(conflict.id, formatResolveError(error));
-            return next;
+          // Async parsing: ResponseError-Body wird einmalig geklont/geparsed,
+          // dann erst der inline-Row-Error gesetzt. Das blockiert den
+          // Mutation-Lifecycle nicht (mutate ist fire-and-forget).
+          void formatResolveError(error).then((message) => {
+            setRowErrors((prev) => {
+              const next = new Map(prev);
+              next.set(conflict.id, message);
+              return next;
+            });
+            removeResolvingId(conflict.id);
           });
         },
       },
@@ -234,6 +303,8 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve = 
                 const einheitName = conflict.einheitId ? (einheitNameById.get(conflict.einheitId) ?? `Einheit ${conflict.einheitId.slice(0, 8)}`) : '–';
                 const reporterName = getUserName(conflict.reportedByUserId);
                 const rowError = rowErrors.get(conflict.id);
+                const isRowResolving = resolvingIds.has(conflict.id);
+                const isRowDisabled = !canResolve || isRowResolving;
                 return (
                   <tr
                     key={conflict.id}
@@ -290,8 +361,8 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve = 
                               key={resolution}
                               type="button"
                               onClick={() => handleResolve(conflict, resolution)}
-                              disabled={!canResolve || resolveMutation.isPending}
-                              aria-disabled={!canResolve}
+                              disabled={isRowDisabled}
+                              aria-disabled={isRowDisabled}
                               aria-label={ariaLabel}
                               data-testid={`conflict-resolve-${resolution}-${conflict.id}`}
                               style={{ minHeight: 48 }}
@@ -331,6 +402,34 @@ interface FilterBarProps {
 }
 
 function FilterBar({ filter, onChange, onReset }: FilterBarProps) {
+  // Lokaler Input-Buffer für `einheitId`: erlaubt Tippen ohne sofortige
+  // Validierung. Erst wenn der Wert leer ist oder zum cuid2-Pattern passt,
+  // schreibt der Bar in den Filter-State (sonst inline-Hinweis, F17).
+  const [einheitInput, setEinheitInput] = useState<string>(filter.einheitId ?? '');
+  const [einheitError, setEinheitError] = useState<string | null>(null);
+
+  // Externe Filter-Änderungen (Reset, URL-Sync) → Input-Buffer angleichen.
+  useEffect(() => {
+    setEinheitInput(filter.einheitId ?? '');
+    setEinheitError(null);
+  }, [filter.einheitId]);
+
+  const handleEinheitChange = (value: string) => {
+    const trimmed = value.trim();
+    setEinheitInput(value);
+    if (trimmed === '') {
+      setEinheitError(null);
+      onChange({ ...filter, einheitId: undefined });
+      return;
+    }
+    if (!CUID2_PATTERN.test(trimmed)) {
+      setEinheitError('Bitte eine gültige Einheit-ID (24 Zeichen, a–z 0–9) eingeben.');
+      return;
+    }
+    setEinheitError(null);
+    onChange({ ...filter, einheitId: trimmed });
+  };
+
   return (
     <div className="flex flex-wrap items-end gap-3" data-testid="conflict-filter-bar">
       <div className="flex flex-col gap-1">
@@ -361,14 +460,18 @@ function FilterBar({ filter, onChange, onReset }: FilterBarProps) {
         <input
           id="conflict-filter-einheit-id"
           type="text"
-          value={filter.einheitId ?? ''}
-          onChange={(event) => {
-            const value = event.target.value.trim();
-            onChange({ ...filter, einheitId: value === '' ? undefined : value });
-          }}
-          placeholder="cuid2"
+          value={einheitInput}
+          onChange={(event) => handleEinheitChange(event.target.value)}
+          placeholder="cuid2 (24 Zeichen)"
+          aria-invalid={einheitError !== null}
+          aria-describedby={einheitError ? 'conflict-filter-einheit-id-error' : undefined}
           className="rounded-control border border-border-subtle bg-surface-panel px-2 py-1.5 text-sm"
         />
+        {einheitError ? (
+          <span id="conflict-filter-einheit-id-error" className="text-xs text-status-danger-text" data-testid="conflict-filter-einheit-id-error">
+            {einheitError}
+          </span>
+        ) : null}
       </div>
       <button
         type="button"
@@ -450,13 +553,97 @@ function toIsoString(value: Date | string): string {
   return value;
 }
 
-function formatResolveError(error: unknown): string {
-  if (error instanceof Error) {
-    const message = error.message;
-    if (message.includes('ConflictAlreadyResolved')) return 'Konflikt wurde bereits aufgelöst.';
-    if (message.includes('ConflictDetected')) return 'Erneuter Konflikt — bitte neu laden und prüfen.';
-    if (message.startsWith('ConflictNotFound')) return 'Konflikt nicht gefunden.';
-    return message;
+/**
+ * Erzeugt einen stabilen String-Key für einen Filter, damit `useEffect`
+ * nur dann triggert, wenn sich die Filter-Werte tatsächlich ändern (und
+ * nicht jeder Re-Render durch eine neue Objekt-Identität).
+ */
+function stableFilterKey(filter: SyncConflictsFilter | undefined): string {
+  if (!filter) return '||';
+  return `${filter.entityType ?? ''}|${filter.einheitId ?? ''}`;
+}
+
+/**
+ * Normalisiert einen Filter: leere Strings → `undefined`. Verhindert, dass
+ * `''` im URL-Search als `?einheitId=` landet und beim nächsten Read-Cycle
+ * den ungültigen Filter wieder einliest.
+ */
+function sanitizeFilter(filter: SyncConflictsFilter | undefined): SyncConflictsFilter {
+  if (!filter) return {};
+  const result: SyncConflictsFilter = {};
+  if (filter.entityType) result.entityType = filter.entityType;
+  if (filter.einheitId) result.einheitId = filter.einheitId;
+  return result;
+}
+
+/**
+ * Mapped einen Resolve-Mutation-Error auf eine deutsche, user-facing
+ * Message. Erwartet die Sentinel-Codes des `ResolveKonfliktHandler`
+ * (siehe `resolve-konflikt.error-codes.ts`). Der Sentinel kann an zwei
+ * Stellen liegen:
+ *
+ * 1. **`ResponseError`** aus dem generierten Client — der Backend-Body
+ *    `{ message, statusCode, context }` muss aus `error.response` per
+ *    `clone().json()` extrahiert werden; `error.message` selbst ist nur
+ *    der statische String `"Response returned an error code"`.
+ * 2. **Plain `Error('Sentinel:...')`** — Tests/Storybook konstruieren das
+ *    direkt; einige Wrapper-Mutations im Repo werfen ebenfalls so.
+ *
+ * `alreadyResolved` ist KEIN Error: das Backend liefert dafür einen
+ * Success-Response mit `alreadyResolved: true`. Daher hier kein Branch.
+ */
+async function formatResolveError(error: unknown): Promise<string> {
+  const sentinel = await extractSentinel(error);
+  return mapSentinelToMessage(sentinel);
+}
+
+async function extractSentinel(error: unknown): Promise<string> {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const response = (error as { response?: unknown }).response;
+    if (response instanceof Response) {
+      try {
+        const body = await response.clone().json();
+        if (body && typeof body.message === 'string') return body.message;
+      } catch {
+        // Kein JSON-Body → fall through zum Error.message-Fallback.
+      }
+    }
+  }
+  if (error instanceof Error) return error.message;
+  return '';
+}
+
+function mapSentinelToMessage(sentinel: string): string {
+  if (!sentinel) return 'Unbekannter Fehler beim Auflösen.';
+  // Sekundärer Race im LOCAL_WINS-Reapply (Story 3.10 AC4): der Aggregat
+  // existiert nicht mehr — LOCAL_WINS ist deshalb keine Option, der User
+  // soll explizit auf SERVER_WINS umschwenken (F13).
+  if (sentinel.startsWith('BusinessRule:LocalWinsNichtMoeglich:AggregateNichtGefunden')) {
+    return 'Lokale Übernahme nicht möglich (Aggregat existiert nicht mehr) — bitte „Server übernehmen" wählen.';
+  }
+  if (sentinel.startsWith('ConflictDetected:')) {
+    return 'Erneuter Konflikt — bitte neu laden und prüfen.';
+  }
+  if (sentinel === 'NotFound:SyncConflict' || sentinel.startsWith('NotFound:')) {
+    return 'Konflikt nicht gefunden.';
+  }
+  if (sentinel === 'BusinessRule:KonfliktNichtImEinsatz') {
+    return 'Dieser Konflikt gehört nicht zum aktuellen Einsatz.';
+  }
+  if (sentinel === 'BusinessRule:EntityTypeNotSupportedInStory310') {
+    return 'Konflikt-Typ wird derzeit nicht unterstützt.';
+  }
+  if (sentinel === 'BusinessRule:UnzulaessigeEinheitenZuordnung') {
+    return 'Keine Berechtigung für diese Einheit.';
+  }
+  if (sentinel === 'ValidationFailed:LocalWinsPayloadInvalid') {
+    return 'Lokaler Snapshot ist ungültig — bitte „Server übernehmen" wählen.';
+  }
+  if (sentinel.startsWith('BusinessRule:')) {
+    return 'Konflikt kann nicht aufgelöst werden (Geschäftsregel).';
+  }
+  if (sentinel.startsWith('ValidationFailed:')) {
+    return 'Konflikt kann nicht aufgelöst werden (Validierungsfehler).';
   }
   return 'Unbekannter Fehler beim Auflösen.';
 }

@@ -1362,9 +1362,12 @@ export function useSyncConflicts(einsatzId: string, filter?: SyncConflictsFilter
  * - Immer: `['eigenschutz', einsatzId, 'sync-conflicts']` — der aufgelöste
  *   Konflikt verschwindet aus der Liste (alle Filter-Varianten dank
  *   gemeinsamem Prefix).
- * - Bei `LOCAL_WINS`: zusätzlich `['eigenschutz', einsatzId, 'psa-profile']` —
- *   der Server-State hat sich verschoben (Pattern Story 3.6
- *   `useMeldeLuecke.onSuccess`).
+ * - Immer: `['eigenschutz', einsatzId, 'psa-profile']` — auch
+ *   `SERVER_WINS` und `MERGED` referenzieren den Server-State (Server kann
+ *   beim Konflikt-Resolve weitere Felder rebuilden). Der WS-Live-Hook
+ *   (`useEigenschutzKonfliktAufgeloestLive`) invalidiert ebenfalls für alle
+ *   drei Modi; falls der WS-Frame wegen Reconnect oder Race nicht zuerst
+ *   eintrifft, bleibt der `psa-profile`-Cache sonst stale (Story 3.10 F3).
  *
  * **Zero-Toast:** `meta: { silentError: true }` — die
  * `ConflictResolutionList`-Organism rendert Fehler inline; Server-Sentinels
@@ -1382,11 +1385,12 @@ export function useResolveKonflikt(einsatzId: string) {
       });
       return response.data;
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: () => {
+      // Beide Caches IMMER invalidieren (Story 3.10 F3): unabhängig von der
+      // Resolution kann sich der Server-State (psa-profile) verschoben
+      // haben, und der WS-Frame trifft nicht garantiert zuerst ein.
       void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'sync-conflicts'] });
-      if (variables.resolution === 'LOCAL_WINS') {
-        void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'psa-profile'] });
-      }
+      void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'psa-profile'] });
     },
   });
 }

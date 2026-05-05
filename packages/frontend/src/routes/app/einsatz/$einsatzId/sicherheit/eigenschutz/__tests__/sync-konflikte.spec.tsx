@@ -48,8 +48,9 @@ describe('Route /app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte', 
     it('akzeptiert ein leeres Search-Objekt', async () => {
       const { Route } = await import('../sync-konflikte');
       const validate = (Route as unknown as RouteShape).validateSearch;
-      // Das Schema ist `.optional()` — `undefined` ist erlaubt.
-      expect(validate(undefined)).toBeUndefined();
+      // Das Schema ist `.optional()` — `undefined` wird zu `{}` normalisiert
+      // (Story 3.10 F6: safeParse-Fallback).
+      expect(validate(undefined)).toEqual({});
     });
 
     it('parst entityType + einheitId', async () => {
@@ -66,10 +67,21 @@ describe('Route /app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte', 
       expect(result?.entityType).toBe('GEFAEHRDUNGSBEURTEILUNG_ITEM');
     });
 
-    it('verwirft unbekannte entityType-Werte', async () => {
+    it('Story 3.10 F6: kaputter Deep-Link (entityType=BOGUS) wirft NICHT, fällt auf leeres Filter-Objekt zurück', async () => {
       const { Route } = await import('../sync-konflikte');
       const validate = (Route as unknown as RouteShape).validateSearch;
-      expect(() => validate({ entityType: 'UNBEKANNT' })).toThrow();
+      // safeParse-Fallback: ungültige Search-Params dürfen die Route nicht
+      // sprengen. Die Komponente rendert die Liste mit leerem Filter.
+      expect(() => validate({ entityType: 'BOGUS' })).not.toThrow();
+      expect(validate({ entityType: 'BOGUS' })).toEqual({});
+    });
+
+    it('Story 3.10 F6: andere kaputte Search-Param-Typen fallen ebenfalls auf {} zurück', async () => {
+      const { Route } = await import('../sync-konflikte');
+      const validate = (Route as unknown as RouteShape).validateSearch;
+      // einheitId muss ein String sein — eine Zahl ist ungültig.
+      expect(() => validate({ einheitId: 42 })).not.toThrow();
+      expect(validate({ einheitId: 42 })).toEqual({});
     });
   });
 
