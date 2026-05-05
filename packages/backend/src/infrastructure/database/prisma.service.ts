@@ -271,6 +271,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get syncConflict() {
     return this._client.syncConflict;
   }
+  get eigenschutzTelemetryEvent() {
+    return this._client.eigenschutzTelemetryEvent;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

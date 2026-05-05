@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import {
+  EIGENSCHUTZ_TELEMETRY_REPOSITORY,
   GEFAEHRDUNGSBEURTEILUNG_REPOSITORY,
   GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY,
   GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY,
@@ -28,6 +29,9 @@ import { PrismaPsaProfilQuittungRepository } from './repositories/prisma-psa-pro
 import { PrismaPsaPropagationOverdueQueryRepository } from './repositories/prisma-psa-propagation-overdue-query.repository';
 import { PrismaPushRecipientLookupRepository } from './repositories/prisma-push-recipient-lookup.repository';
 import { PrismaSyncConflictRepository } from './repositories/prisma-sync-conflict.repository';
+import { PrismaEigenschutzTelemetryRepository } from './repositories/prisma-eigenschutz-telemetry.repository';
+import { PrometheusEigenschutzCollector } from './telemetry/prometheus-eigenschutz.collector';
+import { TelemetryIngestService } from './telemetry/telemetry-ingest.service';
 import { EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-erstellt.adapter';
 import { EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-aktualisiert.adapter';
 import { EigenschutzSicherheitsregelAusgerufenEventAdapter } from './event-adapters/sicherheitsregel-ausgerufen.adapter';
@@ -61,6 +65,9 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
     { provide: PSA_PROFIL_QUITTUNG_REPOSITORY, useClass: PrismaPsaProfilQuittungRepository },
     { provide: PSA_PROPAGATION_OVERDUE_QUERY, useClass: PrismaPsaPropagationOverdueQueryRepository },
     { provide: SYNC_CONFLICT_REPOSITORY, useClass: PrismaSyncConflictRepository },
+    { provide: EIGENSCHUTZ_TELEMETRY_REPOSITORY, useClass: PrismaEigenschutzTelemetryRepository },
+    PrometheusEigenschutzCollector,
+    TelemetryIngestService,
     PrismaPushRecipientLookupRepository,
     { provide: PUSH_RECIPIENT_LOOKUP, useExisting: PrismaPushRecipientLookupRepository },
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
@@ -82,6 +89,8 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
     PSA_PROFIL_QUITTUNG_REPOSITORY,
     PSA_PROPAGATION_OVERDUE_QUERY,
     SYNC_CONFLICT_REPOSITORY,
+    EIGENSCHUTZ_TELEMETRY_REPOSITORY,
+    TelemetryIngestService,
     PUSH_RECIPIENT_LOOKUP,
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
     EigenschutzGefaehrdungsbeurteilungAktualisiertEventAdapter,

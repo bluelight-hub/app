@@ -95,6 +95,100 @@ describe('telemetry-queue (Story 3.1 AC10)', () => {
     expect(snapshot[0]?.metadata?.meldungLength).toBe(42);
   });
 
+  it('akzeptiert blind_ack als gültiges eventName (Story 3.11 Task 9.1)', () => {
+    eigenschutzTelemetryQueue.push({
+      eventName: 'blind_ack',
+      propagationGroupIdCandidate: 'group-3-11-1',
+      abschnittCount: 1,
+      userId: 'user-empfaenger',
+      sessionId: 'session-3-11',
+      clientTime: '2026-05-04T12:00:00.000Z',
+      metadata: { reason: 'banner_obscured' },
+    });
+
+    const snapshot = eigenschutzTelemetryQueue.snapshot();
+    expect(snapshot).toHaveLength(1);
+    expect(snapshot[0]?.eventName).toBe('blind_ack');
+    expect(snapshot[0]?.metadata?.reason).toBe('banner_obscured');
+  });
+
+  it('subscribe(): Listener wird nach jedem push() aufgerufen', () => {
+    const listener = vi.fn();
+    const unsubscribe = eigenschutzTelemetryQueue.subscribe(listener);
+
+    eigenschutzTelemetryQueue.push({
+      eventName: 'cbrn_announced',
+      propagationGroupIdCandidate: 'cand',
+      abschnittCount: 1,
+      userId: 'u',
+      sessionId: 's',
+      clientTime: 'now',
+    });
+    eigenschutzTelemetryQueue.push({
+      eventName: 'cbrn_acknowledged',
+      propagationGroupIdCandidate: 'cand',
+      abschnittCount: 1,
+      userId: 'u',
+      sessionId: 's',
+      clientTime: 'now',
+    });
+
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    unsubscribe();
+  });
+
+  it('subscribe(): Rückgabe-Funktion entfernt den Listener', () => {
+    const listener = vi.fn();
+    const unsubscribe = eigenschutzTelemetryQueue.subscribe(listener);
+
+    eigenschutzTelemetryQueue.push({
+      eventName: 'cbrn_announced',
+      propagationGroupIdCandidate: 'cand',
+      abschnittCount: 1,
+      userId: 'u',
+      sessionId: 's',
+      clientTime: 'now',
+    });
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+
+    eigenschutzTelemetryQueue.push({
+      eventName: 'cbrn_announced',
+      propagationGroupIdCandidate: 'cand',
+      abschnittCount: 1,
+      userId: 'u',
+      sessionId: 's',
+      clientTime: 'now',
+    });
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('size(): reflektiert queue.length nach push() und drain()', () => {
+    expect(eigenschutzTelemetryQueue.size()).toBe(0);
+    eigenschutzTelemetryQueue.push({
+      eventName: 'cbrn_announced',
+      propagationGroupIdCandidate: 'cand',
+      abschnittCount: 1,
+      userId: 'u',
+      sessionId: 's',
+      clientTime: 'now',
+    });
+    eigenschutzTelemetryQueue.push({
+      eventName: 'cbrn_acknowledged',
+      propagationGroupIdCandidate: 'cand',
+      abschnittCount: 1,
+      userId: 'u',
+      sessionId: 's',
+      clientTime: 'now',
+    });
+    expect(eigenschutzTelemetryQueue.size()).toBe(2);
+
+    eigenschutzTelemetryQueue.drain();
+    expect(eigenschutzTelemetryQueue.size()).toBe(0);
+  });
+
   it('akzeptiert quittung_ueberfaellig als gültiges eventName (Story 3.7 AC9)', () => {
     eigenschutzTelemetryQueue.push({
       eventName: 'quittung_ueberfaellig',

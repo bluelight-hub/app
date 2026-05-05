@@ -571,4 +571,126 @@ describe('PsaProfilEmpfangBanner', () => {
       expect(onRepromptDismiss).toHaveBeenCalledWith('group-X', 'einheit-1');
     });
   });
+
+  describe('Story 3.11 AC10 — blind_ack-Detection (Tap < 2 s nach Banner-Open)', () => {
+    /**
+     * Mock-Strategie: `Date.now()` per `vi.spyOn` — der Banner ruft `Date.now()`
+     * sowohl beim Banner-Open (im `useEffect`) als auch bei Quittungs-Tap (in
+     * `handleAcknowledge`). Pro Test definieren wir eine Clock-Sequenz, die
+     * `now += step` liefert. Das Pattern ist robuster als `vi.useFakeTimers()`,
+     * weil `fireEvent.click` synchron läuft und keine Microtasks vorgespult
+     * werden müssen.
+     */
+    let nowSpy: ReturnType<typeof vi.spyOn> | null = null;
+
+    afterEach(() => {
+      nowSpy?.mockRestore();
+      nowSpy = null;
+    });
+
+    function fixedClock(start: number): { advance: (ms: number) => void; current: () => number } {
+      let now = start;
+      nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => now);
+      return {
+        advance: (ms: number) => {
+          now += ms;
+        },
+        current: () => now,
+      };
+    }
+
+    it('Tap nach 1500 ms feuert genau ein blind_ack-Event mit timeFromOpenMs ≥ 1500 (AC10)', () => {
+      const clock = fixedClock(1_700_000_000_000);
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-blind-1500' })];
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      // Banner-Open emittiert all_banners_delivered + setzt openedAt = now.
+      const openedAtBefore = eigenschutzTelemetryQueue.snapshot().filter((e) => e.eventName === 'all_banners_delivered');
+      expect(openedAtBefore).toHaveLength(1);
+
+      clock.advance(1500);
+      fireEvent.click(screen.getByRole('button', { name: 'Verstanden, Ausrüstung vorhanden' }));
+
+      const blindAcks = eigenschutzTelemetryQueue.snapshot().filter((e) => e.eventName === 'blind_ack');
+      expect(blindAcks).toHaveLength(1);
+      expect(blindAcks[0]?.propagationGroupIdCandidate).toBe('group-blind-1500');
+      expect(blindAcks[0]?.userId).toBe('user-empf');
+      expect(blindAcks[0]?.metadata?.einheitIdCandidate).toBe('einheit-1');
+      expect(typeof blindAcks[0]?.metadata?.timeFromOpenMs).toBe('number');
+      const elapsed = blindAcks[0]?.metadata?.timeFromOpenMs as number;
+      expect(elapsed).toBeGreaterThanOrEqual(1500);
+      expect(elapsed).toBeLessThan(2000);
+    });
+
+    it('Tap nach 2500 ms erzeugt KEIN blind_ack-Event (Schwelle 2000 ms hardcoded, AC10)', () => {
+      const clock = fixedClock(1_700_000_000_000);
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-no-blind-2500' })];
+      render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      clock.advance(2500);
+      fireEvent.click(screen.getByRole('button', { name: 'Verstanden, Ausrüstung vorhanden' }));
+
+      const blindAcks = eigenschutzTelemetryQueue.snapshot().filter((e) => e.eventName === 'blind_ack');
+      expect(blindAcks).toHaveLength(0);
+      // Die Banner-Quittungs-Mutation läuft trotzdem — `blind_ack` ist orthogonal.
+      expect(ackMutationMock.mutate).toHaveBeenCalled();
+    });
+
+    it('Banner-Stack mit 5 Bannern: Klick auf den dritten emittiert genau ein blind_ack mit dessen propagationGroupId', () => {
+      const clock = fixedClock(1_700_000_000_000);
+      hookMock.banner = [
+        makeBanner({ propagationGroupId: 'g1', occurredAt: '2026-04-24T10:00:01.000Z' }),
+        makeBanner({ propagationGroupId: 'g2', occurredAt: '2026-04-24T10:00:02.000Z' }),
+        makeBanner({ propagationGroupId: 'g3', occurredAt: '2026-04-24T10:00:03.000Z' }),
+        makeBanner({ propagationGroupId: 'g4', occurredAt: '2026-04-24T10:00:04.000Z' }),
+        makeBanner({ propagationGroupId: 'g5', occurredAt: '2026-04-24T10:00:05.000Z' }),
+      ];
+      const { container } = render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      clock.advance(800);
+      // Sichtbar sind nur die ersten 3 (MAX_VISIBLE=3) — wir klicken auf g3.
+      const wrapperG3 = container.querySelector('[data-propagation-group-id="g3"]');
+      expect(wrapperG3).not.toBeNull();
+      const primaryG3 = within(wrapperG3 as HTMLElement).getByRole('button', { name: 'Verstanden, Ausrüstung vorhanden' });
+      fireEvent.click(primaryG3);
+
+      const blindAcks = eigenschutzTelemetryQueue.snapshot().filter((e) => e.eventName === 'blind_ack');
+      expect(blindAcks).toHaveLength(1);
+      expect(blindAcks[0]?.propagationGroupIdCandidate).toBe('g3');
+      const elapsed = blindAcks[0]?.metadata?.timeFromOpenMs as number;
+      expect(elapsed).toBeGreaterThanOrEqual(800);
+      expect(elapsed).toBeLessThan(2000);
+    });
+
+    it('Cleanup: dismiss + Re-Push derselben Group startet einen NEUEN Open-Timer (kein Zombie-Open-Time)', () => {
+      const clock = fixedClock(1_700_000_000_000);
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-zombie' })];
+      const { rerender } = render(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      // Banner verschwindet → Cleanup-Effekt entfernt den Open-Timer.
+      hookMock.banner = [];
+      rerender(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      // 2500 ms vergehen, dann taucht die Group erneut auf — der NEUE Open-Timer
+      // startet jetzt, nicht beim ursprünglichen Mount.
+      clock.advance(2500);
+      hookMock.banner = [makeBanner({ propagationGroupId: 'group-zombie' })];
+      rerender(<PsaProfilEmpfangBanner einsatzId="einsatz-1" />);
+
+      // Innerhalb 1500 ms ab Re-Push tappen — würde der alte Zombie-Timer
+      // zählen, wären wir bereits jenseits der 2000-ms-Schwelle und dürften
+      // KEIN blind_ack mehr emittieren. Mit korrektem Cleanup wird das
+      // blind_ack erzeugt, weil der NEUE Timer beim Re-Push gesetzt wird.
+      clock.advance(1500);
+      fireEvent.click(screen.getByRole('button', { name: 'Verstanden, Ausrüstung vorhanden' }));
+
+      const blindAcks = eigenschutzTelemetryQueue.snapshot().filter((e) => e.eventName === 'blind_ack');
+      expect(blindAcks).toHaveLength(1);
+      expect(blindAcks[0]?.propagationGroupIdCandidate).toBe('group-zombie');
+      const elapsed = blindAcks[0]?.metadata?.timeFromOpenMs as number;
+      // Nur die 1500 ms ab Re-Push zählen — der erste Mount-Zyklus ist sauber bereinigt.
+      expect(elapsed).toBeGreaterThanOrEqual(1500);
+      expect(elapsed).toBeLessThan(2000);
+    });
+  });
 });

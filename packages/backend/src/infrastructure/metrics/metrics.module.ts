@@ -60,7 +60,45 @@ import { MetricsController } from './metrics.controller';
           help: 'Number of pending events in the outbox',
         }),
     },
+    {
+      provide: METRICS.EIGENSCHUTZ_PSA_PROPAGATION_DURATION,
+      useFactory: () =>
+        new client.Histogram({
+          name: 'eigenschutz_psa_propagation_duration_seconds',
+          help: 'End-to-End-Latenz von PSA-Bekanntgabe (assess_started → all_banners_delivered) in Sekunden.',
+          labelNames: ['abschnitt_count_bucket'] as const,
+          // 90 s als explizite Bucket-Grenze (NFR-P1 Ziel-Fenster).
+          buckets: [1, 2, 5, 10, 30, 60, 90, 120, 180],
+        }),
+    },
+    {
+      provide: METRICS.EIGENSCHUTZ_QUITTUNG_LATENCY,
+      useFactory: () =>
+        new client.Histogram({
+          name: 'eigenschutz_quittung_latency_seconds',
+          help: 'Latenz von Banner-Empfang bis Quittung (all_banners_delivered → psa_quittung_abgegeben) in Sekunden.',
+          labelNames: ['einheit_id_bucket'] as const,
+          buckets: [0.5, 1, 2, 5, 10, 30, 60, 120],
+        }),
+    },
+    {
+      provide: METRICS.EIGENSCHUTZ_BLIND_ACK_TOTAL,
+      useFactory: () =>
+        new client.Counter({
+          name: 'eigenschutz_blind_ack_total',
+          help: 'Anzahl Blind-Acknowledgments (Quittung < 2 s nach Banner-Öffnen). Coaching-Signal für Pilot-Auswertung.',
+          labelNames: ['einheit_id'] as const,
+        }),
+    },
   ],
-  exports: [METRICS.REGISTRY, METRICS.HTTP_REQUEST_DURATION, METRICS.WS_CONNECTIONS, METRICS.OUTBOX_QUEUE_DEPTH],
+  exports: [
+    METRICS.REGISTRY,
+    METRICS.HTTP_REQUEST_DURATION,
+    METRICS.WS_CONNECTIONS,
+    METRICS.OUTBOX_QUEUE_DEPTH,
+    METRICS.EIGENSCHUTZ_PSA_PROPAGATION_DURATION,
+    METRICS.EIGENSCHUTZ_QUITTUNG_LATENCY,
+    METRICS.EIGENSCHUTZ_BLIND_ACK_TOTAL,
+  ],
 })
 export class MetricsModule {}

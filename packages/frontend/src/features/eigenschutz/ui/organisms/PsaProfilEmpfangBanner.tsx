@@ -131,6 +131,11 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails, repromptNotic
 
   // AC9 — `all_banners_delivered`-Idempotenz pro propagationGroupId.
   const emittedRef = useRef<Set<string>>(new Set());
+  // Story 3.11 AC10 — Open-Timestamp pro propagationGroupId, um Quittungen
+  // innerhalb < 2000 ms als `blind_ack` (Reflex-Tap) zu detektieren. Map wird
+  // beim ersten Sichtbarwerden gesetzt und beim Verschwinden des Banners
+  // wieder bereinigt (analog `emittedRef`).
+  const bannerOpenedAtRef = useRef<Map<string, number>>(new Map());
   // Wenn der User noch nicht geladen ist, skippen wir die Telemetrie statt
   // einen `'unknown'`-Fallback zu emittieren — Story 3.11 nutzt diese
   // Marken im CBRN-End-zu-End-Trace, ein Userless-Event würde ihn verzerren.
@@ -142,6 +147,8 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails, repromptNotic
     for (const eintrag of visible) {
       if (emittedRef.current.has(eintrag.propagationGroupId)) continue;
       emittedRef.current.add(eintrag.propagationGroupId);
+      // Story 3.11 AC10 — Open-Zeit ab erstem Sichtbarwerden tracken.
+      bannerOpenedAtRef.current.set(eintrag.propagationGroupId, Date.now());
       eigenschutzTelemetryQueue.push({
         eventName: 'all_banners_delivered',
         propagationGroupIdCandidate: eintrag.propagationGroupId,
@@ -166,7 +173,13 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails, repromptNotic
     for (const id of emittedRef.current) {
       if (!liveIds.has(id)) stale.push(id);
     }
-    for (const id of stale) emittedRef.current.delete(id);
+    for (const id of stale) {
+      emittedRef.current.delete(id);
+      // Story 3.11 AC10 — Open-Zeit zusammen mit der Idempotenz-Marke
+      // bereinigen, damit ein erneut eintreffender Banner derselben Group
+      // einen frischen Open-Timer startet (kein Zombie-Open-Time).
+      bannerOpenedAtRef.current.delete(id);
+    }
   }, [banner]);
 
   // Overflow-Klick (P5): nutzt nun denselben Drawer-Pfad wie die sichtbaren
@@ -200,6 +213,32 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails, repromptNotic
   const handleAcknowledge = useCallback(
     (propagationGroupId: string) => {
       if (einheitId === null) return;
+      // Story 3.11 AC10 — Blind-Ack-Detection: wenn die Quittung innerhalb
+      // < 2000 ms nach Banner-Open erfolgt, schreiben wir ein zusätzliches
+      // `blind_ack`-Telemetrie-Event. WICHTIG: Push MUSS vor `dismiss(...)`
+      // erfolgen — der Cleanup-Effect löscht die Map-Row im selben Render-
+      // Cycle, sobald der Banner aus der Hook-Queue verschwindet. Quelle ist
+      // ausschließlich der Banner; der Drawer-Pfad löst KEIN `blind_ack` aus
+      // (kein Banner-Open-Kontext, würde False-Positives erzeugen).
+      const openedAt = bannerOpenedAtRef.current.get(propagationGroupId);
+      if (openedAt !== undefined && userId !== null) {
+        const elapsed = Date.now() - openedAt;
+        // Number.isFinite() schützt gegen NaN/±Infinity (z. B. monkey-
+        // patchedes Date.now in Tests, Wall-Clock-Skew); negative Werte
+        // bedeuten Clock-Sprung rückwärts und dürfen kein blind_ack
+        // erzeugen — `metadata.timeFromOpenMs` würde sonst Müll enthalten.
+        if (Number.isFinite(elapsed) && elapsed >= 0 && elapsed < 2000) {
+          eigenschutzTelemetryQueue.push({
+            eventName: 'blind_ack',
+            propagationGroupIdCandidate: propagationGroupId,
+            abschnittCount: 1,
+            userId,
+            sessionId: getOrCreateSessionId(),
+            clientTime: new Date().toISOString(),
+            metadata: { einheitIdCandidate: einheitId, timeFromOpenMs: elapsed },
+          });
+        }
+      }
       // Optimistic: zuerst aus der Banner-Queue ziehen.
       dismiss(propagationGroupId);
       // Vorhandenen ackError für diese Group entfernen (Re-Try-Pfad).
@@ -223,7 +262,7 @@ export function PsaProfilEmpfangBanner({ einsatzId, onShowDetails, repromptNotic
         },
       );
     },
-    [einheitId, dismiss, ackMutation],
+    [einheitId, dismiss, ackMutation, userId],
   );
 
   if (einheitId === null) return null;
