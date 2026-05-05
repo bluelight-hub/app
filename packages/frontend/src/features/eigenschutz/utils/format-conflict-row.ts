@@ -37,16 +37,18 @@ export function formatRelativeTimeDe(value: Date | string): string {
 }
 
 interface ToggleEntry {
-  code: string;
-  active: boolean;
+  profil: string;
+  aktiv: boolean;
 }
 
 /**
  * Heuristik-basierte Lokal-Snapshot-Vorschau für die Konflikt-Tabelle (UX-DR6).
  *
- * Erkennt strukturierte Toggle-Sets (z. B. `{ toggles: [{ code: 'BASIS', active: true }, ...] }`),
- * die das PSA-Profil-Format dominieren, und rendert sie als kompakte Liste:
- * `BASIS+, CBRN-`. Fällt sonst auf eine getrimmte JSON-Vorschau zurück.
+ * Erkennt strukturierte Toggle-Sets aus dem Backend-Schema
+ * `LocalWinsPsaProfilPayload` (`{ toggles: [{ profil, aktiv }, ...] }`,
+ * siehe `local-wins-psa-profil-payload.schema.ts`) und rendert sie als
+ * kompakte Liste: `BASIS+, INFEKTION−`. Fällt sonst auf eine getrimmte
+ * JSON-Vorschau zurück.
  */
 export function formatLocalPayloadPreview(payload: unknown, maxLength = 80): string {
   if (payload == null) return '–';
@@ -57,7 +59,7 @@ export function formatLocalPayloadPreview(payload: unknown, maxLength = 80): str
     if (Array.isArray(toggles) && toggles.length > 0 && isToggleEntryArray(toggles)) {
       const formatted = toggles
         .slice(0, 6)
-        .map((t) => `${t.code}${t.active ? '+' : '−'}`)
+        .map((t) => `${t.profil}${t.aktiv ? '+' : '−'}`)
         .join(', ');
       const suffix = toggles.length > 6 ? `, +${toggles.length - 6}` : '';
       return `${formatted}${suffix}`;
@@ -90,6 +92,6 @@ function isToggleEntryArray(value: unknown[]): value is ToggleEntry[] {
   return value.every((entry) => {
     if (entry === null || typeof entry !== 'object') return false;
     const e = entry as Record<string, unknown>;
-    return typeof e.code === 'string' && typeof e.active === 'boolean';
+    return typeof e.profil === 'string' && typeof e.aktiv === 'boolean';
   });
 }

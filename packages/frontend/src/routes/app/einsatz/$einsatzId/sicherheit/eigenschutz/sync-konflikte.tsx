@@ -30,7 +30,13 @@ const SyncConflictsSearchSchema = z
  */
 export const Route = createFileRoute('/app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte')({
   component: SyncConflictsRouteComponent,
-  validateSearch: (search) => SyncConflictsSearchSchema.parse(search),
+  // Story 3.10 F6: Kaputte Deep-Links (z. B. `?entityType=BOGUS`) dürfen
+  // die Route nicht zum Absturz bringen. `safeParse` mit Fallback auf ein
+  // leeres Filter-Objekt rendert die Liste ungefiltert statt zu werfen.
+  validateSearch: (search) => {
+    const result = SyncConflictsSearchSchema.safeParse(search);
+    return result.success ? (result.data ?? {}) : {};
+  },
 });
 
 function SyncConflictsRouteComponent() {

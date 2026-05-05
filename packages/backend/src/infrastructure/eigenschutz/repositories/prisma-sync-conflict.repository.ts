@@ -198,9 +198,10 @@ export class PrismaSyncConflictRepository implements ISyncConflictRepository {
     }
   }
 
-  async findById(syncConflictId: string): Promise<Result<SyncConflictReadModel | null>> {
+  async findById(syncConflictId: string, tx?: TransactionContext): Promise<Result<SyncConflictReadModel | null>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
     try {
-      const row = await this.prisma.syncConflict.findUnique({
+      const row = await client.syncConflict.findUnique({
         where: { id: syncConflictId },
       });
       if (!row) {

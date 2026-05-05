@@ -38,6 +38,7 @@ vi.mock('@/shared/lib/logger', () => ({
 }));
 
 import { useEigenschutzKonfliktAufgeloestLive } from '../use-eigenschutz-konflikt-aufgeloest-live';
+import { __resetKonfliktErkanntRegistryForTests, useEigenschutzKonfliktErkanntLive } from '../use-eigenschutz-konflikt-erkannt-live';
 
 const wrapper =
   (client: QueryClient) =>
@@ -75,11 +76,13 @@ describe('useEigenschutzKonfliktAufgeloestLive (Story 3.10 AC7)', () => {
     loggerMock.warn.mockReset();
     loggerMock.debug.mockReset();
     loggerMock.info.mockReset();
+    __resetKonfliktErkanntRegistryForTests();
     vi.useFakeTimers();
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    __resetKonfliktErkanntRegistryForTests();
   });
 
   it('öffnet WS-Verbindung und joint den Einsatz-Room', () => {
@@ -206,5 +209,101 @@ describe('useEigenschutzKonfliktAufgeloestLive (Story 3.10 AC7)', () => {
     // 2 verschiedene Frames → 4 invalidate-Calls (je 2 pro Frame).
     expect(keys.filter((k) => Array.isArray(k) && k[2] === 'sync-conflicts')).toHaveLength(2);
     expect(keys.filter((k) => Array.isArray(k) && k[2] === 'psa-profile')).toHaveLength(2);
+  });
+
+  describe('Cross-Hook-Dismiss (Story 3.10 AC7 §4 + Code-Review D1)', () => {
+    it('schließt den Story-3.9-Mikro-Banner für denselben Konflikt sofort, wenn Aufgeloest-Frame eintrifft', () => {
+      const client = makeClient();
+      // Beide Hooks im selben renderHook-Call teilen QueryClient + mockSocket.
+      // Die internen Channel-Listener werden via getHandler(<channel>) auseinandergehalten —
+      // socket.on() wird je Hook 1× pro Channel aufgerufen.
+      const { result } = renderHook(
+        () => ({
+          erkannt: useEigenschutzKonfliktErkanntLive({ einsatzId: 'einsatz-1' }),
+          aufgeloest: useEigenschutzKonfliktAufgeloestLive({ einsatzId: 'einsatz-1' }),
+        }),
+        { wrapper: wrapper(client) },
+      );
+
+      // 1. Erkannt-Frame → Notice landet im Erkannt-Store.
+      const erkanntHandler = getHandler('eigenschutz:konflikt-erkannt');
+      expect(erkanntHandler).toBeDefined();
+      act(() =>
+        erkanntHandler?.({
+          eventId: 'evt-erkannt-cross',
+          einsatzId: 'einsatz-1',
+          einheitId: 'einheit-1',
+          entityType: 'PSA_PROFIL_ZUWEISUNG',
+          entityId: 'zuweisung-cross',
+          fieldPath: 'profil',
+          serverVersion: 6,
+          localExpectedVersion: 5,
+          reportedByUserId: 'user-loser',
+          occurredAt: '2026-05-04T10:30:00.000Z',
+        }),
+      );
+      expect(result.current.erkannt.notices).toHaveLength(1);
+
+      // 2. Aufgeloest-Frame mit MATCHING Composite-Key (entityId + entityType + fieldPath),
+      // aber ANDERER eventId — Korrelator über Entitäts-Koordinaten.
+      const aufgeloestHandler = getHandler('eigenschutz:konflikt-aufgeloest');
+      expect(aufgeloestHandler).toBeDefined();
+      act(() =>
+        aufgeloestHandler?.(
+          validPayload({
+            eventId: 'evt-aufg-cross',
+            entityId: 'zuweisung-cross',
+            entityType: 'PSA_PROFIL_ZUWEISUNG',
+            fieldPath: 'profil',
+          }),
+        ),
+      );
+
+      // 3. Notice ist sofort verschwunden — kein Warten auf 30 s-Auto-Dismiss.
+      expect(result.current.erkannt.notices).toHaveLength(0);
+    });
+
+    it('lässt Notice mit nicht-matchenden Entitäts-Koordinaten unverändert', () => {
+      const client = makeClient();
+      const { result } = renderHook(
+        () => ({
+          erkannt: useEigenschutzKonfliktErkanntLive({ einsatzId: 'einsatz-1' }),
+          aufgeloest: useEigenschutzKonfliktAufgeloestLive({ einsatzId: 'einsatz-1' }),
+        }),
+        { wrapper: wrapper(client) },
+      );
+
+      const erkanntHandler = getHandler('eigenschutz:konflikt-erkannt');
+      act(() =>
+        erkanntHandler?.({
+          eventId: 'evt-erkannt-A',
+          einsatzId: 'einsatz-1',
+          einheitId: 'einheit-1',
+          entityType: 'PSA_PROFIL_ZUWEISUNG',
+          entityId: 'zuweisung-A',
+          fieldPath: 'profil',
+          serverVersion: 6,
+          localExpectedVersion: 5,
+          reportedByUserId: 'user-loser',
+          occurredAt: '2026-05-04T10:30:00.000Z',
+        }),
+      );
+      expect(result.current.erkannt.notices).toHaveLength(1);
+
+      // Aufgeloest-Frame mit DIFFERENT entityId → kein Match, Notice bleibt.
+      const aufgeloestHandler = getHandler('eigenschutz:konflikt-aufgeloest');
+      act(() =>
+        aufgeloestHandler?.(
+          validPayload({
+            eventId: 'evt-aufg-OTHER',
+            entityId: 'zuweisung-OTHER',
+            entityType: 'PSA_PROFIL_ZUWEISUNG',
+            fieldPath: 'profil',
+          }),
+        ),
+      );
+
+      expect(result.current.erkannt.notices).toHaveLength(1);
+    });
   });
 });

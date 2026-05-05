@@ -1,5 +1,5 @@
 /**
- * Tests für `ConflictResolutionList` (Story 3.10 AC8, ≥ 14 Tests).
+ * Tests für `ConflictResolutionList` (Story 3.10 AC8).
  *
  * Mockt die API-Hooks `useSyncConflicts` und `useResolveKonflikt`
  * sowie die Lookup-Hooks (`useEinsatzEinheiten`, `useUserNames`),
@@ -13,12 +13,12 @@
  * non-empty `aria-label`, keine doppelten `id`-Attribute.
  */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SyncConflictListItemDto } from '@bluelight-hub/shared/client';
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 
-const { conflictsResultMock, mutateMock, mutationResultMock, einheitenMock, userNamesMock } = vi.hoisted(() => ({
+const { conflictsResultMock, mutateMock, mutationResultMock, einheitenMock, userNamesMock, navigateMock } = vi.hoisted(() => ({
   conflictsResultMock: {
     current: {
       data: [] as SyncConflictListItemDto[],
@@ -33,6 +33,7 @@ const { conflictsResultMock, mutateMock, mutationResultMock, einheitenMock, user
   },
   einheitenMock: { data: [{ id: 'einheit-1', name: 'SEG Nord' }] as Array<{ id: string; name: string }> },
   userNamesMock: { getUserName: (id: string) => `User ${id}` },
+  navigateMock: vi.fn(),
 }));
 
 vi.mock('../../../api/queries', async () => {
@@ -57,10 +58,22 @@ vi.mock('@/features/auth/api/use-users', () => ({
   useUserNames: () => userNamesMock,
 }));
 
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
+
 import { ConflictResolutionList } from '../ConflictResolutionList';
 import * as queriesModule from '../../../api/queries';
 
 const useSyncConflictsMock = vi.mocked(queriesModule.useSyncConflicts);
+
+// Gültige cuid2-Strings (24 Zeichen, lowercase a-z 0-9) für Filter-Tests.
+const VALID_CUID2 = 'abc123def456ghi789jkl012';
+const ANOTHER_CUID2 = 'mno345pqr678stu901vwx234';
 
 function makeConflict(overrides: Partial<SyncConflictListItemDto> = {}): SyncConflictListItemDto {
   return {
@@ -71,8 +84,8 @@ function makeConflict(overrides: Partial<SyncConflictListItemDto> = {}): SyncCon
     fieldPath: 'profil',
     localPayload: {
       toggles: [
-        { code: 'BASIS', active: true },
-        { code: 'CBRN', active: false },
+        { profil: 'BASIS', aktiv: true },
+        { profil: 'INFEKTION', aktiv: false },
       ],
     } as unknown as object,
     serverVersion: 6,
@@ -92,6 +105,7 @@ beforeEach(() => {
   } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
   mutationResultMock.current = { isPending: false } as unknown as UseMutationResult<unknown, unknown, unknown, unknown>;
   mutateMock.mockReset();
+  navigateMock.mockReset();
   useSyncConflictsMock.mockClear();
 });
 
@@ -164,7 +178,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('rendert role="table" mit den erwarteten Spalten-Headern', () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     const table = screen.getByRole('table');
     expect(table).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /Entität/ })).toBeInTheDocument();
@@ -180,7 +194,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: false,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
 
     const header = screen.getByTestId('conflict-sort-serverVersion');
     expect(header).toHaveAttribute('aria-sort', 'none');
@@ -191,7 +205,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Filter-Bar entityType triggert useSyncConflicts mit Filter-Argument', () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     const select = screen.getByLabelText('Entitätstyp') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'GEFAEHRDUNGSBEURTEILUNG_ITEM' } });
     const lastCall = useSyncConflictsMock.mock.calls.at(-1);
@@ -199,14 +213,29 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Reset-Button setzt den Filter zurück (entityType + einheitId undefined)', () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" initialFilter={{ entityType: 'PSA_PROFIL_ZUWEISUNG', einheitId: 'einheit-1' }} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} initialFilter={{ entityType: 'PSA_PROFIL_ZUWEISUNG', einheitId: VALID_CUID2 }} />);
     fireEvent.click(screen.getByTestId('conflict-filter-reset'));
     const lastCall = useSyncConflictsMock.mock.calls.at(-1);
     expect(lastCall?.[1]).toEqual({});
   });
 
+  it('Filter-Änderung schreibt URL-Search via navigate(replace: true) zurück (F8)', () => {
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const select = screen.getByLabelText('Entitätstyp') as HTMLSelectElement;
+    act(() => {
+      fireEvent.change(select, { target: { value: 'PSA_PROFIL_ZUWEISUNG' } });
+    });
+    expect(navigateMock).toHaveBeenCalled();
+    const lastCall = navigateMock.mock.calls.at(-1)?.[0];
+    expect(lastCall?.replace).toBe(true);
+    // Search ist eine Updater-Function — wir rufen sie mit dem prev-Stub auf
+    // und prüfen das Ergebnis.
+    const result = (lastCall?.search as (prev: Record<string, unknown>) => Record<string, unknown>)({});
+    expect(result.entityType).toBe('PSA_PROFIL_ZUWEISUNG');
+  });
+
   it('Resolve-Klick triggert useResolveKonflikt.mutate mit korrekten Argumenten', async () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     const btn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     fireEvent.click(btn);
     expect(mutateMock).toHaveBeenCalledTimes(1);
@@ -217,7 +246,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
     mutateMock.mockImplementation((_vars, opts: { onSuccess?: () => void } | undefined) => {
       opts?.onSuccess?.();
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     const btn = await screen.findByTestId('conflict-resolve-LOCAL_WINS-conflict-1');
     fireEvent.click(btn);
     await waitFor(() => {
@@ -245,7 +274,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: false,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     expect(screen.getByText('Keine offenen Sync-Konflikte')).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
@@ -257,7 +286,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: false,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     expect(screen.getByTestId('conflict-loading-skeleton')).toBeInTheDocument();
   });
 
@@ -268,7 +297,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: true,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     expect(screen.getByTestId('conflict-error-alert')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Erneut versuchen/ })).toBeInTheDocument();
   });
@@ -281,7 +310,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: false,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    const { container } = render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    const { container } = render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     await waitFor(() => {
       const dataRows = container.querySelectorAll('[data-testid^="conflict-row-"]');
       expect(dataRows.length).toBeGreaterThan(0);
@@ -291,7 +320,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('a11y-Strukturinvarianten: aria-sort auf Sort-Headern, aria-label auf Buttons, keine doppelten IDs', async () => {
-    const { container } = render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    const { container } = render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     // 1. Sort-Header haben aria-sort.
     for (const headerId of ['conflict-sort-entityType', 'conflict-sort-serverVersion', 'conflict-sort-localExpectedVersion', 'conflict-sort-reportedAt']) {
       expect(screen.getByTestId(headerId)).toHaveAttribute('aria-sort');
@@ -308,7 +337,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Touch-Target: alle Action-Buttons haben minHeight ≥ 48px (style)', async () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     for (const tid of ['conflict-resolve-SERVER_WINS-conflict-1', 'conflict-resolve-LOCAL_WINS-conflict-1', 'conflict-resolve-MERGED-conflict-1']) {
       const btn = screen.getByTestId(tid);
@@ -317,22 +346,25 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('LocalPayload-Popover: Klick auf Summary öffnet das <details>-Element mit JSON-Vorschau', async () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     const details = (await screen.findByTestId('conflict-snapshot-conflict-1')) as HTMLDetailsElement;
     expect(details.open).toBe(false);
     const summary = details.querySelector('summary')!;
+    // Toggle-Preview im Summary nutzt Backend-Format `{ profil, aktiv }` (F5).
+    expect(summary.textContent).toMatch(/BASIS\+/);
+    expect(summary.textContent).toMatch(/INFEKTION−/);
     fireEvent.click(summary);
     // jsdom toggelt das `open`-Attribut bei Klick auf Summary.
     expect(details.open).toBe(true);
-    // Volltext-JSON enthält den toggle-Code.
+    // Volltext-JSON enthält den toggle-profil-Key.
     expect(details.querySelector('pre')!.textContent).toContain('BASIS');
   });
 
   it('Sekundärer Konflikt im Resolve: rendert Inline-Row-Error, kein globaler Toast', async () => {
     mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
-      opts?.onError?.(new Error('ConflictDetected:abc'));
+      opts?.onError?.(new Error('ConflictDetected:SyncConflict:RaceLost'));
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
     const btn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     fireEvent.click(btn);
     await waitFor(() => {
@@ -340,5 +372,119 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       expect(inlineError).toBeInTheDocument();
       expect(inlineError.textContent).toMatch(/Erneuter Konflikt/);
     });
+  });
+
+  it('Sentinel NotFound:SyncConflict liefert deutsche Konflikt-nicht-gefunden-Meldung (F4)', async () => {
+    mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
+      opts?.onError?.(new Error('NotFound:SyncConflict'));
+    });
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const btn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
+    fireEvent.click(btn);
+    await waitFor(() => {
+      expect(screen.getByTestId('conflict-row-error-conflict-1').textContent).toMatch(/Konflikt nicht gefunden/);
+    });
+  });
+
+  it('Sentinel LocalWinsNichtMoeglich:AggregateNichtGefunden weist auf Server-Übernahme hin (F13)', async () => {
+    mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
+      opts?.onError?.(new Error('BusinessRule:LocalWinsNichtMoeglich:AggregateNichtGefunden'));
+    });
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const btn = await screen.findByTestId('conflict-resolve-LOCAL_WINS-conflict-1');
+    fireEvent.click(btn);
+    await waitFor(() => {
+      const text = screen.getByTestId('conflict-row-error-conflict-1').textContent ?? '';
+      expect(text).toMatch(/Aggregat existiert nicht mehr/);
+      expect(text).toMatch(/Server übernehmen/);
+    });
+  });
+
+  it('Sentinel ValidationFailed:LocalWinsPayloadInvalid liefert Hinweis auf Server-Übernahme (F4)', async () => {
+    mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
+      opts?.onError?.(new Error('ValidationFailed:LocalWinsPayloadInvalid'));
+    });
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const btn = await screen.findByTestId('conflict-resolve-LOCAL_WINS-conflict-1');
+    fireEvent.click(btn);
+    await waitFor(() => {
+      const text = screen.getByTestId('conflict-row-error-conflict-1').textContent ?? '';
+      expect(text).toMatch(/Lokaler Snapshot ist ungültig/);
+    });
+  });
+
+  it('Sentinel via ResponseError-Body wird aus response.json() extrahiert (F4 Production-Shape)', async () => {
+    const fakeResponse = new Response(JSON.stringify({ message: 'BusinessRule:KonfliktNichtImEinsatz', statusCode: 422 }), {
+      status: 422,
+      headers: { 'content-type': 'application/json' },
+    });
+    const responseError = Object.assign(new Error('Response returned an error code'), { response: fakeResponse });
+
+    mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
+      opts?.onError?.(responseError);
+    });
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const btn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
+    fireEvent.click(btn);
+    await waitFor(() => {
+      expect(screen.getByTestId('conflict-row-error-conflict-1').textContent).toMatch(/nicht zum aktuellen Einsatz/);
+    });
+  });
+
+  it('Per-Row-Disabling: nur die laufende Resolve-Row wird deaktiviert, andere Rows bleiben aktiv (F10)', async () => {
+    conflictsResultMock.current = {
+      data: [makeConflict({ id: 'conflict-1' }), makeConflict({ id: 'conflict-2', einheitId: 'einheit-1' })],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
+    // Resolve-Mutation hängt — `onSuccess`/`onError` wird nie aufgerufen, also
+    // bleibt `resolvingIds` nach dem ersten Klick gesetzt.
+    mutateMock.mockImplementation(() => {
+      /* hängt */
+    });
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const btn1 = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
+    fireEvent.click(btn1);
+    // Row 1 ist disabled, Row 2 bleibt aktiv.
+    expect(btn1).toBeDisabled();
+    const btn2 = screen.getByTestId('conflict-resolve-SERVER_WINS-conflict-2');
+    expect(btn2).not.toBeDisabled();
+  });
+
+  it('Filter-Eingabe einheitId mit ungültigem Format zeigt inline-Hinweis und schreibt nicht in Filter-State (F17)', () => {
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const callsBefore = useSyncConflictsMock.mock.calls.length;
+    const input = screen.getByLabelText('Einheit-ID') as HTMLInputElement;
+    act(() => {
+      fireEvent.change(input, { target: { value: 'kein-cuid' } });
+    });
+    expect(screen.getByTestId('conflict-filter-einheit-id-error')).toBeInTheDocument();
+    // useSyncConflicts darf NICHT mit kaputtem Filter aufgerufen worden sein —
+    // wir prüfen, dass alle Calls nach dem Initial-Render leeren oder
+    // unveränderten Filter haben. Bei reiner Input-Eingabe ohne State-Change
+    // erwarten wir KEINEN zusätzlichen Re-Render → 0 neue Calls.
+    const newCalls = useSyncConflictsMock.mock.calls.slice(callsBefore);
+    expect(newCalls.length).toBe(0);
+  });
+
+  it('Filter-Eingabe einheitId mit gültigem cuid2 (24 Zeichen) wird übernommen (F17)', () => {
+    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const input = screen.getByLabelText('Einheit-ID') as HTMLInputElement;
+    act(() => {
+      fireEvent.change(input, { target: { value: VALID_CUID2 } });
+    });
+    expect(screen.queryByTestId('conflict-filter-einheit-id-error')).not.toBeInTheDocument();
+    const lastCall = useSyncConflictsMock.mock.calls.at(-1);
+    expect(lastCall?.[1]).toEqual({ einheitId: VALID_CUID2 });
+  });
+
+  it('Externe initialFilter-Änderung (Browser-Back) wird in den State übernommen (F8 URL→State)', () => {
+    const { rerender } = render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} initialFilter={{ einheitId: VALID_CUID2 }} />);
+    act(() => {
+      rerender(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} initialFilter={{ einheitId: ANOTHER_CUID2 }} />);
+    });
+    const lastCall = useSyncConflictsMock.mock.calls.at(-1);
+    expect(lastCall?.[1]).toEqual({ einheitId: ANOTHER_CUID2 });
   });
 });

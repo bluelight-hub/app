@@ -312,6 +312,24 @@ describe('PrismaSyncConflictRepository.findById() (Story 3.10)', () => {
     expect(result.isSuccess).toBe(true);
     expect(result.value).toBeNull();
   });
+
+  it('TX-Kontext: übergebener tx-Client wird verwendet (Story 3.10 Code-Review F2)', async () => {
+    const logger = createMockLogger();
+    const prismaFindUnique = jest.fn();
+    const prisma = { syncConflict: { findUnique: prismaFindUnique } } as never;
+    const repo = new PrismaSyncConflictRepository(prisma, logger);
+
+    const txFindUnique = jest.fn().mockResolvedValue(makeRow({ id: 'c-tx' }));
+    const tx = { syncConflict: { findUnique: txFindUnique } };
+
+    const result = await repo.findById('c-tx', tx as never);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value?.id).toBe('c-tx');
+    // tx-Client wurde verwendet, NICHT der prisma-Client.
+    expect(txFindUnique).toHaveBeenCalledTimes(1);
+    expect(prismaFindUnique).not.toHaveBeenCalled();
+  });
 });
 
 describe('PrismaSyncConflictRepository.markResolved() (Story 3.10)', () => {

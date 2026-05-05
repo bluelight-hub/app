@@ -132,8 +132,13 @@ describe('ResolveKonfliktHandler (Story 3.10)', () => {
     expect(result.value!.syncConflictId).toBe(SYNC_CONFLICT_ID);
     expect(result.value!.alreadyResolved).toBe(false);
     expect(result.value!.resolvedAt).toBeInstanceOf(Date);
+    // findById muss im selben TX-Kontext laufen wie markResolved (F2).
+    expect(syncConflictRepo.findById).toHaveBeenCalledWith(SYNC_CONFLICT_ID, expect.anything());
+    expect(syncConflictRepo.findById.mock.calls[0][1]).toBeDefined();
     expect(syncConflictRepo.markResolved).toHaveBeenCalledTimes(1);
     expect(syncConflictRepo.markResolved).toHaveBeenCalledWith(SYNC_CONFLICT_ID, 'SERVER_WINS', USER_ID, expect.any(Date), expect.anything());
+    // findById-tx und markResolved-tx müssen dasselbe Objekt sein.
+    expect(syncConflictRepo.findById.mock.calls[0][1]).toBe(syncConflictRepo.markResolved.mock.calls[0][4]);
     expect(psaProfilZuweisungRepo.findByZuweisungId).not.toHaveBeenCalled();
     expect(psaProfilZuweisungRepo.findActiveByEinheit).not.toHaveBeenCalled();
     expect(psaProfilZuweisungRepo.saveActivation).not.toHaveBeenCalled();
@@ -271,6 +276,29 @@ describe('ResolveKonfliktHandler (Story 3.10)', () => {
     expect(result.isFailure).toBe(true);
     expect(result.error).toBe(RESOLVE_KONFLIKT_ERROR_CODES.ENTITY_TYPE_NOT_SUPPORTED);
     expect(syncConflictRepo.markResolved).not.toHaveBeenCalled();
+    expect(outboxRepo.save).not.toHaveBeenCalled();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Race-Loser im LOCAL_WINS-Pfad nach Aggregat-Mutation — 1 Test (Code-Review F1)
+  // ---------------------------------------------------------------------------
+
+  it('(LOCAL_WINS Race-Loser) Reapply mutiert Aggregat, dann markResolved=alreadyResolved → ConflictDetected:SyncConflict:RaceLost (TX-Rollback), KEIN outboxRepo.save', async () => {
+    // Toggle-Set: CBRN_PATIENT aktivieren — server-seitig nicht aktiv. Reapply
+    // mutiert das Aggregat (saveActivation). Direkt danach gewinnt ein zweiter
+    // Resolver das Race und `markResolved` liefert `alreadyResolved=true`.
+    psaProfilZuweisungRepo.findActiveByEinheit.mockResolvedValue(Result.ok(null));
+    syncConflictRepo.markResolved.mockResolvedValue(Result.ok({ alreadyResolved: true }));
+
+    const result = await handler.execute(buildCommand({ resolution: 'LOCAL_WINS' }));
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toBe('ConflictDetected:SyncConflict:RaceLost');
+    // Aggregat-Mutation hat stattgefunden (Reapply-Pfad lief durch).
+    expect(psaProfilZuweisungRepo.saveActivation).toHaveBeenCalledTimes(1);
+    // markResolved wurde aufgerufen (Step 8) — und gewann das Race nicht.
+    expect(syncConflictRepo.markResolved).toHaveBeenCalledTimes(1);
+    // KEIN Outbox-Save → Basisklasse rollbackt die TX (Result.fail).
     expect(outboxRepo.save).not.toHaveBeenCalled();
   });
 

@@ -97,8 +97,10 @@ export class ResolveKonfliktHandler extends TransactionalCommandHandler<ResolveK
       return Result.fail<ResolveKonfliktResult>(RESOLVE_KONFLIKT_ERROR_CODES.NOT_TEILNEHMER);
     }
 
-    // Step 3 — Konflikt-Lookup.
-    const conflictResult = await this.syncConflictRepo.findById(command.syncConflictId);
+    // Step 3 — Konflikt-Lookup. `tx` durchreichen, damit `findById` im
+    // selben TX-Kontext wie `markResolved` läuft (kohärenter Snapshot,
+    // Code-Review F2).
+    const conflictResult = await this.syncConflictRepo.findById(command.syncConflictId, tx);
     if (conflictResult.isFailure) {
       return Result.fail<ResolveKonfliktResult>(wrapInfrastructureError(conflictResult.error, 'sync_conflicts.findById fehlgeschlagen'));
     }
@@ -155,9 +157,26 @@ export class ResolveKonfliktHandler extends TransactionalCommandHandler<ResolveK
 
     // Step 9 — Conditional Event-Emit.
     // Race-Lose-Pfad: ein zweiter Resolve-Call hat das Race verloren
-    // (`alreadyResolved=true`). Wir geben Result.ok zurück, aber **kein**
-    // Event — der Winner-Call hat das Event bereits emittiert.
+    // (`alreadyResolved=true`). Bei `SERVER_WINS`/`MERGED` (Phase-1-MVP) hat
+    // der Pfad das Aggregat NICHT mutiert — wir geben Result.ok zurück und
+    // unterdrücken das Event (Idempotenz für Tab-Reload, Multi-Click).
+    //
+    // Bei `LOCAL_WINS` mit erfolgtem Reapply (`reapplyEvents.length > 0`)
+    // hat `reapplyLocalWinsForPsa` das `PsaProfilZuweisung`-Aggregat bereits
+    // innerhalb der TX mutiert. Wenn wir hier Result.ok zurückgeben, würde
+    // die `TransactionalCommandHandler`-Basisklasse die TX committen — die
+    // PSA-Mutation wäre persistiert OHNE Outbox-Event und ohne Korrektur
+    // (der Winner-Call hat bereits eine andere Resolution gewählt). Daher:
+    // explizit fail mit `ConflictDetected:SyncConflict:RaceLost`, damit die
+    // Basisklasse die TX rollbackt.
     if (markResult.value!.alreadyResolved) {
+      if (reapplyEvents.length > 0) {
+        this.logger.warn?.('ResolveKonflikt: Race-Lose-Pfad mit bereits mutiertem Aggregat — TX-Rollback erzwingen', {
+          syncConflictId: conflict.id,
+          reapplyEventCount: reapplyEvents.length,
+        });
+        return Result.fail<ResolveKonfliktResult>('ConflictDetected:SyncConflict:RaceLost');
+      }
       this.logger.debug('ResolveKonflikt: Race-Lose-Pfad (markResolved=true, kein Event-Emit)', {
         syncConflictId: conflict.id,
       });

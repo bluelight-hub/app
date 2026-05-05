@@ -36,7 +36,7 @@ vi.mock('@/shared/lib/logger', () => ({
   logger: loggerMock,
 }));
 
-import { useEigenschutzKonfliktErkanntLive } from '../use-eigenschutz-konflikt-erkannt-live';
+import { __resetKonfliktErkanntRegistryForTests, findAndDismissNoticeByEntity, useEigenschutzKonfliktErkanntLive } from '../use-eigenschutz-konflikt-erkannt-live';
 import { EIGENSCHUTZ_QUERY_KEYS } from '../queries';
 
 const wrapper =
@@ -74,11 +74,13 @@ describe('useEigenschutzKonfliktErkanntLive (Story 3.9 AC8)', () => {
     mockRemoveAllListeners.mockReset();
     loggerMock.warn.mockReset();
     loggerMock.debug.mockReset();
+    __resetKonfliktErkanntRegistryForTests();
     vi.useFakeTimers();
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    __resetKonfliktErkanntRegistryForTests();
   });
 
   it('öffnet WS-Verbindung und joint den Einsatz-Room', () => {
@@ -170,5 +172,68 @@ describe('useEigenschutzKonfliktErkanntLive (Story 3.9 AC8)', () => {
     const keys = invalidateSpy.mock.calls.map((c) => c[0]?.queryKey).flat();
     // GB darf keinen PSA-Cache invalidieren — falscher Cache.
     expect(keys).not.toContain('psaProfileByEinheit');
+  });
+
+  describe('findAndDismissNoticeByEntity (Story 3.10 AC7 §4 — Cross-Hook-Helper)', () => {
+    it('dismisst die Notice mit passendem Composite-Key (entityId + entityType + fieldPath)', () => {
+      const client = makeClient();
+      const { result } = renderHook(() => useEigenschutzKonfliktErkanntLive({ einsatzId: 'einsatz-1' }), { wrapper: wrapper(client) });
+      const handler = getHandler('eigenschutz:konflikt-erkannt');
+      act(() => handler?.(validPayload({ eventId: 'evt-erkannt-1', entityId: 'zuweisung-1', fieldPath: 'profil' })));
+      expect(result.current.notices).toHaveLength(1);
+
+      let dismissed = 0;
+      act(() => {
+        dismissed = findAndDismissNoticeByEntity({
+          einsatzId: 'einsatz-1',
+          entityId: 'zuweisung-1',
+          entityType: 'PSA_PROFIL_ZUWEISUNG',
+          fieldPath: 'profil',
+        });
+      });
+
+      expect(dismissed).toBe(1);
+      expect(result.current.notices).toHaveLength(0);
+    });
+
+    it('liefert 0 + lässt Notice unverändert, wenn kein Composite-Key matcht', () => {
+      const client = makeClient();
+      const { result } = renderHook(() => useEigenschutzKonfliktErkanntLive({ einsatzId: 'einsatz-1' }), { wrapper: wrapper(client) });
+      const handler = getHandler('eigenschutz:konflikt-erkannt');
+      act(() => handler?.(validPayload({ entityId: 'zuweisung-1', fieldPath: 'profil' })));
+
+      let dismissed = -1;
+      act(() => {
+        dismissed = findAndDismissNoticeByEntity({
+          einsatzId: 'einsatz-1',
+          entityId: 'zuweisung-OTHER',
+          entityType: 'PSA_PROFIL_ZUWEISUNG',
+          fieldPath: 'profil',
+        });
+      });
+
+      expect(dismissed).toBe(0);
+      expect(result.current.notices).toHaveLength(1);
+    });
+
+    it('Cross-Einsatz-Isolation: dismisst keine Notice in einem fremden Einsatz', () => {
+      const client = makeClient();
+      const { result } = renderHook(() => useEigenschutzKonfliktErkanntLive({ einsatzId: 'einsatz-1' }), { wrapper: wrapper(client) });
+      const handler = getHandler('eigenschutz:konflikt-erkannt');
+      act(() => handler?.(validPayload({ entityId: 'zuweisung-1', fieldPath: 'profil' })));
+
+      let dismissed = -1;
+      act(() => {
+        dismissed = findAndDismissNoticeByEntity({
+          einsatzId: 'fremder-einsatz',
+          entityId: 'zuweisung-1',
+          entityType: 'PSA_PROFIL_ZUWEISUNG',
+          fieldPath: 'profil',
+        });
+      });
+
+      expect(dismissed).toBe(0);
+      expect(result.current.notices).toHaveLength(1);
+    });
   });
 });

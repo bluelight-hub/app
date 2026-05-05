@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { io, type Socket } from 'socket.io-client';
-import { z } from 'zod';
+import { KonfliktAufgeloestWsPayloadSchema, type KonfliktAufgeloestWsPayload } from '@bluelight-hub/shared/schemas';
 import { getBaseUrl } from '@/shared/api/api';
 import { logger } from '@/shared/lib/logger';
+import { findAndDismissNoticeByEntity } from './use-eigenschutz-konflikt-erkannt-live';
 
 const NAMESPACE = '/ws/einsatz-events';
 const BACKOFF_MS = [1_000, 2_000, 5_000, 10_000, 30_000] as const;
@@ -13,32 +14,26 @@ const CONNECT_TIMEOUT_MS = 5_000;
 const MAX_RETRIES = 10;
 
 /**
- * Zod-Schema für den WS-Frame `eigenschutz:konflikt-aufgeloest`
- * (Story 3.10 AC6, gespiegelt aus dem Backend-Adapter).
+ * **Single-Source-of-Truth-Re-Export** des Shared-Schemas.
  *
- * **Inline-Schema (kein Shared-Import):** Backend ESM/CJS-Interop führt aktuell
- * dazu, dass Schemas aus `@bluelight-hub/shared` im Frontend nicht ohne
- * Build-Anpassung konsumierbar sind (gleicher Pattern wie Story 3.9 AC8).
+ * Bis Patch F11 hielt dieser Hook ein dupliziertes Inline-Schema mit dem
+ * Begründungs-Kommentar „Backend ESM/CJS-Interop". Inzwischen importiert
+ * das Frontend bereits an mehreren Stellen aus `@bluelight-hub/shared`/
+ * `@bluelight-hub/shared/schemas` (z. B. `auth.schema.ts`,
+ * `RiskMatrix5x5.tsx`, `GefaehrdungItemEditor.tsx`); die ESM/CJS-Hürde
+ * besteht nicht mehr für das Frontend. Das Backend hingegen bleibt CJS
+ * und konsumiert weiterhin einen lokalen Mirror (s.
+ * `konflikt-aufgeloest.adapter.spec.ts`).
+ *
+ * Re-Export erhält den bisherigen Symbol-Namen (`KonfliktAufgeloestLiveSchema`)
+ * für Konsumenten und Tests, ohne dass Drift zwischen Frontend-Hook und
+ * Shared-Schema möglich ist.
  *
  * **PII-Vertrag:** der Frame trägt keinen `localPayload` — der volle
  * Verlierer-State lebt nur in `sync_conflicts`-Row + Outbox-Event.
  */
-export const KonfliktAufgeloestLiveSchema = z
-  .object({
-    eventId: z.string().min(1),
-    einsatzId: z.string().min(1),
-    einheitId: z.string().nullable(),
-    syncConflictId: z.string().min(1),
-    entityType: z.enum(['PSA_PROFIL_ZUWEISUNG', 'GEFAEHRDUNGSBEURTEILUNG_ITEM']),
-    entityId: z.string().min(1),
-    fieldPath: z.string().max(200),
-    resolution: z.enum(['SERVER_WINS', 'LOCAL_WINS', 'MERGED']),
-    resolvedAt: z.string().datetime({ offset: true }),
-    resolvedByUserId: z.string().min(1),
-  })
-  .strict();
-
-export type KonfliktAufgeloestLive = z.infer<typeof KonfliktAufgeloestLiveSchema>;
+export const KonfliktAufgeloestLiveSchema = KonfliktAufgeloestWsPayloadSchema;
+export type KonfliktAufgeloestLive = KonfliktAufgeloestWsPayload;
 
 interface UseEigenschutzKonfliktAufgeloestLiveOptions {
   einsatzId: string;
@@ -67,12 +62,17 @@ const getWsBaseUrl = (): string => getBaseUrl() || 'http://localhost:3091';
  *     Invalidation defensiv (PSA-Cache ist klein, Refetch günstig). AC7-§5
  *     impliziert always-invalidate-both.
  *
- * **Kein UI-State:** der Hook rendert keinen Banner. Der Mikro-Banner
- * aus Story 3.9 (`KonfliktErkanntMikroBanner`) verschwindet nach 30 s
- * Auto-Dismiss; eine sofortige Cross-Hook-Dismiss würde den Story-3.9-
- * `KonfliktErkanntLiveSchema` um `syncConflictId` als Korrelator erweitern
- * müssen (das `eventId` der beiden Frames ist unterschiedlich) — ist als
- * separater Schema-Bump aufgeschoben.
+ * **Cross-Hook-Dismiss (Story 3.10 AC7 §4 / Code-Review D1):** ruft
+ * `findAndDismissNoticeByEntity` aus dem Erkannt-Hook mit dem Composite-
+ * Korrelator (`entityId + entityType + fieldPath`). Falls eine passende
+ * Story-3.9-Mikro-Banner-Notice existiert, wird sie sofort dismisst —
+ * statt erst nach dem 30 s-Auto-Dismiss. Variante A aus dem Patch-Plan:
+ * kein Backend-Schema-Bump, weil `syncConflictId` im Erkannt-Frame
+ * (loser POSTet erst NACH dem Erkannt-Event) gar nicht verfügbar wäre.
+ *
+ * **Kein UI-State im Aufgeloest-Hook:** der Hook rendert keinen Banner.
+ * Der Mikro-Banner aus Story 3.9 wird über die Cross-Hook-Registry
+ * geschlossen.
  *
  * **PII-Vertrag im Logger:** `logger.info`/`debug`-Calls tragen **keine**
  * vollen IDs; nur stabile Konstanten + Hook-Name. Ein dezidierter
@@ -146,7 +146,7 @@ export function useEigenschutzKonfliktAufgeloestLive({ einsatzId, enabled = true
       }, delay);
     };
 
-    const handlePayload = (_payload: KonfliktAufgeloestLive) => {
+    const handlePayload = (payload: KonfliktAufgeloestLive) => {
       if (disposedRef.current) return;
       // AC7 §4 + Advisor-Note: always-invalidate-both.
       // Liste-Cache: der aufgelöste Konflikt verschwindet aus allen Filter-
@@ -157,6 +157,19 @@ export function useEigenschutzKonfliktAufgeloestLive({ einsatzId, enabled = true
       // Resolutions ist die Invalidierung defensiv (PSA-Cache ist klein,
       // Refetch günstig). AC7 §5 impliziert always-both.
       void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'psa-profile'] });
+
+      // Story 3.10 AC7 §4 — Cross-Hook-Dismiss:
+      // Falls der Story-3.9-Mikro-Banner für genau diesen Konflikt noch
+      // sichtbar ist, sofort schließen statt 30 s Auto-Dismiss abzuwarten.
+      // Composite-Korrelator (`entityId + entityType + fieldPath`) — die
+      // beiden Frames tragen verschiedene `eventId`s, aber identische
+      // Entitäts-Koordinaten.
+      findAndDismissNoticeByEntity({
+        einsatzId,
+        entityId: payload.entityId,
+        entityType: payload.entityType,
+        fieldPath: payload.fieldPath,
+      });
     };
 
     const connect = () => {

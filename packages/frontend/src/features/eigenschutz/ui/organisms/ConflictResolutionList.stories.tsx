@@ -49,8 +49,8 @@ function makeConflict(i: number, overrides: Partial<SyncConflictListItemDto> = {
     fieldPath: i % 2 === 0 ? 'profil' : 'schutzmassnahme',
     localPayload: {
       toggles: [
-        { code: 'BASIS', active: true },
-        { code: 'CBRN', active: false },
+        { profil: 'BASIS', aktiv: true },
+        { profil: 'INFEKTION', aktiv: false },
       ],
       begruendung: `Konflikt #${i}`,
     } as unknown as object,

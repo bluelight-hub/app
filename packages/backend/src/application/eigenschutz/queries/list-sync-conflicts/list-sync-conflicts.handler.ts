@@ -76,12 +76,14 @@ export class ListSyncConflictsHandler implements IQueryHandler<ListSyncConflicts
       : undefined;
 
     const repoResult = await this.syncConflictRepo.findOpenByEinsatzId(einsatzId, filter);
-    if (repoResult.isFailure || !repoResult.value) {
+    if (repoResult.isFailure) {
       return Result.fail<ListSyncConflictsResult>(wrapInfrastructureError(repoResult.error, 'sync_conflicts-Lookup fehlgeschlagen'));
     }
 
-    // Step 4 — Mapping ohne `einsatzId`.
-    const conflicts: SyncConflictListItem[] = repoResult.value.map((row) => toListItem(row));
+    // Step 4 — Mapping ohne `einsatzId`. Defensive `?? []`-Fallback, falls
+    // das Repo `Result.ok(null)` zurückgibt (Code-Review F16: vorher als
+    // Failure behandelt, jetzt als leere Liste).
+    const conflicts: SyncConflictListItem[] = (repoResult.value ?? []).map((row) => toListItem(row));
 
     return Result.ok<ListSyncConflictsResult>({ conflicts });
   }

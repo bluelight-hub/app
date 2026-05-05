@@ -28,6 +28,8 @@ import { ListSicherheitsregelQuittungenHandler } from './queries/list-sicherheit
 import { MeldeLueckeHandler } from './commands/melde-luecke/melde-luecke.handler';
 import { EmitPsaQuittungUeberfaelligHandler } from './commands/emit-psa-quittung-ueberfaellig/emit-psa-quittung-ueberfaellig.handler';
 import { ReportSyncConflictHandler } from './commands/report-sync-conflict/report-sync-conflict.handler';
+import { ResolveKonfliktHandler } from './commands/resolve-konflikt/resolve-konflikt.handler';
+import { ListSyncConflictsHandler } from './queries/list-sync-conflicts/list-sync-conflicts.handler';
 
 /**
  * Application-Layer-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -56,6 +58,7 @@ import { ReportSyncConflictHandler } from './commands/report-sync-conflict/repor
     MeldeLueckeHandler,
     EmitPsaQuittungUeberfaelligHandler,
     ReportSyncConflictHandler,
+    ResolveKonfliktHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
     UpdateSicherheitsregelHandler,
     GetGefaehrdungsbeurteilungHandler,
@@ -68,6 +71,7 @@ import { ReportSyncConflictHandler } from './commands/report-sync-conflict/repor
     ListPsaQuittungenHandler,
     ListSicherheitsregelnHandler,
     ListSicherheitsregelQuittungenHandler,
+    ListSyncConflictsHandler,
   ],
   exports: [
     AckPsaQuittungHandler,
@@ -79,6 +83,7 @@ import { ReportSyncConflictHandler } from './commands/report-sync-conflict/repor
     MeldeLueckeHandler,
     EmitPsaQuittungUeberfaelligHandler,
     ReportSyncConflictHandler,
+    ResolveKonfliktHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
     UpdateSicherheitsregelHandler,
     GetGefaehrdungsbeurteilungHandler,
@@ -91,6 +96,7 @@ import { ReportSyncConflictHandler } from './commands/report-sync-conflict/repor
     ListPsaQuittungenHandler,
     ListSicherheitsregelnHandler,
     ListSicherheitsregelQuittungenHandler,
+    ListSyncConflictsHandler,
   ],
 })
 export class EigenschutzApplicationModule {}
