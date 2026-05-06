@@ -35,6 +35,7 @@ vi.mock('@/shared', () => ({
 import {
   SicherungspostenConflictError,
   sicherungspostenQueryKeys,
+  useAufloeseSicherungsposten,
   useCreateSicherungsposten,
   useGetSicherungsposten,
   useListSicherungsposten,
@@ -135,6 +136,39 @@ describe('byId-Cache-Invalidierung (Story 4.4 AC2)', () => {
     );
     expect(idxByEinsatz).toBeGreaterThanOrEqual(0);
     expect(idxById).toBeGreaterThan(idxByEinsatz);
+  });
+
+  it('Create-Mutation invalidiert byEinsatz und byId nach Erfolg (AC2)', async () => {
+    mockCreate.mockResolvedValueOnce({ data: POSTEN_DTO, meta: {} });
+    const { client, wrapper } = makeWrapper();
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+
+    const { result } = renderHook(() => useCreateSicherungsposten('einsatz-1'), { wrapper });
+
+    await result.current.mutateAsync({ bezeichnung: 'Posten Neu', standort: { kind: 'address', text: 'Eingang' }, personal: [] });
+
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: sicherungspostenQueryKeys.byEinsatz('einsatz-1') });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: sicherungspostenQueryKeys.byId('einsatz-1', POSTEN_DTO.id) });
+    });
+  });
+
+  it('Aufloese-Mutation invalidiert byEinsatz und byId nach Erfolg (AC2)', async () => {
+    mockAufloesen.mockResolvedValueOnce({ data: { ...POSTEN_DTO, aufgeloestAm: '2026-05-06T08:00:00.000Z' }, meta: {} });
+    const { client, wrapper } = makeWrapper();
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+
+    const { result } = renderHook(() => useAufloeseSicherungsposten('einsatz-1'), { wrapper });
+
+    await result.current.mutateAsync({
+      postenId: POSTEN_DTO.id,
+      body: { expectedVersion: 3, begruendung: 'Posten nicht mehr nötig' },
+    });
+
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: sicherungspostenQueryKeys.byEinsatz('einsatz-1') });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: sicherungspostenQueryKeys.byId('einsatz-1', POSTEN_DTO.id) });
+    });
   });
 });
 

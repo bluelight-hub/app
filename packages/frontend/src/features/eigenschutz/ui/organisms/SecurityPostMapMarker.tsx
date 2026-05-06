@@ -18,6 +18,7 @@ import type { MapRef } from 'react-map-gl/maplibre';
 import type { SicherungspostenDto } from '@bluelight-hub/shared/client';
 import { truncateAbloesezeitenForTooltip } from '@bluelight-hub/shared';
 import { useNavigate } from '@tanstack/react-router';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { useListSicherungsposten } from '../../api/use-sicherungsposten';
 import './SecurityPostMapMarker.css';
 
@@ -287,8 +288,14 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded, focus }:
     const allPosten = query.data ?? [];
     const target = allPosten.find((p) => p.id === postenId);
     if (!target) {
-      // Daten womöglich noch nicht geladen — Trigger NICHT als „handled"
-      // markieren, damit ein späterer Render mit geladenen Daten erneut prüft.
+      // Wenn die Liste schon einmal erfolgreich geladen wurde und der Posten
+      // dennoch fehlt (typo, AUFGELOEST, fremder Einsatz): Trigger als handled
+      // markieren, damit ein nachfolgender `query.data`-Refetch (Polling-
+      // Fallback) keine Endlos-Loop von Effect-Reruns auslöst. Solange die
+      // Query aber noch nicht gefetcht ist, lassen wir den Trigger offen.
+      if (query.data !== undefined) {
+        lastHandledTriggerRef.current = triggerCount;
+      }
       return;
     }
 
@@ -367,20 +374,21 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded, focus }:
 
       {popup && (
         <Popup longitude={popup.longitude} latitude={popup.latitude} anchor="bottom" offset={20} closeOnClick={false} closeButton={true} onClose={() => setPopup(null)}>
-          <div className="max-w-[260px] px-1 py-0.5" aria-label={`Sicherungsposten ${popup.bezeichnung}`}>
-            <p className="truncate text-sm font-medium text-text-primary" title={popup.bezeichnung}>
+          {/*
+            `role="dialog"` + `aria-labelledby` statt `aria-label` —
+            der Bezeichnungs-Absatz wirkt als Accessible Name; Screen-
+            Reader sprechen ihn dadurch nicht doppelt aus (Labelling
+            via Reference statt Duplikat-String).
+          */}
+          <div role="dialog" aria-labelledby={`sicherungsposten-popover-title-${popup.postenId}`} className="max-w-[260px] px-1 py-0.5">
+            <p id={`sicherungsposten-popover-title-${popup.postenId}`} className="truncate text-sm font-medium text-text-primary" title={popup.bezeichnung}>
               {popup.bezeichnung}
             </p>
             <p className="mt-0.5 text-xs text-text-muted">{popup.personalCount > 0 ? `Personal: ${popup.personalCount} Person(en)` : 'Kein Personal hinterlegt'}</p>
             {popup.abloesezeitenTooltip.length > 0 && <p className="mt-0.5 text-xs text-text-muted">{popup.abloesezeitenTooltip}</p>}
-            <button
-              type="button"
-              onClick={handleDetailNavigate}
-              data-testid="sicherungsposten-popover-detail-link"
-              className="mt-2 inline-flex items-center rounded border border-blue-700 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
-            >
+            <Button intent="primary" appearance="ghost" size="sm" type="button" onClick={handleDetailNavigate} data-testid="sicherungsposten-popover-detail-link" className="mt-2">
               Details öffnen
-            </button>
+            </Button>
           </div>
         </Popup>
       )}

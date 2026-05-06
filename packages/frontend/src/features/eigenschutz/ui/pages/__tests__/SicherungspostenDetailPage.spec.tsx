@@ -121,6 +121,39 @@ describe('SicherungspostenDetailPage', () => {
     expect(screen.queryByTestId('sicherungsposten-detail-aufgeloest-badge')).not.toBeInTheDocument();
   });
 
+  it('Mikro-Footer rendert userIdHash6 als 6-stelligen Hex-Hash (kein Klar-CUID-Substring) (AC4)', () => {
+    mocks.detailQuery.isPending = false;
+    mocks.detailQuery.data = POSTEN_BASIS;
+
+    renderWithProviders(<SicherungspostenDetailPage einsatzId="einsatz-1" id="posten-1" />);
+
+    const meta = screen.getByTestId('sicherungsposten-detail-meta');
+    // Erwartet: „Zuletzt aktualisiert: HH:MM dd.MM.yyyy (von <hash6>)"
+    // hash6 ist 6 hexadezimale Zeichen [0-9a-f] und NICHT der Klar-CUID-Anfang.
+    const match = meta.textContent?.match(/\(von ([0-9a-f]{6})\)/);
+    expect(match).not.toBeNull();
+    const hash = match?.[1];
+    expect(hash).toMatch(/^[0-9a-f]{6}$/);
+    // Privacy-Check: Klar-CUID-Anfang darf NICHT geleakt werden.
+    expect(hash).not.toBe(POSTEN_BASIS.aktualisiertVonUserId.slice(0, 6));
+  });
+
+  it('Mikro-Footer ist deterministisch — gleicher User → gleicher Hash', () => {
+    mocks.detailQuery.isPending = false;
+    mocks.detailQuery.data = POSTEN_BASIS;
+    const { unmount, container: c1 } = renderWithProviders(<SicherungspostenDetailPage einsatzId="einsatz-1" id="posten-1" />);
+    const meta1 = c1.querySelector('[data-testid="sicherungsposten-detail-meta"]')?.textContent ?? '';
+    unmount();
+
+    const { container: c2 } = renderWithProviders(<SicherungspostenDetailPage einsatzId="einsatz-1" id="posten-1" />);
+    const meta2 = c2.querySelector('[data-testid="sicherungsposten-detail-meta"]')?.textContent ?? '';
+
+    const hash1 = meta1.match(/\(von ([0-9a-f]{6})\)/)?.[1];
+    const hash2 = meta2.match(/\(von ([0-9a-f]{6})\)/)?.[1];
+    expect(hash1).toBeTruthy();
+    expect(hash1).toBe(hash2);
+  });
+
   it('rendert Aufgelöst-Badge wenn aufgeloestAm gesetzt ist', () => {
     mocks.detailQuery.isPending = false;
     mocks.detailQuery.data = { ...POSTEN_BASIS, aufgeloestAm: '2026-05-03T12:00:00.000Z' };

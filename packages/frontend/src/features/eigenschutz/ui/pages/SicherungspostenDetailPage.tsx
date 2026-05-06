@@ -82,6 +82,23 @@ function formatStandort(standort: SicherungspostenDtoStandort | undefined | null
   return { label: '—' };
 }
 
+/**
+ * Stabiler 6-stelliger Hex-Hash der UserId für die Mikro-Footer-Anzeige.
+ * FNV-1a 32-bit ist nicht-kryptographisch, aber für Anzeige-Zwecke
+ * ausreichend: deterministisch (gleicher User → gleiche 6 Zeichen),
+ * gleichmäßig verteilt (~16M Buckets), und vermeidet das Leaken der
+ * Klar-CUID-Anfangs-Zeichen, die für eine ganze Generation identisch sind.
+ */
+function hashUserIdShort(userId: string | null | undefined): string {
+  if (!userId) return '——';
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < userId.length; i++) {
+    hash ^= userId.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0').slice(0, 6);
+}
+
 function describePersonal(entry: SicherungspostenDtoPersonalInner): string {
   if (!entry || typeof entry !== 'object') return '—';
   const kind = (entry as { kind?: unknown }).kind;
@@ -158,7 +175,7 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
       return posten.aktualisiertAm;
     }
   })();
-  const aktualisiertVonShort = (posten.aktualisiertVonUserId ?? '').slice(0, 6);
+  const aktualisiertVonShort = hashUserIdShort(posten.aktualisiertVonUserId);
 
   const handleShowOnMap = () => {
     if (!isCoordinate) return;

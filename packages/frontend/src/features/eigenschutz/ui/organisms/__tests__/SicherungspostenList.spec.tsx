@@ -153,5 +153,14 @@ describe('SicherungspostenList', () => {
       await user.click(button);
       expect(navigateMock.current).not.toHaveBeenCalled();
     });
+
+    it('rendert NICHT im AUFGELOEST-Tab — Action-Cluster fehlt für aufgelöste Posten (AC6)', async () => {
+      const user = userEvent.setup();
+      setup();
+      await user.click(screen.getByTestId('sicherungsposten-tab-aufgeloest'));
+      await waitFor(() => {
+        expect(screen.queryByTestId(`sicherungsposten-show-on-map-${POSTEN_AUFGELOEST.id}`)).not.toBeInTheDocument();
+      });
+    });
   });
 });

@@ -46,7 +46,33 @@
 
 generated: 2026-04-21
 last_updated: >-
-  2026-05-06 (Story 4.4 → review: Bidirektionale Navigation Karte ↔ Detail-Ansicht
+  2026-05-06 (Story 4.4 → done: Code-Review + 9 Patches angewendet. 3 parallele
+  adversariale Reviewer (Blind Hunter / Edge Case Hunter / Acceptance Auditor)
+  → 2 decision-needed (D1 Detail-Page-Permission-Hook → defer auf eigene
+  Rechte-Story, D2 `aktualisiertVonHash6` mehrdeutig → patch via FNV-1a 32-bit
+  Hex-Hash statt Klar-CUID-Substring); 8 patches (P1 403-Smoke-Test im
+  Controller-Spec, P2 byId-Invalidate-Tests für Create + Aufloese, P3
+  reduced-motion-Tests für FlyTo-Duration=0 + Highlight-Ring, P4
+  AUFGELOEST-Tab-Render-Test für Show-on-Map-Button-Abwesenheit, P5 Details-
+  Button im Popover auf `Button`-Atom umgestellt, P6 `role="dialog"` +
+  `aria-labelledby` statt redundantem `aria-label` am inneren div, P7
+  404-Sentinel-Leak — `message: 'NotFound:Sicherungsposten'` durch
+  nutzerfreundlichen Text ersetzt, P8 focus-Trigger als handled markiert wenn
+  query.data geladen aber Posten-ID nicht enthalten — verhindert Endlos-
+  Re-Eval bei Polling-Refetch); 9 deferred in deferred-work.md (D1, manuelle
+  Browser-Verifikation T8.5, CUID-Validation auf Path-Params, Cross-Einsatz-
+  Timing-Oracle, Popup-stale-Daten nach Refetch, User-Resolver für `kind:
+  'user'`-Personal, Popover-Focus-Management, (0,0)-Null-Island-Coordinate,
+  GeoJSON-Memo-Rebuild auf Refetch, AC7-Re-Trigger-via-identischer-URL bei
+  gemounteter Komponente); ~25 als Rauschen verworfen (false positives:
+  `isFiniteNumber` undefined behauptet — ist auf Z. 101 definiert; architecture
+  .md-Doku-Update fehle — war im Diff committet, durch packages/-Filter im
+  Review-Diff verdeckt). Tests grün: Backend 26/26 (`get-sicherungsposten` +
+  `sicherungsposten.controller`); Frontend 80/80 (Marker 20/20, List 9/9,
+  use-sicherungsposten 15/15, DetailPage 11/11, LagekarteView 25/25); lint
+  0 Errors (32 pre-existing format-Warnungen in `.agents/skills/` unrelated);
+  check:arch + check:di:imports grün. Vorhergehender Stand: Story 4.4 review.)
+  (vorhergehender Stand: 2026-05-06 (Story 4.4 → review: Bidirektionale Navigation Karte ↔ Detail-Ansicht
   (FR28 Teil 2, UX-DR12). 11 ACs umgesetzt via 3 parallele Subagents — Backend
   (`GET /einsaetze/:einsatzId/sicherheit/eigenschutz/sicherungsposten/:postenId`
   als `GetSicherungspostenQuery` + Handler + Endpoint mit Cross-Einsatz→404

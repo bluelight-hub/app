@@ -1,6 +1,6 @@
 # Story 4.4: Bidirektionale Navigation Karte ↔ Detail-Ansicht
 
-Status: review
+Status: done
 
 ## Story
 
@@ -512,3 +512,27 @@ claude-opus-4-7[1m] (Implementation orchestriert via 3 parallele Subagents — B
 ### Change Log
 
 - 2026-05-06 — Story 4.4 implementiert (3 parallele Subagents: Backend, Marker, Frontend); 25 Backend-Tests + 72 Frontend-Tests grün; Status → review.
+- 2026-05-06 — Code-Review (Blind Hunter + Edge Case Hunter + Acceptance Auditor) → 2 decision-needed, 8 patch, 9 defer, ~25 dismiss. Findings unten.
+- 2026-05-06 — Review-Patches angewendet (P1–P9 + D2-Hash6, D1 deferred): 9 fixes umgesetzt; Backend 26/26, Frontend 80/80 (Marker 20, List 9, use-sicherungsposten 15, DetailPage 11, LagekarteView 25). Status bleibt `review` — User-finale Abnahme.
+
+### Review Findings
+
+- [x] [Review][Defer] AC4 Detail-Page Permission-Gate für „Bearbeiten"/„Auflösen" fehlt [SicherungspostenDetailPage.tsx] — deferred per User-Entscheidung 2026-05-06: Rechte-Modell für eigenschutz-Slice kommt in eigener Story; Konsistenz mit `SicherungspostenList` bleibt erhalten.
+- [x] [Review][Patch] AC4 `aktualisiertVonHash6` — Substring auf SHA-256-Hash-Prefix umstellen (privacy-konform, stabil, diskriminierend) [SicherungspostenDetailPage.tsx]
+- [x] [Review][Patch] AC10 — 403-Pfad-Test im Controller-Spec für `GET :postenId` fehlt; nur Reflect-Metadata-Test (6b) prüft die Permission [packages/backend/src/modules/eigenschutz/controllers/__tests__/sicherungsposten.controller.spec.ts]
+- [x] [Review][Patch] AC2 — `byId`-Invalidate-Tests für `useCreateSicherungsposten` und `useAufloeseSicherungsposten` fehlen; nur Update getestet, obwohl beide den Cache erweitern [packages/frontend/src/features/eigenschutz/api/__tests__/use-sicherungsposten.spec.tsx]
+- [x] [Review][Patch] AC8/AC10 — Kein Test für `prefers-reduced-motion`-Pfad: weder Highlight-Ring-Animation-Off-Verifikation noch `flyTo`-Duration `0` werden assert'd [packages/frontend/src/features/eigenschutz/ui/organisms/__tests__/SecurityPostMapMarker.spec.tsx]
+- [x] [Review][Patch] AC6/AC10 — Kein Test, der explizit den AUFGELOEST-Tab rendert und das Fehlen des „Auf Karte zeigen"-Buttons assert'd [packages/frontend/src/features/eigenschutz/ui/organisms/__tests__/SicherungspostenList.spec.tsx]
+- [x] [Review][Patch] AC5 — „Details öffnen"-Button im Popover umgeht das `Button`-Atom; Inline-Tailwind statt `<Button intent="primary" appearance="ghost">` (Pattern-Drift gegen UI-Atomik) [packages/frontend/src/features/eigenschutz/ui/organisms/SecurityPostMapMarker.tsx:355]
+- [x] [Review][Patch] AC5 — `aria-label="Sicherungsposten {bezeichnung}"` sitzt am inneren `<div>` statt am `<Popup>`-Container; Bezeichnung erscheint dadurch doppelt für Screenreader (Container-aria-label + sichtbarer `<p>`) [packages/frontend/src/features/eigenschutz/ui/organisms/SecurityPostMapMarker.tsx:351]
+- [x] [Review][Patch] 404-Response leakt internen Sentinel — `message: "NotFound:Sicherungsposten"` landet im Public-API-Body; Test 8b zementiert das. User-facing Texte sollten nicht Sentinel-Strings sein. Mappen auf „Sicherungsposten existiert nicht oder gehört zu einem anderen Einsatz." [packages/backend/src/modules/eigenschutz/controllers/sicherungsposten.controller.ts:285 + Spec 8b]
+- [x] [Review][Patch] focus-Trigger bleibt unbearbeitet wenn `target` (postenId) nicht in `query.data` gefunden wird — `lastHandledTriggerRef.current` wird im Early-Return bei `!target` bewusst NICHT gesetzt; bei jedem `query.data`-Refetch (Polling-Fallback alle 10 s) re-evaluiert der Effect erneut. Sollte `query.isFetched && !target` als „handled" markieren [packages/frontend/src/features/eigenschutz/ui/organisms/SecurityPostMapMarker.tsx:289-293]
+- [x] [Review][Defer] AC11 — Manuelle Browser-Verifikation nicht durchgeführt (T8.5) [Story-File] — deferred, in Completion-Notes als Auto-Mode-Limitation begründet
+- [x] [Review][Defer] CUID-Validation auf `:postenId`/`:einsatzId` Path-Params fehlt [packages/backend/src/modules/eigenschutz/controllers/sicherungsposten.controller.ts] — deferred, Story-Notes deklarieren das als „projektweite Konsistenz-Story"
+- [x] [Review][Defer] Cross-Einsatz Timing-Oracle: 404 für unknown vs. found-but-foreign theoretisch via DB-Latenz unterscheidbar [get-sicherungsposten.handler.ts] — deferred, Bedrohungsmodell für Existenz-Leak via Timing nicht etabliert
+- [x] [Review][Defer] Popup hält stale `bezeichnung`/`personalCount` wenn `query.data` nach Open refetcht [SecurityPostMapMarker.tsx:200-235] — deferred, real aber niedrige Frequenz (5–10 s Polling)
+- [x] [Review][Defer] Personal `kind: 'user'` zeigt Klar-CUID im DOM („User: clw3h8…") — User-Resolver fehlt [SicherungspostenDetailPage.tsx:describePersonal] — deferred, kein Spec-Hinweis, eigene UX-Story nötig
+- [x] [Review][Defer] Popover-Focus-Management (Tab-Cycle, Escape, focus-return) fehlt; Keyboard-only-Operatoren erreichen „Details öffnen" nicht aus Map-Canvas [SecurityPostMapMarker.tsx Popup] — deferred, a11y-Story für Map-Popover-Pattern
+- [x] [Review][Defer] (0,0)-Coordinate (Null Island) wird als gültig akzeptiert — `isCoordinateStandort` validiert nur Range, nicht „echte Position" [SecurityPostMapMarker.tsx:isCoordinateStandort] — deferred, Domain-Validation-Story
+- [x] [Review][Defer] GeoJSON `useMemo` rebuilds auf jedem `query.data`-Refetch — bei vielen aktiven Posten + Polling ineffizient [SecurityPostMapMarker.tsx:128] — deferred, Performance-Optimierungs-Story
+- [x] [Review][Defer] AC7 Re-Trigger via identischer focus-URL: `setTriggerCount(t=>t+1)` läuft auf `[focus]`-Dep; bei unveränderter URL und gemounteter Komponente fired der Effect nicht. Beim Route-Wechsel re-mountet die Komponente und der Mount-Effect setzt triggerCount=1 — daher praktisch wirksam. Nur Edge-Fall: User auf /karte mit identischem focus klickt anderswo den gleichen Deep-Link → kein Re-Trigger [SecurityPostMapMarker.tsx:260-262] — deferred, in Praxis durch Route-Re-Mount maskiert
