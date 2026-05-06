@@ -1,5 +1,5 @@
 /**
- * Spec für `SicherungspostenDrawer` (Story 4.1, T6).
+ * Spec für `SicherungspostenDrawer` (Story 4.1, T6 + Story 4.2 T6).
  *
  * Schwerpunkte:
  * - Pflichtfeld-Validation für `bezeichnung` blockiert Submit.
@@ -7,12 +7,20 @@
  * - Personal-Eintrag hinzufügen + entfernen.
  * - Submit ruft `useCreateSicherungsposten` mit normalisiertem Payload.
  * - 409-Konflikt rendert Inline-Banner mit Server-Version.
+ *
+ * Story 4.2 ergänzt:
+ * - Ablösezeiten-Editor (Textarea ≤ 2000 Zeichen) ersetzt den 4.1-Stub.
+ * - Counter zeigt Längen-Status, wird rot bei > 2000.
+ * - Auto-Save (Debounce 2 s) feuert exakt einmal pro Pause.
+ * - 409-Konflikt pausiert Auto-Save und zeigt „Konflikt"-Badge.
+ * - Drawer-Close ruft `flushNow` (asynchron, mit 3-s-Timeout-Race).
+ * - Identische Werte triggern keine No-Op-Mutation.
  */
 
 import { renderWithProviders } from '@/test/utils';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mocks, SicherungspostenConflictErrorMock } = vi.hoisted(() => {
   class SicherungspostenConflictErrorMock extends Error {
@@ -41,7 +49,11 @@ vi.mock('../../../api/use-sicherungsposten', () => ({
   useAufloeseSicherungsposten: () => ({ mutateAsync: vi.fn(), isPending: false }),
   SicherungspostenConflictError: SicherungspostenConflictErrorMock,
   extractSicherungspostenConflictError: vi.fn(),
-  sicherungspostenQueryKeys: { all: ['sicherungsposten'], list: (id: string, s: string) => ['sicherungsposten', id, s] },
+  sicherungspostenQueryKeys: {
+    all: ['sicherungsposten'],
+    byEinsatz: (id: string) => ['sicherungsposten', id],
+    list: (id: string, s: string) => ['sicherungsposten', id, s],
+  },
 }));
 
 import { SicherungspostenDrawer } from '../SicherungspostenDrawer';
@@ -195,5 +207,245 @@ describe('SicherungspostenDrawer', () => {
       expect(within(banner).getByText(/Server-Version: 7/)).toBeInTheDocument();
     });
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  // ===== Story 4.2 — Ablösezeiten-Editor =====
+
+  describe('Story 4.2 — Ablösezeiten-Editor', () => {
+    const POSTEN_MIT_ABLOESE = {
+      ...EXISTING_POSTEN,
+      abloesezeiten: '08:00 – 12:00 Trupp 1',
+    };
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('Edit-Mode: Textarea ist gerendert (kein Stub), maxLength=2000, Counter zeigt initialen Wert', async () => {
+      setup({ mode: 'edit', posten: POSTEN_MIT_ABLOESE });
+
+      // Stub muss verschwunden sein
+      expect(screen.queryByTestId('sicherungsposten-abloesezeiten-stub')).not.toBeInTheDocument();
+
+      const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+      expect(textarea).toBeInTheDocument();
+      expect(textarea.maxLength).toBe(2000);
+      await waitFor(() => expect(textarea.value).toBe('08:00 – 12:00 Trupp 1'));
+
+      const counter = screen.getByTestId('sicherungsposten-abloesezeiten-counter');
+      expect(counter).toHaveTextContent(`${'08:00 – 12:00 Trupp 1'.length} / 2000 Zeichen`);
+      expect(counter.className).not.toContain('text-status-danger-text');
+    });
+
+    it('Edit-Mode: 1500-Zeichen-Eingabe → Counter „1500 / 2000", nicht rot', async () => {
+      setup({ mode: 'edit', posten: { ...POSTEN_MIT_ABLOESE, abloesezeiten: '' } });
+      const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+
+      const longValue = 'a'.repeat(1500);
+      // fireEvent für direktes Setzen ohne 1500-Char-userEvent-Tippen
+      fireEvent.change(textarea, { target: { value: longValue } });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('sicherungsposten-abloesezeiten-counter')).toHaveTextContent('1500 / 2000 Zeichen');
+      });
+      const counter = screen.getByTestId('sicherungsposten-abloesezeiten-counter');
+      expect(counter.className).not.toContain('text-status-danger-text');
+    });
+
+    it('Edit-Mode: 2001-Zeichen → Counter rot, Auto-Save-Badge zeigt „Nicht gespeichert" (isValid blockt)', async () => {
+      vi.useFakeTimers();
+      try {
+        mocks.updateMutation.mutateAsync = vi.fn().mockResolvedValue({ ...POSTEN_MIT_ABLOESE, version: 5 });
+
+        setup({ mode: 'edit', posten: { ...POSTEN_MIT_ABLOESE, abloesezeiten: '' } });
+        const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+
+        // Hard-set ohne `maxLength`-Cap (fireEvent umgeht das DOM-MaxLength)
+        const overflow = 'a'.repeat(2001);
+        fireEvent.change(textarea, { target: { value: overflow } });
+
+        const counter = screen.getByTestId('sicherungsposten-abloesezeiten-counter');
+        expect(counter).toHaveTextContent('2001 / 2000 Zeichen');
+        expect(counter.className).toContain('text-status-danger-text');
+
+        // Debounce-Tick durchlaufen — Auto-Save darf NICHT feuern
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(2500);
+        });
+
+        const badge = screen.getByTestId('sicherungsposten-abloesezeiten-autosave-status');
+        expect(badge).toHaveTextContent('Nicht gespeichert');
+        expect(mocks.updateMutation.mutateAsync).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('Edit-Mode: Tippen → 2-s-Debounce → genau eine Mutation mit korrekter expectedVersion + abloesezeiten', async () => {
+      vi.useFakeTimers();
+      try {
+        mocks.updateMutation.mutateAsync = vi.fn().mockResolvedValue({ ...POSTEN_MIT_ABLOESE, version: 5, abloesezeiten: 'neu' });
+
+        setup({ mode: 'edit', posten: POSTEN_MIT_ABLOESE });
+        const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+
+        fireEvent.change(textarea, { target: { value: 'neu' } });
+
+        // Vor Debounce-Ablauf: keine Mutation
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1999);
+        });
+        expect(mocks.updateMutation.mutateAsync).not.toHaveBeenCalled();
+
+        // Nach Debounce-Ablauf: genau eine Mutation
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1);
+        });
+
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledTimes(1);
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
+          postenId: POSTEN_MIT_ABLOESE.id,
+          body: { expectedVersion: POSTEN_MIT_ABLOESE.version, abloesezeiten: 'neu' },
+        });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('Edit-Mode: zwei Tipps innerhalb 1 s → nur eine Mutation (Debounce-Coalescing)', async () => {
+      vi.useFakeTimers();
+      try {
+        mocks.updateMutation.mutateAsync = vi.fn().mockResolvedValue({ ...POSTEN_MIT_ABLOESE, version: 5, abloesezeiten: 'AB' });
+
+        setup({ mode: 'edit', posten: POSTEN_MIT_ABLOESE });
+        const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+
+        fireEvent.change(textarea, { target: { value: 'A' } });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(500);
+        });
+        fireEvent.change(textarea, { target: { value: 'AB' } });
+        // Coalescing-Window läuft erst jetzt 2 s ab
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(2000);
+        });
+
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledTimes(1);
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
+          postenId: POSTEN_MIT_ABLOESE.id,
+          body: { expectedVersion: POSTEN_MIT_ABLOESE.version, abloesezeiten: 'AB' },
+        });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('Edit-Mode: 409-Konflikt → Banner + Auto-Save-Badge „Konflikt", weitere Tipps lösen keine Mutation aus', async () => {
+      vi.useFakeTimers();
+      try {
+        const conflict = new SicherungspostenConflictErrorMock(9, 4, undefined);
+        mocks.updateMutation.mutateAsync = vi.fn().mockRejectedValue(conflict);
+
+        setup({ mode: 'edit', posten: POSTEN_MIT_ABLOESE });
+        const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+
+        fireEvent.change(textarea, { target: { value: 'konflikt-tick-1' } });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(2000);
+        });
+
+        expect(screen.getByTestId('sicherungsposten-drawer-conflict-banner')).toBeInTheDocument();
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledTimes(1);
+
+        const badge = screen.getByTestId('sicherungsposten-abloesezeiten-autosave-status');
+        expect(badge).toHaveTextContent('Konflikt — bitte neu laden');
+
+        // Weitere Tipps → kein neuer Save-Versuch
+        fireEvent.change(textarea, { target: { value: 'konflikt-tick-2' } });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(2500);
+        });
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('Edit-Mode: Drawer-Close mit dirty Draft → flushNow läuft vor Schließen, Mutation feuert', async () => {
+      vi.useFakeTimers();
+      try {
+        mocks.updateMutation.mutateAsync = vi.fn().mockResolvedValue({ ...POSTEN_MIT_ABLOESE, version: 5, abloesezeiten: 'flushed' });
+
+        const { onClose } = setup({ mode: 'edit', posten: POSTEN_MIT_ABLOESE });
+        const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+
+        fireEvent.change(textarea, { target: { value: 'flushed' } });
+        // Direkt Close vor Debounce-Ablauf
+        const cancelButton = screen.getByRole('button', { name: 'Abbrechen' });
+        await act(async () => {
+          fireEvent.click(cancelButton);
+          // Microtasks für flushNow + onClose abarbeiten
+          await vi.advanceTimersByTimeAsync(0);
+        });
+
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledTimes(1);
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledWith({
+          postenId: POSTEN_MIT_ABLOESE.id,
+          body: { expectedVersion: POSTEN_MIT_ABLOESE.version, abloesezeiten: 'flushed' },
+        });
+        expect(onClose).toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('Create-Mode: Textarea gerendert, KEIN Auto-Save-Badge, Footer-Submit überträgt Wert via CreateDto', async () => {
+      const user = userEvent.setup();
+      mocks.createMutation.mutateAsync = vi.fn().mockResolvedValue({ id: 'posten-new', version: 1 });
+
+      setup({ mode: 'create' });
+
+      const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+      expect(textarea).toBeInTheDocument();
+
+      // Im Create-Mode darf das Auto-Save-Badge nicht erscheinen
+      expect(screen.queryByTestId('sicherungsposten-abloesezeiten-autosave-status')).not.toBeInTheDocument();
+
+      await user.type(screen.getByTestId('sicherungsposten-bezeichnung'), 'Posten Mitte');
+      await user.type(screen.getByTestId('sicherungsposten-standort-text'), 'Hauptzelt');
+      await user.type(textarea, 'CreateZeit');
+
+      await user.click(screen.getByTestId('sicherungsposten-drawer-submit'));
+
+      await waitFor(() => {
+        expect(mocks.createMutation.mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ abloesezeiten: 'CreateZeit' }));
+      });
+    });
+
+    it('Edit-Mode: identischer Wert in Folge → keine erneute Mutation (hasChanges-Filter)', async () => {
+      vi.useFakeTimers();
+      try {
+        mocks.updateMutation.mutateAsync = vi.fn().mockResolvedValue({ ...POSTEN_MIT_ABLOESE, version: 5, abloesezeiten: 'neu' });
+
+        setup({ mode: 'edit', posten: POSTEN_MIT_ABLOESE });
+        const textarea = screen.getByTestId('sicherungsposten-abloesezeiten') as HTMLTextAreaElement;
+
+        fireEvent.change(textarea, { target: { value: 'neu' } });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(2000);
+        });
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledTimes(1);
+
+        // Selber Wert nochmal „eingeben" — kein Diff, kein Save
+        fireEvent.change(textarea, { target: { value: 'neu' } });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(2500);
+        });
+
+        expect(mocks.updateMutation.mutateAsync).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });

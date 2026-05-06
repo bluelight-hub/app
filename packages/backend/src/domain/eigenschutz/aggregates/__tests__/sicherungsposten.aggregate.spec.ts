@@ -250,4 +250,37 @@ describe('Sicherungsposten Aggregate (Story 4.1)', () => {
     expect(result.value!.version).toBe(5);
     expect(result.value!.getDomainEvents()).toHaveLength(0);
   });
+
+  it('(16-S4.2-A) update() akzeptiert abloesezeiten mit 2000 Zeichen und führt changedFields = ["abloesezeiten"]', () => {
+    const aggregate = Sicherungsposten.create({
+      einsatzId: EINSATZ_ID,
+      bezeichnung: 'Posten Nord',
+      standort: buildAddressStandort(),
+      personal: [],
+      createdBy: USER_ID,
+    }).value!;
+    aggregate.clearDomainEvents();
+    const longText = 'a'.repeat(2000);
+    const result = aggregate.update({ abloesezeiten: longText }, 1, USER_ID);
+    expect(result.isSuccess).toBe(true);
+    expect(aggregate.abloesezeiten).toBe(longText);
+    expect(aggregate.version).toBe(2);
+    const events = aggregate.getDomainEvents();
+    expect(events).toHaveLength(1);
+    const event = events[0] as SicherungspostenAktualisiertEvent;
+    expect(event.changedFields.changed).toEqual(['abloesezeiten']);
+  });
+
+  it('(17-S4.2-B) update() lehnt abloesezeiten mit 2001 Zeichen ab', () => {
+    const aggregate = Sicherungsposten.create({
+      einsatzId: EINSATZ_ID,
+      bezeichnung: 'Posten Nord',
+      standort: buildAddressStandort(),
+      personal: [],
+      createdBy: USER_ID,
+    }).value!;
+    const result = aggregate.update({ abloesezeiten: 'a'.repeat(2001) }, 1, USER_ID);
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toMatch(/abloesezeiten/);
+  });
 });
