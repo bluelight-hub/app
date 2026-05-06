@@ -68,7 +68,7 @@ export const sicherungspostenFormSchema = z
     personal: z.array(personalEntrySchema).max(50, 'Maximal 50 Personal-Einträge erlaubt.'),
     einheitId: z.string().trim().min(1).max(40).optional(),
     zustaendigkeitsbereich: z.string().trim().max(4000, 'Zuständigkeitsbereich darf maximal 4000 Zeichen haben.').optional(),
-    abloesezeiten: z.string().trim().max(500).optional(),
+    abloesezeiten: z.string().trim().max(2000).optional(),
   })
   .strict();
 
