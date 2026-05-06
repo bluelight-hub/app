@@ -152,7 +152,12 @@ export class SicherungspostenController {
     if (result.isFailure || !result.value) {
       const error = result.error ?? 'NotFound:Sicherungsposten';
       if (error.startsWith('NotFound:')) {
-        throw new NotFoundException({ statusCode: 404, error: 'Not Found', message: error, context: { resource: 'sicherungsposten' } });
+        throw new NotFoundException({
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'Sicherungsposten existiert nicht oder gehört zu einem anderen Einsatz.',
+          context: { resource: 'sicherungsposten' },
+        });
       }
       throw new InternalServerErrorException({ statusCode: 500, error: 'Internal Server Error', message: error, context: { rule: 'Unexpected' } });
     }

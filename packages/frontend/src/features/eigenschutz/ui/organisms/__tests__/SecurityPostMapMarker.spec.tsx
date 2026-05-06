@@ -292,8 +292,14 @@ describe('SecurityPostMapMarker', () => {
     expect(screen.getByText('Posten Nord')).toBeInTheDocument();
     expect(screen.getByText('Personal: 2 Person(en)')).toBeInTheDocument();
     expect(screen.getByText('08:00 – 12:00 Trupp 1, 12:00 – 16:00 Trupp 2')).toBeInTheDocument();
-    // aria-label am inneren div
-    expect(popup.querySelector('[aria-label="Sicherungsposten Posten Nord"]')).toBeInTheDocument();
+    // Accessible Name via role="dialog" + aria-labelledby (Bezeichnung wird
+    // nicht doppelt angesprochen, weil sie via Reference gelabelt wird).
+    const dialog = popup.querySelector('[role="dialog"]');
+    expect(dialog).toBeInTheDocument();
+    const labelledById = dialog?.getAttribute('aria-labelledby');
+    expect(labelledById).toBeTruthy();
+    const titleElement = labelledById ? popup.querySelector(`#${labelledById}`) : null;
+    expect(titleElement?.textContent).toBe('Posten Nord');
   });
 
   it('Story 4.4: zeigt „Kein Personal hinterlegt" wenn personalCount === 0 und blendet leeres Ablösezeit-Snippet aus', () => {
@@ -412,11 +418,67 @@ describe('SecurityPostMapMarker', () => {
     expect(mapFlyToSpy).not.toHaveBeenCalled();
   });
 
+  it('Story 4.4: focus mit unbekannter postenId triggert KEINEN flyTo und re-evaluiert nicht bei Refetch', () => {
+    // query.data ist geladen (`data: [...]`, nicht undefined) aber die ID
+    // fehlt → Trigger sollte als „handled" markiert werden, damit ein
+    // Polling-Refetch keine Endlos-Loop auslöst.
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
+    setup({ focus: 'sicherungsposten:nonexistent' });
+
+    expect(mapFlyToSpy).not.toHaveBeenCalled();
+  });
+
   it('Story 4.4: focus mit anderem Schema (z. B. zone:) wird silent ignoriert', () => {
     listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
     setup({ focus: 'zone:foo' });
 
     expect(mapFlyToSpy).not.toHaveBeenCalled();
+  });
+
+  it('Story 4.4 AC8: focus mit prefers-reduced-motion ruft flyTo mit duration: 0 (BITV-konform, kein Pulse)', () => {
+    vi.spyOn(window, 'matchMedia').mockReturnValue({
+      matches: true,
+      media: '(prefers-reduced-motion: reduce)',
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+      onchange: null,
+    } as unknown as MediaQueryList);
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
+
+    setup({ focus: 'sicherungsposten:posten-a' });
+
+    expect(mapFlyToSpy).toHaveBeenCalledTimes(1);
+    expect(mapFlyToSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        center: [10.5, 50.3],
+        duration: 0,
+      }),
+    );
+  });
+
+  it('Story 4.4 AC8: focus ohne reduced-motion ruft flyTo mit duration: 1200 (Standard-Animation)', () => {
+    vi.spyOn(window, 'matchMedia').mockReturnValue({
+      matches: false,
+      media: '(prefers-reduced-motion: reduce)',
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+      onchange: null,
+    } as unknown as MediaQueryList);
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
+
+    setup({ focus: 'sicherungsposten:posten-a' });
+
+    expect(mapFlyToSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        duration: 1200,
+      }),
+    );
   });
 
   it('Story 4.4: Highlight-Marker wird gerendert nach FlyTo und verschwindet nach 1.5 s', () => {
