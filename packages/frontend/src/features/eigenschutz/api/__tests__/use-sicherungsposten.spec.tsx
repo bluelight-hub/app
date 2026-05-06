@@ -18,6 +18,7 @@ const mockList = vi.fn();
 const mockCreate = vi.fn();
 const mockUpdate = vi.fn();
 const mockAufloesen = vi.fn();
+const mockGet = vi.fn();
 
 vi.mock('@/shared', () => ({
   api: {
@@ -26,11 +27,19 @@ vi.mock('@/shared', () => ({
       sicherungspostenControllerCreateSicherungspostenVAlpha: mockCreate,
       sicherungspostenControllerUpdateSicherungspostenVAlpha: mockUpdate,
       sicherungspostenControllerAufloeseSicherungspostenVAlpha: mockAufloesen,
+      sicherungspostenControllerGetSicherungspostenVAlpha: mockGet,
     }),
   },
 }));
 
-import { SicherungspostenConflictError, sicherungspostenQueryKeys, useCreateSicherungsposten, useListSicherungsposten, useUpdateSicherungsposten } from '../use-sicherungsposten';
+import {
+  SicherungspostenConflictError,
+  sicherungspostenQueryKeys,
+  useCreateSicherungsposten,
+  useGetSicherungsposten,
+  useListSicherungsposten,
+  useUpdateSicherungsposten,
+} from '../use-sicherungsposten';
 
 function makeWrapper() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
@@ -56,12 +65,76 @@ beforeEach(() => {
   mockCreate.mockReset();
   mockUpdate.mockReset();
   mockAufloesen.mockReset();
+  mockGet.mockReset();
 });
 
 describe('sicherungspostenQueryKeys', () => {
   it('liefert hierarchischen Status-Key', () => {
     expect(sicherungspostenQueryKeys.list('einsatz-1', 'AKTIV')).toEqual(['sicherungsposten', 'einsatz-1', 'AKTIV']);
     expect(sicherungspostenQueryKeys.all).toEqual(['sicherungsposten']);
+  });
+
+  it('liefert byId-Key mit Detail-Discriminator (Story 4.4 AC2)', () => {
+    expect(sicherungspostenQueryKeys.byId('einsatz-1', 'posten-1')).toEqual(['sicherungsposten', 'einsatz-1', 'detail', 'posten-1']);
+  });
+});
+
+describe('useGetSicherungsposten (Story 4.4)', () => {
+  it('lädt einen Posten erfolgreich und entpackt data aus dem Wrapped-Response', async () => {
+    mockGet.mockResolvedValueOnce({ data: POSTEN_DTO, meta: {} });
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGetSicherungsposten('einsatz-1', 'posten-1'), { wrapper });
+
+    await waitFor(() => expect(result.current.data).toEqual(POSTEN_DTO));
+    expect(mockGet).toHaveBeenCalledWith({ einsatzId: 'einsatz-1', postenId: 'posten-1' });
+  });
+
+  it('ist deaktiviert bei leerer postenId', () => {
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGetSicherungsposten('einsatz-1', ''), { wrapper });
+    expect(result.current.fetchStatus).toBe('idle');
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('ist deaktiviert bei leerer einsatzId', () => {
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGetSicherungsposten('', 'posten-1'), { wrapper });
+    expect(result.current.fetchStatus).toBe('idle');
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+});
+
+describe('byId-Cache-Invalidierung (Story 4.4 AC2)', () => {
+  it('Update-Mutation invalidiert byEinsatz und byId nach Erfolg', async () => {
+    mockUpdate.mockResolvedValueOnce({ data: { ...POSTEN_DTO, version: 4 }, meta: {} });
+    const { client, wrapper } = makeWrapper();
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+
+    const { result } = renderHook(() => useUpdateSicherungsposten('einsatz-1'), { wrapper });
+
+    await result.current.mutateAsync({
+      postenId: POSTEN_DTO.id,
+      body: { expectedVersion: 3, bezeichnung: 'Neu' },
+    });
+
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: sicherungspostenQueryKeys.byEinsatz('einsatz-1') });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: sicherungspostenQueryKeys.byId('einsatz-1', POSTEN_DTO.id) });
+    });
+
+    // Reihenfolge: byEinsatz vor byId.
+    const calls = invalidateSpy.mock.calls.map((c) => c[0]);
+    const idxByEinsatz = calls.findIndex(
+      (arg) =>
+        Array.isArray((arg as { queryKey?: unknown[] }).queryKey) && JSON.stringify((arg as { queryKey: unknown[] }).queryKey) === JSON.stringify(sicherungspostenQueryKeys.byEinsatz('einsatz-1')),
+    );
+    const idxById = calls.findIndex(
+      (arg) =>
+        Array.isArray((arg as { queryKey?: unknown[] }).queryKey) &&
+        JSON.stringify((arg as { queryKey: unknown[] }).queryKey) === JSON.stringify(sicherungspostenQueryKeys.byId('einsatz-1', POSTEN_DTO.id)),
+    );
+    expect(idxByEinsatz).toBeGreaterThanOrEqual(0);
+    expect(idxById).toBeGreaterThan(idxByEinsatz);
   });
 });
 

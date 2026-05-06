@@ -237,6 +237,11 @@ export interface SicherungspostenControllerCreateSicherungspostenVAlphaRequest {
     createSicherungspostenDto: CreateSicherungspostenDto;
 }
 
+export interface SicherungspostenControllerGetSicherungspostenVAlphaRequest {
+    einsatzId: string;
+    postenId: string;
+}
+
 export interface SicherungspostenControllerListSicherungspostenVAlphaRequest {
     einsatzId: string;
     status: SicherungspostenControllerListSicherungspostenVAlphaStatusEnum;
@@ -1242,6 +1247,48 @@ export class EigenschutzApi extends runtime.BaseAPI {
      */
     async sicherungspostenControllerCreateSicherungspostenVAlpha(requestParameters: SicherungspostenControllerCreateSicherungspostenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SicherungspostenControllerCreateSicherungspostenVAlpha201Response> {
         const response = await this.sicherungspostenControllerCreateSicherungspostenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Lädt einen Sicherungsposten samt Persistenz-Metadaten für die Detail-Ansicht (Story 4.4 — bidirektionale Navigation Karte ↔ Detail). Cross-Einsatz-Zugriff liefert 404 (kein 403), damit die Existenz fremder Posten nicht leakt.
+     * Sicherungsposten per ID laden (Detail-Ansicht)
+     */
+    async sicherungspostenControllerGetSicherungspostenVAlphaRaw(requestParameters: SicherungspostenControllerGetSicherungspostenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SicherungspostenControllerCreateSicherungspostenVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling sicherungspostenControllerGetSicherungspostenVAlpha().'
+            );
+        }
+
+        if (requestParameters['postenId'] == null) {
+            throw new runtime.RequiredError(
+                'postenId',
+                'Required parameter "postenId" was null or undefined when calling sicherungspostenControllerGetSicherungspostenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/sicherungsposten/{postenId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"postenId"}}`, encodeURIComponent(String(requestParameters['postenId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SicherungspostenControllerCreateSicherungspostenVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Lädt einen Sicherungsposten samt Persistenz-Metadaten für die Detail-Ansicht (Story 4.4 — bidirektionale Navigation Karte ↔ Detail). Cross-Einsatz-Zugriff liefert 404 (kein 403), damit die Existenz fremder Posten nicht leakt.
+     * Sicherungsposten per ID laden (Detail-Ansicht)
+     */
+    async sicherungspostenControllerGetSicherungspostenVAlpha(requestParameters: SicherungspostenControllerGetSicherungspostenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SicherungspostenControllerCreateSicherungspostenVAlpha201Response> {
+        const response = await this.sicherungspostenControllerGetSicherungspostenVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

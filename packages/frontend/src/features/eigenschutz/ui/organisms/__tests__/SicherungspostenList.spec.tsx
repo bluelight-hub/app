@@ -13,13 +13,22 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { listMock } = vi.hoisted(() => ({
+const { listMock, navigateMock } = vi.hoisted(() => ({
   listMock: { current: vi.fn() },
+  navigateMock: { current: vi.fn() },
 }));
 
 vi.mock('../../../api/use-sicherungsposten', () => ({
   useListSicherungsposten: (einsatzId: string, status: 'AKTIV' | 'AUFGELOEST') => listMock.current(einsatzId, status),
 }));
+
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return {
+    ...actual,
+    useNavigate: () => navigateMock.current,
+  };
+});
 
 import { SicherungspostenList } from '../SicherungspostenList';
 
@@ -48,6 +57,7 @@ beforeEach(() => {
     if (status === 'AKTIV') return { data: [POSTEN_AKTIV], isPending: false, isError: false };
     return { data: [POSTEN_AUFGELOEST], isPending: false, isError: false };
   });
+  navigateMock.current = vi.fn();
 });
 
 function setup() {
@@ -106,5 +116,42 @@ describe('SicherungspostenList', () => {
       expect(screen.queryByTestId(`sicherungsposten-edit-${POSTEN_AUFGELOEST.id}`)).not.toBeInTheDocument();
     });
     expect(screen.queryByTestId(`sicherungsposten-aufloesen-${POSTEN_AUFGELOEST.id}`)).not.toBeInTheDocument();
+  });
+
+  describe('„Auf Karte zeigen"-Button (Story 4.4 T6, AC6+AC9)', () => {
+    it('rendert den Button im AKTIV-Tab für coordinate-Posten und navigiert mit focus-Search', async () => {
+      const POSTEN_COORD = {
+        ...POSTEN_AKTIV,
+        id: 'posten-coord',
+        standort: { kind: 'coordinate', longitude: 10.5, latitude: 51.2 },
+      };
+      listMock.current = vi.fn(() => ({ data: [POSTEN_COORD], isPending: false, isError: false }));
+      const user = userEvent.setup();
+      setup();
+      const button = screen.getByTestId(`sicherungsposten-show-on-map-${POSTEN_COORD.id}`);
+      expect(button).toBeInTheDocument();
+      expect(button).not.toBeDisabled();
+
+      await user.click(button);
+      expect(navigateMock.current).toHaveBeenCalledTimes(1);
+      const arg = navigateMock.current.mock.calls[0][0];
+      expect(arg.to).toBe('/app/einsatz/$einsatzId/übersicht/karte');
+      expect(arg.params).toEqual({ einsatzId: 'einsatz-1' });
+      // search ist eine Updater-Function — auf prev anwenden und prüfen, dass focus gesetzt ist.
+      expect(arg.search({ existing: 'value' })).toEqual({ existing: 'value', focus: `sicherungsposten:${POSTEN_COORD.id}` });
+    });
+
+    it('ist disabled für Address-only-Posten und triggert keine Navigation (AC9)', async () => {
+      // POSTEN_AKTIV hat standort.kind === 'address' — disabled erwartet.
+      const user = userEvent.setup();
+      setup();
+      const button = screen.getByTestId(`sicherungsposten-show-on-map-${POSTEN_AKTIV.id}`);
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute('aria-disabled', 'true');
+      expect(button).toHaveAttribute('title', expect.stringContaining('Kein Standort hinterlegt'));
+
+      await user.click(button);
+      expect(navigateMock.current).not.toHaveBeenCalled();
+    });
   });
 });

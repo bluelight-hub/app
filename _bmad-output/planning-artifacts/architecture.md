@@ -931,7 +931,7 @@ Konvention nicht offensichtlich greift.
   - `/gefaehrdungsbeurteilungen` · `/gefaehrdungsbeurteilungen/:id`
   - `/psa-profile` · `/psa-profile/bulk-aendern`
   - `/sicherheitsregeln` · `/sicherheitsregeln/:id/quittieren`
-  - `/sicherungsposten` · `/sicherungsposten/:id`
+  - `/sicherungsposten` · `/sicherungsposten/:id` (GET-by-id implementiert in Story 4.4 für Detail-Page Deep-Link)
   - `/vorfaelle` · `/vorfaelle/:id/export`
   - `/ampel` · `/sync-conflicts` · `/sync-conflicts/:id/resolve`
   - `/telemetry`
@@ -1526,7 +1526,7 @@ model Sicherungsposten {
   standort              Json     // GeoJSON Point
   zustaendigkeitsbereich String? @db.Text
   personal              Json     // Array {name, rolle}
-  abloesezeiten         String?  @db.VarChar(500)
+  abloesezeiten         String?  @db.VarChar(2000) // Hochsetzung 500 → 2000 in Story 4.2 nach Epic-Verfeinerung; LWW-Auto-Merge-Strategie laut architecture.md:575 bleibt unverändert.
   version               Int      @default(1)
   erstelltAm            DateTime @default(now())
   erstelltVonUserId     String
@@ -1937,11 +1937,12 @@ packages/frontend/src/features/eigenschutz/
 │   │   ├── IncidentContextSnapshot.tsx
 │   │   ├── ConflictResolutionList.tsx
 │   │   ├── RiskEvaluationDiff.tsx                       # opportunistic (UX-Spec)
-│   │   └── SecurityPostMapMarker.tsx                    # MapGL-Layer
+│   │   └── SecurityPostMapMarker.tsx                    # MapGL-Layer (Story 4.3); Story 4.4 erweitert um Click-Popover + focus-Prop + Highlight-Ring
 │   └── pages/
 │       ├── DashboardPage.tsx
 │       ├── GefaehrdungenPage.tsx
 │       ├── SicherungspostenPage.tsx
+│       ├── SicherungspostenDetailPage.tsx               # Story 4.4 — Detail-Page mit Read-Only-Sektionen + Drawer-Wiederverwendung
 │       ├── VorfaellePage.tsx
 │       ├── VorfallDetailPage.tsx
 │       └── SyncConflictsPage.tsx
@@ -2034,7 +2035,7 @@ packages/shared/schemas/eigenschutz/
 | **B. PSA-Verwaltung (FR10–FR14)**         | `domain/eigenschutz/aggregates/psa-profil-zuweisung.aggregate.ts`, `domain/eigenschutz/value-objects/psa-profil-set.vo.ts`, `application/eigenschutz/commands/change-psa-profil/`, `modules/eigenschutz/controllers/psa-profil.controller.ts`, `features/eigenschutz/ui/organisms/PsaProfileMultiSelect.tsx`, `features/eigenschutz/ui/organisms/PsaChangeDrawer.tsx`                                                                                                                                                                                                                           |
 | **C. Bekanntgabe & Quittung (FR17–FR20)** | `application/eigenschutz/commands/ack-psa-quittung/`, `application/eigenschutz/commands/melde-luecke/`, `application/eigenschutz/event-handlers/emit-critical-push.handler.ts`, `application/eigenschutz/schedulers/quittung-ueberfaellig.scheduler.ts`, `features/eigenschutz/ui/organisms/SeverityBanner.tsx`, `features/eigenschutz/ui/organisms/EquipmentChecklist.tsx`, `features/eigenschutz/ui/molecules/AcknowledgmentStatusBadge.tsx`                                                                                                                                                  |
 | **D. Sicherheitsregeln (FR23–FR25)**      | `domain/eigenschutz/aggregates/sicherheitsregel.aggregate.ts`, `application/eigenschutz/commands/{create,update,ack}-sicherheitsregel/`, `modules/eigenschutz/controllers/sicherheitsregel.controller.ts`, `features/eigenschutz/ui/organisms/SicherheitsregelDrawer.tsx`                                                                                                                                                                                                                                                                                                                       |
-| **E. Sicherungsposten (FR27–FR29)**       | `domain/eigenschutz/aggregates/sicherungsposten.aggregate.ts`, `application/eigenschutz/commands/{create,update,delete}-sicherungsposten/`, `modules/eigenschutz/controllers/sicherungsposten.controller.ts`, `features/eigenschutz/ui/organisms/SicherungspostenPanel.tsx`, `features/eigenschutz/ui/organisms/SecurityPostMapMarker.tsx`                                                                                                                                                                                                                                                      |
+| **E. Sicherungsposten (FR27–FR29)**       | `domain/eigenschutz/aggregates/sicherungsposten.aggregate.ts`, `application/eigenschutz/commands/{create,update,delete}-sicherungsposten/`, `application/eigenschutz/queries/get-sicherungsposten/` (Story 4.4), `modules/eigenschutz/controllers/sicherungsposten.controller.ts`, `features/eigenschutz/ui/organisms/SicherungspostenPanel.tsx`, `features/eigenschutz/ui/organisms/SecurityPostMapMarker.tsx` (Story 4.4: Click-Popover + focus-Prop), `features/eigenschutz/ui/pages/SicherungspostenDetailPage.tsx` (Story 4.4)                                                             |
 | **F. Vorfall + Export (FR31–FR36)**       | `domain/eigenschutz/aggregates/eigenschutz-vorfall.aggregate.ts`, `domain/eigenschutz/value-objects/kontext-snapshot.vo.ts`, `application/eigenschutz/commands/{report,export}-vorfall/`, `infrastructure/eigenschutz/snapshot/kontext-snapshot.builder.ts`, `infrastructure/eigenschutz/export/eigenschutz-vorfall-pdf.renderer.ts`, `infrastructure/eigenschutz/export/eigenschutz-vorfall-json.renderer.ts`, `features/eigenschutz/ui/organisms/VorfallReportDrawer.tsx`, `features/eigenschutz/ui/organisms/IncidentContextSnapshot.tsx`, `features/eigenschutz/ui/pages/VorfaellePage.tsx` |
 | **G. Ampel-Dashboard (FR38–FR40)**        | `application/eigenschutz/queries/get-eigenschutz-ampel-status/`, `application/eigenschutz/event-handlers/update-ampel-projection.handler.ts`, `infrastructure/eigenschutz/projections/ampel-projection.updater.ts`, `modules/eigenschutz/controllers/eigenschutz-ampel.controller.ts`, `features/eigenschutz/ui/organisms/AmpelDashboard.tsx`, `features/eigenschutz/ui/molecules/AmpelCard.tsx`                                                                                                                                                                                                |
 | **H. Versionierung & Audit (FR41–FR43)**  | Version-Tabellen in `prisma/schema.prisma`, `application/eigenschutz/queries/get-entity-version-history/`, `features/eigenschutz/ui/molecules/VersionTimestampFooter.tsx`, `features/eigenschutz/ui/organisms/RiskEvaluationDiff.tsx`                                                                                                                                                                                                                                                                                                                                                           |
@@ -2048,7 +2049,7 @@ packages/shared/schemas/eigenschutz/
 | **UX-MVP Keyboard-Shortcuts**             | `features/eigenschutz/constants/shortcuts.constants.ts`, `features/eigenschutz/hooks/useEigenschutzShortcuts.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | **UX-MVP Telemetrie CBRN-Moment**         | `features/eigenschutz/hooks/useEigenschutzTelemetry.ts`, `modules/eigenschutz/controllers/eigenschutz-telemetry.controller.ts`, `infrastructure/eigenschutz/telemetry/*`                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | **UX-MVP Dashboard-View-Toggle**          | `features/eigenschutz/stores/eigenschutz-dashboard-view.store.ts`, `AmpelDashboard.tsx` mit Direction B/C                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **UX-MVP Deep-Links**                     | `routes/_app/einsatz/$einsatzId/sicherheit/eigenschutz/{gefaehrdungen,vorfaelle}.$id.tsx`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **UX-MVP Deep-Links**                     | `routes/_app/einsatz/$einsatzId/sicherheit/eigenschutz/{gefaehrdungen,vorfaelle,sicherungsposten}.$id.tsx`; Map-Focus-Schema `?focus=sicherungsposten:<id>` analog zu `?focus=zone:<id>` (Story 4.4)                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ### Integration Points
 
@@ -2171,32 +2172,32 @@ Keine widersprüchlichen Entscheidungen gefunden.
 
 **FR-Abdeckung (MVP):**
 
-| FR            | Abgedeckt durch                                                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| FR1–FR6       | Aggregate `Gefaehrdungsbeurteilung` + `GefaehrdungsbeurteilungVersion`; `RiskMatrix5x5.tsx`; Vorlagen-Seed                           |
-| FR7, FR8, FR9 | Phase 2/3, Schema Phase-2-ready (Vorlage-Modell existiert)                                                                           |
-| FR10–FR14     | Aggregate `PsaProfilZuweisung` (temporale Tabelle, additiv), `PsaChangeDrawer`, `change-psa-profil.handler.ts`, `propagationGroupId` |
-| FR15, FR16    | Phase 2 — markiert                                                                                                                   |
-| FR17          | `EmitCriticalPushHandler` + `SeverityBanner` mit `role="alert"` + Tauri-Plugin-Notification                                          |
-| FR18, FR19    | `AckPsaQuittungCommand` + `PsaProfilQuittung`-Tabelle + `AcknowledgmentStatusBadge`                                                  |
-| FR20          | `MeldeLueckeCommand` + `LueckeGemeldet`-Event                                                                                        |
-| FR21, FR22    | FR22 in MVP gehoben (UX-Spec), via `PushNotificationsService` + `plugin-notification` + `sw.js`; FR21 bleibt Phase 2                 |
-| FR23–FR25     | Aggregate `Sicherheitsregel` + `SicherheitsregelQuittung` + Drawer-UI                                                                |
-| FR26          | Phase 2 — Schema Phase-2-ready (analoge Vorlagen-Tabelle möglich)                                                                    |
-| FR27–FR29     | Aggregate `Sicherungsposten` + `SicherungspostenPanel` + `SecurityPostMapMarker`                                                     |
-| FR30          | Phase 2                                                                                                                              |
-| FR31–FR36     | Aggregate `EigenschutzVorfall` + `kontextSnapshot` (Innovations-Anker) + PDF/JSON-Export + Filter-Query                              |
-| FR37          | Phase 2                                                                                                                              |
-| FR38–FR40     | `AmpelProjection`-Tabelle + `update-ampel-projection.handler.ts` + `AmpelDashboard`                                                  |
-| FR41–FR43     | Version-Tabellen pro Aggregat + `get-entity-version-history`-Query + `VersionTimestampFooter` + `RiskEvaluationDiff`                 |
-| FR44–FR47     | `EigenschutzRolle`-Enum + Guard-Kette + Permission-Inventar                                                                          |
-| FR48          | Platform-Storage-Adapter (ADR-010); offline kein Feature-Code                                                                        |
-| FR49          | Optimistic-Updates + Replay bei Sync                                                                                                 |
-| FR50          | `SyncConflict`-Tabelle + `ConflictResolutionList` + `ResolveKonfliktCommand`                                                         |
-| FR51          | `einsatzId` FK in allen Eigenschutz-Tabellen + Einsatz-Routen-Nesting                                                                |
-| FR52          | TanStack-Router-Pfad + Navigations-Integration                                                                                       |
-| FR53          | `EmitCriticalPushHandler` als Bridge zum Plattform-Kanal                                                                             |
-| FR54          | Optionaler FK `gefahrenzoneId`                                                                                                       |
+| FR            | Abgedeckt durch                                                                                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR1–FR6       | Aggregate `Gefaehrdungsbeurteilung` + `GefaehrdungsbeurteilungVersion`; `RiskMatrix5x5.tsx`; Vorlagen-Seed                                                  |
+| FR7, FR8, FR9 | Phase 2/3, Schema Phase-2-ready (Vorlage-Modell existiert)                                                                                                  |
+| FR10–FR14     | Aggregate `PsaProfilZuweisung` (temporale Tabelle, additiv), `PsaChangeDrawer`, `change-psa-profil.handler.ts`, `propagationGroupId`                        |
+| FR15, FR16    | Phase 2 — markiert                                                                                                                                          |
+| FR17          | `EmitCriticalPushHandler` + `SeverityBanner` mit `role="alert"` + Tauri-Plugin-Notification                                                                 |
+| FR18, FR19    | `AckPsaQuittungCommand` + `PsaProfilQuittung`-Tabelle + `AcknowledgmentStatusBadge`                                                                         |
+| FR20          | `MeldeLueckeCommand` + `LueckeGemeldet`-Event                                                                                                               |
+| FR21, FR22    | FR22 in MVP gehoben (UX-Spec), via `PushNotificationsService` + `plugin-notification` + `sw.js`; FR21 bleibt Phase 2                                        |
+| FR23–FR25     | Aggregate `Sicherheitsregel` + `SicherheitsregelQuittung` + Drawer-UI                                                                                       |
+| FR26          | Phase 2 — Schema Phase-2-ready (analoge Vorlagen-Tabelle möglich)                                                                                           |
+| FR27–FR29     | Aggregate `Sicherungsposten` + `SicherungspostenPanel` + `SecurityPostMapMarker` + Detail-Page (Story 4.4) + Deep-Link-Schema `focus=sicherungsposten:<id>` |
+| FR30          | Phase 2                                                                                                                                                     |
+| FR31–FR36     | Aggregate `EigenschutzVorfall` + `kontextSnapshot` (Innovations-Anker) + PDF/JSON-Export + Filter-Query                                                     |
+| FR37          | Phase 2                                                                                                                                                     |
+| FR38–FR40     | `AmpelProjection`-Tabelle + `update-ampel-projection.handler.ts` + `AmpelDashboard`                                                                         |
+| FR41–FR43     | Version-Tabellen pro Aggregat + `get-entity-version-history`-Query + `VersionTimestampFooter` + `RiskEvaluationDiff`                                        |
+| FR44–FR47     | `EigenschutzRolle`-Enum + Guard-Kette + Permission-Inventar                                                                                                 |
+| FR48          | Platform-Storage-Adapter (ADR-010); offline kein Feature-Code                                                                                               |
+| FR49          | Optimistic-Updates + Replay bei Sync                                                                                                                        |
+| FR50          | `SyncConflict`-Tabelle + `ConflictResolutionList` + `ResolveKonfliktCommand`                                                                                |
+| FR51          | `einsatzId` FK in allen Eigenschutz-Tabellen + Einsatz-Routen-Nesting                                                                                       |
+| FR52          | TanStack-Router-Pfad + Navigations-Integration                                                                                                              |
+| FR53          | `EmitCriticalPushHandler` als Bridge zum Plattform-Kanal                                                                                                    |
+| FR54          | Optionaler FK `gefahrenzoneId`                                                                                                                              |
 
 **Nicht-Funktionale Abdeckung:**
 

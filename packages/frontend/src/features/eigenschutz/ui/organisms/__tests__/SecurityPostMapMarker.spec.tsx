@@ -1,15 +1,19 @@
 /**
- * Spec für `SecurityPostMapMarker` (Story 4.3, AC10).
+ * Spec für `SecurityPostMapMarker` (Story 4.3 + Story 4.4, AC10).
  *
  * Schwerpunkte:
  * - Render-`null`-Pfade (isMapLoaded=false, isPending=true).
  * - GeoJSON-Build: Coordinate-Filter, [lon, lat]-Reihenfolge,
- *   Truncation der Ablösezeiten auf 120 Zeichen + „…".
- * - Hover-Tooltip via simulierter `mousemove`/`mouseleave`-Events.
- * - Touch-Tap öffnet Tooltip, Outer-Click schließt ihn.
- * - `prefers-reduced-motion`-Konformität (keine Transition-Klassen,
- *   kein `flyTo`/`setInterval`).
- * - Empty-Ablösezeiten zeigt nur Bezeichnung — kein leerer Absatz.
+ *   Truncation der Ablösezeiten auf 120 Zeichen + „…", `personalCount`-Feld.
+ * - Story 4.4 Click-Popover: Layer-Click öffnet Popover mit Bezeichnung,
+ *   Personal-Anzahl und Ablösezeit-Snippet; Outer-Click schließt.
+ * - Story 4.4 „Details öffnen"-Action navigiert via `useNavigate` und
+ *   schließt das Popover.
+ * - Story 4.4 `focus`-Prop triggert FlyTo bei coordinate-Posten und
+ *   wird bei address-only silent verworfen (AC9).
+ * - Story 4.4 Highlight-Ring verschwindet nach 1.5 s (BITV: kein Pulse-Loop).
+ * - `prefers-reduced-motion`-Konformität (keine Tailwind-`animate-*`-Klassen,
+ *   kein `setInterval`/`requestAnimationFrame`).
  */
 
 import { renderWithProviders } from '@/test/utils';
@@ -18,15 +22,17 @@ import { createRef } from 'react';
 import type { MapRef } from 'react-map-gl/maplibre';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { listMock, sourceDataSpy, layerSpy, popupRenderSpy, mapEventListeners, mapAddImageSpy, mapHasImageSpy, mapFlyToSpy } = vi.hoisted(() => ({
+const { listMock, sourceDataSpy, layerSpy, popupRenderSpy, markerRenderSpy, mapEventListeners, mapAddImageSpy, mapHasImageSpy, mapFlyToSpy, navigateMock } = vi.hoisted(() => ({
   listMock: { current: vi.fn() },
   sourceDataSpy: vi.fn(),
   layerSpy: vi.fn(),
   popupRenderSpy: vi.fn(),
+  markerRenderSpy: vi.fn(),
   mapEventListeners: { current: new Map<string, Array<{ layer?: string; handler: (event: unknown) => void }>>() },
   mapAddImageSpy: vi.fn(),
   mapHasImageSpy: vi.fn(() => false),
   mapFlyToSpy: vi.fn(),
+  navigateMock: vi.fn(),
 }));
 
 vi.mock('react-map-gl/maplibre', () => ({
@@ -42,21 +48,36 @@ vi.mock('react-map-gl/maplibre', () => ({
     popupRenderSpy({ longitude, latitude });
     return <div data-testid="map-popup">{children}</div>;
   },
+  Marker: ({ children, longitude, latitude }: { children?: React.ReactNode; longitude: number; latitude: number }) => {
+    markerRenderSpy({ longitude, latitude });
+    return <div data-testid="map-marker">{children}</div>;
+  },
 }));
 
 vi.mock('../../../api/use-sicherungsposten', () => ({
   useListSicherungsposten: (einsatzId: string, status: 'AKTIV' | 'AUFGELOEST') => listMock.current(einsatzId, status),
 }));
 
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
+
 import { SecurityPostMapMarker, SICHERUNGSPOSTEN_LAYER_ID, SICHERUNGSPOSTEN_MARKER_IMAGE } from '../SecurityPostMapMarker';
 
 function createMockMap() {
   const listeners = mapEventListeners.current;
+  const canvas = { style: { cursor: '' } };
   return {
     addImage: mapAddImageSpy,
     hasImage: mapHasImageSpy,
     removeImage: vi.fn(),
     flyTo: mapFlyToSpy,
+    getCanvas: () => canvas,
+    getZoom: () => 12,
     on: vi.fn((event: string, layerOrHandler: string | ((e: unknown) => void), maybeHandler?: (e: unknown) => void) => {
       const layer = typeof layerOrHandler === 'string' ? layerOrHandler : undefined;
       const handler = typeof layerOrHandler === 'function' ? layerOrHandler : maybeHandler!;
@@ -82,7 +103,7 @@ const POSTEN_COORDINATE_A = {
   bezeichnung: 'Posten Nord',
   standort: { kind: 'coordinate', longitude: 10.5, latitude: 50.3 },
   abloesezeiten: '08:00 – 12:00 Trupp 1, 12:00 – 16:00 Trupp 2',
-  personal: [],
+  personal: [{ name: 'Anna' }, { name: 'Bernd' }],
   version: 1,
   erstelltAm: '2026-05-01T10:00:00.000Z',
   erstelltVonUserId: 'u1',
@@ -96,6 +117,7 @@ const POSTEN_COORDINATE_B = {
   bezeichnung: 'Posten Süd',
   standort: { kind: 'coordinate', longitude: 11.2, latitude: 49.7 },
   abloesezeiten: null,
+  personal: [],
 };
 
 const POSTEN_ADDRESS = {
@@ -104,6 +126,7 @@ const POSTEN_ADDRESS = {
   bezeichnung: 'Posten Eingang',
   standort: { kind: 'address', text: 'Hörsaal C' },
   abloesezeiten: null,
+  personal: [],
 };
 
 beforeEach(() => {
@@ -111,9 +134,11 @@ beforeEach(() => {
   sourceDataSpy.mockClear();
   layerSpy.mockClear();
   popupRenderSpy.mockClear();
+  markerRenderSpy.mockClear();
   mapAddImageSpy.mockClear();
   mapHasImageSpy.mockClear();
   mapFlyToSpy.mockClear();
+  navigateMock.mockClear();
   mapHasImageSpy.mockReturnValue(false);
   listMock.current = vi.fn(() => ({ data: [], isPending: false, isError: false }));
 });
@@ -122,14 +147,19 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function setup(props: { isMapLoaded?: boolean; einsatzId?: string } = {}) {
+function setup(props: { isMapLoaded?: boolean; einsatzId?: string; focus?: string } = {}) {
   const mapRef = createMapRef();
-  return renderWithProviders(<SecurityPostMapMarker einsatzId={props.einsatzId ?? 'einsatz-1'} mapRef={mapRef} isMapLoaded={props.isMapLoaded ?? true} />);
+  return renderWithProviders(<SecurityPostMapMarker einsatzId={props.einsatzId ?? 'einsatz-1'} mapRef={mapRef} isMapLoaded={props.isMapLoaded ?? true} focus={props.focus} />);
 }
 
 function getLayerListener(event: string, layerId = SICHERUNGSPOSTEN_LAYER_ID) {
   const all = mapEventListeners.current.get(event) ?? [];
   return all.find((l) => l.layer === layerId);
+}
+
+function getOuterListener(event: string) {
+  const all = mapEventListeners.current.get(event) ?? [];
+  return all.find((l) => !l.layer);
 }
 
 describe('SecurityPostMapMarker', () => {
@@ -192,7 +222,17 @@ describe('SecurityPostMapMarker', () => {
     expect(tooltip.endsWith('…')).toBe(true);
   });
 
-  it('aktiviert keine Motion-Pfade bei prefers-reduced-motion (kein flyTo, kein setInterval, keine transition-Klassen, keine zoom-stop icon-size)', () => {
+  it('schreibt personalCount in die Feature-Properties (Story 4.4)', () => {
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A, POSTEN_COORDINATE_B], isPending: false, isError: false }));
+    setup();
+    const fc = sourceDataSpy.mock.lastCall?.[0] as GeoJSON.FeatureCollection;
+    const propsA = fc.features[0].properties as { postenId: string; personalCount: number };
+    const propsB = fc.features[1].properties as { postenId: string; personalCount: number };
+    expect(propsA.personalCount).toBe(2);
+    expect(propsB.personalCount).toBe(0);
+  });
+
+  it('aktiviert keine Motion-Pfade bei prefers-reduced-motion (kein flyTo, kein setInterval, keine animate-*-Klassen, keine zoom-stop icon-size)', () => {
     vi.spyOn(window, 'matchMedia').mockReturnValue({
       matches: true,
       media: '(prefers-reduced-motion: reduce)',
@@ -224,14 +264,14 @@ describe('SecurityPostMapMarker', () => {
     expect(layerProps.paint?.['circle-blur']).toBeUndefined();
   });
 
-  it('öffnet Tooltip bei mousemove und schließt bei mouseleave', () => {
+  it('Story 4.4: öffnet Click-Popover mit Bezeichnung, Personal-Anzahl und Ablösezeit-Snippet', () => {
     listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
     setup();
-    const layerMove = getLayerListener('mousemove');
-    expect(layerMove).toBeDefined();
+    const click = getLayerListener('click');
+    expect(click).toBeDefined();
 
     act(() => {
-      layerMove!.handler({
+      click!.handler({
         features: [
           {
             type: 'Feature',
@@ -240,90 +280,28 @@ describe('SecurityPostMapMarker', () => {
               postenId: POSTEN_COORDINATE_A.id,
               bezeichnung: POSTEN_COORDINATE_A.bezeichnung,
               abloesezeitenTooltip: '08:00 – 12:00 Trupp 1, 12:00 – 16:00 Trupp 2',
+              personalCount: 2,
             },
           },
         ],
       });
     });
 
-    expect(screen.getByTestId('map-popup')).toBeInTheDocument();
+    const popup = screen.getByTestId('map-popup');
+    expect(popup).toBeInTheDocument();
     expect(screen.getByText('Posten Nord')).toBeInTheDocument();
+    expect(screen.getByText('Personal: 2 Person(en)')).toBeInTheDocument();
     expect(screen.getByText('08:00 – 12:00 Trupp 1, 12:00 – 16:00 Trupp 2')).toBeInTheDocument();
-
-    const layerLeave = getLayerListener('mouseleave');
-    act(() => {
-      layerLeave!.handler({});
-    });
-    expect(screen.queryByTestId('map-popup')).toBeNull();
+    // aria-label am inneren div
+    expect(popup.querySelector('[aria-label="Sicherungsposten Posten Nord"]')).toBeInTheDocument();
   });
 
-  it('aktualisiert Popup-Inhalt beim Wechsel zwischen benachbarten Markern (mousemove)', () => {
-    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A, POSTEN_COORDINATE_B], isPending: false, isError: false }));
-    setup();
-    const layerMove = getLayerListener('mousemove');
-
-    act(() => {
-      layerMove!.handler({
-        features: [
-          {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [10.5, 50.3] },
-            properties: { postenId: 'posten-a', bezeichnung: 'Posten Nord', abloesezeitenTooltip: '' },
-          },
-        ],
-      });
-    });
-    expect(screen.getByText('Posten Nord')).toBeInTheDocument();
-
-    act(() => {
-      layerMove!.handler({
-        features: [
-          {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [11.2, 49.7] },
-            properties: { postenId: 'posten-b', bezeichnung: 'Posten Süd', abloesezeitenTooltip: '' },
-          },
-        ],
-      });
-    });
-    expect(screen.queryByText('Posten Nord')).toBeNull();
-    expect(screen.getByText('Posten Süd')).toBeInTheDocument();
-  });
-
-  it('öffnet Tooltip bei touchstart und schließt bei Outer-Click (Touch-Pfad)', () => {
-    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
-    setup();
-    const layerTouch = getLayerListener('touchstart');
-    expect(layerTouch).toBeDefined();
-
-    act(() => {
-      layerTouch!.handler({
-        features: [
-          {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [10.5, 50.3] },
-            properties: { postenId: 'posten-a', bezeichnung: 'Posten Nord', abloesezeitenTooltip: '' },
-          },
-        ],
-      });
-    });
-    expect(screen.getByText('Posten Nord')).toBeInTheDocument();
-
-    // Outer-Click ohne Layer-Features → schließt
-    const outerClick = (mapEventListeners.current.get('click') ?? []).find((l) => !l.layer);
-    expect(outerClick).toBeDefined();
-    act(() => {
-      outerClick!.handler({ features: [] });
-    });
-    expect(screen.queryByTestId('map-popup')).toBeNull();
-  });
-
-  it('zeigt bei leeren Ablösezeiten nur die Bezeichnung — kein leerer zweiter Absatz', () => {
+  it('Story 4.4: zeigt „Kein Personal hinterlegt" wenn personalCount === 0 und blendet leeres Ablösezeit-Snippet aus', () => {
     listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_B], isPending: false, isError: false }));
     setup();
-    const layerMove = getLayerListener('mousemove');
+    const click = getLayerListener('click');
     act(() => {
-      layerMove!.handler({
+      click!.handler({
         features: [
           {
             type: 'Feature',
@@ -332,17 +310,132 @@ describe('SecurityPostMapMarker', () => {
               postenId: POSTEN_COORDINATE_B.id,
               bezeichnung: POSTEN_COORDINATE_B.bezeichnung,
               abloesezeitenTooltip: '',
+              personalCount: 0,
             },
           },
         ],
       });
     });
 
+    expect(screen.getByText('Posten Süd')).toBeInTheDocument();
+    expect(screen.getByText('Kein Personal hinterlegt')).toBeInTheDocument();
+    // Kein Ablösezeit-Absatz bei leerem String
     const popup = screen.getByTestId('map-popup');
-    expect(popup).toHaveTextContent('Posten Süd');
     const paragraphs = popup.querySelectorAll('p');
-    expect(paragraphs).toHaveLength(1);
-    expect(screen.queryByText('—')).toBeNull();
+    // 2 Paragraphen erwartet: Bezeichnung + „Kein Personal hinterlegt" (kein dritter für Ablöse)
+    expect(paragraphs).toHaveLength(2);
+  });
+
+  it('Story 4.4: Outer-Click schließt das Popover, Layer-Click bleibt offen', () => {
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
+    setup();
+    const click = getLayerListener('click');
+    act(() => {
+      click!.handler({
+        features: [
+          {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [10.5, 50.3] },
+            properties: {
+              postenId: 'posten-a',
+              bezeichnung: 'Posten Nord',
+              abloesezeitenTooltip: '',
+              personalCount: 0,
+            },
+          },
+        ],
+      });
+    });
+    expect(screen.getByTestId('map-popup')).toBeInTheDocument();
+
+    const outerClick = getOuterListener('click');
+    expect(outerClick).toBeDefined();
+    act(() => {
+      outerClick!.handler({ features: [] });
+    });
+    expect(screen.queryByTestId('map-popup')).toBeNull();
+  });
+
+  it('Story 4.4: „Details öffnen"-Button navigiert zur Detail-Route und schließt das Popover', () => {
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
+    setup({ einsatzId: 'einsatz-42' });
+    const click = getLayerListener('click');
+    act(() => {
+      click!.handler({
+        features: [
+          {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [10.5, 50.3] },
+            properties: {
+              postenId: 'posten-a',
+              bezeichnung: 'Posten Nord',
+              abloesezeitenTooltip: '',
+              personalCount: 0,
+            },
+          },
+        ],
+      });
+    });
+
+    const detailButton = screen.getByTestId('sicherungsposten-popover-detail-link');
+    expect(detailButton).toBeInTheDocument();
+    act(() => {
+      detailButton.click();
+    });
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith({
+      to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherungsposten/$id',
+      params: { einsatzId: 'einsatz-42', id: 'posten-a' },
+    });
+    // Popover wurde vor der Navigation geschlossen.
+    expect(screen.queryByTestId('map-popup')).toBeNull();
+  });
+
+  it('Story 4.4: focus="sicherungsposten:<id>" triggert flyTo mit korrekter Koordinate für coordinate-Posten', () => {
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A, POSTEN_ADDRESS], isPending: false, isError: false }));
+    setup({ focus: 'sicherungsposten:posten-a' });
+
+    expect(mapFlyToSpy).toHaveBeenCalledTimes(1);
+    expect(mapFlyToSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        center: [10.5, 50.3],
+        zoom: 15,
+      }),
+    );
+  });
+
+  it('Story 4.4: focus für address-only-Posten triggert KEINEN flyTo (AC9, silent)', () => {
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A, POSTEN_ADDRESS], isPending: false, isError: false }));
+    setup({ focus: 'sicherungsposten:posten-c' });
+
+    expect(mapFlyToSpy).not.toHaveBeenCalled();
+  });
+
+  it('Story 4.4: focus mit anderem Schema (z. B. zone:) wird silent ignoriert', () => {
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
+    setup({ focus: 'zone:foo' });
+
+    expect(mapFlyToSpy).not.toHaveBeenCalled();
+  });
+
+  it('Story 4.4: Highlight-Marker wird gerendert nach FlyTo und verschwindet nach 1.5 s', () => {
+    vi.useFakeTimers();
+    try {
+      listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
+      const { container } = setup({ focus: 'sicherungsposten:posten-a' });
+
+      // Highlight-Ring ist initial gerendert.
+      expect(container.querySelector('[data-testid="sicherungsposten-highlight-ring"]')).not.toBeNull();
+
+      // Nach 1.5 s ausgeblendet.
+      act(() => {
+        vi.advanceTimersByTime(1500);
+      });
+      expect(container.querySelector('[data-testid="sicherungsposten-highlight-ring"]')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('verwendet die exportierte Layer-ID-Konstante (für Story-4.4-Wiederverwendung)', () => {

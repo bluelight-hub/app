@@ -35,6 +35,7 @@ export const sicherungspostenQueryKeys = {
   all: ['sicherungsposten'] as const,
   byEinsatz: (einsatzId: string) => ['sicherungsposten', einsatzId] as const,
   list: (einsatzId: string, status: SicherungspostenStatus) => ['sicherungsposten', einsatzId, status] as const,
+  byId: (einsatzId: string, postenId: string) => ['sicherungsposten', einsatzId, 'detail', postenId] as const,
 } as const;
 
 /**
@@ -120,6 +121,33 @@ export function useListSicherungsposten(einsatzId: string, status: Sicherungspos
 }
 
 /**
+ * Lädt einen einzelnen Sicherungsposten anhand der ID (Story 4.4, AC2).
+ *
+ * Wird von der `SicherungspostenDetailPage` konsumiert. Cross-Einsatz-Zugriff
+ * liefert serverseitig 404 (nicht 403), damit die Existenz fremder Posten
+ * nicht leakt — der Hook propagiert den Fehler unverändert; die Page
+ * rendert den 404-Pfad inline (UX-DR21 Zero-Toast).
+ *
+ * Entpackt analog zum List-Hook `response.data` direkt im `queryFn`, sodass
+ * Konsumenten den DTO ohne Wrapper erhalten.
+ */
+export function useGetSicherungsposten(einsatzId: string | undefined, postenId: string | undefined) {
+  return useQuery({
+    queryKey: sicherungspostenQueryKeys.byId(einsatzId ?? '', postenId ?? ''),
+    queryFn: async (): Promise<SicherungspostenDto> => {
+      const response = await api.eigenschutz().sicherungspostenControllerGetSicherungspostenVAlpha({
+        einsatzId: einsatzId!,
+        postenId: postenId!,
+      });
+      return response.data as SicherungspostenDto;
+    },
+    retry: sicherungspostenRetry,
+    meta: { silentError: true },
+    enabled: Boolean(einsatzId) && Boolean(postenId),
+  });
+}
+
+/**
  * Legt einen neuen Sicherungsposten an (Story 4.1, AC8).
  *
  * Invalidiert nach Erfolg den gesamten `sicherungsposten`-Prefix —
@@ -137,8 +165,14 @@ export function useCreateSicherungsposten(einsatzId: string) {
       });
       return response.data as SicherungspostenDto;
     },
-    onSuccess: () => {
+    onSuccess: (dto) => {
       void queryClient.invalidateQueries({ queryKey: sicherungspostenQueryKeys.byEinsatz(einsatzId) });
+      // Story 4.4 AC2: byId nach byEinsatz invalidieren, damit ein direkt
+      // anschließend gemounteter Detail-View den frisch erstellten Posten
+      // refetcht (Reihenfolge: Listen-Cache zuerst, Detail-Cache danach).
+      if (dto?.id) {
+        void queryClient.invalidateQueries({ queryKey: sicherungspostenQueryKeys.byId(einsatzId, dto.id) });
+      }
     },
   });
 }
@@ -170,8 +204,13 @@ export function useUpdateSicherungsposten(einsatzId: string) {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (dto) => {
       void queryClient.invalidateQueries({ queryKey: sicherungspostenQueryKeys.byEinsatz(einsatzId) });
+      // Story 4.4 AC2: byId-Invalidate nach byEinsatz, damit die DetailPage
+      // nach Speichern automatisch die neue Version lädt.
+      if (dto?.id) {
+        void queryClient.invalidateQueries({ queryKey: sicherungspostenQueryKeys.byId(einsatzId, dto.id) });
+      }
     },
   });
 }
@@ -202,8 +241,13 @@ export function useAufloeseSicherungsposten(einsatzId: string) {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (dto) => {
       void queryClient.invalidateQueries({ queryKey: sicherungspostenQueryKeys.byEinsatz(einsatzId) });
+      // Story 4.4 AC2: byId-Invalidate nach byEinsatz, damit der gerade
+      // aufgelöste Posten in der DetailPage als „Aufgelöst" rendert.
+      if (dto?.id) {
+        void queryClient.invalidateQueries({ queryKey: sicherungspostenQueryKeys.byId(einsatzId, dto.id) });
+      }
     },
   });
 }
