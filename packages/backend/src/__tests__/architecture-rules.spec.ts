@@ -207,8 +207,7 @@ describe('Architecture Rules', () => {
       'eigenschutz.psa_profil_geaendert',
       'eigenschutz.sicherheitsregel_ausgerufen',
       'eigenschutz.sicherheitsregel_quittiert',
-      'eigenschutz.sicherungsposten_eingerichtet',
-      'eigenschutz.sicherungsposten_aktualisiert',
+      // Story 4.1: sicherungsposten_eingerichtet + sicherungsposten_aktualisiert vollständig an allen 4 Stellen registriert.
       'eigenschutz.vorfall_gemeldet',
       'eigenschutz.vorfall_exportiert',
       'eigenschutz.quittung_abgegeben',

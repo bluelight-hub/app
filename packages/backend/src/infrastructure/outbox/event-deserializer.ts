@@ -167,6 +167,8 @@ import { PsaProfilGeaendertEvent, type PsaProfilAktion } from '@domain/eigenschu
 import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
+import { SicherungspostenEingerichtetEvent } from '@domain/eigenschutz/events/sicherungsposten-eingerichtet.event';
+import { SicherungspostenAktualisiertEvent, type SicherungspostenAktualisiertChangedFields, type SicherungspostenFieldKey } from '@domain/eigenschutz/events/sicherungsposten-aktualisiert.event';
 import { KonfliktErkanntEvent, type SyncConflictEntityType } from '@domain/eigenschutz/events/konflikt-erkannt.event';
 import { KonfliktAufgeloestEvent, type SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
 import { PsaProfil } from '@/generated/prisma/enums';
@@ -451,6 +453,8 @@ export class EventDeserializer {
       ['eigenschutz.quittung_ueberfaellig', deserializeQuittungUeberfaellig],
       ['eigenschutz.konflikt_erkannt', deserializeKonfliktErkannt],
       ['eigenschutz.konflikt_aufgeloest', deserializeKonfliktAufgeloest],
+      ['eigenschutz.sicherungsposten_eingerichtet', deserializeSicherungspostenEingerichtet],
+      ['eigenschutz.sicherungsposten_aktualisiert', deserializeSicherungspostenAktualisiert],
     ]);
   }
 
@@ -3104,5 +3108,101 @@ function deserializeKonfliktAufgeloest(payload: Record<string, unknown>, aggrega
     resolvedAtDate,
     aggregateId,
   );
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert SicherungspostenEingerichtetEvent (Story 4.1).
+ */
+function deserializeSicherungspostenEingerichtet(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const sicherungspostenId = payload.sicherungspostenId;
+  const bezeichnung = payload.bezeichnung;
+  const standortKind = payload.standortKind;
+  const personalCount = payload.personalCount;
+
+  if (
+    typeof einsatzId !== 'string' ||
+    typeof userId !== 'string' ||
+    (einheitId !== null && typeof einheitId !== 'string') ||
+    typeof sicherungspostenId !== 'string' ||
+    typeof bezeichnung !== 'string' ||
+    bezeichnung.length < 1 ||
+    bezeichnung.length > 200 ||
+    (standortKind !== 'coordinate' && standortKind !== 'address') ||
+    typeof personalCount !== 'number' ||
+    !Number.isInteger(personalCount) ||
+    personalCount < 0
+  ) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherungsposten_eingerichtet');
+  }
+
+  const event = new SicherungspostenEingerichtetEvent(einsatzId, userId, sicherungspostenId, bezeichnung, standortKind, personalCount, einheitId === null ? undefined : einheitId, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert SicherungspostenAktualisiertEvent (Story 4.1).
+ */
+const SICHERUNGSPOSTEN_ALLOWED_FIELD_KEYS: ReadonlyArray<SicherungspostenFieldKey> = ['bezeichnung', 'standort', 'personal', 'einheitId', 'zustaendigkeitsbereich', 'abloesezeiten', 'aufgeloest'];
+
+function deserializeSicherungspostenAktualisiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const sicherungspostenId = payload.sicherungspostenId;
+  const fromVersion = payload.fromVersion;
+  const toVersion = payload.toVersion;
+  const changedFieldsRaw = payload.changedFields;
+
+  if (
+    typeof einsatzId !== 'string' ||
+    typeof userId !== 'string' ||
+    (einheitId !== null && typeof einheitId !== 'string') ||
+    typeof sicherungspostenId !== 'string' ||
+    typeof fromVersion !== 'number' ||
+    typeof toVersion !== 'number' ||
+    !Number.isInteger(fromVersion) ||
+    !Number.isInteger(toVersion) ||
+    fromVersion < 1 ||
+    toVersion !== fromVersion + 1
+  ) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherungsposten_aktualisiert');
+  }
+  if (!changedFieldsRaw || typeof changedFieldsRaw !== 'object' || Array.isArray(changedFieldsRaw)) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherungsposten_aktualisiert');
+  }
+  const changedFieldsObj = changedFieldsRaw as Record<string, unknown>;
+  const changedRaw = changedFieldsObj.changed;
+  if (!Array.isArray(changedRaw) || changedRaw.length === 0) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherungsposten_aktualisiert');
+  }
+  for (const entry of changedRaw) {
+    if (typeof entry !== 'string' || !SICHERUNGSPOSTEN_ALLOWED_FIELD_KEYS.includes(entry as SicherungspostenFieldKey)) {
+      return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherungsposten_aktualisiert');
+    }
+  }
+  const aufgeloest = changedFieldsObj.aufgeloest;
+  if (aufgeloest !== undefined && aufgeloest !== true) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherungsposten_aktualisiert');
+  }
+  // Invariante: enthält changed das 'aufgeloest'-Token, MUSS aufgeloest=true gesetzt sein —
+  // sonst wäre der Resolved-Übergang im Audit/Telemetry-Stream nicht erkennbar.
+  const changedIncludesAufgeloest = (changedRaw as string[]).includes('aufgeloest');
+  if (changedIncludesAufgeloest && aufgeloest !== true) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherungsposten_aktualisiert');
+  }
+  if (aufgeloest === true && !changedIncludesAufgeloest) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherungsposten_aktualisiert');
+  }
+
+  const changedFields: SicherungspostenAktualisiertChangedFields = {
+    changed: changedRaw as SicherungspostenFieldKey[],
+    ...(aufgeloest === true ? { aufgeloest: true as const } : {}),
+  };
+
+  const event = new SicherungspostenAktualisiertEvent(einsatzId, userId, sicherungspostenId, fromVersion, toVersion, changedFields, einheitId === null ? undefined : einheitId, aggregateId);
   return Result.ok<DomainEvent>(event);
 }

@@ -20,3 +20,5 @@ export type { IPsaProfilZuweisungRepository, IPsaProfilZuweisungReadRepository, 
 export type { IPsaProfilQuittungRepository, PsaProfilQuittungReadModel, UpsertPsaProfilQuittungParams, UpsertPsaProfilQuittungResult } from './i-psa-profil-quittung.repository';
 export type { IPsaPropagationOverdueQueryPort, PsaPropagationOverdueRow } from './i-psa-propagation-overdue-query.port';
 export type { IPushRecipientLookupPort } from './i-push-recipient-lookup.port';
+export type { ISicherungspostenRepository, SicherungspostenReadModel } from './i-sicherungsposten.repository';
+export type { ISicherungspostenVersionRepository, SicherungspostenVersionReadModel } from './i-sicherungsposten-version.repository';

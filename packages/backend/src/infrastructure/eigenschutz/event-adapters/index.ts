@@ -15,3 +15,5 @@ export { EigenschutzLueckeGemeldetEventAdapter } from './luecke-gemeldet.adapter
 export { EigenschutzQuittungUeberfaelligEventAdapter } from './quittung-ueberfaellig.adapter';
 export { EigenschutzKonfliktErkanntEventAdapter } from './konflikt-erkannt.adapter';
 export { EigenschutzKonfliktAufgeloestEventAdapter } from './konflikt-aufgeloest.adapter';
+export { EigenschutzSicherungspostenEingerichtetEventAdapter } from './sicherungsposten-eingerichtet.adapter';
+export { EigenschutzSicherungspostenAktualisiertEventAdapter } from './sicherungsposten-aktualisiert.adapter';
