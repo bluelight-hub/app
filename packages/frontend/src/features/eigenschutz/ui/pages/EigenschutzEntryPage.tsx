@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { PiArrowsClockwise, PiClipboardText, PiShield, PiShieldCheck } from 'react-icons/pi';
+import { PiArrowsClockwise, PiClipboardText, PiMapPin, PiShield, PiShieldCheck } from 'react-icons/pi';
 import { useSyncConflicts } from '@/features/eigenschutz/api/queries';
 
 export interface EigenschutzEntryPageProps {
@@ -78,6 +78,15 @@ function EigenschutzNavLinks({ einsatzId }: { einsatzId: string }) {
       >
         <PiShield aria-hidden="true" className="h-4 w-4" />
         <span>PSA-Profile verwalten</span>
+      </Link>
+      <Link
+        to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherungsposten"
+        params={{ einsatzId }}
+        data-testid="eigenschutz-sicherungsposten-link"
+        className="inline-flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+      >
+        <PiMapPin aria-hidden="true" className="h-4 w-4" />
+        <span>Sicherungsposten verwalten</span>
       </Link>
       <Link
         to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte"

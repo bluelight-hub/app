@@ -81,3 +81,5 @@ export * from './eigenschutz-luecke-gemeldet-event.adapter';
 export * from './eigenschutz-quittung-ueberfaellig-event.adapter';
 export * from './eigenschutz-konflikt-erkannt-event.adapter';
 export * from './eigenschutz-konflikt-aufgeloest-event.adapter';
+export * from './eigenschutz-sicherungsposten-eingerichtet-event.adapter';
+export * from './eigenschutz-sicherungsposten-aktualisiert-event.adapter';

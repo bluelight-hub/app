@@ -19,3 +19,6 @@ export { KonfliktErkanntEvent } from './konflikt-erkannt.event';
 export type { SyncConflictEntityType } from './konflikt-erkannt.event';
 export { KonfliktAufgeloestEvent } from './konflikt-aufgeloest.event';
 export type { SyncConflictResolution } from './konflikt-aufgeloest.event';
+export { SicherungspostenEingerichtetEvent } from './sicherungsposten-eingerichtet.event';
+export { SicherungspostenAktualisiertEvent } from './sicherungsposten-aktualisiert.event';
+export type { SicherungspostenAktualisiertChangedFields, SicherungspostenFieldKey } from './sicherungsposten-aktualisiert.event';

@@ -2757,27 +2757,32 @@ model SicherheitsregelQuittung {
   @@map("sicherheitsregel_quittungen")
 }
 
-/// Sicherungsposten — `standort` ist GeoJSON-Point, `personal` ist Array {name, rolle}.
+/// Sicherungsposten — `standort` ist Discriminated-Union-JSON ({kind:'coordinate'|address}), `personal` ist Array discriminated-Union {kind:'user'|freitext}.
+/// `geloescht`-Boolean (Story 1.4) bleibt aus Backwards-Compat erhalten; der maßgebliche Auflösungs-Vertrag ist seit Story 4.1 `aufgeloestAm IS NOT NULL`.
 model Sicherungsposten {
-  id                     String   @id @default(cuid())
-  einsatzId              String   @map("einsatz_id")
-  einheitId              String?  @map("einheit_id")
-  bezeichnung            String   @db.VarChar(200)
+  id                     String    @id @default(cuid())
+  einsatzId              String    @map("einsatz_id")
+  einheitId              String?   @map("einheit_id")
+  bezeichnung            String    @db.VarChar(200)
   standort               Json
-  zustaendigkeitsbereich String?  @db.Text
+  zustaendigkeitsbereich String?   @db.Text
   personal               Json
-  abloesezeiten          String?  @db.VarChar(500)
-  version                Int      @default(1)
-  erstelltAm             DateTime @default(now()) @map("erstellt_am")
-  erstelltVonUserId      String   @map("erstellt_von_user_id")
-  aktualisiertAm         DateTime @updatedAt @map("aktualisiert_am")
-  aktualisiertVonUserId  String   @map("aktualisiert_von_user_id")
-  geloescht              Boolean  @default(false)
+  abloesezeiten          String?   @db.VarChar(500)
+  version                Int       @default(1)
+  erstelltAm             DateTime  @default(now()) @map("erstellt_am")
+  erstelltVonUserId      String    @map("erstellt_von_user_id")
+  aktualisiertAm         DateTime  @updatedAt @map("aktualisiert_am")
+  aktualisiertVonUserId  String    @map("aktualisiert_von_user_id")
+  geloescht              Boolean   @default(false)
+  aufgeloestAm           DateTime? @map("aufgeloest_am")
+  aufgeloestVonUserId    String?   @map("aufgeloest_von_user_id") @db.VarChar(30)
+  aufloeseBegruendung    String?   @map("aufloese_begruendung") @db.VarChar(2000)
 
   einsatz   Einsatz                   @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   versionen SicherungspostenVersion[]
 
   @@index([einsatzId])
+  @@index([einsatzId, aufgeloestAm])
   @@map("sicherungsposten")
 }
 

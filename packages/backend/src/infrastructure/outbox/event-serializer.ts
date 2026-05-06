@@ -115,6 +115,8 @@ import type { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-geme
 import type { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 import type { KonfliktErkanntEvent, SyncConflictEntityType } from '@domain/eigenschutz/events/konflikt-erkannt.event';
 import type { KonfliktAufgeloestEvent, SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
+import type { SicherungspostenEingerichtetEvent } from '@domain/eigenschutz/events/sicherungsposten-eingerichtet.event';
+import type { SicherungspostenAktualisiertEvent, SicherungspostenFieldKey } from '@domain/eigenschutz/events/sicherungsposten-aktualisiert.event';
 
 // Story 3.9 — Modul-Konstante (statt Funktionsrumpf-Allokation pro
 // Serialisierungs-Aufruf, Code-Review P12).
@@ -539,6 +541,10 @@ export class EventSerializer {
         return this.serializeKonfliktErkannt(event as unknown as KonfliktErkanntEvent);
       case 'eigenschutz.konflikt_aufgeloest':
         return this.serializeKonfliktAufgeloest(event as unknown as KonfliktAufgeloestEvent);
+      case 'eigenschutz.sicherungsposten_eingerichtet':
+        return this.serializeSicherungspostenEingerichtet(event as unknown as SicherungspostenEingerichtetEvent);
+      case 'eigenschutz.sicherungsposten_aktualisiert':
+        return this.serializeSicherungspostenAktualisiert(event as unknown as SicherungspostenAktualisiertEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -2159,6 +2165,62 @@ export class EventSerializer {
       fieldPath: event.fieldPath,
       resolution: event.resolution,
       resolvedAt: event.resolvedAt.toISOString(),
+    };
+  }
+
+  // ===== EIGENSCHUTZ SERIALIZERS (Story 4.1 Sicherungsposten) =====
+
+  private serializeSicherungspostenEingerichtet(event: SicherungspostenEingerichtetEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.sicherungspostenId !== 'string' ||
+      typeof event.bezeichnung !== 'string' ||
+      event.bezeichnung.length < 1 ||
+      event.bezeichnung.length > 200 ||
+      (event.standortKind !== 'coordinate' && event.standortKind !== 'address') ||
+      !Number.isInteger(event.personalCount) ||
+      event.personalCount < 0
+    ) {
+      throw new Error('Invalid SicherungspostenEingerichtet event payload');
+    }
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId ?? null,
+      sicherungspostenId: event.sicherungspostenId,
+      bezeichnung: event.bezeichnung,
+      standortKind: event.standortKind,
+      personalCount: event.personalCount,
+    };
+  }
+
+  private serializeSicherungspostenAktualisiert(event: SicherungspostenAktualisiertEvent): Record<string, unknown> {
+    const ALLOWED_FIELD_KEYS: ReadonlySet<SicherungspostenFieldKey> = new Set(['bezeichnung', 'standort', 'personal', 'einheitId', 'zustaendigkeitsbereich', 'abloesezeiten', 'aufgeloest']);
+    const cf = event.changedFields;
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.sicherungspostenId !== 'string' ||
+      !Number.isInteger(event.fromVersion) ||
+      !Number.isInteger(event.toVersion) ||
+      event.fromVersion < 1 ||
+      event.toVersion !== event.fromVersion + 1 ||
+      !cf ||
+      !Array.isArray(cf.changed) ||
+      cf.changed.length === 0 ||
+      !cf.changed.every((key) => ALLOWED_FIELD_KEYS.has(key))
+    ) {
+      throw new Error('Invalid SicherungspostenAktualisiert event payload');
+    }
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId ?? null,
+      sicherungspostenId: event.sicherungspostenId,
+      fromVersion: event.fromVersion,
+      toVersion: event.toVersion,
+      changedFields: { changed: [...cf.changed], ...(cf.aufgeloest === true ? { aufgeloest: true } : {}) },
     };
   }
 }

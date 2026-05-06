@@ -274,6 +274,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get eigenschutzTelemetryEvent() {
     return this._client.eigenschutzTelemetryEvent;
   }
+  get sicherungsposten() {
+    return this._client.sicherungsposten;
+  }
+  get sicherungspostenVersion() {
+    return this._client.sicherungspostenVersion;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

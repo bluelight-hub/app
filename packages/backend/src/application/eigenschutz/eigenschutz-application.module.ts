@@ -30,6 +30,10 @@ import { EmitPsaQuittungUeberfaelligHandler } from './commands/emit-psa-quittung
 import { ReportSyncConflictHandler } from './commands/report-sync-conflict/report-sync-conflict.handler';
 import { ResolveKonfliktHandler } from './commands/resolve-konflikt/resolve-konflikt.handler';
 import { ListSyncConflictsHandler } from './queries/list-sync-conflicts/list-sync-conflicts.handler';
+import { CreateSicherungspostenHandler } from './commands/create-sicherungsposten/create-sicherungsposten.handler';
+import { UpdateSicherungspostenHandler } from './commands/update-sicherungsposten/update-sicherungsposten.handler';
+import { AufloeseSicherungspostenHandler } from './commands/aufloese-sicherungsposten/aufloese-sicherungsposten.handler';
+import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/list-sicherungsposten.handler';
 
 /**
  * Application-Layer-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -72,6 +76,10 @@ import { ListSyncConflictsHandler } from './queries/list-sync-conflicts/list-syn
     ListSicherheitsregelnHandler,
     ListSicherheitsregelQuittungenHandler,
     ListSyncConflictsHandler,
+    CreateSicherungspostenHandler,
+    UpdateSicherungspostenHandler,
+    AufloeseSicherungspostenHandler,
+    ListSicherungspostenHandler,
   ],
   exports: [
     AckPsaQuittungHandler,
@@ -97,6 +105,10 @@ import { ListSyncConflictsHandler } from './queries/list-sync-conflicts/list-syn
     ListSicherheitsregelnHandler,
     ListSicherheitsregelQuittungenHandler,
     ListSyncConflictsHandler,
+    CreateSicherungspostenHandler,
+    UpdateSicherungspostenHandler,
+    AufloeseSicherungspostenHandler,
+    ListSicherungspostenHandler,
   ],
 })
 export class EigenschutzApplicationModule {}

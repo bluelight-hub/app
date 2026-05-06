@@ -15,6 +15,8 @@ import {
   SICHERHEITSREGEL_QUITTUNG_REPOSITORY,
   SICHERHEITSREGEL_REPOSITORY,
   SICHERHEITSREGEL_VERSION_REPOSITORY,
+  SICHERUNGSPOSTEN_REPOSITORY,
+  SICHERUNGSPOSTEN_VERSION_REPOSITORY,
   SYNC_CONFLICT_REPOSITORY,
 } from '@infrastructure/di-tokens';
 import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
@@ -29,6 +31,8 @@ import { PrismaPsaProfilQuittungRepository } from './repositories/prisma-psa-pro
 import { PrismaPsaPropagationOverdueQueryRepository } from './repositories/prisma-psa-propagation-overdue-query.repository';
 import { PrismaPushRecipientLookupRepository } from './repositories/prisma-push-recipient-lookup.repository';
 import { PrismaSyncConflictRepository } from './repositories/prisma-sync-conflict.repository';
+import { PrismaSicherungspostenRepository } from './repositories/prisma-sicherungsposten.repository';
+import { PrismaSicherungspostenVersionRepository } from './repositories/prisma-sicherungsposten-version.repository';
 import { PrismaEigenschutzTelemetryRepository } from './repositories/prisma-eigenschutz-telemetry.repository';
 import { PrometheusEigenschutzCollector } from './telemetry/prometheus-eigenschutz.collector';
 import { TelemetryIngestService } from './telemetry/telemetry-ingest.service';
@@ -38,6 +42,8 @@ import { EigenschutzSicherheitsregelAusgerufenEventAdapter } from './event-adapt
 import { EigenschutzSicherheitsregelQuittiertEventAdapter } from './event-adapters/sicherheitsregel-quittiert.adapter';
 import { EigenschutzPsaProfilGeaendertEventAdapter } from './event-adapters/psa-profil-geaendert.adapter';
 import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-quittung-abgegeben.adapter';
+import { EigenschutzSicherungspostenEingerichtetEventAdapter } from './event-adapters/sicherungsposten-eingerichtet.adapter';
+import { EigenschutzSicherungspostenAktualisiertEventAdapter } from './event-adapters/sicherungsposten-aktualisiert.adapter';
 
 /**
  * Infrastructure-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -66,6 +72,8 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
     { provide: PSA_PROPAGATION_OVERDUE_QUERY, useClass: PrismaPsaPropagationOverdueQueryRepository },
     { provide: SYNC_CONFLICT_REPOSITORY, useClass: PrismaSyncConflictRepository },
     { provide: EIGENSCHUTZ_TELEMETRY_REPOSITORY, useClass: PrismaEigenschutzTelemetryRepository },
+    { provide: SICHERUNGSPOSTEN_REPOSITORY, useClass: PrismaSicherungspostenRepository },
+    { provide: SICHERUNGSPOSTEN_VERSION_REPOSITORY, useClass: PrismaSicherungspostenVersionRepository },
     PrometheusEigenschutzCollector,
     TelemetryIngestService,
     PrismaPushRecipientLookupRepository,
@@ -76,6 +84,8 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
     EigenschutzSicherheitsregelQuittiertEventAdapter,
     EigenschutzPsaProfilGeaendertEventAdapter,
     EigenschutzQuittungAbgegebenEventAdapter,
+    EigenschutzSicherungspostenEingerichtetEventAdapter,
+    EigenschutzSicherungspostenAktualisiertEventAdapter,
   ],
   exports: [
     GEFAEHRDUNGSBEURTEILUNG_REPOSITORY,
@@ -90,6 +100,8 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
     PSA_PROPAGATION_OVERDUE_QUERY,
     SYNC_CONFLICT_REPOSITORY,
     EIGENSCHUTZ_TELEMETRY_REPOSITORY,
+    SICHERUNGSPOSTEN_REPOSITORY,
+    SICHERUNGSPOSTEN_VERSION_REPOSITORY,
     TelemetryIngestService,
     PUSH_RECIPIENT_LOOKUP,
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
@@ -98,6 +110,8 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
     EigenschutzSicherheitsregelQuittiertEventAdapter,
     EigenschutzPsaProfilGeaendertEventAdapter,
     EigenschutzQuittungAbgegebenEventAdapter,
+    EigenschutzSicherungspostenEingerichtetEventAdapter,
+    EigenschutzSicherungspostenAktualisiertEventAdapter,
   ],
 })
 export class EigenschutzInfrastructureModule {}

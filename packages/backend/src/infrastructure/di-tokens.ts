@@ -561,6 +561,15 @@ export const SYNC_CONFLICT_REPOSITORY = Symbol('ISyncConflictRepository');
 export const EIGENSCHUTZ_TELEMETRY_REPOSITORY = Symbol('IEigenschutzTelemetryRepository');
 
 /**
+ * Eigenschutz-Sicherungsposten Repository Tokens (Story 4.1).
+ *
+ * Aufteilung in Haupt-Aggregate + Versions-Chain analog zur Gefährdungs-
+ * beurteilung. Application-Handler injizieren gezielt nur die nötigen Ports.
+ */
+export const SICHERUNGSPOSTEN_REPOSITORY = Symbol('ISicherungspostenRepository');
+export const SICHERUNGSPOSTEN_VERSION_REPOSITORY = Symbol('ISicherungspostenVersionRepository');
+
+/**
  * Query-Port-Token für `IPsaPropagationOverdueQueryPort` (Story 3.7 AC2).
  *
  * Wird vom `RepromptPsaQuittungScheduler` injiziert, um überfällige PSA-

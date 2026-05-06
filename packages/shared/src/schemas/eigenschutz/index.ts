@@ -15,3 +15,4 @@ export * from './sicherheitsregel.schema.js';
 export * from './psa-profil.schema.js';
 export * from './konflikt-aufgeloest-ws.schema.js';
 export * from './telemetry-event.schema.js';
+export * from './sicherungsposten.schema.js';
