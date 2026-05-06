@@ -8,6 +8,7 @@ import type { ISicherungspostenRepository, SicherungspostenReadModel } from '@do
 import { CreateSicherungspostenCommand } from '@/application/eigenschutz/commands/create-sicherungsposten/create-sicherungsposten.command';
 import { UpdateSicherungspostenCommand } from '@/application/eigenschutz/commands/update-sicherungsposten/update-sicherungsposten.command';
 import { AufloeseSicherungspostenCommand } from '@/application/eigenschutz/commands/aufloese-sicherungsposten/aufloese-sicherungsposten.command';
+import { GetSicherungspostenQuery } from '@/application/eigenschutz/queries/get-sicherungsposten/get-sicherungsposten.query';
 import { ListSicherungspostenQuery } from '@/application/eigenschutz/queries/list-sicherungsposten/list-sicherungsposten.query';
 import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
 import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
@@ -99,6 +100,11 @@ describe('SicherungspostenController (Story 4.1)', () => {
       const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SicherungspostenController.prototype.aufloeseSicherungsposten);
       expect(required).toEqual(['eigenschutz:sicherungsposten:write']);
     });
+
+    it('(6b) getSicherungsposten erfordert eigenschutz:sicherungsposten:read (Story 4.4)', () => {
+      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SicherungspostenController.prototype.getSicherungsposten);
+      expect(required).toEqual(['eigenschutz:sicherungsposten:read']);
+    });
   });
 
   describe('GET (Liste)', () => {
@@ -114,6 +120,41 @@ describe('SicherungspostenController (Story 4.1)', () => {
 
     it('(8) status=ungültig liefert UnprocessableEntityException', async () => {
       await expect(controller.listSicherungsposten(EINSATZ_ID, 'BLA')).rejects.toBeInstanceOf(UnprocessableEntityException);
+    });
+  });
+
+  describe('GET :postenId (Story 4.4 — Detail-Ansicht)', () => {
+    it('(8a) Erfolg: Query wird gebaut, ReadModel als DTO zurückgegeben', async () => {
+      const readModel = buildReadModel();
+      queryBus.execute.mockResolvedValue(Result.ok(readModel));
+
+      const dto = await controller.getSicherungsposten(EINSATZ_ID, 'clw3h8x9y0000qwertyui04077');
+
+      expect(dto.bezeichnung).toBe('Posten Nord');
+      expect(dto.einsatzId).toBe(EINSATZ_ID);
+      const query = queryBus.execute.mock.calls[0]?.[0] as GetSicherungspostenQuery;
+      expect(query).toBeInstanceOf(GetSicherungspostenQuery);
+      expect(query.einsatzId).toBe(EINSATZ_ID);
+      expect(query.postenId).toBe('clw3h8x9y0000qwertyui04077');
+    });
+
+    it('(8b) NotFound:Sicherungsposten (Cross-Einsatz oder unbekannte ID) → 404 mit context.resource="sicherungsposten"', async () => {
+      queryBus.execute.mockResolvedValue(Result.fail<SicherungspostenReadModel>('NotFound:Sicherungsposten'));
+
+      try {
+        await controller.getSicherungsposten(EINSATZ_ID, 'clw3h8x9y0000qwertyui04077');
+        fail('expected NotFoundException');
+      } catch (e) {
+        expect(e).toBeInstanceOf(NotFoundException);
+        const response = (e as NotFoundException).getResponse() as { context: { resource: string }; message: string };
+        expect(response.context.resource).toBe('sicherungsposten');
+        expect(response.message).toBe('NotFound:Sicherungsposten');
+      }
+    });
+
+    it('(8c) Unerwarteter Fehler → 500 InternalServerError', async () => {
+      queryBus.execute.mockResolvedValue(Result.fail<SicherungspostenReadModel>('InfrastructureError:Eigenschutz:db-down'));
+      await expect(controller.getSicherungsposten(EINSATZ_ID, 'clw3h8x9y0000qwertyui04077')).rejects.toBeInstanceOf(InternalServerErrorException);
     });
   });
 

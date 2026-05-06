@@ -33,6 +33,7 @@ import { ListSyncConflictsHandler } from './queries/list-sync-conflicts/list-syn
 import { CreateSicherungspostenHandler } from './commands/create-sicherungsposten/create-sicherungsposten.handler';
 import { UpdateSicherungspostenHandler } from './commands/update-sicherungsposten/update-sicherungsposten.handler';
 import { AufloeseSicherungspostenHandler } from './commands/aufloese-sicherungsposten/aufloese-sicherungsposten.handler';
+import { GetSicherungspostenHandler } from './queries/get-sicherungsposten/get-sicherungsposten.handler';
 import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/list-sicherungsposten.handler';
 
 /**
@@ -79,6 +80,7 @@ import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/lis
     CreateSicherungspostenHandler,
     UpdateSicherungspostenHandler,
     AufloeseSicherungspostenHandler,
+    GetSicherungspostenHandler,
     ListSicherungspostenHandler,
   ],
   exports: [
@@ -108,6 +110,7 @@ import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/lis
     CreateSicherungspostenHandler,
     UpdateSicherungspostenHandler,
     AufloeseSicherungspostenHandler,
+    GetSicherungspostenHandler,
     ListSicherungspostenHandler,
   ],
 })

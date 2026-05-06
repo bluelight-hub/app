@@ -46,7 +46,32 @@
 
 generated: 2026-04-21
 last_updated: >-
-  2026-05-06 (Story 4.1 → done: Code-Review nach 3 parallelen adversarialen
+  2026-05-06 (Story 4.4 → review: Bidirektionale Navigation Karte ↔ Detail-Ansicht
+  (FR28 Teil 2, UX-DR12). 11 ACs umgesetzt via 3 parallele Subagents — Backend
+  (`GET /einsaetze/:einsatzId/sicherheit/eigenschutz/sicherungsposten/:postenId`
+  als `GetSicherungspostenQuery` + Handler + Endpoint mit Cross-Einsatz→404
+  Existenz-Leak-Schutz, neue 4 Handler-Tests + 4 Controller-Tests = 25/25
+  targeted, 968/968 eigenschutz-Suite); Marker (SecurityPostMapMarker:
+  Hover-Tooltip → Click-Popover mit „Details öffnen", `personalCount` in
+  GeoJSON-Properties, `focus`-Prop mit `triggerCount`+`lastHandledTriggerRef`
+  Idempotenz-Guard, Highlight-Ring Strategie A CSS-Overlay 1.5 s + reduced-motion
+  Fallback, LagekarteView-Mount neu eingefügt — 17/17 Spec + 25/25 LagekarteView);
+  Frontend-Detail (`useGetSicherungsposten`-Hook + `byId`-Cache-Invalidate in
+  Update/Aufloese/Create, `SicherungspostenDetailPage` Read-Only mit
+  Drawer/Auflöse-Dialog-Wiederverwendung + 9/9 Spec, File-Route
+  `/sicherungsposten/$id` analog `gefaehrdungen/$id`, „Auf Karte zeigen"-Listen-Action
+  mit `?focus=sicherungsposten:<id>` Deep-Link + 13/13 Hook-Spec + 8/8 List-Spec).
+  Pre-Cleanup: Story 4.2 (`f51a2094f`) und 4.3 (`da06b032b`) aus uncommittedem
+  Working-Tree als saubere Commits etabliert. Pattern-Drift dokumentiert: kein
+  feingranularer write-Permission-Hook im eigenschutz-Slice (DetailPage gated nur
+  auf `aufgeloestAm`, identisch zu SicherungspostenList — separate Permission-Story
+  empfohlen); `findReadModelById` ohne `einsatzId`-Parameter → Cross-Einsatz-Scoping
+  via `readModel.aggregate.einsatzId`-Vergleich symmetrisch zu `loadDto`. Tests:
+  Backend 25/25 + 968/968 sanity, Frontend 72/72 in 5 Spec-Files; `pnpm lint` 0
+  errors; `check:di:imports` + `check:arch` grün; `generate-api` + `routeTree.gen.ts`
+  regeneriert. Manuelle Browser-Verifikation nicht durchgeführt — via Test-Suite
+  abgedeckt. Vorhergehender Stand: Story 4.1 done.)
+  (vorhergehender Stand: 2026-05-06 (Story 4.1 → done: Code-Review nach 3 parallelen adversarialen
   Reviewern (Blind Hunter / Edge Case Hunter / Acceptance Auditor) — 58
   Raw-Findings konsolidiert. 13 Patches angewendet (P2 UpdateDto-Validators
   für nullable Felder via @ValidateIf+@IsString+@Length/@Matches; P3
@@ -133,9 +158,9 @@ development_status:
   # Epic 4: Sicherungsposten-Verwaltung & Lagekarten-Integration
   epic-4: in-progress
   415-4-1-sicherungsposten-crud-mit-versionierung: done
-  415-4-2-abloesezeiten-als-textfeld: backlog
-  415-4-3-sicherungsposten-als-mapgl-marker-layer: backlog
-  415-4-4-bidirektionale-navigation-karte-detail-ansicht: backlog
+  415-4-2-abloesezeiten-als-textfeld: done
+  415-4-3-sicherungsposten-als-mapgl-marker-layer: done
+  415-4-4-bidirektionale-navigation-karte-detail-ansicht: review
   epic-4-retrospective: optional
 
   # Epic 5: Vorfallmeldung & Unfallkassen-Export

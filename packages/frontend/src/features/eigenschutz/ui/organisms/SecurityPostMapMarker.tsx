@@ -3,18 +3,23 @@
  *
  * Rendert Posten mit Coordinate-Standort als visuell von taktischen
  * Zeichen abgesetzte Marker (Phosphor-`shield-check` auf weißem Kreis,
- * Brand-Blau #1d4ed8). Hover/Tap zeigt einen leichten Tooltip mit
- * Bezeichnung und gekürzten Ablösezeiten.
+ * Brand-Blau #1d4ed8).
+ *
+ * Story 4.4 erweitert die Komponente um:
+ * - Click-Popover mit „Details öffnen"-Action (ersetzt Hover-Tooltip).
+ * - `focus`-Prop (`sicherungsposten:<id>`) → FlyTo + Highlight-Ring.
  *
  * Muss innerhalb von `<Map>` aus `react-map-gl/maplibre` montiert werden.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Layer, Popup, Source } from 'react-map-gl/maplibre';
+import { Layer, Marker, Popup, Source } from 'react-map-gl/maplibre';
 import type { MapRef } from 'react-map-gl/maplibre';
 import type { SicherungspostenDto } from '@bluelight-hub/shared/client';
 import { truncateAbloesezeitenForTooltip } from '@bluelight-hub/shared';
+import { useNavigate } from '@tanstack/react-router';
 import { useListSicherungsposten } from '../../api/use-sicherungsposten';
+import './SecurityPostMapMarker.css';
 
 /** ID der GeoJSON-Source */
 export const SICHERUNGSPOSTEN_SOURCE_ID = 'sicherungsposten';
@@ -22,6 +27,9 @@ export const SICHERUNGSPOSTEN_SOURCE_ID = 'sicherungsposten';
 export const SICHERUNGSPOSTEN_LAYER_ID = 'sicherungsposten-symbols';
 /** Image-Name in MapLibre (für Story-4.4-Wiederverwendung) */
 export const SICHERUNGSPOSTEN_MARKER_IMAGE = 'sicherungsposten-marker';
+
+/** Dauer des Highlight-Rings in ms (Story 4.4, AC8). */
+const HIGHLIGHT_DURATION_MS = 1500;
 
 /**
  * Phosphor `shield-check`-Symbol (256×256-ViewBox, original-Pfad) auf
@@ -44,19 +52,34 @@ interface SicherungspostenFeatureProperties {
   postenId: string;
   bezeichnung: string;
   abloesezeitenTooltip: string;
+  /** Anzahl Personal (Story 4.4, AC5 — Popover-Anzeige). */
+  personalCount: number;
 }
 
 interface SecurityPostMapMarkerProps {
   readonly einsatzId: string;
   readonly mapRef: React.RefObject<MapRef | null>;
   readonly isMapLoaded: boolean;
+  /**
+   * Deep-Link-Fokus (Story 4.4, AC7). Schema `sicherungsposten:<id>`.
+   * Andere Schemas (z. B. `zone:`) werden silent ignoriert.
+   */
+  readonly focus?: string;
 }
 
 interface PopupState {
   longitude: number;
   latitude: number;
+  postenId: string;
   bezeichnung: string;
+  personalCount: number;
   abloesezeitenTooltip: string;
+}
+
+interface HighlightState {
+  postenId: string;
+  longitude: number;
+  latitude: number;
 }
 
 /**
@@ -90,11 +113,15 @@ function isCoordinateStandort(posten: SicherungspostenDto): boolean {
   return true;
 }
 
-export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded }: SecurityPostMapMarkerProps) {
+export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded, focus }: SecurityPostMapMarkerProps) {
   const query = useListSicherungsposten(einsatzId, 'AKTIV');
+  const navigate = useNavigate();
   const [popup, setPopup] = useState<PopupState | null>(null);
+  const [highlight, setHighlight] = useState<HighlightState | null>(null);
+  const [triggerCount, setTriggerCount] = useState(0);
   const registeredRef = useRef(false);
   const registeringRef = useRef(false);
+  const lastHandledTriggerRef = useRef<number>(-1);
 
   const aktivePostenMitCoordinate = useMemo(() => (query.data ?? []).filter(isCoordinateStandort), [query.data]);
 
@@ -111,6 +138,7 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded }: Securi
             postenId: posten.id,
             bezeichnung: posten.bezeichnung,
             abloesezeitenTooltip,
+            personalCount: Array.isArray(posten.personal) ? posten.personal.length : 0,
           },
         };
       }),
@@ -170,9 +198,10 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded }: Securi
     };
   }, [isMapLoaded, mapRef]);
 
-  // Hover/Tap-Tooltip-Listener (mousemove ersetzt mouseenter, damit Wechsel
-  // zwischen benachbarten Markern den Popup-Inhalt aktualisiert; touchstart
-  // öffnet auf Touch, Outer-Click schließt — AC6).
+  // Click-Popover-Listener (Story 4.4, AC5).
+  // - Layer-Click pinnt das Popover an der Marker-Stelle.
+  // - Outer-Click schließt es.
+  // - mouseenter/mouseleave nur für Cursor-Affordanz, kein Popup-Trigger.
   useEffect(() => {
     if (!isMapLoaded) return;
     const map = mapRef.current?.getMap();
@@ -187,43 +216,133 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded }: Securi
       setPopup({
         longitude,
         latitude,
+        postenId: props.postenId,
         bezeichnung: props.bezeichnung,
+        personalCount: props.personalCount ?? 0,
         abloesezeitenTooltip: props.abloesezeitenTooltip,
       });
     };
 
-    const handleMove = (event: { features?: GeoJSON.Feature[] }) => {
-      openPopupFromFeature(event.features?.[0]);
-    };
-    const handleLeave = () => {
-      setPopup(null);
-    };
-    const handleTouch = (event: { features?: GeoJSON.Feature[] }) => {
+    const handleClick = (event: { features?: GeoJSON.Feature[] }) => {
       openPopupFromFeature(event.features?.[0]);
     };
     const handleOuterTap = (event: { defaultPrevented?: boolean; features?: GeoJSON.Feature[] }) => {
       if (event.defaultPrevented) return;
-      // Layer-Touch wird durch handleTouch behandelt; nur Outer-Taps schließen.
+      // Layer-Click setzt `event.features.length > 0` — den eigenen Layer-Handler
+      // nicht doppelt behandeln; nur tatsächliche Outer-Taps schließen den Popover.
       if (event.features && event.features.length > 0) return;
       setPopup(null);
     };
+    const handleMouseEnter = () => {
+      const canvas = map.getCanvas?.();
+      if (canvas?.style) canvas.style.cursor = 'pointer';
+    };
+    const handleMouseLeave = () => {
+      const canvas = map.getCanvas?.();
+      if (canvas?.style) canvas.style.cursor = '';
+    };
 
-    map.on('mousemove', SICHERUNGSPOSTEN_LAYER_ID, handleMove);
-    map.on('mouseleave', SICHERUNGSPOSTEN_LAYER_ID, handleLeave);
-    map.on('touchstart', SICHERUNGSPOSTEN_LAYER_ID, handleTouch);
+    map.on('click', SICHERUNGSPOSTEN_LAYER_ID, handleClick);
     map.on('click', handleOuterTap);
+    map.on('mouseenter', SICHERUNGSPOSTEN_LAYER_ID, handleMouseEnter);
+    map.on('mouseleave', SICHERUNGSPOSTEN_LAYER_ID, handleMouseLeave);
 
     return () => {
-      map.off('mousemove', SICHERUNGSPOSTEN_LAYER_ID, handleMove);
-      map.off('mouseleave', SICHERUNGSPOSTEN_LAYER_ID, handleLeave);
-      map.off('touchstart', SICHERUNGSPOSTEN_LAYER_ID, handleTouch);
+      map.off('click', SICHERUNGSPOSTEN_LAYER_ID, handleClick);
       map.off('click', handleOuterTap);
+      map.off('mouseenter', SICHERUNGSPOSTEN_LAYER_ID, handleMouseEnter);
+      map.off('mouseleave', SICHERUNGSPOSTEN_LAYER_ID, handleMouseLeave);
     };
   }, [isMapLoaded, mapRef]);
+
+  // Re-Trigger-Pattern: Jede Änderung der `focus`-Prop (auch identische
+  // URL durch erneuten Listen-Klick) triggert FlyTo+Highlight neu (AC7).
+  useEffect(() => {
+    setTriggerCount((t) => t + 1);
+  }, [focus]);
+
+  // FlyTo + Highlight-Ring (Story 4.4, AC7 + AC8).
+  // Idempotenz-Guard via `lastHandledTriggerRef`: ein einmal verarbeiteter
+  // `triggerCount` darf durch Re-Renders (`query.data`-Referenz-Wechsel) den
+  // Effect-Body nicht erneut ausführen — sonst entsteht eine Endlos-Loop
+  // (Render → Effect → setHighlight → Render → Effect …).
+  useEffect(() => {
+    // Initialer triggerCount=0 wird ignoriert — der setTriggerCount-Effect
+    // oben inkrementiert beim Mount auf 1; das ist der erste „echte" Trigger.
+    if (triggerCount === 0) return;
+    if (lastHandledTriggerRef.current === triggerCount) return;
+    if (!focus || !isMapLoaded) {
+      lastHandledTriggerRef.current = triggerCount;
+      return;
+    }
+    const match = /^sicherungsposten:(.+)$/.exec(focus);
+    if (!match) {
+      lastHandledTriggerRef.current = triggerCount;
+      return;
+    }
+    const postenId = match[1];
+
+    // Suche in der vollen Posten-Liste (nicht nur coordinate-gefiltert),
+    // damit Address-only-Posten korrekt erkannt und silent verworfen werden (AC9).
+    const allPosten = query.data ?? [];
+    const target = allPosten.find((p) => p.id === postenId);
+    if (!target) {
+      // Daten womöglich noch nicht geladen — Trigger NICHT als „handled"
+      // markieren, damit ein späterer Render mit geladenen Daten erneut prüft.
+      return;
+    }
+
+    const standort = target.standort as { kind?: string; longitude?: number; latitude?: number } | null | undefined;
+    if (!standort || standort.kind !== 'coordinate') {
+      lastHandledTriggerRef.current = triggerCount;
+      return;
+    }
+    if (!isFiniteNumber(standort.longitude) || !isFiniteNumber(standort.latitude)) {
+      lastHandledTriggerRef.current = triggerCount;
+      return;
+    }
+
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const currentZoom = typeof map.getZoom === 'function' ? map.getZoom() : 10;
+    map.flyTo({
+      center: [standort.longitude, standort.latitude],
+      zoom: Math.max(currentZoom, 15),
+      duration: prefersReducedMotion ? 0 : 1200,
+    });
+    setHighlight({ postenId, longitude: standort.longitude, latitude: standort.latitude });
+    lastHandledTriggerRef.current = triggerCount;
+    // `focus` ist bewusst nicht in den Deps — `triggerCount` bündelt das
+    // Re-Trigger-Signal (siehe Effect oben).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [triggerCount, isMapLoaded, mapRef, query.data]);
+
+  // Highlight nach 1.5 s ausblenden (BITV: kein Pulse-Loop).
+  useEffect(() => {
+    if (!highlight) return;
+    const timer = setTimeout(() => {
+      setHighlight(null);
+    }, HIGHLIGHT_DURATION_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [highlight]);
 
   if (!isMapLoaded || query.isPending || aktivePostenMitCoordinate.length === 0) {
     return null;
   }
+
+  const handleDetailNavigate = () => {
+    if (!popup) return;
+    const postenId = popup.postenId;
+    setPopup(null);
+    navigate({
+      to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherungsposten/$id',
+      params: { einsatzId, id: postenId },
+    });
+  };
 
   return (
     <>
@@ -240,11 +359,28 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded }: Securi
         />
       </Source>
 
+      {highlight && (
+        <Marker longitude={highlight.longitude} latitude={highlight.latitude} anchor="center">
+          <div className="sicherungsposten-highlight-ring" data-testid="sicherungsposten-highlight-ring" aria-hidden="true" />
+        </Marker>
+      )}
+
       {popup && (
-        <Popup longitude={popup.longitude} latitude={popup.latitude} anchor="bottom" offset={20} closeOnClick={false} closeButton={false}>
-          <div className="max-w-[260px] px-1 py-0.5">
-            <p className="text-sm font-medium text-text-primary">{popup.bezeichnung}</p>
+        <Popup longitude={popup.longitude} latitude={popup.latitude} anchor="bottom" offset={20} closeOnClick={false} closeButton={true} onClose={() => setPopup(null)}>
+          <div className="max-w-[260px] px-1 py-0.5" aria-label={`Sicherungsposten ${popup.bezeichnung}`}>
+            <p className="truncate text-sm font-medium text-text-primary" title={popup.bezeichnung}>
+              {popup.bezeichnung}
+            </p>
+            <p className="mt-0.5 text-xs text-text-muted">{popup.personalCount > 0 ? `Personal: ${popup.personalCount} Person(en)` : 'Kein Personal hinterlegt'}</p>
             {popup.abloesezeitenTooltip.length > 0 && <p className="mt-0.5 text-xs text-text-muted">{popup.abloesezeitenTooltip}</p>}
+            <button
+              type="button"
+              onClick={handleDetailNavigate}
+              data-testid="sicherungsposten-popover-detail-link"
+              className="mt-2 inline-flex items-center rounded border border-blue-700 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+            >
+              Details öffnen
+            </button>
           </div>
         </Popup>
       )}

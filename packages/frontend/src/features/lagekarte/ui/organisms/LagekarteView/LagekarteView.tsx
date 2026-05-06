@@ -49,6 +49,7 @@ import { GefahrenToolsSidebar } from '../../molecules/GefahrenToolsSidebar.molec
 import { ZeichenDetailPanel } from '../../molecules/ZeichenDetailPanel.molecule';
 import { useEinsatzZeichen, useCreateZeichen, usePlaceZeichen } from '@/features/taktische-zeichen';
 import { GefahrenzoneHost } from '@/features/gefahrenzone';
+import { SecurityPostMapMarker } from '@/features/eigenschutz';
 import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import { toast } from 'sonner';
 import '@/features/lagekarte/detail-providers';
@@ -67,9 +68,10 @@ interface LagekarteViewProps {
   einsatzId: string;
   mode?: LagekarteMode;
   /**
-   * Deep-Link-Fokus (Issue #627, G3). Aktuell unterstützt: `zone:{zoneId}` —
-   * öffnet das `GefahrenzoneDetailPanel` für die angegebene Zone, sobald die
-   * Query-Daten geladen sind.
+   * Deep-Link-Fokus (Issue #627, G3). Unterstützte Schemas:
+   * - `zone:{zoneId}` — öffnet das `GefahrenzoneDetailPanel` für die Zone.
+   * - `sicherungsposten:{postenId}` — Story 4.4 FlyTo + Highlight-Ring auf
+   *   den Marker (silent ignoriert bei address-only oder unbekannten IDs).
    */
   focus?: string;
 }
@@ -555,6 +557,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
         {/* Gefahrenzonen-Layer + Inline-Popover (Issue #627, G2) + Deep-Link-Panel (G3) */}
         {isMapLoaded && einsatzId && <GefahrenzoneHost einsatzId={einsatzId} mapRef={mapRef} focus={focus} />}
+
+        {/* Sicherungsposten-Marker + Click-Popover + FlyTo (Story 4.4, FR28) */}
+        {isMapLoaded && einsatzId && <SecurityPostMapMarker einsatzId={einsatzId} mapRef={mapRef} isMapLoaded={isMapLoaded} focus={focus} />}
 
         {/* Ghost-Marker: Halbtransparente Vorschau beim Platzieren */}
         {pendingZeichenPlacement && <GhostZeichenMarker mapRef={mapRef} isMapLoaded={isMapLoaded} definition={pendingZeichenPlacement.definition} />}

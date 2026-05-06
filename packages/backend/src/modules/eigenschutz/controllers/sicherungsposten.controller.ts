@@ -44,6 +44,7 @@ import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/
 import { CreateSicherungspostenCommand } from '@/application/eigenschutz/commands/create-sicherungsposten/create-sicherungsposten.command';
 import { UpdateSicherungspostenCommand } from '@/application/eigenschutz/commands/update-sicherungsposten/update-sicherungsposten.command';
 import { AufloeseSicherungspostenCommand } from '@/application/eigenschutz/commands/aufloese-sicherungsposten/aufloese-sicherungsposten.command';
+import { GetSicherungspostenQuery } from '@/application/eigenschutz/queries/get-sicherungsposten/get-sicherungsposten.query';
 import { ListSicherungspostenQuery } from '@/application/eigenschutz/queries/list-sicherungsposten/list-sicherungsposten.query';
 import {
   AufloeseSicherungspostenDto,
@@ -132,6 +133,35 @@ export class SicherungspostenController {
         aktualisiertVonUserId: readModel.aktualisiertVonUserId,
       }),
     );
+  }
+
+  @Get(':postenId')
+  @RequiresPermission('eigenschutz:sicherungsposten:read')
+  @ApiOperation({
+    summary: 'Sicherungsposten per ID laden (Detail-Ansicht)',
+    description:
+      'Lädt einen Sicherungsposten samt Persistenz-Metadaten für die Detail-Ansicht (Story 4.4 — bidirektionale Navigation Karte ↔ Detail). ' +
+      'Cross-Einsatz-Zugriff liefert 404 (kein 403), damit die Existenz fremder Posten nicht leakt.',
+  })
+  @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
+  @ApiParam({ name: 'postenId', type: String, description: 'CUID des Sicherungspostens' })
+  @ApiWrappedResponse(SicherungspostenDto, { description: 'Sicherungsposten geladen.' })
+  @ApiNotFoundResponse({ description: 'Sicherungsposten existiert nicht oder gehört zu einem anderen Einsatz' })
+  async getSicherungsposten(@Param('einsatzId') einsatzId: string, @Param('postenId') postenId: string): Promise<SicherungspostenDto> {
+    const result = (await this.queryBus.execute(new GetSicherungspostenQuery(einsatzId, postenId))) as Result<SicherungspostenReadModel>;
+    if (result.isFailure || !result.value) {
+      const error = result.error ?? 'NotFound:Sicherungsposten';
+      if (error.startsWith('NotFound:')) {
+        throw new NotFoundException({ statusCode: 404, error: 'Not Found', message: error, context: { resource: 'sicherungsposten' } });
+      }
+      throw new InternalServerErrorException({ statusCode: 500, error: 'Internal Server Error', message: error, context: { rule: 'Unexpected' } });
+    }
+    return toSicherungspostenDto({
+      aggregate: result.value.aggregate,
+      erstelltAm: result.value.erstelltAm,
+      aktualisiertAm: result.value.aktualisiertAm,
+      aktualisiertVonUserId: result.value.aktualisiertVonUserId,
+    });
   }
 
   @Post()

@@ -11,6 +11,7 @@
 
 import { useState } from 'react';
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
+import { useNavigate } from '@tanstack/react-router';
 import type { SicherungspostenDto } from '@bluelight-hub/shared/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useListSicherungsposten } from '../../api/use-sicherungsposten';
@@ -63,6 +64,16 @@ interface TableProps {
 
 function SicherungspostenTable({ status, einsatzId, onEdit, onAufloesen }: TableProps) {
   const query = useListSicherungsposten(einsatzId, status);
+  const navigate = useNavigate();
+
+  const handleShowOnMap = (posten: SicherungspostenDto) => {
+    if ((posten.standort as { kind?: unknown } | null | undefined)?.kind !== 'coordinate') return;
+    void navigate({
+      to: '/app/einsatz/$einsatzId/übersicht/karte',
+      params: { einsatzId },
+      search: (prev: Record<string, unknown>) => ({ ...prev, focus: `sicherungsposten:${posten.id}` }),
+    });
+  };
 
   if (query.isPending) {
     return (
@@ -123,6 +134,23 @@ function SicherungspostenTable({ status, einsatzId, onEdit, onAufloesen }: Table
                     <Button intent="secondary" appearance="ghost" size="sm" onClick={() => onAufloesen(posten)} data-testid={`sicherungsposten-aufloesen-${posten.id}`}>
                       Auflösen
                     </Button>
+                    {(() => {
+                      const isCoordinate = (posten.standort as { kind?: unknown } | null | undefined)?.kind === 'coordinate';
+                      return (
+                        <Button
+                          intent="secondary"
+                          appearance="ghost"
+                          size="sm"
+                          disabled={!isCoordinate}
+                          aria-disabled={!isCoordinate}
+                          title={isCoordinate ? 'Auf Karte zeigen' : 'Kein Standort hinterlegt — Posten ist auf der Karte nicht sichtbar.'}
+                          onClick={() => handleShowOnMap(posten)}
+                          data-testid={`sicherungsposten-show-on-map-${posten.id}`}
+                        >
+                          Auf Karte zeigen
+                        </Button>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <span className="text-xs text-text-muted">aufgelöst</span>
