@@ -27,6 +27,19 @@ vi.mock('@/shared', () => ({
   },
 }));
 
+const mockEinheitenState = {
+  data: [
+    { id: 'clw3h8x9y0000qwertyui05002', name: 'RTW 1' },
+    { id: 'clw3h8x9y0000qwertyui05003', name: 'SEG-Behandlung' },
+  ] as Array<{ id: string; name: string }>,
+  isLoading: false,
+  isError: false,
+};
+
+vi.mock('@/features/kraefte/api/use-einsatz-einheiten', () => ({
+  useEinsatzEinheiten: () => mockEinheitenState,
+}));
+
 import { VorfallMeldenDrawer } from '../VorfallMeldenDrawer';
 
 const VORFALL_DTO = {
@@ -87,7 +100,8 @@ describe('VorfallMeldenDrawer (Story 5.1)', () => {
     expect(submit).not.toBeDisabled();
   });
 
-  it('disabled Submit-Button bei fehlender einheitId mit Hinweis', () => {
+  it('rendert Inline-Picker wenn keine aktive Einheit gesetzt — Submit erst nach Auswahl freigeschaltet', async () => {
+    mockReport.mockResolvedValue({ data: VORFALL_DTO });
     const Wrapper = makeWrapper();
     render(
       <Wrapper>
@@ -95,8 +109,38 @@ describe('VorfallMeldenDrawer (Story 5.1)', () => {
       </Wrapper>,
     );
 
-    expect(screen.getByTestId('vorfall-einheit-error')).toBeInTheDocument();
-    expect(screen.getByTestId('vorfall-submit')).toBeDisabled();
+    expect(screen.getByTestId('vorfall-einheit-picker')).toBeInTheDocument();
+    expect(screen.queryByTestId('vorfall-einheit-error')).not.toBeInTheDocument();
+
+    const submit = screen.getByTestId('vorfall-submit') as HTMLButtonElement;
+    const user = userEvent.setup();
+    await user.type(screen.getByTestId('vorfall-was-input'), 'Sturz');
+    expect(submit).toBeDisabled();
+
+    await user.selectOptions(screen.getByTestId('vorfall-einheit-picker-select'), VALID_EINHEIT);
+    expect(submit).not.toBeDisabled();
+
+    await user.click(submit);
+    await waitFor(() => expect(mockReport).toHaveBeenCalled());
+    expect(mockReport.mock.calls[0][0].reportVorfallDto.einheitId).toBe(VALID_EINHEIT);
+  });
+
+  it('zeigt Empty-Hint im Picker wenn der Einsatz keine Einheiten hat', () => {
+    const original = mockEinheitenState.data;
+    mockEinheitenState.data = [];
+    try {
+      const Wrapper = makeWrapper();
+      render(
+        <Wrapper>
+          <VorfallMeldenDrawer einsatzId="einsatz-1" einheitId={null} open={true} onClose={() => {}} />
+        </Wrapper>,
+      );
+
+      expect(screen.getByTestId('vorfall-einheit-picker-empty')).toBeInTheDocument();
+      expect(screen.getByTestId('vorfall-submit')).toBeDisabled();
+    } finally {
+      mockEinheitenState.data = original;
+    }
   });
 
   it('Wo-Toggle zeigt Coordinate-Inputs', async () => {
