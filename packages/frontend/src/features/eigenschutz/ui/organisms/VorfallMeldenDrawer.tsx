@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { useEinsatzEinheiten } from '@/features/kraefte/api/use-einsatz-einheiten';
 import { useReportVorfall } from '../../api/use-report-vorfall';
 import type { ReportVorfallDto } from '@bluelight-hub/shared/client';
 import { reportVorfallFormSchema } from '../../schemas/vorfall.schema';
@@ -63,9 +64,16 @@ function nextBeteiligterRowKey(): string {
  * **Offline-Pfad (AC11, FR48/FR49):** Identisch zum bestehenden Eigenschutz-
  * Pattern — TanStack-Query `useMutation` ohne dedizierte Pending-Command-
  * Queue. Bei Netzwerk-Fehler zeigt der Drawer den Inline-Error.
+ *
+ * **Inline-Einheit-Picker:** Wenn keine *aktive* Einheit (Story-2.7-MVP via
+ * localStorage) gewählt ist, rendert der Drawer ein Dropdown mit allen
+ * Einsatz-Einheiten. Backend verlangt weiterhin `einheitId` — der Picker
+ * entkoppelt die Vorfallmeldung nur von der globalen UX-Auswahl, sodass der
+ * User die Einheit ad-hoc pro Meldung bestimmen kann.
  */
 export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuccess }: VorfallMeldenDrawerProps) {
   const reportVorfall = useReportVorfall(einsatzId);
+  const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const wasInputRef = useRef<HTMLInputElement | null>(null);
   // Submit-Re-Entry-Guard: schützt gegen Doppel-Klick / Cmd+Enter-Burst, bevor
   // der React-State `isPending` per Render durchgepropagiert wird.
@@ -81,6 +89,7 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
   const [beteiligte, setBeteiligte] = useState<BeteiligterRow[]>([]);
   const [massnahmen, setMassnahmen] = useState<string>('');
   const [unfallkasseRelevant, setUnfallkasseRelevant] = useState<boolean>(false);
+  const [pickedEinheitId, setPickedEinheitId] = useState<string>('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<'was' | 'wann' | 'wo' | 'beteiligte' | 'massnahmen', string>>>({});
 
@@ -94,17 +103,24 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
       setBeteiligte([]);
       setMassnahmen('');
       setUnfallkasseRelevant(false);
+      setPickedEinheitId('');
       setSubmitError(null);
       setFieldErrors({});
       submittingRef.current = false;
     }
   }, [open]);
 
+  // Wirksame Einheit-ID: aktive Einheit aus localStorage hat Vorrang; ohne sie
+  // greift die im Drawer ad-hoc gewählte Einheit.
+  const effectiveEinheitId = einheitId ?? (pickedEinheitId.length > 0 ? pickedEinheitId : null);
+  const showEinheitPicker = einheitId === null;
+  const einheiten = einheitenQuery.data ?? [];
+
   const isPending = reportVorfall.isPending;
   const trimmedWas = was.trim();
   const wasValid = trimmedWas.length >= 1 && trimmedWas.length <= MAX_WAS_LENGTH;
   const wannValid = wann.length > 0;
-  const einheitValid = Boolean(einheitId);
+  const einheitValid = effectiveEinheitId !== null;
   const isSubmitDisabled = !wasValid || !wannValid || !einheitValid || isPending;
   // Dirty-Tracking: Esc / Cancel verlangen Bestätigung, sobald irgendein Feld
   // vom initialen Reset abweicht. `wann` schließen wir bewusst aus, weil der
@@ -118,10 +134,11 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
     woFreitext.length > 0 ||
     beteiligte.length > 0 ||
     massnahmen.length > 0 ||
-    unfallkasseRelevant;
+    unfallkasseRelevant ||
+    pickedEinheitId.length > 0;
 
   const buildBody = useCallback((): ReportVorfallDto | null => {
-    if (!einheitId) return null;
+    if (effectiveEinheitId === null) return null;
     let wo: ReportVorfallDto['wo'] = null;
     if (woMode === 'coordinate') {
       const longitude = Number.parseFloat(woCoordinate.longitude);
@@ -157,7 +174,7 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
       return null;
     }
     return {
-      einheitId,
+      einheitId: effectiveEinheitId,
       was: trimmedWas,
       wann: wannIso,
       vorfallZeit: wannIso,
@@ -166,7 +183,7 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
       massnahmen: massnahmen.trim(),
       unfallkasseRelevant,
     };
-  }, [einheitId, woMode, woCoordinate, woFreitext, beteiligte, wann, trimmedWas, massnahmen, unfallkasseRelevant]);
+  }, [effectiveEinheitId, woMode, woCoordinate, woFreitext, beteiligte, wann, trimmedWas, massnahmen, unfallkasseRelevant]);
 
   const submit = useCallback(async () => {
     if (isSubmitDisabled) return;
@@ -268,10 +285,43 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
             Erfasse den Vorfall mit Pflichtfeldern „Was" und „Wann" sowie optionalen Angaben zu Ort, Beteiligten und Maßnahmen. Der Vorfall wird unmittelbar im Audit-Trail protokolliert.
           </p>
 
-          {!einheitValid && (
-            <p data-testid="vorfall-einheit-error" role="alert" className="rounded-md border border-status-warning-border bg-status-warning-surface px-3 py-2 text-sm text-status-warning-text">
-              Keine Einheit im Einsatz-Kontext zugeordnet — Vorfall kann nicht gemeldet werden.
-            </p>
+          {showEinheitPicker && (
+            <div data-testid="vorfall-einheit-picker" className="flex flex-col gap-1 rounded-md border border-border-subtle bg-surface-panel px-3 py-2">
+              <label htmlFor="vorfall-einheit-select" className="text-sm font-medium text-text-primary">
+                Einheit für diese Meldung{' '}
+                <span className="text-status-danger-text" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <p className="text-xs text-text-muted">Keine aktive Einheit gewählt — bitte für diesen Vorfall eine Einheit auswählen.</p>
+              <select
+                id="vorfall-einheit-select"
+                data-testid="vorfall-einheit-picker-select"
+                value={pickedEinheitId}
+                onChange={(e) => setPickedEinheitId(e.target.value)}
+                aria-required="true"
+                aria-invalid={!einheitValid ? true : undefined}
+                disabled={isPending || einheitenQuery.isLoading}
+                className="border-border-default bg-surface-base focus:border-border-focus mt-1 w-full rounded-md border px-3 py-2 text-sm text-text-primary focus:outline-none disabled:opacity-60"
+              >
+                <option value="">— Einheit auswählen —</option>
+                {einheiten.map((einheit) => (
+                  <option key={einheit.id} value={einheit.id}>
+                    {einheit.name}
+                  </option>
+                ))}
+              </select>
+              {einheitenQuery.isError && (
+                <span data-testid="vorfall-einheit-picker-error" role="alert" className="text-xs text-status-danger-text">
+                  Einheiten konnten nicht geladen werden — bitte erneut versuchen.
+                </span>
+              )}
+              {!einheitenQuery.isLoading && !einheitenQuery.isError && einheiten.length === 0 && (
+                <span data-testid="vorfall-einheit-picker-empty" role="alert" className="text-xs text-status-warning-text">
+                  Dieser Einsatz hat keine Einheiten — Vorfallmeldung nicht möglich.
+                </span>
+              )}
+            </div>
           )}
 
           {/* Was */}
