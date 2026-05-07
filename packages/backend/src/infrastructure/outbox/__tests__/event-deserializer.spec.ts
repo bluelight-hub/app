@@ -2288,8 +2288,9 @@ describe('EventDeserializer', () => {
       //                PsaProfilGeaendert (Story 3.1), QuittungAbgegeben (Story 3.4),
       //                LueckeGemeldet (Story 3.6), QuittungUeberfaellig (Story 3.7),
       //                KonfliktErkannt (Story 3.9), KonfliktAufgeloest (Story 3.10),
-      //                SicherungspostenEingerichtet (Story 4.1), SicherungspostenAktualisiert (Story 4.1)
-      expect(supportedTypes).toHaveLength(124);
+      //                SicherungspostenEingerichtet (Story 4.1), SicherungspostenAktualisiert (Story 4.1),
+      //                VorfallGemeldet (Story 5.1)
+      expect(supportedTypes).toHaveLength(125);
       expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_erstellt');
       expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
       expect(supportedTypes).toContain('eigenschutz.sicherheitsregel_ausgerufen');
@@ -2302,6 +2303,7 @@ describe('EventDeserializer', () => {
       expect(supportedTypes).toContain('eigenschutz.konflikt_aufgeloest');
       expect(supportedTypes).toContain('eigenschutz.sicherungsposten_eingerichtet');
       expect(supportedTypes).toContain('eigenschutz.sicherungsposten_aktualisiert');
+      expect(supportedTypes).toContain('eigenschutz.vorfall_gemeldet');
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');

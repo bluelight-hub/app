@@ -280,6 +280,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get sicherungspostenVersion() {
     return this._client.sicherungspostenVersion;
   }
+  get eigenschutzVorfall() {
+    return this._client.eigenschutzVorfall;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

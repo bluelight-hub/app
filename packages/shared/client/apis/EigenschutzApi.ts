@@ -25,6 +25,8 @@ import type {
   CreateSicherungspostenDto,
   EigenschutzHealthControllerGetHealthVAlpha200Response,
   EigenschutzTelemetryControllerIngestVAlpha200Response,
+  EigenschutzVorfallControllerListVorfaelleVAlpha200Response,
+  EigenschutzVorfallControllerReportVorfallVAlpha201Response,
   GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201Response,
   GefaehrdungsbeurteilungControllerGetHistorieVAlpha200Response,
   GefaehrdungsbeurteilungControllerListBeurteilungenVAlpha200Response,
@@ -35,6 +37,7 @@ import type {
   PsaProfilControllerListOffeneBekanntgabenVAlpha200Response,
   PsaProfilControllerListQuittungenVAlpha200Response,
   ReportSyncConflictDto,
+  ReportVorfallDto,
   ResolveSyncConflictDto,
   SicherheitsregelControllerGetRegelVAlpha200Response,
   SicherheitsregelControllerListQuittungenVAlpha200Response,
@@ -70,6 +73,10 @@ import {
     EigenschutzHealthControllerGetHealthVAlpha200ResponseToJSON,
     EigenschutzTelemetryControllerIngestVAlpha200ResponseFromJSON,
     EigenschutzTelemetryControllerIngestVAlpha200ResponseToJSON,
+    EigenschutzVorfallControllerListVorfaelleVAlpha200ResponseFromJSON,
+    EigenschutzVorfallControllerListVorfaelleVAlpha200ResponseToJSON,
+    EigenschutzVorfallControllerReportVorfallVAlpha201ResponseFromJSON,
+    EigenschutzVorfallControllerReportVorfallVAlpha201ResponseToJSON,
     GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseFromJSON,
     GefaehrdungsbeurteilungControllerCreateBeurteilungVAlpha201ResponseToJSON,
     GefaehrdungsbeurteilungControllerGetHistorieVAlpha200ResponseFromJSON,
@@ -90,6 +97,8 @@ import {
     PsaProfilControllerListQuittungenVAlpha200ResponseToJSON,
     ReportSyncConflictDtoFromJSON,
     ReportSyncConflictDtoToJSON,
+    ReportVorfallDtoFromJSON,
+    ReportVorfallDtoToJSON,
     ResolveSyncConflictDtoFromJSON,
     ResolveSyncConflictDtoToJSON,
     SicherheitsregelControllerGetRegelVAlpha200ResponseFromJSON,
@@ -125,6 +134,30 @@ export interface EigenschutzHealthControllerGetHealthVAlphaRequest {
 export interface EigenschutzTelemetryControllerIngestVAlphaRequest {
     einsatzId: string;
     telemetryEventBatchDto: TelemetryEventBatchDto;
+}
+
+export interface EigenschutzVorfallControllerExportVorfallVAlphaRequest {
+    einsatzId: string;
+    vorfallId: string;
+    format?: EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum;
+}
+
+export interface EigenschutzVorfallControllerGetVorfallVAlphaRequest {
+    einsatzId: string;
+    vorfallId: string;
+}
+
+export interface EigenschutzVorfallControllerListVorfaelleVAlphaRequest {
+    einsatzId: string;
+    einheitIds?: string;
+    vorfallZeitVon?: string;
+    vorfallZeitBis?: string;
+    unfallkasseRelevant?: boolean;
+}
+
+export interface EigenschutzVorfallControllerReportVorfallVAlphaRequest {
+    einsatzId: string;
+    reportVorfallDto: ReportVorfallDto;
 }
 
 export interface GefaehrdungsbeurteilungControllerCreateBeurteilungVAlphaRequest {
@@ -348,6 +381,181 @@ export class EigenschutzApi extends runtime.BaseAPI {
      */
     async eigenschutzTelemetryControllerIngestVAlpha(requestParameters: EigenschutzTelemetryControllerIngestVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzTelemetryControllerIngestVAlpha200Response> {
         const response = await this.eigenschutzTelemetryControllerIngestVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Vorfall als PDF exportieren (Unfallkassen-Format)
+     */
+    async eigenschutzVorfallControllerExportVorfallVAlphaRaw(requestParameters: EigenschutzVorfallControllerExportVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling eigenschutzVorfallControllerExportVorfallVAlpha().'
+            );
+        }
+
+        if (requestParameters['vorfallId'] == null) {
+            throw new runtime.RequiredError(
+                'vorfallId',
+                'Required parameter "vorfallId" was null or undefined when calling eigenschutzVorfallControllerExportVorfallVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/vorfaelle/{vorfallId}/export`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"vorfallId"}}`, encodeURIComponent(String(requestParameters['vorfallId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Vorfall als PDF exportieren (Unfallkassen-Format)
+     */
+    async eigenschutzVorfallControllerExportVorfallVAlpha(requestParameters: EigenschutzVorfallControllerExportVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.eigenschutzVorfallControllerExportVorfallVAlphaRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Vorfall-Detail laden (inkl. zeitpunkt-genauem Kontext-Snapshot)
+     */
+    async eigenschutzVorfallControllerGetVorfallVAlphaRaw(requestParameters: EigenschutzVorfallControllerGetVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EigenschutzVorfallControllerReportVorfallVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling eigenschutzVorfallControllerGetVorfallVAlpha().'
+            );
+        }
+
+        if (requestParameters['vorfallId'] == null) {
+            throw new runtime.RequiredError(
+                'vorfallId',
+                'Required parameter "vorfallId" was null or undefined when calling eigenschutzVorfallControllerGetVorfallVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/vorfaelle/{vorfallId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"vorfallId"}}`, encodeURIComponent(String(requestParameters['vorfallId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EigenschutzVorfallControllerReportVorfallVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Vorfall-Detail laden (inkl. zeitpunkt-genauem Kontext-Snapshot)
+     */
+    async eigenschutzVorfallControllerGetVorfallVAlpha(requestParameters: EigenschutzVorfallControllerGetVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzVorfallControllerReportVorfallVAlpha201Response> {
+        const response = await this.eigenschutzVorfallControllerGetVorfallVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Vorfälle eines Einsatzes filtern (Liste, max. 200 Einträge)
+     */
+    async eigenschutzVorfallControllerListVorfaelleVAlphaRaw(requestParameters: EigenschutzVorfallControllerListVorfaelleVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EigenschutzVorfallControllerListVorfaelleVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling eigenschutzVorfallControllerListVorfaelleVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['einheitIds'] != null) {
+            queryParameters['einheitIds'] = requestParameters['einheitIds'];
+        }
+
+        if (requestParameters['vorfallZeitVon'] != null) {
+            queryParameters['vorfallZeitVon'] = requestParameters['vorfallZeitVon'];
+        }
+
+        if (requestParameters['vorfallZeitBis'] != null) {
+            queryParameters['vorfallZeitBis'] = requestParameters['vorfallZeitBis'];
+        }
+
+        if (requestParameters['unfallkasseRelevant'] != null) {
+            queryParameters['unfallkasseRelevant'] = requestParameters['unfallkasseRelevant'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/vorfaelle`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EigenschutzVorfallControllerListVorfaelleVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Vorfälle eines Einsatzes filtern (Liste, max. 200 Einträge)
+     */
+    async eigenschutzVorfallControllerListVorfaelleVAlpha(requestParameters: EigenschutzVorfallControllerListVorfaelleVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzVorfallControllerListVorfaelleVAlpha200Response> {
+        const response = await this.eigenschutzVorfallControllerListVorfaelleVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Neuen Vorfall melden (Pflichtfelder Was/Wann/Wo/Beteiligte/Maßnahmen)
+     */
+    async eigenschutzVorfallControllerReportVorfallVAlphaRaw(requestParameters: EigenschutzVorfallControllerReportVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EigenschutzVorfallControllerReportVorfallVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling eigenschutzVorfallControllerReportVorfallVAlpha().'
+            );
+        }
+
+        if (requestParameters['reportVorfallDto'] == null) {
+            throw new runtime.RequiredError(
+                'reportVorfallDto',
+                'Required parameter "reportVorfallDto" was null or undefined when calling eigenschutzVorfallControllerReportVorfallVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/vorfaelle`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ReportVorfallDtoToJSON(requestParameters['reportVorfallDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EigenschutzVorfallControllerReportVorfallVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Neuen Vorfall melden (Pflichtfelder Was/Wann/Wo/Beteiligte/Maßnahmen)
+     */
+    async eigenschutzVorfallControllerReportVorfallVAlpha(requestParameters: EigenschutzVorfallControllerReportVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzVorfallControllerReportVorfallVAlpha201Response> {
+        const response = await this.eigenschutzVorfallControllerReportVorfallVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1522,6 +1730,13 @@ export class EigenschutzApi extends runtime.BaseAPI {
 
 }
 
+/**
+ * @export
+ */
+export const EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum = {
+    Pdf: 'pdf'
+} as const;
+export type EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum = typeof EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum[keyof typeof EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum];
 /**
  * @export
  */

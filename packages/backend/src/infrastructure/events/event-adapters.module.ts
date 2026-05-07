@@ -65,6 +65,7 @@ import {
   EigenschutzKonfliktAufgeloestEventAdapter,
   EigenschutzSicherungspostenEingerichtetEventAdapter,
   EigenschutzSicherungspostenAktualisiertEventAdapter,
+  EigenschutzVorfallGemeldetEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -224,6 +225,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     EigenschutzKonfliktAufgeloestEventAdapter, // Story 3.10: KonfliktAufgeloest Log+Broadcast-Adapter (4-Stellen-Registry)
     EigenschutzSicherungspostenEingerichtetEventAdapter, // Story 4.1: SicherungspostenEingerichtet Log-Adapter (4-Stellen-Registry)
     EigenschutzSicherungspostenAktualisiertEventAdapter, // Story 4.1: SicherungspostenAktualisiert Log-Adapter (4-Stellen-Registry)
+    EigenschutzVorfallGemeldetEventAdapter, // Story 5.1: VorfallGemeldet Log-Adapter (4-Stellen-Registry)
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

@@ -169,6 +169,7 @@ import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.
 import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 import { SicherungspostenEingerichtetEvent } from '@domain/eigenschutz/events/sicherungsposten-eingerichtet.event';
 import { SicherungspostenAktualisiertEvent, type SicherungspostenAktualisiertChangedFields, type SicherungspostenFieldKey } from '@domain/eigenschutz/events/sicherungsposten-aktualisiert.event';
+import { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
 import { KonfliktErkanntEvent, type SyncConflictEntityType } from '@domain/eigenschutz/events/konflikt-erkannt.event';
 import { KonfliktAufgeloestEvent, type SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
 import { PsaProfil } from '@/generated/prisma/enums';
@@ -455,6 +456,7 @@ export class EventDeserializer {
       ['eigenschutz.konflikt_aufgeloest', deserializeKonfliktAufgeloest],
       ['eigenschutz.sicherungsposten_eingerichtet', deserializeSicherungspostenEingerichtet],
       ['eigenschutz.sicherungsposten_aktualisiert', deserializeSicherungspostenAktualisiert],
+      ['eigenschutz.vorfall_gemeldet', deserializeVorfallGemeldet],
     ]);
   }
 
@@ -3204,5 +3206,36 @@ function deserializeSicherungspostenAktualisiert(payload: Record<string, unknown
   };
 
   const event = new SicherungspostenAktualisiertEvent(einsatzId, userId, sicherungspostenId, fromVersion, toVersion, changedFields, einheitId === null ? undefined : einheitId, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert VorfallGemeldetEvent (Story 5.1, FR31/FR32).
+ */
+function deserializeVorfallGemeldet(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const vorfallId = payload.vorfallId;
+  const vorfallZeitRaw = payload.vorfallZeit;
+  const unfallkasseRelevant = payload.unfallkasseRelevant;
+
+  if (
+    typeof einsatzId !== 'string' ||
+    typeof userId !== 'string' ||
+    typeof einheitId !== 'string' ||
+    typeof vorfallId !== 'string' ||
+    typeof vorfallZeitRaw !== 'string' ||
+    typeof unfallkasseRelevant !== 'boolean'
+  ) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.vorfall_gemeldet');
+  }
+
+  const vorfallZeit = new Date(vorfallZeitRaw);
+  if (Number.isNaN(vorfallZeit.getTime())) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.vorfall_gemeldet');
+  }
+
+  const event = new VorfallGemeldetEvent(einsatzId, userId, einheitId, vorfallId, vorfallZeit, unfallkasseRelevant, aggregateId);
   return Result.ok<DomainEvent>(event);
 }

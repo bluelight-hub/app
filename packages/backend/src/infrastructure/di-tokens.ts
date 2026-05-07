@@ -570,6 +570,24 @@ export const SICHERUNGSPOSTEN_REPOSITORY = Symbol('ISicherungspostenRepository')
 export const SICHERUNGSPOSTEN_VERSION_REPOSITORY = Symbol('ISicherungspostenVersionRepository');
 
 /**
+ * Eigenschutz-Vorfall Repository Token (Story 5.1, FR31/FR32).
+ *
+ * Append-only-Aggregat — Application-Handler injizieren den Port für Insert
+ * (`save`) sowie Lese-Pfade (`findById`, `existsInEinsatz`). Story 5.2 (Snapshot-
+ * Builder) und 5.3+ (Listen-Endpoints) erweitern den Port bei Bedarf.
+ */
+export const EIGENSCHUTZ_VORFALL_REPOSITORY = Symbol('IEigenschutzVorfallRepository');
+
+/**
+ * Eigenschutz-Vorfall PDF-Renderer Token (Story 5.4, FR34/AR13).
+ *
+ * Bindet `IEigenschutzVorfallPdfRenderer` an die pdfkit-Implementierung im
+ * Infrastructure-Layer (`EigenschutzVorfallPdfRenderer`). Self-contained —
+ * der Renderer arbeitet ausschließlich auf dem Aggregate-Snapshot.
+ */
+export const EIGENSCHUTZ_VORFALL_PDF_RENDERER = Symbol('IEigenschutzVorfallPdfRenderer');
+
+/**
  * Query-Port-Token für `IPsaPropagationOverdueQueryPort` (Story 3.7 AC2).
  *
  * Wird vom `RepromptPsaQuittungScheduler` injiziert, um überfällige PSA-

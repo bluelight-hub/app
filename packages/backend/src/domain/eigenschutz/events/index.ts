@@ -22,3 +22,4 @@ export type { SyncConflictResolution } from './konflikt-aufgeloest.event';
 export { SicherungspostenEingerichtetEvent } from './sicherungsposten-eingerichtet.event';
 export { SicherungspostenAktualisiertEvent } from './sicherungsposten-aktualisiert.event';
 export type { SicherungspostenAktualisiertChangedFields, SicherungspostenFieldKey } from './sicherungsposten-aktualisiert.event';
+export { VorfallGemeldetEvent } from './vorfall-gemeldet.event';

@@ -3,6 +3,8 @@ import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import {
   EIGENSCHUTZ_TELEMETRY_REPOSITORY,
+  EIGENSCHUTZ_VORFALL_PDF_RENDERER,
+  EIGENSCHUTZ_VORFALL_REPOSITORY,
   GEFAEHRDUNGSBEURTEILUNG_REPOSITORY,
   GEFAEHRDUNGSBEURTEILUNG_VERSION_REPOSITORY,
   GEFAEHRDUNGSBEURTEILUNG_VORLAGE_REPOSITORY,
@@ -34,6 +36,8 @@ import { PrismaSyncConflictRepository } from './repositories/prisma-sync-conflic
 import { PrismaSicherungspostenRepository } from './repositories/prisma-sicherungsposten.repository';
 import { PrismaSicherungspostenVersionRepository } from './repositories/prisma-sicherungsposten-version.repository';
 import { PrismaEigenschutzTelemetryRepository } from './repositories/prisma-eigenschutz-telemetry.repository';
+import { PrismaEigenschutzVorfallRepository } from './repositories/prisma-eigenschutz-vorfall.repository';
+import { EigenschutzVorfallPdfRenderer } from './export/eigenschutz-vorfall-pdf.renderer';
 import { PrometheusEigenschutzCollector } from './telemetry/prometheus-eigenschutz.collector';
 import { TelemetryIngestService } from './telemetry/telemetry-ingest.service';
 import { EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter } from './event-adapters/gefaehrdungsbeurteilung-erstellt.adapter';
@@ -44,6 +48,7 @@ import { EigenschutzPsaProfilGeaendertEventAdapter } from './event-adapters/psa-
 import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-quittung-abgegeben.adapter';
 import { EigenschutzSicherungspostenEingerichtetEventAdapter } from './event-adapters/sicherungsposten-eingerichtet.adapter';
 import { EigenschutzSicherungspostenAktualisiertEventAdapter } from './event-adapters/sicherungsposten-aktualisiert.adapter';
+import { EigenschutzVorfallGemeldetEventAdapter } from './event-adapters/vorfall-gemeldet.adapter';
 
 /**
  * Infrastructure-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -74,6 +79,8 @@ import { EigenschutzSicherungspostenAktualisiertEventAdapter } from './event-ada
     { provide: EIGENSCHUTZ_TELEMETRY_REPOSITORY, useClass: PrismaEigenschutzTelemetryRepository },
     { provide: SICHERUNGSPOSTEN_REPOSITORY, useClass: PrismaSicherungspostenRepository },
     { provide: SICHERUNGSPOSTEN_VERSION_REPOSITORY, useClass: PrismaSicherungspostenVersionRepository },
+    { provide: EIGENSCHUTZ_VORFALL_REPOSITORY, useClass: PrismaEigenschutzVorfallRepository },
+    { provide: EIGENSCHUTZ_VORFALL_PDF_RENDERER, useClass: EigenschutzVorfallPdfRenderer },
     PrometheusEigenschutzCollector,
     TelemetryIngestService,
     PrismaPushRecipientLookupRepository,
@@ -86,6 +93,7 @@ import { EigenschutzSicherungspostenAktualisiertEventAdapter } from './event-ada
     EigenschutzQuittungAbgegebenEventAdapter,
     EigenschutzSicherungspostenEingerichtetEventAdapter,
     EigenschutzSicherungspostenAktualisiertEventAdapter,
+    EigenschutzVorfallGemeldetEventAdapter,
   ],
   exports: [
     GEFAEHRDUNGSBEURTEILUNG_REPOSITORY,
@@ -102,6 +110,8 @@ import { EigenschutzSicherungspostenAktualisiertEventAdapter } from './event-ada
     EIGENSCHUTZ_TELEMETRY_REPOSITORY,
     SICHERUNGSPOSTEN_REPOSITORY,
     SICHERUNGSPOSTEN_VERSION_REPOSITORY,
+    EIGENSCHUTZ_VORFALL_REPOSITORY,
+    EIGENSCHUTZ_VORFALL_PDF_RENDERER,
     TelemetryIngestService,
     PUSH_RECIPIENT_LOOKUP,
     EigenschutzGefaehrdungsbeurteilungErstelltEventAdapter,
@@ -112,6 +122,7 @@ import { EigenschutzSicherungspostenAktualisiertEventAdapter } from './event-ada
     EigenschutzQuittungAbgegebenEventAdapter,
     EigenschutzSicherungspostenEingerichtetEventAdapter,
     EigenschutzSicherungspostenAktualisiertEventAdapter,
+    EigenschutzVorfallGemeldetEventAdapter,
   ],
 })
 export class EigenschutzInfrastructureModule {}

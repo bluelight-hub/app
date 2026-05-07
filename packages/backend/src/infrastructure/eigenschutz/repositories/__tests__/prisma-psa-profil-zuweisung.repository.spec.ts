@@ -305,3 +305,51 @@ describe('PrismaPsaProfilZuweisungRepository.findActiveProfileByEinheit() [Read]
     });
   });
 });
+
+describe('PrismaPsaProfilZuweisungRepository.findActiveProfileByEinheitAtTime() (Story 5.2 AC5)', () => {
+  const SNAPSHOT_AT = new Date('2026-05-06T10:00:00.000Z');
+
+  it('führt Where mit halb-offenem Intervall + einsatz/einheit-Filter aus', async () => {
+    const logger = createMockLogger();
+    const findMany = jest.fn().mockResolvedValue([]);
+    const prisma = { psaProfilZuweisung: { findMany } };
+    const repo = new PrismaPsaProfilZuweisungRepository(prisma as never, logger);
+
+    await repo.findActiveProfileByEinheitAtTime(EINSATZ_ID, EINHEIT_ID, SNAPSHOT_AT);
+
+    expect(findMany).toHaveBeenCalledWith({
+      where: {
+        einsatzId: EINSATZ_ID,
+        einheitId: EINHEIT_ID,
+        gueltigVon: { lte: SNAPSHOT_AT },
+        OR: [{ gueltigBis: null }, { gueltigBis: { gt: SNAPSHOT_AT } }],
+      },
+      orderBy: [{ profil: 'asc' }, { gueltigVon: 'asc' }],
+    });
+  });
+
+  it('liefert leeres Array, wenn keine Treffer (kein Fehler)', async () => {
+    const logger = createMockLogger();
+    const findMany = jest.fn().mockResolvedValue([]);
+    const prisma = { psaProfilZuweisung: { findMany } };
+    const repo = new PrismaPsaProfilZuweisungRepository(prisma as never, logger);
+
+    const result = await repo.findActiveProfileByEinheitAtTime(EINSATZ_ID, EINHEIT_ID, SNAPSHOT_AT);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toEqual([]);
+  });
+
+  it('mappt Zeilen auf ReadRow-Shape', async () => {
+    const logger = createMockLogger();
+    const findMany = jest.fn().mockResolvedValue([buildRow({ profil: 'BASIS', gueltigBis: null })]);
+    const prisma = { psaProfilZuweisung: { findMany } };
+    const repo = new PrismaPsaProfilZuweisungRepository(prisma as never, logger);
+
+    const result = await repo.findActiveProfileByEinheitAtTime(EINSATZ_ID, EINHEIT_ID, SNAPSHOT_AT);
+
+    expect(result.value).toHaveLength(1);
+    expect(result.value?.[0]?.profil).toBe('BASIS');
+    expect(result.value?.[0]?.gueltigBis).toBeNull();
+  });
+});

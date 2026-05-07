@@ -17,3 +17,4 @@ export { EigenschutzKonfliktErkanntEventAdapter } from './konflikt-erkannt.adapt
 export { EigenschutzKonfliktAufgeloestEventAdapter } from './konflikt-aufgeloest.adapter';
 export { EigenschutzSicherungspostenEingerichtetEventAdapter } from './sicherungsposten-eingerichtet.adapter';
 export { EigenschutzSicherungspostenAktualisiertEventAdapter } from './sicherungsposten-aktualisiert.adapter';
+export { EigenschutzVorfallGemeldetEventAdapter } from './vorfall-gemeldet.adapter';

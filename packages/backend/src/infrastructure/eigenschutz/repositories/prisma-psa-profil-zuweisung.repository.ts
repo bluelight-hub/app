@@ -98,6 +98,30 @@ export class PrismaPsaProfilZuweisungRepository implements IPsaProfilZuweisungRe
     }
   }
 
+  /**
+   * Story 5.2 AC5 — Point-in-Time-Lookup. Halb-offene-Intervall-Semantik:
+   * `gueltigVon <= snapshotAt AND (gueltigBis > snapshotAt OR gueltigBis IS NULL)`.
+   * Der Edge-Fall `gueltigBis === snapshotAt` zählt zur Folge-Zuweisung
+   * (Wechsel A → B im selben Tick). Sortierung wie `findActiveProfileByEinheit`.
+   */
+  async findActiveProfileByEinheitAtTime(einsatzId: string, einheitId: string, snapshotAt: Date, tx?: TransactionContext): Promise<Result<PsaProfilZuweisungReadRow[]>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+    try {
+      const rows = await client.psaProfilZuweisung.findMany({
+        where: {
+          einsatzId,
+          einheitId,
+          gueltigVon: { lte: snapshotAt },
+          OR: [{ gueltigBis: null }, { gueltigBis: { gt: snapshotAt } }],
+        },
+        orderBy: [{ profil: 'asc' }, { gueltigVon: 'asc' }],
+      });
+      return Result.ok(rows.map((row) => this.toReadRow(row)));
+    } catch (error) {
+      return Result.fail<PsaProfilZuweisungReadRow[]>(this.wrapInfrastructureError(error));
+    }
+  }
+
   private async insertActiveRow(aggregate: PsaProfilZuweisung, client: PrismaTransactionClient): Promise<Result<void>> {
     try {
       // AC8 Application-Guard: TOCTOU-frei innerhalb der TX prüfen, ob

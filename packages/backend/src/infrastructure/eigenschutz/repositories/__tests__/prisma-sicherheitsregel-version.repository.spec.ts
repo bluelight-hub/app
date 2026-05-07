@@ -194,3 +194,109 @@ describe('PrismaSicherheitsregelVersionRepository.closeCurrentVersion()', () => 
     expect(logger.error).toHaveBeenCalled();
   });
 });
+
+describe('PrismaSicherheitsregelVersionRepository.findVersionsForEinheitAtTime() (Story 5.2 AC6)', () => {
+  const SNAPSHOT_AT = new Date('2026-05-06T10:00:00.000Z');
+
+  function buildRepo() {
+    const logger = createMockLogger();
+    const findMany = jest.fn();
+    const tx = { sicherheitsregelVersion: { findMany } };
+    const repo = new PrismaSicherheitsregelVersionRepository(logger, {} as never);
+    return { logger, findMany, tx, repo };
+  }
+
+  it('liefert leeres Array, wenn keine Treffer (kein Fehler)', async () => {
+    const { findMany, tx, repo } = buildRepo();
+    findMany.mockResolvedValue([]);
+
+    const result = await repo.findVersionsForEinheitAtTime('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toEqual([]);
+  });
+
+  it('führt Where mit halb-offenem Intervall + einsatzweit-OR-Filter aus', async () => {
+    const { findMany, tx, repo } = buildRepo();
+    findMany.mockResolvedValue([]);
+
+    await repo.findVersionsForEinheitAtTime('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+    expect(findMany).toHaveBeenCalledWith({
+      where: {
+        gueltigVon: { lte: SNAPSHOT_AT },
+        OR: [{ gueltigBis: null }, { gueltigBis: { gt: SNAPSHOT_AT } }],
+        regel: {
+          einsatzId: 'einsatz-1',
+          OR: [{ einheitId: 'einheit-1' }, { einheitId: null }],
+        },
+      },
+      include: { regel: { select: { einheitId: true } } },
+      orderBy: [{ gueltigVon: 'desc' }, { regelId: 'asc' }],
+    });
+  });
+
+  it('mappt Row mit einheitId=null auf einsatzweit:true', async () => {
+    const { findMany, tx, repo } = buildRepo();
+    findMany.mockResolvedValue([
+      {
+        id: 'v1',
+        regelId: 'r1',
+        version: 2,
+        titel: 'Reflexweste',
+        inhalt: 'Pflicht.',
+        gueltigVon: new Date('2026-05-01T08:00:00.000Z'),
+        gueltigBis: null,
+        regel: { einheitId: null },
+      },
+    ]);
+
+    const result = await repo.findVersionsForEinheitAtTime('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value).toEqual([
+      {
+        regelId: 'r1',
+        versionId: 'v1',
+        version: 2,
+        titel: 'Reflexweste',
+        inhalt: 'Pflicht.',
+        einheitId: null,
+        einsatzweit: true,
+        gueltigVon: new Date('2026-05-01T08:00:00.000Z'),
+      },
+    ]);
+  });
+
+  it('mappt Row mit konkreter einheitId auf einsatzweit:false', async () => {
+    const { findMany, tx, repo } = buildRepo();
+    findMany.mockResolvedValue([
+      {
+        id: 'v2',
+        regelId: 'r2',
+        version: 1,
+        titel: 'Helmpflicht',
+        inhalt: 'Im Innenangriff.',
+        gueltigVon: new Date('2026-05-01T08:00:00.000Z'),
+        gueltigBis: null,
+        regel: { einheitId: 'einheit-1' },
+      },
+    ]);
+
+    const result = await repo.findVersionsForEinheitAtTime('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+    expect(result.value?.[0]?.einsatzweit).toBe(false);
+    expect(result.value?.[0]?.einheitId).toBe('einheit-1');
+  });
+
+  it('propagiert DB-Fehler als InfrastructureError-Sentinel', async () => {
+    const { findMany, tx, repo, logger } = buildRepo();
+    findMany.mockRejectedValue(new Error('db-down'));
+
+    const result = await repo.findVersionsForEinheitAtTime('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toBe('InfrastructureError:LoadSicherheitsregelVersionsAtTime');
+    expect(logger.error).toHaveBeenCalled();
+  });
+});

@@ -148,7 +148,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       }
     });
 
-    it('Story-4.1-Fortschritt: 12 Eigenschutz-Events vollständig an 4/4, die übrigen 2 weiterhin an 0/4', () => {
+    it('Story-5.1-Fortschritt: 13 Eigenschutz-Events vollständig an 4/4, das übrige 1 weiterhin an 0/4', () => {
       const ERSTELLT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_ERSTELLT;
       const AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT;
       const SICHERHEITSREGEL_AUSGERUFEN = EVENT_NAMES.EIGENSCHUTZ.SICHERHEITSREGEL_AUSGERUFEN;
@@ -161,6 +161,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       const KONFLIKT_AUFGELOEST = EVENT_NAMES.EIGENSCHUTZ.KONFLIKT_AUFGELOEST;
       const SICHERUNGSPOSTEN_EINGERICHTET = EVENT_NAMES.EIGENSCHUTZ.SICHERUNGSPOSTEN_EINGERICHTET;
       const SICHERUNGSPOSTEN_AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.SICHERUNGSPOSTEN_AKTUALISIERT;
+      const VORFALL_GEMELDET = EVENT_NAMES.EIGENSCHUTZ.VORFALL_GEMELDET;
       expect(sumTuple(countRegistrationSites(ERSTELLT))).toBe(4);
       expect(sumTuple(countRegistrationSites(AKTUALISIERT))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERHEITSREGEL_AUSGERUFEN))).toBe(4);
@@ -173,6 +174,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       expect(sumTuple(countRegistrationSites(KONFLIKT_AUFGELOEST))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERUNGSPOSTEN_EINGERICHTET))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERUNGSPOSTEN_AKTUALISIERT))).toBe(4);
+      expect(sumTuple(countRegistrationSites(VORFALL_GEMELDET))).toBe(4);
 
       const FULLY_REGISTERED = new Set<string>([
         ERSTELLT,
@@ -187,6 +189,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
         KONFLIKT_AUFGELOEST,
         SICHERUNGSPOSTEN_EINGERICHTET,
         SICHERUNGSPOSTEN_AKTUALISIERT,
+        VORFALL_GEMELDET,
       ]);
       for (const eventName of EIGENSCHUTZ_NAMES) {
         if (FULLY_REGISTERED.has(eventName)) continue;

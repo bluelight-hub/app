@@ -117,6 +117,7 @@ import type { KonfliktErkanntEvent, SyncConflictEntityType } from '@domain/eigen
 import type { KonfliktAufgeloestEvent, SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
 import type { SicherungspostenEingerichtetEvent } from '@domain/eigenschutz/events/sicherungsposten-eingerichtet.event';
 import type { SicherungspostenAktualisiertEvent, SicherungspostenFieldKey } from '@domain/eigenschutz/events/sicherungsposten-aktualisiert.event';
+import type { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
 
 // Story 3.9 — Modul-Konstante (statt Funktionsrumpf-Allokation pro
 // Serialisierungs-Aufruf, Code-Review P12).
@@ -545,6 +546,8 @@ export class EventSerializer {
         return this.serializeSicherungspostenEingerichtet(event as unknown as SicherungspostenEingerichtetEvent);
       case 'eigenschutz.sicherungsposten_aktualisiert':
         return this.serializeSicherungspostenAktualisiert(event as unknown as SicherungspostenAktualisiertEvent);
+      case 'eigenschutz.vorfall_gemeldet':
+        return this.serializeVorfallGemeldet(event as unknown as VorfallGemeldetEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -2221,6 +2224,37 @@ export class EventSerializer {
       fromVersion: event.fromVersion,
       toVersion: event.toVersion,
       changedFields: { changed: [...cf.changed], ...(cf.aufgeloest === true ? { aufgeloest: true } : {}) },
+    };
+  }
+
+  // ===== EIGENSCHUTZ SERIALIZER (Story 5.1 Vorfall) =====
+
+  /**
+   * Serialisiert `VorfallGemeldetEvent` (Story 5.1, FR31/FR32).
+   *
+   * **Payload-Diät (PII-Schutz):** Nur Identifier + Audit-Felder. Klartext
+   * von `was`, `wo`, `beteiligte`, `massnahmen`, `kontextSnapshot` bleibt im
+   * Aggregate; Konsumenten lesen über das Repository.
+   */
+  private serializeVorfallGemeldet(event: VorfallGemeldetEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.einheitId !== 'string' ||
+      typeof event.vorfallId !== 'string' ||
+      !(event.vorfallZeit instanceof Date) ||
+      Number.isNaN(event.vorfallZeit.getTime()) ||
+      typeof event.unfallkasseRelevant !== 'boolean'
+    ) {
+      throw new Error('Invalid VorfallGemeldet event payload');
+    }
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      vorfallId: event.vorfallId,
+      vorfallZeit: event.vorfallZeit.toISOString(),
+      unfallkasseRelevant: event.unfallkasseRelevant,
     };
   }
 }
