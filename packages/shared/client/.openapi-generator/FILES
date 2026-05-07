@@ -184,6 +184,8 @@ models/BefehlsgeberVorschlagDto.ts
 models/BeitrittsanfrageResponseDto.ts
 models/BesatzungMemberDto.ts
 models/BesetzeRolleDto.ts
+models/BeteiligterFreitextDto.ts
+models/BeteiligterUserDto.ts
 models/BulkChangePsaProfilDto.ts
 models/ChangeEinsatzEinheitStatusDto.ts
 models/ChangeOperativeRoleDto.ts
@@ -245,6 +247,12 @@ models/DwdWarnungDto.ts
 models/EigenschutzHealthControllerGetHealthVAlpha200Response.ts
 models/EigenschutzHealthDto.ts
 models/EigenschutzTelemetryControllerIngestVAlpha200Response.ts
+models/EigenschutzVorfallControllerListVorfaelleVAlpha200Response.ts
+models/EigenschutzVorfallControllerReportVorfallVAlpha201Response.ts
+models/EigenschutzVorfallDto.ts
+models/EigenschutzVorfallDtoBeteiligteInner.ts
+models/EigenschutzVorfallDtoWo.ts
+models/EigenschutzVorfallListItemDto.ts
 models/EinheitCreatedResponseDto.ts
 models/EinsatzBeitrittControllerCreateVAlpha201Response.ts
 models/EinsatzBeitrittControllerFindAllVAlpha200Response.ts
@@ -408,6 +416,7 @@ models/LagekarteCqrsControllerAddPoiVAlpha201Response.ts
 models/LagekarteCqrsControllerGetPoisVAlpha200Response.ts
 models/LagekarteDto.ts
 models/LegacyRuntimeConfigMigrationFailureDto.ts
+models/ListVorfaelleQueryDto.ts
 models/LockUserDto.ts
 models/LoginDto.ts
 models/LoginResponseDto.ts
@@ -478,6 +487,7 @@ models/RegistrierePersonViaQrCodeDto.ts
 models/ReorderFunkkanaeleDto.ts
 models/ReorderFunkkanalEntryDto.ts
 models/ReportSyncConflictDto.ts
+models/ReportVorfallDto.ts
 models/ResolveBeitrittsanfrageDto.ts
 models/ResolveSyncConflictDto.ts
 models/RevokeInviteResponseDto.ts
@@ -598,6 +608,8 @@ models/WarnungenControllerGetNinaGeoJsonVAlpha200Response.ts
 models/WarnungenControllerGetNinaWarnungDetailVAlpha200Response.ts
 models/WarnungenControllerGetNinaWarnungenVAlpha200Response.ts
 models/WeisePersonZuFahrzeugZuDto.ts
+models/WoCoordinateDto.ts
+models/WoFreitextDto.ts
 models/ZeichenDefinitionDto.ts
 models/ZeichenDefinitionRequestDto.ts
 models/ZeichenKatalogEintragResponseDto.ts

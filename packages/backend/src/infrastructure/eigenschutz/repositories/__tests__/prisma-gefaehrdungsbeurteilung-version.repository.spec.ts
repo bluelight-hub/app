@@ -1075,4 +1075,79 @@ describe('PrismaGefaehrdungsbeurteilungVersionRepository — P2002-Target-Narrow
       );
     });
   });
+
+  describe('findVersionAtTimeForEinheit() (Story 5.2 AC4)', () => {
+    const SNAPSHOT_AT = new Date('2026-05-06T10:00:00.000Z');
+
+    it('führt Where mit halb-offenem Intervall + einsatz/einheit-Scoping aus', async () => {
+      const logger = createMockLoggerUnit();
+      const findFirst = jest.fn().mockResolvedValue(null);
+      const tx = { gefaehrdungsbeurteilungVersion: { findFirst } };
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, {} as never);
+
+      await repo.findVersionAtTimeForEinheit('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+      expect(findFirst).toHaveBeenCalledWith({
+        where: {
+          gueltigVon: { lte: SNAPSHOT_AT },
+          OR: [{ gueltigBis: null }, { gueltigBis: { gt: SNAPSHOT_AT } }],
+          gefBeurteilung: { einsatzId: 'einsatz-1', einheitId: 'einheit-1' },
+        },
+      });
+    });
+
+    it('liefert Result.ok(null) wenn keine Treffer (kein Fehler)', async () => {
+      const logger = createMockLoggerUnit();
+      const findFirst = jest.fn().mockResolvedValue(null);
+      const tx = { gefaehrdungsbeurteilungVersion: { findFirst } };
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, {} as never);
+
+      const result = await repo.findVersionAtTimeForEinheit('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeNull();
+    });
+
+    it('mappt Treffer auf VersionRow + gefBeurteilungId + versionId', async () => {
+      const logger = createMockLoggerUnit();
+      // `id` (Versions-PK) und `gefBeurteilungId` (Parent-PK) sind bewusst
+      // unterschiedlich — der Snapshot-FK `EigenschutzVorfall.gefBeurteilungVersionId`
+      // muss die Versions-PK referenzieren (`references: [id]`), nicht den Parent.
+      const row = {
+        id: 'version-pk-2',
+        gefBeurteilungId: 'beurteilung-1',
+        version: 2,
+        items: [{ title: 'Eis' }],
+        changedFields: { added: [], removed: [], updated: [], unchanged: 1 },
+        gueltigVon: new Date('2026-05-01T08:00:00.000Z'),
+        gueltigBis: null,
+        changedByUserId: 'user-1',
+        eventId: 'evt-2',
+      };
+      const findFirst = jest.fn().mockResolvedValue(row);
+      const tx = { gefaehrdungsbeurteilungVersion: { findFirst } };
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, {} as never);
+
+      const result = await repo.findVersionAtTimeForEinheit('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.gefBeurteilungId).toBe('beurteilung-1');
+      expect(result.value?.versionId).toBe('version-pk-2');
+      expect(result.value?.version).toBe(2);
+      expect(result.value?.items).toHaveLength(1);
+    });
+
+    it('mapped DB-Fehler auf Sentinel InfrastructureError:LoadVersionAtTime', async () => {
+      const logger = createMockLoggerUnit();
+      const findFirst = jest.fn().mockRejectedValue(new Error('db-down'));
+      const tx = { gefaehrdungsbeurteilungVersion: { findFirst } };
+      const repo = new PrismaGefaehrdungsbeurteilungVersionRepository(logger, {} as never);
+
+      const result = await repo.findVersionAtTimeForEinheit('einsatz-1', 'einheit-1', SNAPSHOT_AT, tx as never);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('InfrastructureError:LoadVersionAtTime');
+      expect(logger.error).toHaveBeenCalled();
+    });
+  });
 });

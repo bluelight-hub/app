@@ -3,7 +3,7 @@ import type { Prisma } from '@/generated/prisma/client';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import type { ISicherheitsregelVersionRepository, SaveSicherheitsregelVersionArgs } from '@domain/eigenschutz/repositories';
+import type { ISicherheitsregelVersionRepository, SaveSicherheitsregelVersionArgs, SicherheitsregelVersionAtTimeRow } from '@domain/eigenschutz/repositories';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { isPrismaP2002 } from '@/shared/utils/prisma.util';
@@ -188,6 +188,57 @@ export class PrismaSicherheitsregelVersionRepository implements ISicherheitsrege
         error: error instanceof Error ? error.message : String(error),
       });
       return Result.fail<void>(error instanceof Error ? error.message : 'Unbekannter Datenbankfehler');
+    }
+  }
+
+  /**
+   * Story 5.2 AC6 — Point-in-Time-Lookup für den Vorfall-Snapshot.
+   *
+   * Halb-offene-Intervall-Semantik: `gueltigVon <= snapshotAt AND
+   * (gueltigBis > snapshotAt OR gueltigBis IS NULL)`. Filter
+   * `r.einsatzId = :einsatzId AND (r.einheitId = :einheitId OR
+   * r.einheitId IS NULL)` — eine einsatzweite Regel matcht jede Einheit
+   * im selben Einsatz.
+   *
+   * Sortierung `gueltigVon DESC, regelId ASC` — neueste-aktive-Versionen
+   * zuerst, deterministisch über die `regelId`-Sekundärordnung.
+   */
+  async findVersionsForEinheitAtTime(einsatzId: string, einheitId: string, snapshotAt: Date, tx: TransactionContext): Promise<Result<SicherheitsregelVersionAtTimeRow[]>> {
+    const client = tx as PrismaTransactionClient;
+    try {
+      const rows = await client.sicherheitsregelVersion.findMany({
+        where: {
+          gueltigVon: { lte: snapshotAt },
+          OR: [{ gueltigBis: null }, { gueltigBis: { gt: snapshotAt } }],
+          regel: {
+            einsatzId,
+            OR: [{ einheitId }, { einheitId: null }],
+          },
+        },
+        include: {
+          regel: { select: { einheitId: true } },
+        },
+        orderBy: [{ gueltigVon: 'desc' }, { regelId: 'asc' }],
+      });
+      const mapped: SicherheitsregelVersionAtTimeRow[] = rows.map((row) => ({
+        regelId: row.regelId,
+        versionId: row.id,
+        version: row.version,
+        titel: row.titel,
+        inhalt: row.inhalt,
+        einheitId: row.regel.einheitId,
+        einsatzweit: row.regel.einheitId === null,
+        gueltigVon: row.gueltigVon,
+      }));
+      return Result.ok(mapped);
+    } catch (error) {
+      this.logger.error('Fehler bei Point-in-Time-Sicherheitsregel-Versionen-Lookup', {
+        einsatzId,
+        einheitId,
+        snapshotAt: snapshotAt.toISOString(),
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return Result.fail<SicherheitsregelVersionAtTimeRow[]>('InfrastructureError:LoadSicherheitsregelVersionsAtTime');
     }
   }
 }

@@ -83,6 +83,14 @@ describe('EigenschutzEntryPage', () => {
     expect(screen.queryByTestId('eigenschutz-sync-konflikte-link')).toBeNull();
   });
 
+  it('rendert den Vorfälle-Link bei vorhandener einsatzId (Story 5.1)', () => {
+    renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-42" />);
+
+    const link = screen.getByTestId('eigenschutz-vorfaelle-link');
+    expect(link).toHaveTextContent('Vorfälle erfassen');
+    expect(link.getAttribute('href')).toBe('/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle');
+  });
+
   it('rendert den Konflikte-Link bei vorhandener einsatzId', () => {
     renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-42" />);
 

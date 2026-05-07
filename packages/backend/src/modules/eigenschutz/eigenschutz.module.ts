@@ -10,6 +10,7 @@ import { SicherheitsregelController } from './controllers/sicherheitsregel.contr
 import { SyncConflictController } from './controllers/sync-conflict.controller';
 import { EigenschutzTelemetryController } from './controllers/eigenschutz-telemetry.controller';
 import { SicherungspostenController } from './controllers/sicherungsposten.controller';
+import { EigenschutzVorfallController } from './controllers/eigenschutz-vorfall.controller';
 
 /**
  * HTTP-Modul für den Eigenschutz-Feature-Slice.
@@ -38,6 +39,7 @@ import { SicherungspostenController } from './controllers/sicherungsposten.contr
     SyncConflictController,
     EigenschutzTelemetryController,
     SicherungspostenController,
+    EigenschutzVorfallController,
   ],
 })
 export class EigenschutzModule {}

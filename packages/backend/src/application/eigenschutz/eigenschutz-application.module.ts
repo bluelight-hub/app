@@ -35,6 +35,10 @@ import { UpdateSicherungspostenHandler } from './commands/update-sicherungsposte
 import { AufloeseSicherungspostenHandler } from './commands/aufloese-sicherungsposten/aufloese-sicherungsposten.handler';
 import { GetSicherungspostenHandler } from './queries/get-sicherungsposten/get-sicherungsposten.handler';
 import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/list-sicherungsposten.handler';
+import { ReportVorfallHandler } from './commands/report-vorfall/report-vorfall.handler';
+import { KontextSnapshotBuilder } from './services/kontext-snapshot-builder';
+import { GetVorfallByIdHandler } from './queries/get-vorfall-by-id/get-vorfall-by-id.handler';
+import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.handler';
 
 /**
  * Application-Layer-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -82,6 +86,10 @@ import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/lis
     AufloeseSicherungspostenHandler,
     GetSicherungspostenHandler,
     ListSicherungspostenHandler,
+    ReportVorfallHandler,
+    KontextSnapshotBuilder,
+    GetVorfallByIdHandler,
+    ListVorfaelleHandler,
   ],
   exports: [
     AckPsaQuittungHandler,
@@ -112,6 +120,9 @@ import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/lis
     AufloeseSicherungspostenHandler,
     GetSicherungspostenHandler,
     ListSicherungspostenHandler,
+    ReportVorfallHandler,
+    GetVorfallByIdHandler,
+    ListVorfaelleHandler,
   ],
 })
 export class EigenschutzApplicationModule {}

@@ -111,4 +111,18 @@ export interface IPsaProfilZuweisungReadRepository {
    * Einheit nicht (mehr) zum Einsatz gehört.
    */
   findActiveProfileByEinheit(einsatzId: string, einheitId: string, tx?: TransactionContext): Promise<Result<PsaProfilZuweisungReadRow[]>>;
+
+  /**
+   * Story 5.2 AC5 — Point-in-Time-Lookup aller PSA-Profil-Zuweisungen, die
+   * zum `snapshotAt` für die Einheit aktiv waren. Halb-offene-Intervall-
+   * Semantik (`gueltigVon <= snapshotAt AND (gueltigBis > snapshotAt OR
+   * gueltigBis IS NULL)`).
+   *
+   * Sortierung: nach `profil`-Enum-Reihenfolge (BASIS, INFEKTION, VU,
+   * CBRN_PATIENT, VOLLSCHUTZ) — analog `findActiveProfileByEinheit`.
+   *
+   * `Result.ok([])`, wenn die Einheit zu diesem Zeitpunkt kein aktives
+   * Profil hatte — kein Fehler.
+   */
+  findActiveProfileByEinheitAtTime(einsatzId: string, einheitId: string, snapshotAt: Date, tx?: TransactionContext): Promise<Result<PsaProfilZuweisungReadRow[]>>;
 }

@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { EigenschutzHealthController } from '../controllers/eigenschutz-health.controller';
+import { EigenschutzVorfallController } from '../controllers/eigenschutz-vorfall.controller';
 import { EigenschutzModule } from '../eigenschutz.module';
 
 /**
@@ -21,6 +22,18 @@ describe('EigenschutzModule', () => {
   it('registriert EigenschutzHealthController', () => {
     const controllers = Reflect.getMetadata('controllers', EigenschutzModule) as unknown[];
     expect(controllers).toContain(EigenschutzHealthController);
+  });
+
+  it('registriert EigenschutzVorfallController (Story 5.1)', () => {
+    const controllers = Reflect.getMetadata('controllers', EigenschutzModule) as unknown[];
+    expect(controllers).toContain(EigenschutzVorfallController);
+  });
+
+  it('Story 5.1 — EIGENSCHUTZ_VORFALL_REPOSITORY ist via Infrastructure-Modul-Export injizierbar', async () => {
+    const { EigenschutzInfrastructureModule } = await import('@/infrastructure/eigenschutz/eigenschutz-infrastructure.module');
+    const { EIGENSCHUTZ_VORFALL_REPOSITORY } = await import('@/infrastructure/di-tokens');
+    const exports = Reflect.getMetadata('exports', EigenschutzInfrastructureModule) as unknown[];
+    expect(exports).toContain(EIGENSCHUTZ_VORFALL_REPOSITORY);
   });
 
   it('importiert AuthModule (re-exportiert KraefteInfrastructureModule transitiv, ADR-014)', () => {

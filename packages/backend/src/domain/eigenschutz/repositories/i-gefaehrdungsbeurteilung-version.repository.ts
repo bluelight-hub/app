@@ -122,4 +122,29 @@ export interface IGefaehrdungsbeurteilungVersionRepository {
    * Command-Handler-Pfads aufgerufen (Query-Handler).
    */
   findVersionsByBeurteilung(gefBeurteilungId: string): Promise<Result<GefaehrdungsbeurteilungVersionRow[]>>;
+
+  /**
+   * Story 5.2 AC4 — Point-in-Time-Lookup für den Vorfall-Snapshot.
+   *
+   * Findet die Versions-Zeile, die zum übergebenen `snapshotAt` für die
+   * Kombination `(einsatzId, einheitId)` aktiv war. Halb-offene-Intervall-
+   * Semantik (`gueltigVon <= snapshotAt AND (gueltigBis > snapshotAt OR
+   * gueltigBis IS NULL)`) — siehe Klassen-Header oben.
+   *
+   * Liefert `Result.ok(null)`, wenn die Einheit zum Zeitpunkt keine
+   * Beurteilung hatte oder die Beurteilung erst später angelegt wurde —
+   * **kein Fehler**, der Snapshot trägt dann `gefaehrdungsbeurteilung: null`.
+   *
+   * Der Treffer enthält die `gefBeurteilungId` (Parent-Aggregat-PK) UND die
+   * `versionId` (Versions-Row-PK) zusätzlich zur Versions-Row. Die `versionId`
+   * ist der FK-Ziel-Schlüssel für `EigenschutzVorfall.gefBeurteilungVersionId`
+   * (Schema `references: [id]`); der Builder braucht beide Felder, damit FK
+   * und JSONB-Snapshot strukturell deckungsgleich bleiben.
+   */
+  findVersionAtTimeForEinheit(
+    einsatzId: string,
+    einheitId: string,
+    snapshotAt: Date,
+    tx: TransactionContext,
+  ): Promise<Result<(GefaehrdungsbeurteilungVersionRow & { gefBeurteilungId: string; versionId: string }) | null>>;
 }

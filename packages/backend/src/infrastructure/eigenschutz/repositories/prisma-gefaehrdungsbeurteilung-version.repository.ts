@@ -230,4 +230,56 @@ export class PrismaGefaehrdungsbeurteilungVersionRepository implements IGefaehrd
       return Result.fail<GefaehrdungsbeurteilungVersionRow[]>('InfrastructureError:LoadVersions');
     }
   }
+
+  /**
+   * Story 5.2 AC4 — Point-in-Time-Lookup für den Vorfall-Snapshot.
+   *
+   * Halb-offene-Intervall-Semantik: `gueltigVon <= snapshotAt AND
+   * (gueltigBis > snapshotAt OR gueltigBis IS NULL)`. Der Edge-Fall
+   * `gueltigBis === snapshotAt` zählt **zur Folge-Version**, nicht zur
+   * abgeschlossenen Version (siehe Klassen-Header).
+   *
+   * Implementierung: Prisma-Composite-Where mit Join auf
+   * `Gefaehrdungsbeurteilung` für das einsatz/einheit-Scoping. Genutzter
+   * Index: `@@index([gefBeurteilungId, gueltigVon])` plus Filter auf
+   * `gueltigBis` (Postgres-Bitmap-Scan).
+   */
+  async findVersionAtTimeForEinheit(
+    einsatzId: string,
+    einheitId: string,
+    snapshotAt: Date,
+    tx: TransactionContext,
+  ): Promise<Result<(GefaehrdungsbeurteilungVersionRow & { gefBeurteilungId: string; versionId: string }) | null>> {
+    const client = tx as PrismaTransactionClient;
+    try {
+      const row = await client.gefaehrdungsbeurteilungVersion.findFirst({
+        where: {
+          gueltigVon: { lte: snapshotAt },
+          OR: [{ gueltigBis: null }, { gueltigBis: { gt: snapshotAt } }],
+          gefBeurteilung: {
+            einsatzId,
+            einheitId,
+          },
+        },
+      });
+      if (!row) {
+        return Result.ok<(GefaehrdungsbeurteilungVersionRow & { gefBeurteilungId: string; versionId: string }) | null>(null);
+      }
+      // `versionId === row.id` ist das FK-Ziel auf `GefaehrdungsbeurteilungVersion.id`,
+      // `gefBeurteilungId` ist der Parent-Aggregat-Schlüssel (Cross-Reference).
+      return Result.ok({
+        ...PrismaGefaehrdungsbeurteilungMapper.toVersionRow(row),
+        gefBeurteilungId: row.gefBeurteilungId,
+        versionId: row.id,
+      });
+    } catch (error) {
+      this.logger.error('Fehler bei Point-in-Time-Version-Lookup', {
+        einsatzId,
+        einheitId,
+        snapshotAt: snapshotAt.toISOString(),
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return Result.fail<(GefaehrdungsbeurteilungVersionRow & { gefBeurteilungId: string; versionId: string }) | null>('InfrastructureError:LoadVersionAtTime');
+    }
+  }
 }

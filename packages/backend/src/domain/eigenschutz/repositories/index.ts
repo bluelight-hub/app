@@ -9,7 +9,7 @@ export type { IGefaehrdungsbeurteilungRepository, GefaehrdungsbeurteilungReadMod
 export type { IGefaehrdungsbeurteilungVorlageRepository, GefaehrdungsbeurteilungVorlageReadModel } from './i-gefaehrdungsbeurteilung-vorlage.repository';
 export type { IGefaehrdungsbeurteilungVersionRepository, SaveInitialVersionArgs, SaveNewVersionArgs, GefaehrdungsbeurteilungVersionRow } from './i-gefaehrdungsbeurteilung-version.repository';
 export type { ISicherheitsregelRepository, SicherheitsregelReadModel } from './i-sicherheitsregel.repository';
-export type { ISicherheitsregelVersionRepository, SaveSicherheitsregelVersionArgs } from './i-sicherheitsregel-version.repository';
+export type { ISicherheitsregelVersionRepository, SaveSicherheitsregelVersionArgs, SicherheitsregelVersionAtTimeRow } from './i-sicherheitsregel-version.repository';
 export type {
   ISicherheitsregelQuittungRepository,
   SicherheitsregelQuittungReadModel,
@@ -22,3 +22,5 @@ export type { IPsaPropagationOverdueQueryPort, PsaPropagationOverdueRow } from '
 export type { IPushRecipientLookupPort } from './i-push-recipient-lookup.port';
 export type { ISicherungspostenRepository, SicherungspostenReadModel } from './i-sicherungsposten.repository';
 export type { ISicherungspostenVersionRepository, SicherungspostenVersionReadModel } from './i-sicherungsposten-version.repository';
+export type { IEigenschutzVorfallRepository, VorfallListFilter, VorfallListReadRow } from './i-eigenschutz-vorfall.repository';
+export { VORFALL_LIST_HARD_LIMIT } from './i-eigenschutz-vorfall.repository';

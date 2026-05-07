@@ -64,4 +64,37 @@ export interface ISicherheitsregelVersionRepository {
    * analog zu Story 2.3 Version-Chain-Hardening).
    */
   closeCurrentVersion(regelId: string, gueltigBis: Date, tx: TransactionContext): Promise<Result<void>>;
+
+  /**
+   * Story 5.2 AC6 — Point-in-Time-Lookup aller Sicherheitsregel-Versionen,
+   * die zum `snapshotAt` für die Einheit aktiv waren (entweder einsatzweit
+   * oder konkret zugeordnet). Halb-offene-Intervall-Semantik
+   * (`gueltigVon <= snapshotAt AND (gueltigBis > snapshotAt OR
+   * gueltigBis IS NULL)`).
+   *
+   * Filter: `r.einsatzId = :einsatzId AND (r.einheitId = :einheitId OR
+   * r.einheitId IS NULL)`. Pro Treffer wird die zum Zeitpunkt aktive
+   * Version geliefert (eine ältere Version, falls die Regel später
+   * aktualisiert wurde — die Snapshot-Invariante verlangt den historischen
+   * Stand).
+   *
+   * `Result.ok([])`, wenn keine Regeln Treffer hatten — kein Fehler.
+   */
+  findVersionsForEinheitAtTime(einsatzId: string, einheitId: string, snapshotAt: Date, tx: TransactionContext): Promise<Result<SicherheitsregelVersionAtTimeRow[]>>;
+}
+
+/**
+ * Story 5.2 AC6 — Read-Row für Point-in-Time-Snapshot. `einheitId === null`
+ * markiert eine einsatzweite Regel; `einsatzweit` ist der explizite
+ * Boolean-Spiegel für den Builder-Pfad.
+ */
+export interface SicherheitsregelVersionAtTimeRow {
+  regelId: string;
+  versionId: string;
+  version: number;
+  titel: string;
+  inhalt: string;
+  einheitId: string | null;
+  einsatzweit: boolean;
+  gueltigVon: Date;
 }

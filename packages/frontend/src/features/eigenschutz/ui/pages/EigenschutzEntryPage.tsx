@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { PiArrowsClockwise, PiClipboardText, PiMapPin, PiShield, PiShieldCheck } from 'react-icons/pi';
+import { PiArrowsClockwise, PiClipboardText, PiMapPin, PiShield, PiShieldCheck, PiWarningOctagon } from 'react-icons/pi';
 import { useSyncConflicts } from '@/features/eigenschutz/api/queries';
 
 export interface EigenschutzEntryPageProps {
@@ -87,6 +87,20 @@ function EigenschutzNavLinks({ einsatzId }: { einsatzId: string }) {
       >
         <PiMapPin aria-hidden="true" className="h-4 w-4" />
         <span>Sicherungsposten verwalten</span>
+      </Link>
+      <Link
+        to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle"
+        params={{ einsatzId }}
+        data-testid="eigenschutz-vorfaelle-link"
+        className="inline-flex items-start gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-border-strong hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+      >
+        <PiWarningOctagon aria-hidden="true" className="mt-0.5 h-4 w-4 flex-shrink-0" />
+        <span className="flex flex-col">
+          <span>Vorfälle erfassen</span>
+          <span data-testid="eigenschutz-vorfaelle-link-subtitle" className="text-xs font-normal text-text-muted">
+            Vorfälle erfassen + nachbereiten
+          </span>
+        </span>
       </Link>
       <Link
         to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte"
