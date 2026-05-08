@@ -154,6 +154,7 @@ export function useEigenschutzLueckeGemeldetLive({ einsatzId, enabled = true }: 
       // Query — Konsistenz zur Mutation-Hook-Invalidierung in `useMeldeLuecke`.
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, payload.einheitId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelWarnBadges(einsatzId) });
     };
 
     const invalidateAfterReconnect = () => {
@@ -161,6 +162,7 @@ export function useEigenschutzLueckeGemeldetLive({ einsatzId, enabled = true }: 
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(einsatzId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelWarnBadges(einsatzId) });
     };
 
     const connect = () => {

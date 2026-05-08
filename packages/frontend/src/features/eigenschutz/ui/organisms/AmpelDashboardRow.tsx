@@ -1,14 +1,16 @@
 import { forwardRef, type KeyboardEventHandler } from 'react';
-import type { AmpelProjectionDto } from '@bluelight-hub/shared/client';
+import type { AmpelProjectionDto, AmpelWarnBadgeDto } from '@bluelight-hub/shared/client';
 import type { PsaProfilValue } from '@bluelight-hub/shared/schemas/eigenschutz/psa-profil.schema';
 import { cn } from '@/shared/ui/cn';
 import { PSA_PROFIL_META } from '../../constants/psa-profil.constants';
 import { StatusIndicator, buildAmpelStatusAriaLabel } from '../molecules/StatusIndicator';
+import { AmpelWarnBadgeList } from '../molecules/AmpelWarnBadgeList';
 import { shortenEinheitId } from './AmpelCard';
 
 export interface AmpelDashboardRowProps {
   readonly projection: AmpelProjectionDto;
   readonly einheitName?: string;
+  readonly warnBadges?: readonly AmpelWarnBadgeDto[];
   readonly selected: boolean;
   readonly onSelect: () => void;
   readonly onKeyDown?: KeyboardEventHandler<HTMLButtonElement>;
@@ -16,12 +18,14 @@ export interface AmpelDashboardRowProps {
 
 const PSA_PROFILE_VALUES = new Set<string>(Object.keys(PSA_PROFIL_META));
 
-export const AmpelDashboardRow = forwardRef<HTMLButtonElement, AmpelDashboardRowProps>(function AmpelDashboardRow({ projection, einheitName, selected, onSelect, onKeyDown }, ref) {
+export const AmpelDashboardRow = forwardRef<HTMLButtonElement, AmpelDashboardRowProps>(function AmpelDashboardRow({ projection, einheitName, warnBadges = [], selected, onSelect, onKeyDown }, ref) {
   const displayName = einheitName?.trim() || shortenEinheitId(projection.einheitId);
   const offeneVorfaelle = toNonNegativeInteger(projection.offeneVorfaelle);
   const ungeloesteRueckmeldungen = toNonNegativeInteger(projection.ungeloesteRueckmeldungen);
   const ausstehendeQuittungen = toNonNegativeInteger(projection.ausstehendePsaQuittungen) + toNonNegativeInteger(projection.ausstehendeRegelQuittungen);
-  const ariaLabel = `${displayName}, ${buildAmpelStatusAriaLabel({ status: projection.status, offeneVorfaelle, ungeloesteRueckmeldungen, ausstehendeQuittungen })}`;
+  const warnCount = warnBadges.length;
+  const warnSummary = warnCount > 0 ? `, ${warnCount} Warnung${warnCount === 1 ? '' : 'en'}` : '';
+  const ariaLabel = `${displayName}, ${buildAmpelStatusAriaLabel({ status: projection.status, offeneVorfaelle, ungeloesteRueckmeldungen, ausstehendeQuittungen })}${warnSummary}`;
 
   return (
     <button
@@ -47,7 +51,10 @@ export const AmpelDashboardRow = forwardRef<HTMLButtonElement, AmpelDashboardRow
           <Metric value={ausstehendeQuittungen} singular="Quittung" plural="Quittungen" />
         </span>
       </span>
-      <StatusIndicator status={projection.status} ariaLabel={buildAmpelStatusAriaLabel({ status: projection.status, offeneVorfaelle, ungeloesteRueckmeldungen, ausstehendeQuittungen })} />
+      <span className="flex shrink-0 items-center gap-2">
+        <AmpelWarnBadgeList einsatzId={projection.einsatzId} badges={warnBadges} einheitName={displayName} variant="compact" />
+        <StatusIndicator status={projection.status} ariaLabel={buildAmpelStatusAriaLabel({ status: projection.status, offeneVorfaelle, ungeloesteRueckmeldungen, ausstehendeQuittungen })} />
+      </span>
     </button>
   );
 });

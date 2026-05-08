@@ -142,12 +142,14 @@ export function useEigenschutzPsaQuittungLive({ einsatzId, enabled = true }: Use
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(einsatzId, payload.propagationGroupId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelWarnBadges(einsatzId) });
     };
 
     const invalidateAfterReconnect = () => {
       // Nach Reconnect: Backfill verpasster Quittungen via Listen-Refetch.
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelWarnBadges(einsatzId) });
     };
 
     const connect = () => {

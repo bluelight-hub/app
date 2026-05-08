@@ -24,6 +24,15 @@ Wichtig:
 
 ## Verbindliche Entwicklungsregeln
 
+### Boyscout Rule
+
+- Hier gilt die Boyscout Rule: Wenn du im Zuge einer Aufgabe klar abgegrenzten, naheliegenden Müll findest, räume ihn mit
+  auf, auch wenn du ihn nicht verursacht hast.
+- Das Aufräumen bleibt scoped: keine großen Nebenrefactorings, keine unrequested Architektur-Umbauten und keine Änderungen
+  an generierten Dateien außerhalb des vorgesehenen Generierungs-Workflows.
+- Wenn das Aufräumen riskant, umfangreich oder fachlich mehrdeutig ist, dokumentiere es als Follow-up statt es heimlich
+  mitzuziehen.
+
 ### API-Workflow (immer so)
 
 1. Backend Endpoint erstellen/ändern.

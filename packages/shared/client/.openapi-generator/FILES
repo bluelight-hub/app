@@ -130,6 +130,7 @@ models/AlarmierungResponseDto.ts
 models/AlarmierungTimelineEventDataDto.ts
 models/AlarmierungTimelineEventDto.ts
 models/AmpelProjectionDto.ts
+models/AmpelWarnBadgeDto.ts
 models/AnalogDetailsDto.ts
 models/ApiMeta.ts
 models/ApiPagination.ts
@@ -246,6 +247,7 @@ models/DisconnectResponseDto.ts
 models/DmoDetailsDto.ts
 models/DwdWarnungDto.ts
 models/EigenschutzAmpelControllerGetAmpelVAlpha200Response.ts
+models/EigenschutzAmpelControllerListWarnBadgesVAlpha200Response.ts
 models/EigenschutzHealthControllerGetHealthVAlpha200Response.ts
 models/EigenschutzHealthDto.ts
 models/EigenschutzTelemetryControllerIngestVAlpha200Response.ts

@@ -1,19 +1,21 @@
 import { Link } from '@tanstack/react-router';
-import type { AmpelProjectionDto, AmpelProjectionDtoAktivePsaProfileEnum } from '@bluelight-hub/shared/client';
+import type { AmpelProjectionDto, AmpelProjectionDtoAktivePsaProfileEnum, AmpelWarnBadgeDto } from '@bluelight-hub/shared/client';
 import type { PsaProfilValue } from '@bluelight-hub/shared/schemas/eigenschutz/psa-profil.schema';
 import { cn } from '@/shared/ui/cn';
 import { PSA_PROFIL_META } from '../../constants/psa-profil.constants';
+import { AmpelWarnBadgeList } from '../molecules/AmpelWarnBadgeList';
 import { QuittungsSummary, StatusIndicator, buildAmpelStatusAriaLabel, getAmpelStatusMeta } from '../molecules/StatusIndicator';
 
 export interface AmpelCardProps {
   readonly projection: AmpelProjectionDto;
   readonly einheitName?: string;
+  readonly warnBadges?: readonly AmpelWarnBadgeDto[];
   readonly className?: string;
 }
 
 const PSA_PROFILE_VALUES = new Set<string>(Object.keys(PSA_PROFIL_META));
 
-export function AmpelCard({ projection, einheitName, className }: AmpelCardProps) {
+export function AmpelCard({ projection, einheitName, warnBadges = [], className }: AmpelCardProps) {
   const displayName = einheitName?.trim() || shortenEinheitId(projection.einheitId);
   const aktivePsaProfile = normalizePsaProfileList(projection.aktivePsaProfile);
   const ausstehendePsaQuittungen = toNonNegativeInteger(projection.ausstehendePsaQuittungen);
@@ -68,6 +70,8 @@ export function AmpelCard({ projection, einheitName, className }: AmpelCardProps
         {offeneVorfaelle > 0 ? <MetricPill value={offeneVorfaelle} label={offeneVorfaelle === 1 ? 'offener Vorfall' : 'offene Vorfälle'} tone="danger" /> : null}
         {ungeloesteRueckmeldungen > 0 ? <MetricPill value={ungeloesteRueckmeldungen} label={`ungelöste Rückmeldung${ungeloesteRueckmeldungen === 1 ? '' : 'en'}`} tone="warning" /> : null}
       </div>
+
+      <AmpelWarnBadgeList einsatzId={projection.einsatzId} badges={warnBadges} einheitName={displayName} variant="card" />
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
         <Link

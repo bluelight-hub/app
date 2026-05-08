@@ -3,6 +3,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
 import { GetEigenschutzAmpelStatusQuery } from '@/application/eigenschutz/queries/get-eigenschutz-ampel-status/get-eigenschutz-ampel-status.query';
+import { ListAmpelWarnBadgesQuery } from '@/application/eigenschutz/queries/list-ampel-warn-badges/list-ampel-warn-badges.query';
 import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
 import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -48,6 +49,15 @@ describe('EigenschutzAmpelController', () => {
     expect(required).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
   });
 
+  it('listWarnBadges trägt @RequiresPermission("eigenschutz:gefaehrdungsbeurteilung:read")', () => {
+    const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzAmpelController.prototype.listWarnBadges);
+    expect(required).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
+  });
+
+  it('listWarnBadges nutzt die statische Route ampel/warn-badges', () => {
+    expect(Reflect.getMetadata('path', EigenschutzAmpelController.prototype.listWarnBadges)).toBe('ampel/warn-badges');
+  });
+
   it('liefert die AmpelProjection-Liste aus dem QueryBus', async () => {
     const rows = [{ einsatzId: EINSATZ_ID, einheitId: 'einheit-1', status: 'GRUEN' }];
     queryBus.execute.mockResolvedValue(Result.ok(rows));
@@ -64,9 +74,41 @@ describe('EigenschutzAmpelController', () => {
     await expect(controller.getAmpel(EINSATZ_ID)).resolves.toEqual([]);
   });
 
+  it('liefert Warn-Badges aus dem QueryBus', async () => {
+    const rows = [
+      {
+        id: 'gefahr:gef-1:item-1',
+        einsatzId: EINSATZ_ID,
+        einheitId: 'einheit-1',
+        type: 'GEFAEHRDUNG_OHNE_SCHUTZMASSNAHME',
+        label: 'Gefährdung ohne Schutzmaßnahme',
+        sortRank: 10,
+        occurredAt: '2026-05-08T10:00:00.000Z',
+      },
+    ];
+    queryBus.execute.mockResolvedValue(Result.ok(rows));
+
+    const response = await controller.listWarnBadges(EINSATZ_ID);
+
+    expect(response).toBe(rows);
+    expect(queryBus.execute).toHaveBeenCalledWith(new ListAmpelWarnBadgesQuery(EINSATZ_ID));
+  });
+
+  it('liefert eine leere Warn-Badge-Liste ohne Spezialfehler', async () => {
+    queryBus.execute.mockResolvedValue(Result.ok([]));
+
+    await expect(controller.listWarnBadges(EINSATZ_ID)).resolves.toEqual([]);
+  });
+
   it('mappt InfrastructureError auf 500', async () => {
     queryBus.execute.mockResolvedValue(Result.fail('InfrastructureError:AmpelProjection:db-down'));
 
     await expect(controller.getAmpel(EINSATZ_ID)).rejects.toBeInstanceOf(InternalServerErrorException);
+  });
+
+  it('mappt Warn-Badge-InfrastructureError auf 500', async () => {
+    queryBus.execute.mockResolvedValue(Result.fail('InfrastructureError:AmpelWarnBadgeRead:db-down'));
+
+    await expect(controller.listWarnBadges(EINSATZ_ID)).rejects.toBeInstanceOf(InternalServerErrorException);
   });
 });

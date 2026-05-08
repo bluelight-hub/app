@@ -547,6 +547,15 @@ export const PSA_PROFIL_QUITTUNG_REPOSITORY = Symbol('IPsaProfilQuittungReposito
 export const AMPEL_PROJECTION_REPOSITORY = Symbol('IAmpelProjectionRepository');
 
 /**
+ * Read-Port-Token für `IAmpelWarnBadgeReadPort` (Story 6.5).
+ *
+ * Liefert konkrete Warn-Badge-Kandidaten für Dashboard-Klickziele, ohne das
+ * schnelle `AmpelProjection`-Read-Model um Badge-JSON zu erweitern.
+ * Implementierung im Infrastructure-Layer: `PrismaAmpelWarnBadgeReadRepository`.
+ */
+export const AMPEL_WARN_BADGE_READ_PORT = Symbol('IAmpelWarnBadgeReadPort');
+
+/**
  * Repository Token für `ISyncConflictRepository` (Story 3.9).
  *
  * Wird vom `ReportSyncConflictHandler` injiziert, um Konflikt-Rows in

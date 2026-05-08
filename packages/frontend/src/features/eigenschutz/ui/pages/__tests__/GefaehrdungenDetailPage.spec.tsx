@@ -39,8 +39,8 @@ vi.mock('@/features/kraefte/api', () => ({
 }));
 
 vi.mock('../../organisms/GefaehrdungenEditorOrganism', () => ({
-  GefaehrdungenEditorOrganism: ({ einsatzId, beurteilung }: { einsatzId: string; beurteilung: { id: string; version: number } }) => (
-    <div data-testid="editor-organism-stub">
+  GefaehrdungenEditorOrganism: ({ einsatzId, beurteilung, focusItem }: { einsatzId: string; beurteilung: { id: string; version: number }; focusItem?: string }) => (
+    <div data-testid="editor-organism-stub" data-focus-item={focusItem ?? ''}>
       editor:{einsatzId}:{beurteilung.id}:v{beurteilung.version}
     </div>
   ),
@@ -143,6 +143,26 @@ describe('GefaehrdungenDetailPage (Story 2.2 Task 9)', () => {
     expect(screen.getByText('Rettungstrupp 1')).toBeInTheDocument();
     expect(screen.getByTestId('gefaehrdungen-detail-version-badge')).toHaveTextContent('Version 7');
     expect(screen.getByTestId('editor-organism-stub')).toHaveTextContent('editor:einsatz-1:cl1beurteilungiddetailxx1:v7');
+  });
+
+  it('reicht focusItem an den Editor weiter', () => {
+    mocks.detailQuery.isPending = false;
+    mocks.detailQuery.isError = false;
+    mocks.detailQuery.data = {
+      id: 'cl1beurteilungiddetailxx1',
+      einsatzId: 'cl1einsatzidxxxxxxxxxxxx',
+      einheitId: 'cl1einheitidxxxxxxxxxxxx',
+      items: [{ id: 'item-1', title: 'Austretender Kraftstoff' }],
+      version: 7,
+      erstelltAm: '2026-04-22T00:00:00Z',
+      erstelltVonUserId: 'u',
+      aktualisiertAm: '2026-04-22T00:00:00Z',
+      aktualisiertVonUserId: 'u',
+    };
+
+    renderWithProviders(<GefaehrdungenDetailPage einsatzId="einsatz-1" id="cl1beurteilungiddetailxx1" focusItem="item-1" />);
+
+    expect(screen.getByTestId('editor-organism-stub')).toHaveAttribute('data-focus-item', 'item-1');
   });
 
   it('rendert VersionTimestampFooter + HistoriePopover + Drawer-Slot (Story 2.4 AC1)', () => {

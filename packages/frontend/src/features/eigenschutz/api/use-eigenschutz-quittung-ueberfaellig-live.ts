@@ -203,6 +203,9 @@ export function useEigenschutzQuittungUeberfaelligLive({ einsatzId, enabled = tr
       void queryClient.invalidateQueries({
         queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId),
       });
+      void queryClient.invalidateQueries({
+        queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelWarnBadges(einsatzId),
+      });
 
       // Telemetrie (AC9) — Race-Schutz: bei !user.id kein Push.
       if (user?.id) {
@@ -239,6 +242,7 @@ export function useEigenschutzQuittungUeberfaelligLive({ einsatzId, enabled = tr
       }
       lastReconnectInvalidateRef.current = now;
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelWarnBadges(einsatzId) });
     };
 
     const connect = () => {

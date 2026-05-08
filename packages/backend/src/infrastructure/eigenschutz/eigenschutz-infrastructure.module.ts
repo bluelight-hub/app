@@ -3,6 +3,7 @@ import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import {
   AMPEL_PROJECTION_REPOSITORY,
+  AMPEL_WARN_BADGE_READ_PORT,
   EIGENSCHUTZ_TELEMETRY_REPOSITORY,
   EIGENSCHUTZ_VORFALL_JSON_RENDERER,
   EIGENSCHUTZ_VORFALL_PDF_RENDERER,
@@ -40,6 +41,7 @@ import { PrismaSicherungspostenVersionRepository } from './repositories/prisma-s
 import { PrismaEigenschutzTelemetryRepository } from './repositories/prisma-eigenschutz-telemetry.repository';
 import { PrismaEigenschutzVorfallRepository } from './repositories/prisma-eigenschutz-vorfall.repository';
 import { PrismaAmpelProjectionRepository } from './projections/prisma-ampel-projection.repository';
+import { PrismaAmpelWarnBadgeReadRepository } from './repositories/prisma-ampel-warn-badge-read.repository';
 import { EigenschutzVorfallPdfRenderer } from './export/eigenschutz-vorfall-pdf.renderer';
 import { EigenschutzVorfallJsonRenderer } from './export/eigenschutz-vorfall-json.renderer';
 import { PrometheusEigenschutzCollector } from './telemetry/prometheus-eigenschutz.collector';
@@ -80,6 +82,7 @@ import { EigenschutzVorfallExportiertEventAdapter } from './event-adapters/vorfa
     { provide: PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY, useClass: PrismaPsaProfilZuweisungRepository },
     { provide: PSA_PROFIL_QUITTUNG_REPOSITORY, useClass: PrismaPsaProfilQuittungRepository },
     { provide: AMPEL_PROJECTION_REPOSITORY, useClass: PrismaAmpelProjectionRepository },
+    { provide: AMPEL_WARN_BADGE_READ_PORT, useClass: PrismaAmpelWarnBadgeReadRepository },
     { provide: PSA_PROPAGATION_OVERDUE_QUERY, useClass: PrismaPsaPropagationOverdueQueryRepository },
     { provide: SYNC_CONFLICT_REPOSITORY, useClass: PrismaSyncConflictRepository },
     { provide: EIGENSCHUTZ_TELEMETRY_REPOSITORY, useClass: PrismaEigenschutzTelemetryRepository },
@@ -114,6 +117,7 @@ import { EigenschutzVorfallExportiertEventAdapter } from './event-adapters/vorfa
     PSA_PROFIL_ZUWEISUNG_READ_REPOSITORY,
     PSA_PROFIL_QUITTUNG_REPOSITORY,
     AMPEL_PROJECTION_REPOSITORY,
+    AMPEL_WARN_BADGE_READ_PORT,
     PSA_PROPAGATION_OVERDUE_QUERY,
     SYNC_CONFLICT_REPOSITORY,
     EIGENSCHUTZ_TELEMETRY_REPOSITORY,
