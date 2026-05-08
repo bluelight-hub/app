@@ -36,8 +36,9 @@ import type { Response } from 'express';
 import { format as formatDate } from 'date-fns';
 import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { EIGENSCHUTZ_VORFALL_PDF_RENDERER, EIGENSCHUTZ_VORFALL_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { EIGENSCHUTZ_VORFALL_JSON_RENDERER, EIGENSCHUTZ_VORFALL_PDF_RENDERER, EIGENSCHUTZ_VORFALL_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import type { IEigenschutzVorfallPdfRenderer } from '@/application/eigenschutz/ports/i-eigenschutz-vorfall-pdf-renderer.port';
+import type { IEigenschutzVorfallJsonRenderer } from '@/application/eigenschutz/ports/i-eigenschutz-vorfall-json-renderer.port';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { RequiresPermission } from '@/modules/auth/decorators/requires-permission.decorator';
 import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
@@ -46,18 +47,25 @@ import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { ReportVorfallCommand } from '@/application/eigenschutz/commands/report-vorfall/report-vorfall.command';
+import { AuditVorfallExportCommand } from '@/application/eigenschutz/commands/audit-vorfall-export/audit-vorfall-export.command';
 import { GetVorfallByIdQuery } from '@/application/eigenschutz/queries/get-vorfall-by-id/get-vorfall-by-id.query';
+import { GetVorfallAuditTimelineQuery } from '@/application/eigenschutz/queries/get-vorfall-audit-timeline/get-vorfall-audit-timeline.query';
+import type { VorfallAuditTimelineReadModel } from '@/application/eigenschutz/queries/get-vorfall-audit-timeline/get-vorfall-audit-timeline.handler';
 import { ListVorfaelleQuery } from '@/application/eigenschutz/queries/list-vorfaelle/list-vorfaelle.query';
 import type { EigenschutzVorfall } from '@domain/eigenschutz/aggregates/eigenschutz-vorfall.aggregate';
 import { BeteiligterFreitextDto, BeteiligterUserDto, ReportVorfallDto, WoCoordinateDto, WoFreitextDto } from '@/application/eigenschutz/dto/report-vorfall.dto';
 import { EigenschutzVorfallDto } from '@/application/eigenschutz/dto/eigenschutz-vorfall.dto';
 import { EigenschutzVorfallListItemDto } from '@/application/eigenschutz/dto/eigenschutz-vorfall-list-item.dto';
+import { VorfallAuditTimelineDto, VorfallAuditTimelineEintragDto } from '@/application/eigenschutz/dto/vorfall-audit-timeline.dto';
 import { ListVorfaelleQueryDto } from '@/application/eigenschutz/dto/list-vorfaelle-query.dto';
 
 // CUID2-Pattern (24–32 lowercase alphanumerisch; deckt cuid2 strict + Prisma
 // `@default(cuid())` v1 25-Zeichen-IDs ab). Defense-in-Depth-Check für AC8-
 // Sentinel `…:einheitIdInvalid:<index>` mit Per-Index-Information.
 const CUID2_PATTERN = /^[a-z0-9]{24,32}$/;
+
+type ExportFormat = 'pdf' | 'json';
+const ALLOWED_EXPORT_FORMATS: ReadonlySet<ExportFormat> = new Set<ExportFormat>(['pdf', 'json']);
 import { toEigenschutzVorfallDto } from '@/application/eigenschutz/dto/eigenschutz-vorfall.factory';
 import { toEigenschutzVorfallListItemDto } from '@/application/eigenschutz/dto/eigenschutz-vorfall-list-item.factory';
 import type { IEigenschutzVorfallRepository, VorfallListFilter, VorfallListReadRow } from '@domain/eigenschutz/repositories';
@@ -71,13 +79,26 @@ import type { WoProps } from '@domain/eigenschutz/value-objects/wo.vo';
  * - `POST  /` — Vorfall melden (Story 5.1, AC7)
  * - `GET   /` — Vorfall-Liste mit Filtern (Story 5.3, AC8)
  * - `GET   /:vorfallId` — Vorfall-Detail (Story 5.2, AC10)
- * - `GET   /:vorfallId/export?format=pdf` — Vorfall als PDF exportieren (Story 5.4, AC3)
+ * - `GET   /:vorfallId/export?format=pdf|json` — Vorfall als PDF (Story 5.4) oder JSON (Story 5.5) exportieren
+ * - `GET   /:vorfallId/audit-timeline` — Export-Audit-Timeline (Story 5.6)
  *
- * Audit-Event `VorfallExportiert` ist Story 5.6 — bewusst nicht in diesem Controller.
+ * Export-Audits laufen über `AuditVorfallExportCommand`, nie über direkte
+ * Outbox-Persistierung im Controller.
  */
 @ApiTags('eigenschutz')
 @ApiBearerAuth()
-@ApiExtraModels(EigenschutzVorfallDto, EigenschutzVorfallListItemDto, ListVorfaelleQueryDto, ReportVorfallDto, BeteiligterUserDto, BeteiligterFreitextDto, WoCoordinateDto, WoFreitextDto)
+@ApiExtraModels(
+  EigenschutzVorfallDto,
+  EigenschutzVorfallListItemDto,
+  VorfallAuditTimelineDto,
+  VorfallAuditTimelineEintragDto,
+  ListVorfaelleQueryDto,
+  ReportVorfallDto,
+  BeteiligterUserDto,
+  BeteiligterFreitextDto,
+  WoCoordinateDto,
+  WoFreitextDto,
+)
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ungültig' })
 @ApiForbiddenResponse({ description: 'Keine ausreichende Permission für die Aktion' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz/vorfaelle', version: 'alpha' })
@@ -90,6 +111,8 @@ export class EigenschutzVorfallController {
     private readonly vorfallRepo: IEigenschutzVorfallRepository,
     @Inject(EIGENSCHUTZ_VORFALL_PDF_RENDERER)
     private readonly pdfRenderer: IEigenschutzVorfallPdfRenderer,
+    @Inject(EIGENSCHUTZ_VORFALL_JSON_RENDERER)
+    private readonly jsonRenderer: IEigenschutzVorfallJsonRenderer,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
@@ -175,23 +198,50 @@ export class EigenschutzVorfallController {
     return toEigenschutzVorfallDto(result.value);
   }
 
+  @Get(':vorfallId/audit-timeline')
+  @HttpCode(HttpStatus.OK)
+  @RequiresPermission('eigenschutz:vorfall:read')
+  @ApiOperation({ summary: 'Export-Historie eines Vorfalls laden' })
+  @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
+  @ApiParam({ name: 'vorfallId', type: String, description: 'CUID des Vorfalls' })
+  @ApiWrappedResponse(VorfallAuditTimelineDto, { description: 'Chronologische Export-Historie des Vorfalls' })
+  @ApiNotFoundResponse({ description: 'Vorfall nicht gefunden oder gehört zu einem fremden Einsatz' })
+  async getVorfallAuditTimeline(@Param('einsatzId') einsatzId: string, @Param('vorfallId') vorfallId: string): Promise<VorfallAuditTimelineDto> {
+    const result = (await this.queryBus.execute(new GetVorfallAuditTimelineQuery(einsatzId, vorfallId))) as Result<VorfallAuditTimelineReadModel>;
+    if (result.isFailure || !result.value) {
+      throw this.mapQueryError(result.error ?? 'Vorfall-Audit-Timeline konnte nicht geladen werden');
+    }
+    return {
+      eintraege: result.value.eintraege.map((entry) => ({
+        id: entry.id,
+        type: entry.type,
+        occurredAt: entry.occurredAt.toISOString(),
+        userId: entry.userId,
+        userName: entry.userName,
+        format: entry.format,
+        label: entry.label,
+      })),
+    };
+  }
+
   /**
-   * Story 5.4 — Vorfall als PDF exportieren (FR34, AR13, NFR-P5).
+   * Story 5.4 + 5.5 — Vorfall als PDF oder JSON exportieren (FR34/FR35, AR13, NFR-P5).
    *
-   * Self-contained: PDF-Renderer arbeitet ausschließlich auf dem
-   * Aggregate-`kontextSnapshot` (keine Live-Joins). `format=json` ist für
-   * Story 5.5 reserviert und antwortet hier strikt mit HTTP 400.
+   * Self-contained: Renderer arbeiten ausschließlich auf dem Aggregate-
+   * `kontextSnapshot` (keine Live-Joins). Format-Whitelist: `pdf` (Story 5.4)
+   * und `json` (Story 5.5). Story 5.6 ergänzt das `VorfallExportiert`-Audit-
+   * Event für beide Formate gemeinsam.
    */
   @Get(':vorfallId/export')
   @HttpCode(HttpStatus.OK)
   @RequiresPermission('eigenschutz:vorfall:export')
-  @ApiOperation({ summary: 'Vorfall als PDF exportieren (Unfallkassen-Format)' })
+  @ApiOperation({ summary: 'Vorfall als PDF oder JSON exportieren (Unfallkassen-Format)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'vorfallId', type: String, description: 'CUID des Vorfalls' })
-  @ApiQuery({ name: 'format', enum: ['pdf'], required: false, description: 'Export-Format. Default: pdf. JSON folgt mit Story 5.5.' })
-  @ApiProduces('application/pdf')
+  @ApiQuery({ name: 'format', enum: ['pdf', 'json'], required: false, description: 'Export-Format. Default: pdf.' })
+  @ApiProduces('application/pdf', 'application/json')
   @ApiNotFoundResponse({ description: 'Vorfall nicht gefunden oder gehört zu einem fremden Einsatz' })
-  @ApiBadRequestResponse({ description: 'format-Query-Parameter ungültig (z. B. format=json — folgt mit Story 5.5)' })
+  @ApiBadRequestResponse({ description: 'format-Query-Parameter ungültig (akzeptiert: `pdf`, `json`)' })
   async exportVorfall(
     @Param('einsatzId') einsatzId: string,
     @Param('vorfallId') vorfallId: string,
@@ -212,7 +262,7 @@ export class EigenschutzVorfallController {
       });
     }
     const requestedFormat = format ?? 'pdf';
-    if (requestedFormat !== 'pdf') {
+    if (!ALLOWED_EXPORT_FORMATS.has(requestedFormat as ExportFormat)) {
       throw new BadRequestException({
         statusCode: 400,
         error: 'Bad Request',
@@ -239,21 +289,49 @@ export class EigenschutzVorfallController {
       throw this.mapQueryError(result.error ?? 'Vorfall konnte nicht geladen werden');
     }
 
-    const buffer = await this.pdfRenderer.generate({
+    // Eine Wallclock pro Export-Aufruf — Body-`exportedAt` und Filename-Suffix
+    // bleiben so deterministisch synchron (kein Sub-Sekunden-/Sub-Minuten-
+    // Drift bei langsamen Renderern).
+    const erzeugtAm = new Date();
+    const filenameStamp = formatDate(erzeugtAm, 'yyyyMMdd-HHmm');
+
+    if (requestedFormat === 'pdf') {
+      const buffer = await this.pdfRenderer.generate({
+        vorfall: result.value,
+        erzeugtAm,
+        erzeugtVonUserId: user.userId,
+      });
+      await this.auditSuccessfulExport(einsatzId, vorfallId, user.userId, 'pdf', erzeugtAm);
+
+      const filename = `vorfall-${vorfallId}-${filenameStamp}.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', String(buffer.length));
+      // Code-Review-Patch (P7): das PDF enthält PII (redacted IDs, Klarnamen aus
+      // Freitext-Beteiligten). `Cache-Control: no-store, private` verhindert,
+      // dass Proxies/Browser die Antwort zwischenspeichern.
+      res.setHeader('Cache-Control', 'no-store, private');
+      res.send(buffer);
+      return;
+    }
+
+    // requestedFormat === 'json' (Story 5.5, FR35) — ALLOWED_EXPORT_FORMATS
+    // garantiert die Erschöpfung der Whitelist.
+    const jsonBuffer = await this.jsonRenderer.generate({
       vorfall: result.value,
-      erzeugtAm: new Date(),
+      erzeugtAm,
       erzeugtVonUserId: user.userId,
     });
-
-    const filename = `vorfall-${vorfallId}-${formatDate(new Date(), 'yyyyMMdd-HHmm')}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Length', String(buffer.length));
-    // Code-Review-Patch (P7): das PDF enthält PII (redacted IDs, Klarnamen aus
-    // Freitext-Beteiligten). `Cache-Control: no-store, private` verhindert,
-    // dass Proxies/Browser die Antwort zwischenspeichern.
+    await this.auditSuccessfulExport(einsatzId, vorfallId, user.userId, 'json', erzeugtAm);
+    const jsonFilename = `vorfall-${vorfallId}-${filenameStamp}.json`;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${jsonFilename}"`);
+    res.setHeader('Content-Length', String(jsonBuffer.length));
+    // PII-Schutz analog PDF-Pfad: JSON-Body enthält klare User- und Vorfall-IDs
+    // sowie Klar-Namen aus Freitext-Beteiligten — Proxies/Browser dürfen das
+    // nicht zwischenspeichern.
     res.setHeader('Cache-Control', 'no-store, private');
-    res.send(buffer);
+    res.send(jsonBuffer);
   }
 
   private buildListFilter(query: ListVorfaelleQueryDto): VorfallListFilter {
@@ -297,6 +375,32 @@ export class EigenschutzVorfallController {
       return new InternalServerErrorException({ statusCode: 500, error: 'Internal Server Error', message: error, context: { layer: 'infrastructure' } });
     }
     this.logger.error('Unexpected Vorfall list error', { errorCategory: error.split(':')[0] ?? 'unknown' });
+    return new InternalServerErrorException({ statusCode: 500, error: 'Internal Server Error', message: error, context: { rule: 'Unexpected' } });
+  }
+
+  private async auditSuccessfulExport(einsatzId: string, vorfallId: string, userId: string, format: ExportFormat, downloadedAt: Date): Promise<void> {
+    const result = (await this.commandBus.execute(new AuditVorfallExportCommand(einsatzId, vorfallId, userId, format, downloadedAt))) as Result<string>;
+    if (result.isFailure || !result.value) {
+      throw this.mapExportAuditError(result.error ?? 'InfrastructureError:VorfallExportAudit:EmptyResult');
+    }
+  }
+
+  private mapExportAuditError(error: string): BadRequestException | NotFoundException | InternalServerErrorException {
+    if (error === 'NotFound:Vorfall') {
+      return new NotFoundException({ statusCode: 404, error: 'Not Found', message: error, context: { resource: 'vorfall' } });
+    }
+    if (error.startsWith('ValidationFailed:VorfallExport:')) {
+      return new BadRequestException({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: error,
+        context: { rule: 'ValidationFailed', filter: error.slice('ValidationFailed:VorfallExport:'.length) },
+      });
+    }
+    if (error.startsWith('InfrastructureError:')) {
+      return new InternalServerErrorException({ statusCode: 500, error: 'Internal Server Error', message: error, context: { layer: 'infrastructure' } });
+    }
+    this.logger.error('Unexpected Vorfall export audit error', { errorCategory: error.split(':')[0] ?? 'unknown' });
     return new InternalServerErrorException({ statusCode: 500, error: 'Internal Server Error', message: error, context: { rule: 'Unexpected' } });
   }
 

@@ -12,8 +12,10 @@
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import type { EigenschutzVorfallDto, EigenschutzVorfallDtoBeteiligteInner, EigenschutzVorfallDtoWo } from '@bluelight-hub/shared/client';
+import { useExportVorfallAlsJson } from '../../api/use-export-vorfall-as-json';
 import { useExportVorfallAlsPdf } from '../../api/use-export-vorfall-as-pdf';
 import { useGetVorfall } from '../../api/use-get-vorfall';
+import { useVorfallAuditTimeline, type VorfallAuditTimelineEntry } from '../../api/use-vorfall-audit-timeline';
 import { IncidentContextSnapshot } from '../organisms/IncidentContextSnapshot';
 
 export interface VorfallDetailPageProps {
@@ -87,13 +89,64 @@ function formatWo(wo: EigenschutzVorfallDtoWo | null | undefined): string {
   return '—';
 }
 
+function formatExportFormat(exportFormat: string | null | undefined): string {
+  if (!exportFormat) return 'Export';
+  return exportFormat.toUpperCase();
+}
+
+function formatAuditActor(entry: VorfallAuditTimelineEntry): string {
+  if (entry.userName) return `Nutzer: ${entry.userName}`;
+  return entry.userId ? `Nutzer-ID: ${entry.userId.slice(0, 8)}` : 'Nutzer unbekannt';
+}
+
+function ExportHistorySection({ entries, isLoading, isError }: { readonly entries: readonly VorfallAuditTimelineEntry[] | undefined; readonly isLoading: boolean; readonly isError: boolean }) {
+  return (
+    <section data-testid="vorfall-export-history-section" className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4">
+      <h2 className="text-sm font-semibold text-text-primary">Export-Historie</h2>
+      {isLoading ? (
+        <p data-testid="vorfall-export-history-loading" className="text-sm text-text-muted">
+          Export-Historie wird geladen…
+        </p>
+      ) : null}
+      {!isLoading && isError ? (
+        <p data-testid="vorfall-export-history-error" role="status" aria-live="polite" className="text-sm text-status-warning-text">
+          Export-Historie konnte nicht geladen werden.
+        </p>
+      ) : null}
+      {!isLoading && !isError && (entries?.length ?? 0) === 0 ? (
+        <p data-testid="vorfall-export-history-empty" className="text-sm text-text-muted">
+          Noch keine Exporte protokolliert.
+        </p>
+      ) : null}
+      {!isLoading && !isError && entries && entries.length > 0 ? (
+        <ul className="divide-y divide-border-subtle text-sm">
+          {entries.map((entry) => (
+            <li key={entry.id} data-testid={`vorfall-export-history-entry-${entry.id}`} className="flex flex-col gap-1 py-2 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium text-text-primary">
+                  {formatExportFormat(entry.format)} exportiert · {formatDateTime(entry.occurredAt)}
+                </p>
+                <p className="text-xs text-text-muted">{formatAuditActor(entry)}</p>
+              </div>
+              <p className="text-xs text-text-muted">{entry.label}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
 interface ExportErrorBannerProps {
   readonly error: unknown;
   readonly onRetry: () => void;
+  readonly testId?: string;
+  readonly retryTestId?: string;
+  readonly genericMessage?: string;
 }
 
 /**
- * Inline-Error-Banner für den PDF-Export.
+ * Inline-Error-Banner für den Export (PDF / JSON).
  *
  * Code-Review-Patches (P9, P11):
  * - `role="status"` + `aria-live="polite"` für Screenreader-Ankündigung
@@ -102,9 +155,15 @@ interface ExportErrorBannerProps {
  *   ein Retry sinnlos; wir zeigen einen passenden Text und blenden den
  *   Retry-Button aus, damit User nicht endlos wiederholen.
  */
-function ExportErrorBanner({ error, onRetry }: ExportErrorBannerProps) {
+function ExportErrorBanner({
+  error,
+  onRetry,
+  testId = 'vorfall-export-error-banner',
+  retryTestId = 'vorfall-export-retry-button',
+  genericMessage = 'Export fehlgeschlagen — bitte erneut versuchen.',
+}: ExportErrorBannerProps) {
   const status = extractHttpStatus(error);
-  let message = 'Export fehlgeschlagen — bitte erneut versuchen.';
+  let message = genericMessage;
   let allowRetry = true;
   if (status === 403) {
     message = 'Keine Berechtigung zum Export. Bitte die Eigenschutz-Permission prüfen.';
@@ -114,15 +173,10 @@ function ExportErrorBanner({ error, onRetry }: ExportErrorBannerProps) {
     allowRetry = false;
   }
   return (
-    <div
-      data-testid="vorfall-export-error-banner"
-      role="status"
-      aria-live="polite"
-      className="rounded-panel border border-status-warning-border bg-status-warning-surface px-3 py-2 text-sm text-status-warning-text"
-    >
+    <div data-testid={testId} role="status" aria-live="polite" className="rounded-panel border border-status-warning-border bg-status-warning-surface px-3 py-2 text-sm text-status-warning-text">
       <p className="font-medium">{message}</p>
       {allowRetry ? (
-        <button type="button" data-testid="vorfall-export-retry-button" className="mt-1 text-xs underline" onClick={onRetry}>
+        <button type="button" data-testid={retryTestId} className="mt-1 text-xs underline" onClick={onRetry}>
           Erneut versuchen
         </button>
       ) : null}
@@ -132,7 +186,9 @@ function ExportErrorBanner({ error, onRetry }: ExportErrorBannerProps) {
 
 export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPageProps) {
   const query = useGetVorfall(einsatzId, vorfallId);
+  const auditTimeline = useVorfallAuditTimeline(einsatzId, vorfallId);
   const exportPdf = useExportVorfallAlsPdf();
+  const exportJson = useExportVorfallAlsJson();
 
   if (query.isLoading) return <VorfallDetailSkeleton />;
 
@@ -164,22 +220,46 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
           {vorfall.unfallkasseRelevant ? <p className="mt-1 text-sm font-medium text-status-warning-text">Unfallkassen-relevant</p> : null}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <button
-            type="button"
-            className="text-action-primary-foreground rounded-control bg-action-primary px-3 py-1.5 text-sm font-medium hover:bg-action-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-            data-testid="vorfall-export-pdf-button"
-            disabled={exportPdf.isPending}
-            aria-busy={exportPdf.isPending}
-            onClick={() => exportPdf.mutate({ einsatzId, vorfallId })}
-          >
-            {exportPdf.isPending ? 'PDF wird erzeugt…' : 'Als PDF exportieren'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="text-action-primary-foreground rounded-control bg-action-primary px-3 py-1.5 text-sm font-medium hover:bg-action-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+              data-testid="vorfall-export-pdf-button"
+              disabled={exportPdf.isPending}
+              aria-busy={exportPdf.isPending}
+              onClick={() => exportPdf.mutate({ einsatzId, vorfallId })}
+            >
+              {exportPdf.isPending ? 'PDF wird erzeugt…' : 'Als PDF exportieren'}
+            </button>
+            <button
+              type="button"
+              className="hover:bg-surface-muted rounded-control border border-border-subtle bg-surface-panel px-3 py-1.5 text-sm font-medium text-text-primary disabled:cursor-not-allowed disabled:opacity-60"
+              data-testid="vorfall-export-json-button"
+              disabled={exportJson.isPending}
+              aria-busy={exportJson.isPending}
+              onClick={() => exportJson.mutate({ einsatzId, vorfallId })}
+            >
+              {exportJson.isPending ? 'JSON wird erzeugt…' : 'Als JSON exportieren'}
+            </button>
+          </div>
           {exportPdf.isError ? (
             <ExportErrorBanner
               error={exportPdf.error}
               onRetry={() => {
                 exportPdf.reset();
                 exportPdf.mutate({ einsatzId, vorfallId });
+              }}
+            />
+          ) : null}
+          {exportJson.isError ? (
+            <ExportErrorBanner
+              error={exportJson.error}
+              testId="vorfall-export-json-error-banner"
+              retryTestId="vorfall-export-json-retry-button"
+              genericMessage="JSON-Export fehlgeschlagen — bitte erneut versuchen."
+              onRetry={() => {
+                exportJson.reset();
+                exportJson.mutate({ einsatzId, vorfallId });
               }}
             />
           ) : null}
@@ -223,6 +303,8 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
       </section>
 
       <IncidentContextSnapshot einsatzId={einsatzId} rawSnapshot={vorfall.kontextSnapshot} />
+
+      <ExportHistorySection entries={auditTimeline.data} isLoading={auditTimeline.isLoading} isError={auditTimeline.isError} />
     </div>
   );
 }

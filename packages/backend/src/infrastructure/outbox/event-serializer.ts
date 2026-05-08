@@ -118,6 +118,7 @@ import type { KonfliktAufgeloestEvent, SyncConflictResolution } from '@domain/ei
 import type { SicherungspostenEingerichtetEvent } from '@domain/eigenschutz/events/sicherungsposten-eingerichtet.event';
 import type { SicherungspostenAktualisiertEvent, SicherungspostenFieldKey } from '@domain/eigenschutz/events/sicherungsposten-aktualisiert.event';
 import type { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
+import type { VorfallExportiertEvent, VorfallExportFormat } from '@domain/eigenschutz/events/vorfall-exportiert.event';
 
 // Story 3.9 — Modul-Konstante (statt Funktionsrumpf-Allokation pro
 // Serialisierungs-Aufruf, Code-Review P12).
@@ -126,6 +127,7 @@ const KONFLIKT_ERKANNT_ALLOWED_ENTITY_TYPES: ReadonlyArray<SyncConflictEntityTyp
 // Story 3.10 — Modul-Konstanten für KonfliktAufgeloest (Pattern Story 3.9 P12).
 const KONFLIKT_AUFGELOEST_ALLOWED_ENTITY_TYPES: ReadonlyArray<SyncConflictEntityType> = ['PSA_PROFIL_ZUWEISUNG', 'GEFAEHRDUNGSBEURTEILUNG_ITEM'];
 const KONFLIKT_AUFGELOEST_ALLOWED_RESOLUTIONS: ReadonlyArray<SyncConflictResolution> = ['SERVER_WINS', 'LOCAL_WINS', 'MERGED'];
+const VORFALL_EXPORT_ALLOWED_FORMATS: ReadonlyArray<VorfallExportFormat> = ['pdf', 'json'];
 
 // Alarmierung Events (Issue #408)
 import type { AlarmierungAbgeschlossenEvent } from '@domain/events/alarmierung-abgeschlossen.event';
@@ -548,6 +550,8 @@ export class EventSerializer {
         return this.serializeSicherungspostenAktualisiert(event as unknown as SicherungspostenAktualisiertEvent);
       case 'eigenschutz.vorfall_gemeldet':
         return this.serializeVorfallGemeldet(event as unknown as VorfallGemeldetEvent);
+      case 'eigenschutz.vorfall_exportiert':
+        return this.serializeVorfallExportiert(event as unknown as VorfallExportiertEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -2255,6 +2259,31 @@ export class EventSerializer {
       vorfallId: event.vorfallId,
       vorfallZeit: event.vorfallZeit.toISOString(),
       unfallkasseRelevant: event.unfallkasseRelevant,
+    };
+  }
+
+  /**
+   * Serialisiert `VorfallExportiertEvent` (Story 5.6).
+   *
+   * Payload bleibt audit-tauglich und PII-arm: IDs, Format und Zeitpunkt.
+   */
+  private serializeVorfallExportiert(event: VorfallExportiertEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.vorfallId !== 'string' ||
+      !VORFALL_EXPORT_ALLOWED_FORMATS.includes(event.format) ||
+      !(event.downloadedAt instanceof Date) ||
+      Number.isNaN(event.downloadedAt.getTime())
+    ) {
+      throw new Error('Invalid VorfallExportiert event payload');
+    }
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      vorfallId: event.vorfallId,
+      format: event.format,
+      downloadedAt: event.downloadedAt.toISOString(),
     };
   }
 }

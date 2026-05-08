@@ -55,7 +55,7 @@ describe('useMeldeLuecke (Story 3.6 AC10)', () => {
     eigenschutzTelemetryQueue.drain();
   });
 
-  it('sendet Mutation an meldeLuecke-Endpoint und invalidiert relevante Caches (3 Keys)', async () => {
+  it('sendet Mutation an meldeLuecke-Endpoint und invalidiert relevante Caches', async () => {
     const client = makeClient();
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
     mockMeldeLuecke.mockResolvedValue(undefined);
@@ -77,7 +77,9 @@ describe('useMeldeLuecke (Story 3.6 AC10)', () => {
       expect.arrayContaining([
         EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(EINSATZ_ID, PROPAGATION_GROUP_ID),
         EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(EINSATZ_ID),
+        EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(EINSATZ_ID),
         EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(EINSATZ_ID, EINHEIT_ID),
+        EIGENSCHUTZ_QUERY_KEYS.ampelStatus(EINSATZ_ID),
       ]),
     );
   });

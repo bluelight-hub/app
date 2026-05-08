@@ -2,6 +2,16 @@
 
 Offene, bewusst aufgeschobene Punkte aus Code-Reviews und Retros. Jeder Eintrag gehört zu einem bestimmten Review/Retro — vor dem Abarbeiten zurück zur Quelle springen und Kontext mitnehmen.
 
+## Deferred from: code review of story-5.5 (2026-05-07)
+
+- **Legacy-Heuristik `Object.keys(rawSnapshot).length === 0` durch Schema-Validation-basierten Discriminator ersetzen** [`eigenschutz-vorfall-json.renderer.ts`] — Aktuell pragmatisch über Schlüsselzahl; bei partiell-corrupten Snapshots (`{ schemaVersion: undefined }`) versagt die Heuristik. Aggregate-`reconstitute` validiert upstream, deshalb Defense-in-Depth-Ebene; Hardening-Idee.
+- **`gefBeurteilungVersionId` Cross-Consistency Aggregate ↔ Snapshot** [`eigenschutz-vorfall.aggregate.ts` / `eigenschutz-vorfall-json.renderer.ts`] — Aggregate-Feld kann theoretisch von `kontextSnapshot.gefaehrdungsbeurteilung.versionId` abweichen. Pre-existing Aggregate-Invariante; Renderer propagiert Aggregate-Wert autoritativ. Cross-Consistency-Assertion + Test wären Cross-Story-Hardening.
+- **`wo.text`-Leerstring im Export-Schema nicht verboten** [`eigenschutz-vorfall-export.schema.ts`] — Schema fordert nur `z.string()`, kein `.min(1)`. Aggregate (`Wo.create`) validiert das in der Erfassungs-Pipeline; Schema-Doppelung wäre Defense-in-Depth.
+- **Schema-Drift-Test mit relativem 5-Ebenen-Pfad fragil** [`packages/backend/src/application/eigenschutz/__tests__/eigenschutz-vorfall-export.schema.spec.ts`] — Import via `'../../../../../shared/src/schemas/eigenschutz/...'`. TS-Path-Alias (`@shared-source/...`) wäre stabiler; betrifft mehrere Specs cross-story → Plattform-Refactor.
+- **Performance-Test (10) ohne Worst-Case-Fixture** [`eigenschutz-vorfall-json.renderer.spec.ts:~1059`] — 10 Gefährdungs-Items / 3 PSA / 5 Regeln / 5 Beteiligte ist nicht Worst-Case (real 100+ Items möglich). 1000ms-Bound zu lax. Worst-Case-Fixture mit 200+ Items + Latenz-Bound ≤ 200ms gegen NFR-P5 in Test-Härtungs-Story.
+- **Streaming-Strategie für sehr große JSON-Bodies** [`eigenschutz-vorfall-json.renderer.ts` + Controller] — Voll-Buffer-Pfad bei 100MB+-Snapshots problematisch. `JSONStream` o. ä. als Phase-2-Ticket; aktuell pragmatisch akzeptiert.
+- **Frontend-Banner-Branch für 400 (Sanitization-Drift Frontend ↔ Backend-CUID2)** [`VorfallDetailPage.tsx:124-132` + `use-export-vorfall-as-json.ts:38-41`] — Frontend-Sanitization erlaubt `[a-z0-9-]/gi`, Backend-Gate erlaubt nur `[a-z0-9]{24,32}` lowercase. Manipulierte Route mit Bindestrich/Großbuchstaben → Backend-400 ohne spezifischen Banner-Hinweis. UX-Polish; Edge-Case.
+
 ## Deferred from: code review of story-5.1 (2026-05-06)
 
 - **ETB-Standardkategorie geändert (`Lage` → `Dokumentation`)** [`EditEtbEntryModal.tsx`/`EtbEntryForm.tsx`/`EtbKategorieSelect.tsx`] — Out-of-Scope-Änderung im 5.1-Diff (Pivot-Anker „Strikt aus-Scope"); klären, ob als separater Commit/eigene Story oder Revert.
@@ -483,3 +493,13 @@ Bei Mid-Bulk-Network-Loss erzeugt der client-seitige Retry (`queries.ts` `useCha
 - **Generated Client liefert `Promise<void>` statt `Promise<Blob>`** [`packages/shared/client/apis/EigenschutzApi.ts:390-427`] — OpenAPI-Generator-Limit ohne typisiertes Binary-Schema. Hook-Workaround via `*Raw` + `response.raw.blob()`. Fix: `@ApiResponse({ schema: { type: 'string', format: 'binary' } })` am Controller.
 - **Module-Identity-Test für `EIGENSCHUTZ_VORFALL_PDF_RENDERER` fehlt** [`packages/backend/src/infrastructure/eigenschutz/eigenschutz-infrastructure.module.ts`] — Spec markiert Test als „falls Spec existiert"; insgesamt fehlt eine `eigenschutz-infrastructure.module.spec.ts` für alle Token-Resolutions.
 - **`redactId` für leeren String erzeugt `'—'`** [`eigenschutz-vorfall-pdf.renderer.ts:760-762`] — duplicate zu `safeRedact`-Defer; LOW.
+
+## Deferred from: code review of 415-6-1-ampel-projektion-backend-read-model-event-handler (2026-05-08)
+
+- **Alte Sicherheitsregel-Quittungen zählen auch nach Regel-Update weiter** [`prisma-ampel-projection.repository.ts:154`] — `countAusstehendeRegelQuittungen()` zieht jede Quittung nach `regelId`/`einheitId` ab; Version oder `propagationGroupId` werden nicht berücksichtigt. Pre-existing Datenmodell-/Story-2.7-Semantik, nicht eindeutig in Story 6.1 lösbar.
+- **Event-Replay kann `letzteAenderungAm` zurückdrehen** [`prisma-ampel-projection.repository.ts:38`] — `upsert.update` überschreibt den Zeitwert immer mit dem Event-Zeitpunkt. Bei out-of-order Replay bleiben Zähler recomputed, aber Sortierung/letzte Änderung können rückwärts springen. Monotone Zeit-Policy sollte in einer Projection-Hardening-Story entschieden werden.
+- **Recompute liest mehrere Quellen ohne konsistenten Snapshot** [`prisma-ampel-projection.repository.ts:67`] — PSA, Gefährdung, Regeln, Vorfälle und Rückmeldungen werden parallel gelesen und danach upserted. Eine transaktionale Snapshot-/Serialisierungspolitik ist ein breiteres Read-Model-Hardening-Thema.
+
+## Deferred from: code review of 415-6-4-offene-vorfaelle-rueckmeldungen-seitenpanel (2026-05-08)
+
+- **Application-Query-Handler nutzt direkt `PrismaService` statt Read-Port** [`list-offene-rueckmeldungen.handler.ts:5`] — Der neue Handler folgt dem bestehenden Eigenschutz-Query-Pattern aus `list-offene-psa-bekanntgaben.handler.ts`, koppelt damit aber weiter Application an Infrastruktur. Nicht als Story-6.4-Patch blockiert, weil die Architektur-Schuld bereits im Query-Layer existiert und eine saubere Read-Port-Abstraktion mehrere benachbarte Queries zusammenfassen sollte.

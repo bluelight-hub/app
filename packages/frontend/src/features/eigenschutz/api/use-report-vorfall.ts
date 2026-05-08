@@ -14,6 +14,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared';
 import type { EigenschutzVorfallDto, ReportVorfallDto } from '@bluelight-hub/shared/client';
+import { EIGENSCHUTZ_QUERY_KEYS } from './queries';
 
 /**
  * Query-Key-Factory für Vorfälle (Story 5.1 + 5.3 AC7-Pflicht-Struktur).
@@ -34,6 +35,7 @@ export const vorfallQueryKeys = {
   byEinsatz: (einsatzId: string) => ['eigenschutz-vorfaelle', einsatzId] as const,
   list: (einsatzId: string, filterHash: string) => ['eigenschutz-vorfaelle', einsatzId, 'list', filterHash] as const,
   detail: (einsatzId: string, vorfallId: string) => ['eigenschutz-vorfaelle', einsatzId, 'detail', vorfallId] as const,
+  auditTimeline: (einsatzId: string, vorfallId: string) => ['eigenschutz-vorfaelle', einsatzId, 'detail', vorfallId, 'auditTimeline'] as const,
 } as const;
 
 /**
@@ -61,6 +63,7 @@ export function useReportVorfall(einsatzId: string) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: vorfallQueryKeys.byEinsatz(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
     },
   });
 }

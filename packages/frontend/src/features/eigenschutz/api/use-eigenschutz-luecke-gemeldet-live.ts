@@ -149,14 +149,18 @@ export function useEigenschutzLueckeGemeldetLive({ einsatzId, enabled = true }: 
       if (disposedRef.current) return;
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(einsatzId, payload.propagationGroupId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(einsatzId) });
       // Empfänger-Detail-Sicht (Drawer/EquipmentChecklist) lebt von dieser
       // Query — Konsistenz zur Mutation-Hook-Invalidierung in `useMeldeLuecke`.
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, payload.einheitId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
     };
 
     const invalidateAfterReconnect = () => {
       // Nach Reconnect: Backfill verpasster Lücken-Meldungen via Listen-Refetch.
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
     };
 
     const connect = () => {

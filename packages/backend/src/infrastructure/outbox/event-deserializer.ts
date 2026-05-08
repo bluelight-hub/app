@@ -170,6 +170,7 @@ import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-u
 import { SicherungspostenEingerichtetEvent } from '@domain/eigenschutz/events/sicherungsposten-eingerichtet.event';
 import { SicherungspostenAktualisiertEvent, type SicherungspostenAktualisiertChangedFields, type SicherungspostenFieldKey } from '@domain/eigenschutz/events/sicherungsposten-aktualisiert.event';
 import { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
+import { VorfallExportiertEvent, type VorfallExportFormat } from '@domain/eigenschutz/events/vorfall-exportiert.event';
 import { KonfliktErkanntEvent, type SyncConflictEntityType } from '@domain/eigenschutz/events/konflikt-erkannt.event';
 import { KonfliktAufgeloestEvent, type SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
 import { PsaProfil } from '@/generated/prisma/enums';
@@ -177,6 +178,8 @@ import { AlarmierungId } from '@domain/value-objects/alarmierung-id';
 import { AlarmierungEmpfaengerId } from '@domain/value-objects/alarmierung-empfaenger-id';
 import type { AlarmierungEmpfaengerRef } from '@domain/aggregates/alarmierung/alarmierung-empfaenger-ref';
 import type { ZeitpunktFeld } from '@domain/aggregates/alarmierung/alarmierung-empfaenger.entity';
+
+type EventDeserializeFn = (payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date) => Result<DomainEvent>;
 
 // Funkkanal Events (Issue #407)
 import { FunkkanalErstelltEvent, type FunkkanalErstelltPayload } from '@domain/events/funkkanal-erstellt.event';
@@ -264,7 +267,7 @@ export class EventDeserializer {
    * - Value Objects aus Primitives rekonstruiert
    * - Result<DomainEvent> zurückgibt für Error Handling
    */
-  private readonly eventRegistry: Map<string, (payload: Record<string, unknown>, aggregateId?: string) => Result<DomainEvent>>;
+  private readonly eventRegistry: Map<string, EventDeserializeFn>;
 
   constructor(@Inject(LOGGER) private readonly logger: ILogger) {
     this.eventRegistry = new Map([
@@ -457,6 +460,7 @@ export class EventDeserializer {
       ['eigenschutz.sicherungsposten_eingerichtet', deserializeSicherungspostenEingerichtet],
       ['eigenschutz.sicherungsposten_aktualisiert', deserializeSicherungspostenAktualisiert],
       ['eigenschutz.vorfall_gemeldet', deserializeVorfallGemeldet],
+      ['eigenschutz.vorfall_exportiert', deserializeVorfallExportiert],
     ]);
   }
 
@@ -468,6 +472,10 @@ export class EventDeserializer {
    */
   deserialize(serialized: SerializedEvent): Result<DomainEvent> {
     const { eventName, payload, aggregateId } = serialized;
+    const occurredOn = new Date(serialized.occurredAt);
+    if (Number.isNaN(occurredOn.getTime())) {
+      return Result.fail<DomainEvent>(`Invalid occurredAt for ${eventName}`);
+    }
 
     // Lookup Deserializer Function aus Registry
     const deserializer = this.eventRegistry.get(eventName);
@@ -478,7 +486,7 @@ export class EventDeserializer {
     }
 
     try {
-      return deserializer(payload, aggregateId);
+      return deserializer(payload, aggregateId, occurredOn);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Failed to deserialize event ${eventName}: ${errorMessage}`, error instanceof Error ? error.stack : undefined);
@@ -2609,7 +2617,7 @@ function deserializeNachalarmierungErstellt(payload: Record<string, unknown>): R
 
 // ===== EIGENSCHUTZ DESERIALIZERS (Story 2.1) =====
 
-function deserializeGefaehrdungsbeurteilungErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializeGefaehrdungsbeurteilungErstellt(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
   const einheitId = payload.einheitId;
@@ -2619,7 +2627,7 @@ function deserializeGefaehrdungsbeurteilungErstellt(payload: Record<string, unkn
   }
   const vorlageId = payload.vorlageId == null ? null : String(payload.vorlageId);
   const itemCount = typeof payload.itemCount === 'number' ? payload.itemCount : 0;
-  const event = new GefaehrdungsbeurteilungErstelltEvent(einsatzId, userId, einheitId, gefaehrdungsbeurteilungId, vorlageId, itemCount, aggregateId);
+  const event = new GefaehrdungsbeurteilungErstelltEvent(einsatzId, userId, einheitId, gefaehrdungsbeurteilungId, vorlageId, itemCount, aggregateId, occurredOn);
   return Result.ok<DomainEvent>(event);
 }
 
@@ -2641,7 +2649,7 @@ function isUpdatedEntry(entry: unknown): entry is { id: string; fields: Array<'t
   return candidate.fields.every(isFieldKey);
 }
 
-function deserializeGefaehrdungsbeurteilungAktualisiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializeGefaehrdungsbeurteilungAktualisiert(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
   const einheitId = payload.einheitId;
@@ -2704,6 +2712,7 @@ function deserializeGefaehrdungsbeurteilungAktualisiert(payload: Record<string, 
       unchanged: cf.unchanged as number,
     },
     aggregateId,
+    occurredOn,
   );
   return Result.ok<DomainEvent>(event);
 }
@@ -2714,7 +2723,7 @@ function isSicherheitsregelFieldKey(value: unknown): value is 'titel' | 'inhalt'
   return typeof value === 'string' && SICHERHEITSREGEL_FIELD_KEYS.has(value);
 }
 
-function deserializeSicherheitsregelAusgerufen(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializeSicherheitsregelAusgerufen(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
   const einheitId = payload.einheitId;
@@ -2805,7 +2814,7 @@ function deserializeSicherheitsregelAusgerufen(payload: Record<string, unknown>,
   }
 
   const normalizedEinheitId = typeof einheitId === 'string' ? einheitId : undefined;
-  const event = new SicherheitsregelAusgerufenEvent(einsatzId, userId, normalizedEinheitId, regelId, propagationGroupId, fromVersion, toVersion, changedFields, titel, inhalt, aggregateId);
+  const event = new SicherheitsregelAusgerufenEvent(einsatzId, userId, normalizedEinheitId, regelId, propagationGroupId, fromVersion, toVersion, changedFields, titel, inhalt, aggregateId, occurredOn);
   return Result.ok<DomainEvent>(event);
 }
 
@@ -2816,7 +2825,7 @@ function deserializeSicherheitsregelAusgerufen(payload: Record<string, unknown>,
  * Ausgerufen-Event, das `null` für einsatzweit erlaubt — eine Quittung ist
  * immer einheitenscharf). `propagationGroupId` darf `null` sein.
  */
-function deserializeSicherheitsregelQuittiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializeSicherheitsregelQuittiert(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
   const einheitId = payload.einheitId;
@@ -2838,7 +2847,7 @@ function deserializeSicherheitsregelQuittiert(payload: Record<string, unknown>, 
     return Result.fail<DomainEvent>('Invalid payload for eigenschutz.sicherheitsregel_quittiert');
   }
 
-  const event = new SicherheitsregelQuittiertEvent(einsatzId, userId, einheitId, regelId, propagationGroupIdRaw as string | null, quittiertAm, aggregateId);
+  const event = new SicherheitsregelQuittiertEvent(einsatzId, userId, einheitId, regelId, propagationGroupIdRaw as string | null, quittiertAm, aggregateId, occurredOn);
   return Result.ok<DomainEvent>(event);
 }
 
@@ -2859,7 +2868,7 @@ function isPsaProfilAktion(value: unknown): value is PsaProfilAktion {
  * propagationGroupId, profil (Enum), aktion (`AKTIVIERT`/`DEAKTIVIERT`),
  * begruendung. Strikte Validierung — der Replay verweigert korrupte Payloads.
  */
-function deserializePsaProfilGeaendert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializePsaProfilGeaendert(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
   const einheitId = payload.einheitId;
@@ -2896,7 +2905,7 @@ function deserializePsaProfilGeaendert(payload: Record<string, unknown>, aggrega
     return Result.fail<DomainEvent>('Invalid payload for eigenschutz.psa_profil_geaendert: leere Pflichtfelder');
   }
 
-  const event = new PsaProfilGeaendertEvent(einsatzId, userId, einheitId, zuweisungId, propagationGroupId, profil, aktion, begruendung, aggregateId);
+  const event = new PsaProfilGeaendertEvent(einsatzId, userId, einheitId, zuweisungId, propagationGroupId, profil, aktion, begruendung, aggregateId, occurredOn);
   return Result.ok<DomainEvent>(event);
 }
 
@@ -2906,7 +2915,7 @@ function deserializePsaProfilGeaendert(payload: Record<string, unknown>, aggrega
  * Pflichtfelder: einsatzId, userId, einheitId, propagationGroupId,
  * quittiertAm. Strikte Typ-Guards — der Replay verweigert korrupte Payloads.
  */
-function deserializeQuittungAbgegeben(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializeQuittungAbgegeben(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
   const einheitId = payload.einheitId;
@@ -2924,7 +2933,7 @@ function deserializeQuittungAbgegeben(payload: Record<string, unknown>, aggregat
     return Result.fail<DomainEvent>('Invalid payload for eigenschutz.quittung_abgegeben');
   }
 
-  const event = new QuittungAbgegebenEvent(einsatzId, userId, einheitId, propagationGroupId, quittiertAm, aggregateId);
+  const event = new QuittungAbgegebenEvent(einsatzId, userId, einheitId, propagationGroupId, quittiertAm, aggregateId, occurredOn);
   return Result.ok<DomainEvent>(event);
 }
 
@@ -2934,7 +2943,7 @@ function deserializeQuittungAbgegeben(payload: Record<string, unknown>, aggregat
  * Pflichtfelder: einsatzId, userId, einheitId, propagationGroupId, meldung,
  * gemeldetAm. Strikte Typ-Guards — der Replay verweigert korrupte Payloads.
  */
-function deserializeLueckeGemeldet(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializeLueckeGemeldet(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
   const einheitId = payload.einheitId;
@@ -2953,7 +2962,7 @@ function deserializeLueckeGemeldet(payload: Record<string, unknown>, aggregateId
     return Result.fail<DomainEvent>('Invalid payload for eigenschutz.luecke_gemeldet');
   }
 
-  const event = new LueckeGemeldetEvent(einsatzId, userId, einheitId, propagationGroupId, meldung, gemeldetAm, aggregateId);
+  const event = new LueckeGemeldetEvent(einsatzId, userId, einheitId, propagationGroupId, meldung, gemeldetAm, aggregateId, occurredOn);
   return Result.ok<DomainEvent>(event);
 }
 
@@ -2964,7 +2973,7 @@ function deserializeLueckeGemeldet(payload: Record<string, unknown>, aggregateId
  * ueberfaelligSeitMin (≥ 0, integer), zuweisungId (string | null).
  * `userId` muss `'SYSTEM'`-Sentinel sein — sonst Verstoß gegen Scheduler-Vertrag.
  */
-function deserializeQuittungUeberfaellig(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializeQuittungUeberfaellig(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const einheitId = payload.einheitId;
   const propagationGroupId = payload.propagationGroupId;
@@ -2982,7 +2991,7 @@ function deserializeQuittungUeberfaellig(payload: Record<string, unknown>, aggre
     return Result.fail<DomainEvent>('Invalid payload for eigenschutz.quittung_ueberfaellig');
   }
 
-  const event = new QuittungUeberfaelligEvent(einsatzId, einheitId, propagationGroupId, originalEventId, ueberfaelligSeitMin, zuweisungId, aggregateId);
+  const event = new QuittungUeberfaelligEvent(einsatzId, einheitId, propagationGroupId, originalEventId, ueberfaelligSeitMin, zuweisungId, aggregateId, occurredOn);
   return Result.ok<DomainEvent>(event);
 }
 
@@ -3212,7 +3221,7 @@ function deserializeSicherungspostenAktualisiert(payload: Record<string, unknown
 /**
  * Deserialisiert VorfallGemeldetEvent (Story 5.1, FR31/FR32).
  */
-function deserializeVorfallGemeldet(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+function deserializeVorfallGemeldet(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
   const einsatzId = payload.einsatzId;
   const userId = payload.userId;
   const einheitId = payload.einheitId;
@@ -3236,6 +3245,29 @@ function deserializeVorfallGemeldet(payload: Record<string, unknown>, aggregateI
     return Result.fail<DomainEvent>('Invalid payload for eigenschutz.vorfall_gemeldet');
   }
 
-  const event = new VorfallGemeldetEvent(einsatzId, userId, einheitId, vorfallId, vorfallZeit, unfallkasseRelevant, aggregateId);
+  const event = new VorfallGemeldetEvent(einsatzId, userId, einheitId, vorfallId, vorfallZeit, unfallkasseRelevant, aggregateId, occurredOn);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert VorfallExportiertEvent (Story 5.6).
+ */
+function deserializeVorfallExportiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const vorfallId = payload.vorfallId;
+  const format = payload.format;
+  const downloadedAtRaw = payload.downloadedAt;
+
+  if (typeof einsatzId !== 'string' || typeof userId !== 'string' || typeof vorfallId !== 'string' || (format !== 'pdf' && format !== 'json') || typeof downloadedAtRaw !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.vorfall_exportiert');
+  }
+
+  const downloadedAt = new Date(downloadedAtRaw);
+  if (Number.isNaN(downloadedAt.getTime())) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.vorfall_exportiert');
+  }
+
+  const event = new VorfallExportiertEvent(einsatzId, userId, vorfallId, format as VorfallExportFormat, downloadedAt, aggregateId);
   return Result.ok<DomainEvent>(event);
 }

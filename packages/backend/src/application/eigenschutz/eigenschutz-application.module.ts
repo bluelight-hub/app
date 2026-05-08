@@ -8,6 +8,7 @@ import { PushNotificationsModule } from '@infrastructure/push-notifications/push
 import { UserInfrastructureModule } from '@/infrastructure/user/user-infrastructure.module';
 import { EinsatzTeilnehmerModule } from '@/modules/einsatz-teilnehmer/einsatz-teilnehmer.module';
 import { EmitCriticalPushOnPsaProfilGeaendertHandler } from './event-handlers/emit-critical-push-on-psa-profil-geaendert.handler';
+import { RecalculateAmpelProjectionOnEigenschutzEventHandler } from './event-handlers/recalculate-ampel-projection.handler';
 import { AckPsaQuittungHandler } from './commands/ack-psa-quittung/ack-psa-quittung.handler';
 import { AckSicherheitsregelHandler } from './commands/ack-sicherheitsregel/ack-sicherheitsregel.handler';
 import { ChangePsaProfilHandler } from './commands/change-psa-profil/change-psa-profil.handler';
@@ -22,11 +23,13 @@ import { GetSicherheitsregelHandler } from './queries/get-sicherheitsregel/get-s
 import { ListGefaehrdungsbeurteilungenHandler } from './queries/list-gefaehrdungsbeurteilungen/list-gefaehrdungsbeurteilungen.handler';
 import { ListGefaehrdungsbeurteilungsVorlagenHandler } from './queries/list-gefaehrdungsbeurteilungs-vorlagen/list-gefaehrdungsbeurteilungs-vorlagen.handler';
 import { ListOffenePsaBekanntgabenHandler } from './queries/list-offene-psa-bekanntgaben/list-offene-psa-bekanntgaben.handler';
+import { ListOffeneRueckmeldungenHandler } from './queries/list-offene-rueckmeldungen/list-offene-rueckmeldungen.handler';
 import { ListPsaQuittungenHandler } from './queries/list-psa-quittungen/list-psa-quittungen.handler';
 import { ListSicherheitsregelnHandler } from './queries/list-sicherheitsregeln/list-sicherheitsregeln.handler';
 import { ListSicherheitsregelQuittungenHandler } from './queries/list-sicherheitsregel-quittungen/list-sicherheitsregel-quittungen.handler';
 import { MeldeLueckeHandler } from './commands/melde-luecke/melde-luecke.handler';
 import { EmitPsaQuittungUeberfaelligHandler } from './commands/emit-psa-quittung-ueberfaellig/emit-psa-quittung-ueberfaellig.handler';
+import { RebuildAmpelProjectionHandler } from './commands/rebuild-ampel-projection/rebuild-ampel-projection.handler';
 import { ReportSyncConflictHandler } from './commands/report-sync-conflict/report-sync-conflict.handler';
 import { ResolveKonfliktHandler } from './commands/resolve-konflikt/resolve-konflikt.handler';
 import { ListSyncConflictsHandler } from './queries/list-sync-conflicts/list-sync-conflicts.handler';
@@ -36,9 +39,12 @@ import { AufloeseSicherungspostenHandler } from './commands/aufloese-sicherungsp
 import { GetSicherungspostenHandler } from './queries/get-sicherungsposten/get-sicherungsposten.handler';
 import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/list-sicherungsposten.handler';
 import { ReportVorfallHandler } from './commands/report-vorfall/report-vorfall.handler';
+import { AuditVorfallExportHandler } from './commands/audit-vorfall-export/audit-vorfall-export.handler';
 import { KontextSnapshotBuilder } from './services/kontext-snapshot-builder';
 import { GetVorfallByIdHandler } from './queries/get-vorfall-by-id/get-vorfall-by-id.handler';
 import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.handler';
+import { GetVorfallAuditTimelineHandler } from './queries/get-vorfall-audit-timeline/get-vorfall-audit-timeline.handler';
+import { GetEigenschutzAmpelStatusHandler } from './queries/get-eigenschutz-ampel-status/get-eigenschutz-ampel-status.handler';
 
 /**
  * Application-Layer-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -64,8 +70,10 @@ import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.ha
     CreateGefaehrdungsbeurteilungHandler,
     CreateSicherheitsregelHandler,
     EmitCriticalPushOnPsaProfilGeaendertHandler,
+    RecalculateAmpelProjectionOnEigenschutzEventHandler,
     MeldeLueckeHandler,
     EmitPsaQuittungUeberfaelligHandler,
+    RebuildAmpelProjectionHandler,
     ReportSyncConflictHandler,
     ResolveKonfliktHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
@@ -77,6 +85,7 @@ import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.ha
     ListGefaehrdungsbeurteilungenHandler,
     ListGefaehrdungsbeurteilungsVorlagenHandler,
     ListOffenePsaBekanntgabenHandler,
+    ListOffeneRueckmeldungenHandler,
     ListPsaQuittungenHandler,
     ListSicherheitsregelnHandler,
     ListSicherheitsregelQuittungenHandler,
@@ -87,9 +96,12 @@ import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.ha
     GetSicherungspostenHandler,
     ListSicherungspostenHandler,
     ReportVorfallHandler,
+    AuditVorfallExportHandler,
     KontextSnapshotBuilder,
     GetVorfallByIdHandler,
     ListVorfaelleHandler,
+    GetVorfallAuditTimelineHandler,
+    GetEigenschutzAmpelStatusHandler,
   ],
   exports: [
     AckPsaQuittungHandler,
@@ -98,8 +110,10 @@ import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.ha
     CreateGefaehrdungsbeurteilungHandler,
     CreateSicherheitsregelHandler,
     EmitCriticalPushOnPsaProfilGeaendertHandler,
+    RecalculateAmpelProjectionOnEigenschutzEventHandler,
     MeldeLueckeHandler,
     EmitPsaQuittungUeberfaelligHandler,
+    RebuildAmpelProjectionHandler,
     ReportSyncConflictHandler,
     ResolveKonfliktHandler,
     UpdateGefaehrdungsbeurteilungItemsHandler,
@@ -111,6 +125,7 @@ import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.ha
     ListGefaehrdungsbeurteilungenHandler,
     ListGefaehrdungsbeurteilungsVorlagenHandler,
     ListOffenePsaBekanntgabenHandler,
+    ListOffeneRueckmeldungenHandler,
     ListPsaQuittungenHandler,
     ListSicherheitsregelnHandler,
     ListSicherheitsregelQuittungenHandler,
@@ -121,8 +136,11 @@ import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.ha
     GetSicherungspostenHandler,
     ListSicherungspostenHandler,
     ReportVorfallHandler,
+    AuditVorfallExportHandler,
     GetVorfallByIdHandler,
     ListVorfaelleHandler,
+    GetVorfallAuditTimelineHandler,
+    GetEigenschutzAmpelStatusHandler,
   ],
 })
 export class EigenschutzApplicationModule {}

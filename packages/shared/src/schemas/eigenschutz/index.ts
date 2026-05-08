@@ -17,3 +17,4 @@ export * from './konflikt-aufgeloest-ws.schema.js';
 export * from './telemetry-event.schema.js';
 export * from './sicherungsposten.schema.js';
 export * from './eigenschutz-snapshot.schema.js';
+export * from './eigenschutz-vorfall-export.schema.js';

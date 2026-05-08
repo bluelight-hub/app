@@ -209,7 +209,6 @@ describe('Architecture Rules', () => {
       'eigenschutz.sicherheitsregel_quittiert',
       // Story 4.1: sicherungsposten_eingerichtet + sicherungsposten_aktualisiert vollständig an allen 4 Stellen registriert.
       // Story 5.1: vorfall_gemeldet vollständig an allen 4 Stellen registriert.
-      'eigenschutz.vorfall_exportiert',
       'eigenschutz.quittung_abgegeben',
       // Story 3.9: konflikt_erkannt vollständig an allen 4 Stellen registriert.
       // Story 3.10: konflikt_aufgeloest vollständig an allen 4 Stellen registriert.

@@ -93,7 +93,24 @@ describe('useEigenschutzLueckeGemeldetLive (Story 3.6 AC14)', () => {
     expect(mockEmit).toHaveBeenCalledWith('join:einsatz', { einsatzId: 'einsatz-1' });
   });
 
-  it('invalidiert psaQuittungen + offenePsaBekanntgaben bei validem Frame', () => {
+  it('invalidiert offene Bekanntgaben, offene Rückmeldungen und Ampelstatus nach Reconnect', () => {
+    const client = makeClient();
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+    renderHook(() => useEigenschutzLueckeGemeldetLive({ einsatzId: 'einsatz-1' }), { wrapper: wrapper(client) });
+
+    const connect = getHandler('connect');
+    expect(connect).toBeDefined();
+    invalidateSpy.mockClear();
+
+    act(() => connect?.());
+
+    const keys = invalidateSpy.mock.calls.map((c) => c[0]?.queryKey);
+    expect(keys).toEqual(
+      expect.arrayContaining([EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben('einsatz-1'), EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen('einsatz-1'), EIGENSCHUTZ_QUERY_KEYS.ampelStatus('einsatz-1')]),
+    );
+  });
+
+  it('invalidiert Quittungen, offene Bekanntgaben, offene Rückmeldungen, PSA-Profil und Ampelstatus bei validem Frame', () => {
     const client = makeClient();
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
     renderHook(() => useEigenschutzLueckeGemeldetLive({ einsatzId: 'einsatz-1' }), { wrapper: wrapper(client) });
@@ -106,7 +123,15 @@ describe('useEigenschutzLueckeGemeldetLive (Story 3.6 AC14)', () => {
     });
 
     const keys = invalidateSpy.mock.calls.map((c) => c[0]?.queryKey);
-    expect(keys).toEqual(expect.arrayContaining([EIGENSCHUTZ_QUERY_KEYS.psaQuittungen('einsatz-1', 'group-1'), EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben('einsatz-1')]));
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        EIGENSCHUTZ_QUERY_KEYS.psaQuittungen('einsatz-1', 'group-1'),
+        EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben('einsatz-1'),
+        EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen('einsatz-1'),
+        EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit('einsatz-1', 'einheit-1'),
+        EIGENSCHUTZ_QUERY_KEYS.ampelStatus('einsatz-1'),
+      ]),
+    );
   });
 
   it('verwirft ungültige Payloads vor dem Dedup-Cache (Validation-vor-Dedup)', () => {

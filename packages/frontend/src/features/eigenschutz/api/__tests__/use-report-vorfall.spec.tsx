@@ -25,6 +25,7 @@ vi.mock('@/shared', () => ({
 }));
 
 import { useReportVorfall, vorfallQueryKeys } from '../use-report-vorfall';
+import { EIGENSCHUTZ_QUERY_KEYS } from '../queries';
 
 const VORFALL_DTO = {
   id: 'vorfall-1',
@@ -82,7 +83,7 @@ describe('useReportVorfall', () => {
     expect(mockReport).toHaveBeenCalledWith({ einsatzId: 'einsatz-1', reportVorfallDto: REPORT_BODY });
   });
 
-  it('invalidiert Vorfall-Cache nach Erfolg (Story 5.3-Vorbereitung)', async () => {
+  it('invalidiert Vorfall-Cache und Ampelstatus nach Erfolg', async () => {
     mockReport.mockResolvedValue({ data: VORFALL_DTO });
     const { client, wrapper } = makeWrapper();
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
@@ -90,6 +91,7 @@ describe('useReportVorfall', () => {
 
     await result.current.mutateAsync(REPORT_BODY);
     await waitFor(() => expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: vorfallQueryKeys.byEinsatz('einsatz-1') }));
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus('einsatz-1') });
   });
 
   it('propagiert 422-Fehler unverändert (Inline-Render im Drawer)', async () => {

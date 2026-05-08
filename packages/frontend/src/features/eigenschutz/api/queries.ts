@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { api } from '@/shared';
 import type {
@@ -9,7 +9,7 @@ import type {
   UpdateGefaehrdungsbeurteilungItemsInput,
 } from '../schemas/gefaehrdungsbeurteilung.schema';
 import type { CreateSicherheitsregelInput, SicherheitsregelDto, UpdateSicherheitsregelInput } from '../schemas/sicherheitsregel.schema';
-import type { ResolveSyncConflictDto, SyncConflictListItemDto, SyncConflictResolveResultDto } from '@bluelight-hub/shared/client';
+import type { OffeneRueckmeldungDto, ResolveSyncConflictDto, SyncConflictListItemDto, SyncConflictResolveResultDto } from '@bluelight-hub/shared/client';
 import { useCurrentUser } from '@/features/auth/api/use-current-user';
 import { eigenschutzTelemetryQueue, getOrCreateSessionId } from '../lib/telemetry-queue';
 
@@ -88,6 +88,7 @@ export function extractConflictError(error: unknown, attemptedVersion: number): 
 export const EIGENSCHUTZ_QUERY_KEYS = {
   all: (einsatzId: string) => ['eigenschutz', einsatzId] as const,
   health: (einsatzId: string) => ['eigenschutz', einsatzId, 'health'] as const,
+  ampelStatus: (einsatzId: string) => ['eigenschutz', einsatzId, 'ampel-status'] as const,
   gefaehrdungsbeurteilungsVorlagen: (einsatzId: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungs-vorlagen'] as const,
   gefaehrdungsbeurteilungen: (einsatzId: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen'] as const,
   gefaehrdungsbeurteilung: (einsatzId: string, id: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen', id] as const,
@@ -131,6 +132,7 @@ export const EIGENSCHUTZ_QUERY_KEYS = {
    * `eigenschutz:psa-quittung-abgegeben`-Frame eintrifft.
    */
   offenePsaBekanntgaben: (einsatzId: string) => ['eigenschutz', einsatzId, 'psa-quittungen', 'offene-bekanntgaben'] as const,
+  offeneRueckmeldungen: (einsatzId: string) => ['eigenschutz', einsatzId, 'psa-profile', 'rueckmeldungen', 'offen'] as const,
   /**
    * Listen-Scope der offenen Sync-Konflikte (Story 3.10 AC7).
    *
@@ -144,6 +146,10 @@ export const EIGENSCHUTZ_QUERY_KEYS = {
       ? (['eigenschutz', einsatzId, 'sync-conflicts', 'list'] as const)
       : (['eigenschutz', einsatzId, 'sync-conflicts', 'list', filter] as const),
 } as const;
+
+function invalidateAmpelStatus(queryClient: QueryClient, einsatzId: string): void {
+  void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
+}
 
 /**
  * Prüft robust, ob ein unbekannter Error einen HTTP-403-Status trägt.
@@ -1015,6 +1021,7 @@ export function useChangePsaProfil(einsatzId: string) {
       for (const id of ids) {
         void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, id) });
       }
+      invalidateAmpelStatus(queryClient, einsatzId);
       void queryClient.invalidateQueries({ queryKey: ['kraefte', einsatzId, 'einheiten'] });
     },
   });
@@ -1068,6 +1075,8 @@ export interface OffenePsaBekanntgabeEntry {
   lueckenCount?: number;
 }
 
+export type OffeneRueckmeldungEntry = OffeneRueckmeldungDto;
+
 /**
  * Quittiert eine PSA-Bekanntgabe für eine konkrete Einheit (Story 3.4 AC1, AC9).
  *
@@ -1105,7 +1114,9 @@ export function useAckPsaQuittung(einsatzId: string) {
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(einsatzId, variables.propagationGroupId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(einsatzId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, variables.einheitId) });
+      invalidateAmpelStatus(queryClient, einsatzId);
 
       // Telemetrie: AC14 — genau ein Event pro Erfolgreich-Quittung. Story
       // 3.11 nutzt `psa_quittung_abgegeben` als dritte Marke im
@@ -1174,7 +1185,9 @@ export function useMeldeLuecke(einsatzId: string) {
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(einsatzId, variables.propagationGroupId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(einsatzId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, variables.einheitId) });
+      invalidateAmpelStatus(queryClient, einsatzId);
 
       if (!user?.id) return;
       // Telemetrie darf den Mutation-Success-Pfad nicht zum Inline-Fehler
@@ -1293,6 +1306,24 @@ export function useOffenePsaBekanntgaben(einsatzId: string, options?: { enabled?
   });
 }
 
+/**
+ * Listet einzelne offene Ausrüstungs-Lücken-Rückmeldungen für das
+ * einsatzweite Eigenschutz-Seitenpanel (Story 6.4).
+ */
+export function useOffeneRueckmeldungen(einsatzId: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(einsatzId),
+    queryFn: async (): Promise<OffeneRueckmeldungEntry[]> => {
+      const response = await api.eigenschutz().psaProfilControllerListOffeneRueckmeldungenVAlpha({ einsatzId });
+      return (response?.data ?? []) as OffeneRueckmeldungEntry[];
+    },
+    retry: eigenschutzRetry,
+    meta: { silentError: true },
+    staleTime: 15_000,
+    enabled: (options?.enabled ?? true) && Boolean(einsatzId),
+  });
+}
+
 // ============================================================================
 // Story 3.10 — Sync-Konflikt-Liste & Auflösung (FR50, UX-DR6)
 // ============================================================================
@@ -1391,6 +1422,7 @@ export function useResolveKonflikt(einsatzId: string) {
       // haben, und der WS-Frame trifft nicht garantiert zuerst ein.
       void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'sync-conflicts'] });
       void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'psa-profile'] });
+      invalidateAmpelStatus(queryClient, einsatzId);
     },
   });
 }

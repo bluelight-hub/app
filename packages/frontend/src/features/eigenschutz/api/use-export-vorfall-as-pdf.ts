@@ -8,10 +8,11 @@
  * identisch zum bestehenden Funkverkehr-Pattern (`mutations.ts:202`).
  */
 
-import { useMutation, type UseMutationResult } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api } from '@/shared';
 import { downloadExport } from '../lib/download-export';
+import { vorfallQueryKeys } from './use-report-vorfall';
 
 export interface ExportVorfallVariables {
   readonly einsatzId: string;
@@ -42,6 +43,8 @@ export function buildVorfallPdfFilename(vorfallId: string, now: Date = new Date(
 }
 
 export function useExportVorfallAlsPdf(): UseMutationResult<ExportVorfallResult, Error, ExportVorfallVariables> {
+  const queryClient = useQueryClient();
+
   return useMutation<ExportVorfallResult, Error, ExportVorfallVariables>({
     mutationKey: ['eigenschutz', 'vorfall', 'export-pdf'],
     mutationFn: async ({ einsatzId, vorfallId }) => {
@@ -50,10 +53,15 @@ export function useExportVorfallAlsPdf(): UseMutationResult<ExportVorfallResult,
         vorfallId,
         format: 'pdf',
       });
-      const blob = await response.raw.blob();
-      const filename = buildVorfallPdfFilename(vorfallId);
-      await downloadExport(blob, filename);
-      return { filename, byteLength: blob.size };
+
+      try {
+        const blob = await response.raw.blob();
+        const filename = buildVorfallPdfFilename(vorfallId);
+        await downloadExport(blob, filename);
+        return { filename, byteLength: blob.size };
+      } finally {
+        void queryClient.invalidateQueries({ queryKey: vorfallQueryKeys.auditTimeline(einsatzId, vorfallId) });
+      }
     },
     // Pattern: Eigenschutz nutzt Inline-Banner statt Toast (UX-DR21 / Story 5.1).
     // Der Hook bleibt damit stillschweigend bei Fehlern; die Page rendert den

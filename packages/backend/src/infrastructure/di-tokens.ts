@@ -538,6 +538,15 @@ export const PSA_PROFIL_ZUWEISUNG_REPOSITORY = Symbol('IPsaProfilZuweisungReposi
 export const PSA_PROFIL_QUITTUNG_REPOSITORY = Symbol('IPsaProfilQuittungRepository');
 
 /**
+ * Repository Token für `IAmpelProjectionRepository` (Story 6.1).
+ *
+ * Hält das materialisierte Ampel-Read-Model pro `(einsatzId, einheitId)`
+ * aktuell. Implementierung im Infrastructure-Layer:
+ * `PrismaAmpelProjectionRepository`.
+ */
+export const AMPEL_PROJECTION_REPOSITORY = Symbol('IAmpelProjectionRepository');
+
+/**
  * Repository Token für `ISyncConflictRepository` (Story 3.9).
  *
  * Wird vom `ReportSyncConflictHandler` injiziert, um Konflikt-Rows in
@@ -586,6 +595,15 @@ export const EIGENSCHUTZ_VORFALL_REPOSITORY = Symbol('IEigenschutzVorfallReposit
  * der Renderer arbeitet ausschließlich auf dem Aggregate-Snapshot.
  */
 export const EIGENSCHUTZ_VORFALL_PDF_RENDERER = Symbol('IEigenschutzVorfallPdfRenderer');
+
+/**
+ * Eigenschutz-Vorfall JSON-Renderer Token (Story 5.5, FR35).
+ *
+ * Bindet `IEigenschutzVorfallJsonRenderer` an die Implementierung im
+ * Infrastructure-Layer (`EigenschutzVorfallJsonRenderer`). Self-contained —
+ * der Renderer arbeitet ausschließlich auf dem Aggregate-Snapshot.
+ */
+export const EIGENSCHUTZ_VORFALL_JSON_RENDERER = Symbol('IEigenschutzVorfallJsonRenderer');
 
 /**
  * Query-Port-Token für `IPsaPropagationOverdueQueryPort` (Story 3.7 AC2).

@@ -4,6 +4,7 @@ import { io, type Socket } from 'socket.io-client';
 import { KonfliktAufgeloestWsPayloadSchema, type KonfliktAufgeloestWsPayload } from '@bluelight-hub/shared/schemas';
 import { getBaseUrl } from '@/shared/api/api';
 import { logger } from '@/shared/lib/logger';
+import { EIGENSCHUTZ_QUERY_KEYS } from './queries';
 import { findAndDismissNoticeByEntity } from './use-eigenschutz-konflikt-erkannt-live';
 
 const NAMESPACE = '/ws/einsatz-events';
@@ -157,6 +158,7 @@ export function useEigenschutzKonfliktAufgeloestLive({ einsatzId, enabled = true
       // Resolutions ist die Invalidierung defensiv (PSA-Cache ist klein,
       // Refetch günstig). AC7 §5 impliziert always-both.
       void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'psa-profile'] });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
 
       // Story 3.10 AC7 §4 — Cross-Hook-Dismiss:
       // Falls der Story-3.9-Mikro-Banner für genau diesen Konflikt noch
