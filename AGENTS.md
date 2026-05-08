@@ -54,6 +54,30 @@ Nicht erlaubt:
 - Im Produkt keine Komponenten oder Texte anzeigen, die Implementierungsdetails, technische Entscheidungen oder interne
   Architektur erklären. Solche Inhalte gehören in Dokumentation, nicht in die produktive UI.
 
+### UI/UX-Arbeitsmodus
+
+Bei jeder Frontend-, UI- oder UX-Aufgabe vor der Implementierung:
+
+1. `docs/project-documentation/10-ui-ux-design-system.md` lesen.
+2. `docs/frontend/00-design-system-overview.md` und bei Bedarf `docs/frontend/ui-ux-state-current.md` lesen.
+3. Ähnliche bestehende Flächen und Komponenten in `packages/frontend/src/shared/ui/` und dem betroffenen Feature suchen.
+4. Bestehende Tokens, `shared/ui`-Komponenten, Shell-Verträge und Statusmuster wiederverwenden, statt neue lokale
+   Primitive, Farben, Layout-Shells oder API-Helfer zu erfinden.
+
+Für produktive UI gilt zusätzlich:
+
+- Bluelight Hub ist eine operative Arbeitsumgebung: dichte, scanbare, ruhige Oberflächen statt Marketing-Ästhetik.
+- Status, Warnungen und Alarme nie nur über Farbe ausdrücken, sondern immer mit Text, Icon oder Zähler kombinieren.
+- Loading-, Empty-, Error-, Offline-, Readonly- und Konfliktzustände bewusst gestalten.
+- Nach sichtbaren UI-Änderungen nach Möglichkeit lokal im Browser prüfen, inklusive Desktop- und Mobile-Viewport.
+
+Der verfügbare Agent-Kontext ist knapp. Bei größeren oder unklaren UI-/UX-Aufgaben:
+
+- Doku und Code gezielt lesen, lange Dateien nur ausschnittsweise öffnen und Ergebnisse knapp zusammenfassen.
+- Für klar getrennte Recherche- oder Review-Fragen dürfen Subagents parallel eingesetzt werden, z. B. für bestehende
+  Komponenten, ähnliche Feature-Flächen, Accessibility-Risiken oder visuelle Review-Kriterien.
+- Subagents bleiben read-only, solange die Hauptaufgabe keine ausdrücklich delegierte Implementierung verlangt.
+
 ### Backend DI-Regel
 
 Bei `@Injectable()` Klassen **kein** `import type` verwenden, sondern normales `import`.
