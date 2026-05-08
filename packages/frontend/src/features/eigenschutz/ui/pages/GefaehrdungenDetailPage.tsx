@@ -29,6 +29,7 @@ import { GefaehrdungsbeurteilungVersionDrawer } from '../organisms/Gefaehrdungsb
 export interface GefaehrdungenDetailPageProps {
   readonly einsatzId: string;
   readonly id: string;
+  readonly focusItem?: string;
 }
 
 function GefaehrdungenSkeleton() {
@@ -55,7 +56,7 @@ function GefaehrdungenSkeleton() {
 
 const HISTORIE_POPOVER_ID = 'gefaehrdungsbeurteilung-historie-popover';
 
-export function GefaehrdungenDetailPage({ einsatzId, id }: GefaehrdungenDetailPageProps) {
+export function GefaehrdungenDetailPage({ einsatzId, id, focusItem }: GefaehrdungenDetailPageProps) {
   const query = useGefaehrdungsbeurteilung(einsatzId, id);
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const [selectedHistorieEintrag, setSelectedHistorieEintrag] = useState<GefaehrdungsbeurteilungHistorieEintrag | null>(null);
@@ -118,7 +119,7 @@ export function GefaehrdungenDetailPage({ einsatzId, id }: GefaehrdungenDetailPa
         </span>
       </header>
 
-      <GefaehrdungenEditorOrganism einsatzId={einsatzId} beurteilung={beurteilung} />
+      <GefaehrdungenEditorOrganism einsatzId={einsatzId} beurteilung={beurteilung} focusItem={focusItem} />
 
       <GefaehrdungsbeurteilungHistoriePopover
         einsatzId={einsatzId}

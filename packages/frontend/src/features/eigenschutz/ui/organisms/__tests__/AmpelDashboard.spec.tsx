@@ -22,6 +22,7 @@ type QueryState<T> = {
 const { mocks } = vi.hoisted(() => ({
   mocks: {
     ampel: { data: [] as AmpelProjectionDto[], isLoading: false, isError: false } as QueryState<AmpelProjectionDto[]>,
+    warnBadges: { data: [], isLoading: false, isError: false },
     einheiten: { data: [] as EinsatzEinheitDto[], isLoading: false, isError: false } as QueryState<EinsatzEinheitDto[]>,
     storage: {
       getItem: vi.fn(),
@@ -51,6 +52,10 @@ vi.mock('../../../api/use-eigenschutz-ampel-status', () => ({
   useEigenschutzAmpelStatus: () => mocks.ampel,
 }));
 
+vi.mock('../../../api/use-ampel-warn-badges', () => ({
+  useAmpelWarnBadges: () => mocks.warnBadges,
+}));
+
 vi.mock('@/features/kraefte/api', () => ({
   useEinsatzEinheiten: () => mocks.einheiten,
 }));
@@ -65,6 +70,9 @@ vi.mock('@/shared/services/storage/storage-adapter.factory', () => ({
 }));
 
 vi.mock('../../../api/queries', () => ({
+  EIGENSCHUTZ_QUERY_KEYS: {
+    ampelWarnBadges: (einsatzId: string) => ['eigenschutz', einsatzId, 'ampel-warn-badges'],
+  },
   usePsaProfileByEinheit: () => mocks.psa,
   useGefaehrdungsbeurteilungen: () => mocks.gefahren,
   useSicherheitsregeln: () => mocks.regeln,
@@ -114,6 +122,7 @@ function einheit(id: string, name: string): EinsatzEinheitDto {
 
 beforeEach(() => {
   mocks.ampel = { data: [], isLoading: false, isError: false };
+  mocks.warnBadges = { data: [], isLoading: false, isError: false };
   mocks.einheiten = { data: [], isLoading: false, isError: false };
   mocks.storage.getItem.mockResolvedValue(null);
   mocks.storage.setItem.mockResolvedValue(undefined);
@@ -284,6 +293,35 @@ describe('AmpelDashboard', () => {
     await user.keyboard('{ArrowDown}');
 
     expect(screen.getByRole('option', { name: /Bravo/ })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('kündigt Warnungen im zugänglichen Namen der Fokus-Zeile an', async () => {
+    setTestViewport(1280);
+    await setDashboardView('focus');
+    mocks.ampel = { data: [projection('einheit-1', AmpelProjectionDtoStatusEnum.Gelb)], isLoading: false, isError: false };
+    mocks.einheiten = { data: [einheit('einheit-1', 'Abschnitt Nord')], isLoading: false, isError: false };
+    mocks.warnBadges = {
+      data: [
+        {
+          id: 'gefahr:gef-1:item-1',
+          einsatzId: 'einsatz-1',
+          einheitId: 'einheit-1',
+          type: 'GEFAEHRDUNG_OHNE_SCHUTZMASSNAHME',
+          label: 'Gefährdung ohne Schutzmaßnahme',
+          sortRank: 10,
+          occurredAt: new Date('2026-05-08T10:00:00.000Z'),
+          gefaehrdungsbeurteilungId: 'gef-1',
+          gefaehrdungItemId: 'item-1',
+          gefaehrdungTitel: 'Kraftstoff',
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    };
+
+    render(<AmpelDashboard einsatzId="einsatz-1" />);
+
+    expect(screen.getByRole('option', { name: /Abschnitt Nord.*1 Warnung/ })).toBeInTheDocument();
   });
 
   it('fällt stabil auf den ersten Eintrag zurück, wenn die Auswahl verschwindet', async () => {

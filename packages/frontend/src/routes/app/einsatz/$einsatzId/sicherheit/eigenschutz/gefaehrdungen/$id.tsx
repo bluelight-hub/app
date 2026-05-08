@@ -10,10 +10,14 @@ import { createFileRoute } from '@tanstack/react-router';
  * in Storybook / Specs gerendert werden kann.
  */
 export const Route = createFileRoute('/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/$id')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    focusItem: typeof search.focusItem === 'string' && search.focusItem.trim().length > 0 ? search.focusItem : undefined,
+  }),
   component: GefaehrdungenDetailPageRoute,
 });
 
 function GefaehrdungenDetailPageRoute() {
   const { einsatzId, id } = Route.useParams();
-  return <GefaehrdungenDetailPage einsatzId={einsatzId} id={id} />;
+  const { focusItem } = Route.useSearch();
+  return <GefaehrdungenDetailPage einsatzId={einsatzId} id={id} focusItem={focusItem} />;
 }

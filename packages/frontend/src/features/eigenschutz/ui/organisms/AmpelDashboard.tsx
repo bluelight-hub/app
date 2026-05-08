@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AmpelProjectionDtoStatusEnum, type AmpelProjectionDto, type EinsatzEinheitDto } from '@bluelight-hub/shared/client';
+import { AmpelProjectionDtoStatusEnum, type AmpelProjectionDto, type AmpelWarnBadgeDto, type EinsatzEinheitDto } from '@bluelight-hub/shared/client';
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
 import { cn } from '@/shared/ui/cn';
 import { useEigenschutzAmpelStatus } from '../../api/use-eigenschutz-ampel-status';
+import { useAmpelWarnBadges } from '../../api/use-ampel-warn-badges';
 import { useLgViewport, useXlViewport } from '../../hooks/use-lg-viewport';
 import { hydrateDashboardView, setDashboardView, useEigenschutzDashboardView } from '../../stores/eigenschutz-dashboard-view.store';
 import { AmpelDashboardViewToggle } from '../molecules/AmpelDashboardViewToggle';
@@ -28,6 +29,7 @@ function getStatusOrder(status: AmpelProjectionDto['status'] | string): number {
 
 export function AmpelDashboard({ einsatzId, className }: AmpelDashboardProps) {
   const ampelQuery = useEigenschutzAmpelStatus(einsatzId);
+  const warnBadgesQuery = useAmpelWarnBadges(einsatzId);
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const { view: storedView } = useEigenschutzDashboardView();
   const isLgViewport = useLgViewport();
@@ -35,6 +37,7 @@ export function AmpelDashboard({ einsatzId, className }: AmpelDashboardProps) {
 
   const einheitNameById = useMemo(() => new Map((einheitenQuery.data ?? []).map((einheit) => [einheit.id, einheit.name])), [einheitenQuery.data]);
   const einheitById = useMemo(() => new Map((einheitenQuery.data ?? []).map((einheit) => [einheit.id, einheit])), [einheitenQuery.data]);
+  const warnBadgesByEinheit = useMemo(() => groupWarnBadgesByEinheit(warnBadgesQuery.data ?? []), [warnBadgesQuery.data]);
   const effectiveView = storedView === 'focus' && isLgViewport ? 'focus' : 'cards';
 
   useEffect(() => {
@@ -94,12 +97,17 @@ export function AmpelDashboard({ einsatzId, className }: AmpelDashboardProps) {
           Abschnittsnamen konnten nicht geladen werden.
         </p>
       ) : null}
+      {warnBadgesQuery.isError ? (
+        <p role="status" className="text-xs text-text-muted">
+          Warnungen konnten nicht geladen werden.
+        </p>
+      ) : null}
       <div data-testid="ampel-dashboard-with-panel" className={cn(isXlViewport ? 'grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]' : 'space-y-3')}>
         <div className="min-w-0">
           {effectiveView === 'focus' ? (
-            <AmpelDashboardFocusView einsatzId={einsatzId} projections={projections} einheitNameById={einheitNameById} einheitById={einheitById} />
+            <AmpelDashboardFocusView einsatzId={einsatzId} projections={projections} einheitNameById={einheitNameById} einheitById={einheitById} warnBadgesByEinheit={warnBadgesByEinheit} />
           ) : (
-            <AmpelCardGrid projections={projections} einheitNameById={einheitNameById} />
+            <AmpelCardGrid projections={projections} einheitNameById={einheitNameById} warnBadgesByEinheit={warnBadgesByEinheit} />
           )}
         </div>
         {isXlViewport ? <EigenschutzOffenePunktePanel einsatzId={einsatzId} mode="inline" className="self-start" /> : null}
@@ -108,12 +116,20 @@ export function AmpelDashboard({ einsatzId, className }: AmpelDashboardProps) {
   );
 }
 
-function AmpelCardGrid({ projections, einheitNameById }: { readonly projections: readonly AmpelProjectionDto[]; readonly einheitNameById: ReadonlyMap<string, string> }) {
+function AmpelCardGrid({
+  projections,
+  einheitNameById,
+  warnBadgesByEinheit,
+}: {
+  readonly projections: readonly AmpelProjectionDto[];
+  readonly einheitNameById: ReadonlyMap<string, string>;
+  readonly warnBadgesByEinheit: ReadonlyMap<string, readonly AmpelWarnBadgeDto[]>;
+}) {
   return (
     <ul data-testid="ampel-dashboard-grid" className="grid grid-cols-1 gap-3 min-[1440px]:grid-cols-3 lg:grid-cols-2">
       {projections.map((projection: AmpelProjectionDto) => (
         <li key={`${projection.einsatzId}-${projection.einheitId}`} className="min-w-0">
-          <AmpelCard projection={projection} einheitName={einheitNameById.get(projection.einheitId)} />
+          <AmpelCard projection={projection} einheitName={einheitNameById.get(projection.einheitId)} warnBadges={warnBadgesByEinheit.get(projection.einheitId) ?? []} />
         </li>
       ))}
     </ul>
@@ -125,11 +141,13 @@ function AmpelDashboardFocusView({
   projections,
   einheitNameById,
   einheitById,
+  warnBadgesByEinheit,
 }: {
   readonly einsatzId: string;
   readonly projections: readonly AmpelProjectionDto[];
   readonly einheitNameById: ReadonlyMap<string, string>;
   readonly einheitById: ReadonlyMap<string, EinsatzEinheitDto>;
+  readonly warnBadgesByEinheit: ReadonlyMap<string, readonly AmpelWarnBadgeDto[]>;
 }) {
   const [selectedEinheitId, setSelectedEinheitId] = useState<string | null>(() => projections[0]?.einheitId ?? null);
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -163,6 +181,7 @@ function AmpelDashboardFocusView({
             key={`${projection.einsatzId}-${projection.einheitId}`}
             projection={projection}
             einheitName={einheitNameById.get(projection.einheitId)}
+            warnBadges={warnBadgesByEinheit.get(projection.einheitId) ?? []}
             selected={selectedProjection?.einheitId === projection.einheitId}
             onSelect={() => setSelectedEinheitId(projection.einheitId)}
             onKeyDown={(event) => {
@@ -182,7 +201,24 @@ function AmpelDashboardFocusView({
           />
         ))}
       </div>
-      {selectedProjection ? <AbschnittDetailPanel einsatzId={einsatzId} projection={selectedProjection} einheit={einheitById.get(selectedProjection.einheitId)} /> : null}
+      {selectedProjection ? (
+        <AbschnittDetailPanel
+          einsatzId={einsatzId}
+          projection={selectedProjection}
+          einheit={einheitById.get(selectedProjection.einheitId)}
+          warnBadges={warnBadgesByEinheit.get(selectedProjection.einheitId) ?? []}
+        />
+      ) : null}
     </div>
   );
+}
+
+function groupWarnBadgesByEinheit(badges: readonly AmpelWarnBadgeDto[]): ReadonlyMap<string, readonly AmpelWarnBadgeDto[]> {
+  const grouped = new Map<string, AmpelWarnBadgeDto[]>();
+  for (const badge of badges) {
+    const list = grouped.get(badge.einheitId) ?? [];
+    list.push(badge);
+    grouped.set(badge.einheitId, list);
+  }
+  return grouped;
 }

@@ -10,10 +10,15 @@ import { createFileRoute } from '@tanstack/react-router';
  * Zielkomponente direkt montieren, sonst bleibt der Slot leer).
  */
 export const Route = createFileRoute('/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    focusGroup: typeof search.focusGroup === 'string' && search.focusGroup.trim().length > 0 ? search.focusGroup : undefined,
+    einheitId: typeof search.einheitId === 'string' && search.einheitId.trim().length > 0 ? search.einheitId : undefined,
+  }),
   component: PsaProfileRouteComponent,
 });
 
 function PsaProfileRouteComponent() {
   const { einsatzId } = Route.useParams();
-  return <PsaProfilePage einsatzId={einsatzId} />;
+  const { focusGroup, einheitId } = Route.useSearch();
+  return <PsaProfilePage einsatzId={einsatzId} focusGroup={focusGroup} focusEinheitId={einheitId} />;
 }

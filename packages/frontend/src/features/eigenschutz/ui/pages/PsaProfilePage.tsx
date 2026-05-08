@@ -19,6 +19,8 @@ import type { PsaProfilValue } from '@bluelight-hub/shared/schemas/eigenschutz/p
 
 export interface PsaProfilePageProps {
   readonly einsatzId: string;
+  readonly focusGroup?: string;
+  readonly focusEinheitId?: string;
 }
 
 const FADE_DURATION_MS = 600;
@@ -35,7 +37,7 @@ const FADE_DURATION_MS = 600;
  * markieren wir die mutierten Einheiten kurz mit einem Fade — bei
  * `prefers-reduced-motion: reduce` ohne Animation.
  */
-export function PsaProfilePage({ einsatzId }: PsaProfilePageProps) {
+export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId }: PsaProfilePageProps) {
   const { user } = useCurrentUser();
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const selection = useEigenschutzSelection();
@@ -171,6 +173,7 @@ export function PsaProfilePage({ einsatzId }: PsaProfilePageProps) {
                 onEnterMultiSelect={() => selection.enterMultiSelect(einheit.id)}
                 onToggleSelection={() => selection.toggleSelection(einheit.id)}
                 recentlyMutated={recentlyMutated.has(einheit.id)}
+                focusTarget={focusEinheitId === einheit.id}
               />
             </li>
           ))}
@@ -209,7 +212,7 @@ export function PsaProfilePage({ einsatzId }: PsaProfilePageProps) {
         />
       ) : null}
 
-      <OffenePsaBekanntgabenSection einsatzId={einsatzId} />
+      <OffenePsaBekanntgabenSection einsatzId={einsatzId} focusGroup={focusGroup} />
     </div>
   );
 }
@@ -227,7 +230,7 @@ export function PsaProfilePage({ einsatzId }: PsaProfilePageProps) {
  * in Story 6.2 zugunsten der `AmpelCard` entfernt — die Entscheidung
  * trifft Story 6.2.
  */
-function OffenePsaBekanntgabenSection({ einsatzId }: { readonly einsatzId: string }) {
+function OffenePsaBekanntgabenSection({ einsatzId, focusGroup }: { readonly einsatzId: string; readonly focusGroup?: string }) {
   const offeneQuery = useOffenePsaBekanntgaben(einsatzId);
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
   // Story 3.5 AC11 — Sender-Drawer-State (Single-Slot): „Checkliste anzeigen"
@@ -235,6 +238,12 @@ function OffenePsaBekanntgabenSection({ einsatzId }: { readonly einsatzId: strin
   // anderen Eintrag ersetzt den aktuellen Drawer (gleiches Pattern wie der
   // Banner-Drawer-Slot).
   const [checklistDrawerGroup, setChecklistDrawerGroup] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (focusGroup) {
+      setChecklistDrawerGroup(focusGroup);
+    }
+  }, [focusGroup]);
 
   if (offeneQuery.isLoading) {
     return null;
@@ -345,9 +354,21 @@ interface PsaEinheitCardProps {
   onEnterMultiSelect: () => void;
   onToggleSelection: () => void;
   recentlyMutated: boolean;
+  focusTarget: boolean;
 }
 
-function PsaEinheitCard({ einsatzId, einheitId, einheitName, multiSelectActive, isSelected, onSingleChange, onEnterMultiSelect, onToggleSelection, recentlyMutated }: PsaEinheitCardProps) {
+function PsaEinheitCard({
+  einsatzId,
+  einheitId,
+  einheitName,
+  multiSelectActive,
+  isSelected,
+  onSingleChange,
+  onEnterMultiSelect,
+  onToggleSelection,
+  recentlyMutated,
+  focusTarget,
+}: PsaEinheitCardProps) {
   const profilQuery = usePsaProfileByEinheit(einsatzId, einheitId);
   const aktiveProfile: PsaProfilValue[] = (profilQuery.data ?? []).map((row) => row.profil);
 
@@ -394,11 +415,13 @@ function PsaEinheitCard({ einsatzId, einheitId, einheitName, multiSelectActive, 
         'flex h-full flex-col gap-3 rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel transition-colors',
         multiSelectActive && 'cursor-pointer select-none',
         isSelected && 'border-status-info ring-2 ring-status-info',
+        focusTarget && 'border-status-warning-border ring-2 ring-status-warning-border',
         recentlyMutated && 'bg-status-warning-surface duration-[600ms]',
       )}
       data-testid={`psa-einheit-card-${einheitId}`}
       data-multi-selected={isSelected || undefined}
       data-recently-mutated={recentlyMutated || undefined}
+      data-focus-target={focusTarget || undefined}
       aria-pressed={multiSelectActive ? isSelected : undefined}
       onClick={handleCardClick}
       onPointerDown={longPress.onPointerDown}

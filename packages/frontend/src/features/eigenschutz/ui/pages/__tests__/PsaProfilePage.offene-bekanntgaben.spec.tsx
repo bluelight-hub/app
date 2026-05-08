@@ -200,6 +200,29 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
       expect(screen.queryByTestId('psa-profil-detail-quittieren')).toBeNull();
       expect(screen.queryByTestId('psa-profil-detail-luecke')).toBeNull();
     });
+
+    it('öffnet die Checkliste aus dem focusGroup-Deep-Link', () => {
+      mocks.offene = {
+        data: [
+          {
+            propagationGroupId: 'group-focus',
+            occurredAt: '2026-04-24T08:30:00.000Z',
+            begruendungAnriss: 'Verdacht auf Kontamination',
+            profilToggles: [{ profil: 'CBRN_PATIENT', aktion: 'AKTIVIERT' }],
+            betroffeneEinheitIds: ['e1'],
+            ackCount: 0,
+            totalCount: 1,
+            status: 'pending',
+          },
+        ],
+        isLoading: false,
+      };
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" focusGroup="group-focus" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
+    });
   });
 
   describe('Story 3.6 AC13 — lueckenCount-Badge in der OffenePsaBekanntgabenSection', () => {

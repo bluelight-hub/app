@@ -45,6 +45,8 @@ import { GetVorfallByIdHandler } from './queries/get-vorfall-by-id/get-vorfall-b
 import { ListVorfaelleHandler } from './queries/list-vorfaelle/list-vorfaelle.handler';
 import { GetVorfallAuditTimelineHandler } from './queries/get-vorfall-audit-timeline/get-vorfall-audit-timeline.handler';
 import { GetEigenschutzAmpelStatusHandler } from './queries/get-eigenschutz-ampel-status/get-eigenschutz-ampel-status.handler';
+import { ListAmpelWarnBadgesHandler } from './queries/list-ampel-warn-badges/list-ampel-warn-badges.handler';
+import { AmpelWarnBadgeService } from '@domain/eigenschutz/services/ampel-warn-badge.service';
 
 /**
  * Application-Layer-Modul des Eigenschutz-Feature-Slice (Story 2.1+).
@@ -102,6 +104,8 @@ import { GetEigenschutzAmpelStatusHandler } from './queries/get-eigenschutz-ampe
     ListVorfaelleHandler,
     GetVorfallAuditTimelineHandler,
     GetEigenschutzAmpelStatusHandler,
+    ListAmpelWarnBadgesHandler,
+    AmpelWarnBadgeService,
   ],
   exports: [
     AckPsaQuittungHandler,
@@ -141,6 +145,7 @@ import { GetEigenschutzAmpelStatusHandler } from './queries/get-eigenschutz-ampe
     ListVorfaelleHandler,
     GetVorfallAuditTimelineHandler,
     GetEigenschutzAmpelStatusHandler,
+    ListAmpelWarnBadgesHandler,
   ],
 })
 export class EigenschutzApplicationModule {}

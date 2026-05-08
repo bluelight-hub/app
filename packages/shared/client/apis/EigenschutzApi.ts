@@ -24,6 +24,7 @@ import type {
   CreateSicherheitsregelDto,
   CreateSicherungspostenDto,
   EigenschutzAmpelControllerGetAmpelVAlpha200Response,
+  EigenschutzAmpelControllerListWarnBadgesVAlpha200Response,
   EigenschutzHealthControllerGetHealthVAlpha200Response,
   EigenschutzTelemetryControllerIngestVAlpha200Response,
   EigenschutzVorfallControllerGetVorfallAuditTimelineVAlpha200Response,
@@ -74,6 +75,8 @@ import {
     CreateSicherungspostenDtoToJSON,
     EigenschutzAmpelControllerGetAmpelVAlpha200ResponseFromJSON,
     EigenschutzAmpelControllerGetAmpelVAlpha200ResponseToJSON,
+    EigenschutzAmpelControllerListWarnBadgesVAlpha200ResponseFromJSON,
+    EigenschutzAmpelControllerListWarnBadgesVAlpha200ResponseToJSON,
     EigenschutzHealthControllerGetHealthVAlpha200ResponseFromJSON,
     EigenschutzHealthControllerGetHealthVAlpha200ResponseToJSON,
     EigenschutzTelemetryControllerIngestVAlpha200ResponseFromJSON,
@@ -137,6 +140,10 @@ import {
 } from '../models/index';
 
 export interface EigenschutzAmpelControllerGetAmpelVAlphaRequest {
+    einsatzId: string;
+}
+
+export interface EigenschutzAmpelControllerListWarnBadgesVAlphaRequest {
     einsatzId: string;
 }
 
@@ -360,6 +367,39 @@ export class EigenschutzApi extends runtime.BaseAPI {
      */
     async eigenschutzAmpelControllerGetAmpelVAlpha(requestParameters: EigenschutzAmpelControllerGetAmpelVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzAmpelControllerGetAmpelVAlpha200Response> {
         const response = await this.eigenschutzAmpelControllerGetAmpelVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Eigenschutz-Warn-Markierungen für alle Einheiten des Einsatzes laden
+     */
+    async eigenschutzAmpelControllerListWarnBadgesVAlphaRaw(requestParameters: EigenschutzAmpelControllerListWarnBadgesVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EigenschutzAmpelControllerListWarnBadgesVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling eigenschutzAmpelControllerListWarnBadgesVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/ampel/warn-badges`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EigenschutzAmpelControllerListWarnBadgesVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Eigenschutz-Warn-Markierungen für alle Einheiten des Einsatzes laden
+     */
+    async eigenschutzAmpelControllerListWarnBadgesVAlpha(requestParameters: EigenschutzAmpelControllerListWarnBadgesVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzAmpelControllerListWarnBadgesVAlpha200Response> {
+        const response = await this.eigenschutzAmpelControllerListWarnBadgesVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

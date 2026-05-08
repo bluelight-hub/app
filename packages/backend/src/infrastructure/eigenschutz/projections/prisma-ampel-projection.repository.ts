@@ -6,6 +6,7 @@ import { Result } from '@domain/common/result';
 import { EVENT_NAMES } from '@domain/events/event-names';
 import type { AmpelProjectionReadRow, AmpelProjectionUpsertRow, IAmpelProjectionRepository, RecalculateAmpelProjectionParams } from '@domain/eigenschutz/repositories';
 import { AmpelStatusBerechnungService } from '@domain/eigenschutz/services/ampel-status-berechnung.service';
+import { AmpelWarnBadgeService } from '@domain/eigenschutz/services/ampel-warn-badge.service';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 
@@ -15,6 +16,7 @@ type JsonRecord = Record<string, unknown>;
 @Injectable()
 export class PrismaAmpelProjectionRepository implements IAmpelProjectionRepository {
   private readonly statusBerechnung = new AmpelStatusBerechnungService();
+  private readonly warnBadgeService = new AmpelWarnBadgeService();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -174,8 +176,10 @@ export class PrismaAmpelProjectionRepository implements IAmpelProjectionReposito
 
   private isOffeneHoheGefaehrdung(item: unknown): boolean {
     const record = this.asRecord(item);
-    const schutzmassnahmen = typeof record.schutzmassnahmen === 'string' ? record.schutzmassnahmen.trim() : '';
-    return record.risikoklasse === 'ROT' && schutzmassnahmen.length === 0;
+    return this.warnBadgeService.isGefaehrdungOhneSchutzmassnahme({
+      risikoklasse: record.risikoklasse,
+      schutzmassnahmen: record.schutzmassnahmen,
+    });
   }
 
   private asRecord(value: unknown): JsonRecord {

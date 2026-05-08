@@ -89,6 +89,7 @@ export const EIGENSCHUTZ_QUERY_KEYS = {
   all: (einsatzId: string) => ['eigenschutz', einsatzId] as const,
   health: (einsatzId: string) => ['eigenschutz', einsatzId, 'health'] as const,
   ampelStatus: (einsatzId: string) => ['eigenschutz', einsatzId, 'ampel-status'] as const,
+  ampelWarnBadges: (einsatzId: string) => ['eigenschutz', einsatzId, 'ampel-warn-badges'] as const,
   gefaehrdungsbeurteilungsVorlagen: (einsatzId: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungs-vorlagen'] as const,
   gefaehrdungsbeurteilungen: (einsatzId: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen'] as const,
   gefaehrdungsbeurteilung: (einsatzId: string, id: string) => ['eigenschutz', einsatzId, 'gefaehrdungsbeurteilungen', id] as const,
@@ -151,6 +152,10 @@ function invalidateAmpelStatus(queryClient: QueryClient, einsatzId: string): voi
   void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
 }
 
+function invalidateAmpelWarnBadges(queryClient: QueryClient, einsatzId: string): void {
+  void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelWarnBadges(einsatzId) });
+}
+
 /**
  * Prüft robust, ob ein unbekannter Error einen HTTP-403-Status trägt.
  * Kompatibel mit `ResponseError` aus dem generierten Client (`error.response.status`).
@@ -164,7 +169,7 @@ function is403(error: unknown): boolean {
  * - 403 → kein Retry (Einsatz-Zugriff wurde serverseitig abgelehnt).
  * - Sonst → maximal 2 Wiederholungen.
  */
-function eigenschutzRetry(failureCount: number, error: unknown): boolean {
+export function eigenschutzRetry(failureCount: number, error: unknown): boolean {
   if (is403(error)) {
     return false;
   }
@@ -289,6 +294,7 @@ export function useCreateGefaehrdungsbeurteilung(einsatzId: string) {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: listKey });
+      invalidateAmpelWarnBadges(queryClient, einsatzId);
     },
   });
 }
@@ -433,6 +439,7 @@ export function useUpdateGefaehrdungsbeurteilungItems(einsatzId: string, id: str
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: detailKey });
       void queryClient.invalidateQueries({ queryKey: historieKey });
+      invalidateAmpelWarnBadges(queryClient, einsatzId);
     },
   });
 }
@@ -1022,6 +1029,7 @@ export function useChangePsaProfil(einsatzId: string) {
         void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, id) });
       }
       invalidateAmpelStatus(queryClient, einsatzId);
+      invalidateAmpelWarnBadges(queryClient, einsatzId);
       void queryClient.invalidateQueries({ queryKey: ['kraefte', einsatzId, 'einheiten'] });
     },
   });
@@ -1117,6 +1125,7 @@ export function useAckPsaQuittung(einsatzId: string) {
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(einsatzId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, variables.einheitId) });
       invalidateAmpelStatus(queryClient, einsatzId);
+      invalidateAmpelWarnBadges(queryClient, einsatzId);
 
       // Telemetrie: AC14 — genau ein Event pro Erfolgreich-Quittung. Story
       // 3.11 nutzt `psa_quittung_abgegeben` als dritte Marke im
@@ -1188,6 +1197,7 @@ export function useMeldeLuecke(einsatzId: string) {
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offeneRueckmeldungen(einsatzId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(einsatzId, variables.einheitId) });
       invalidateAmpelStatus(queryClient, einsatzId);
+      invalidateAmpelWarnBadges(queryClient, einsatzId);
 
       if (!user?.id) return;
       // Telemetrie darf den Mutation-Success-Pfad nicht zum Inline-Fehler
@@ -1423,6 +1433,7 @@ export function useResolveKonflikt(einsatzId: string) {
       void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'sync-conflicts'] });
       void queryClient.invalidateQueries({ queryKey: ['eigenschutz', einsatzId, 'psa-profile'] });
       invalidateAmpelStatus(queryClient, einsatzId);
+      invalidateAmpelWarnBadges(queryClient, einsatzId);
     },
   });
 }

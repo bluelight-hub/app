@@ -26,6 +26,7 @@ import { SyncStatusBadge } from '../molecules/SyncStatusBadge';
 export interface GefaehrdungenEditorOrganismProps {
   readonly einsatzId: string;
   readonly beurteilung: Gefaehrdungsbeurteilung;
+  readonly focusItem?: string;
 }
 
 function getHttpStatus(error: unknown): number | undefined {
@@ -40,7 +41,7 @@ function createPendingCommandId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: GefaehrdungenEditorOrganismProps) {
+export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung, focusItem }: GefaehrdungenEditorOrganismProps) {
   const queryClient = useQueryClient();
   const mutation = useUpdateGefaehrdungsbeurteilungItems(einsatzId, beurteilung.id);
 
@@ -67,6 +68,14 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung }: Gefaehrd
   }, [items]);
 
   const hasDraftChanges = useMemo(() => serializeItems(items) !== lastSyncedItemsKeyRef.current, [items]);
+
+  useEffect(() => {
+    if (!focusItem) return;
+    const index = beurteilung.items.findIndex((item) => item.id === focusItem);
+    if (index >= 0) {
+      setAutoFocusIndex(index);
+    }
+  }, [beurteilung.items, focusItem]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

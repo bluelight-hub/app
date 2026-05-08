@@ -1,24 +1,26 @@
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
-import type { AmpelProjectionDto, EinsatzEinheitDto } from '@bluelight-hub/shared/client';
+import type { AmpelProjectionDto, EinsatzEinheitDto, AmpelWarnBadgeDto } from '@bluelight-hub/shared/client';
 import type { Gefaehrdungsbeurteilung } from '@bluelight-hub/shared/schemas';
 import type { PsaProfilValue } from '@bluelight-hub/shared/schemas/eigenschutz/psa-profil.schema';
 import { cn } from '@/shared/ui/cn';
 import { useGefaehrdungsbeurteilungen, usePsaProfileByEinheit, useSicherheitsregeln } from '../../api/queries';
 import { PSA_PROFIL_META } from '../../constants/psa-profil.constants';
 import { QuittungsSummary, StatusIndicator, buildAmpelStatusAriaLabel } from '../molecules/StatusIndicator';
+import { AmpelWarnBadgeList } from '../molecules/AmpelWarnBadgeList';
 import { shortenEinheitId } from './AmpelCard';
 
 export interface AbschnittDetailPanelProps {
   readonly einsatzId: string;
   readonly projection: AmpelProjectionDto;
   readonly einheit?: EinsatzEinheitDto;
+  readonly warnBadges?: readonly AmpelWarnBadgeDto[];
   readonly className?: string;
 }
 
 const PSA_PROFILE_VALUES = new Set<string>(Object.keys(PSA_PROFIL_META));
 
-export function AbschnittDetailPanel({ einsatzId, projection, einheit, className }: AbschnittDetailPanelProps) {
+export function AbschnittDetailPanel({ einsatzId, projection, einheit, warnBadges = [], className }: AbschnittDetailPanelProps) {
   const displayName = einheit?.name?.trim() || shortenEinheitId(projection.einheitId);
   const psaQuery = usePsaProfileByEinheit(einsatzId, projection.einheitId, { enabled: Boolean(projection.einheitId) });
   const gefahrenQuery = useGefaehrdungsbeurteilungen(einsatzId);
@@ -68,6 +70,13 @@ export function AbschnittDetailPanel({ einsatzId, projection, einheit, className
           </Link>
         </div>
       </header>
+
+      {warnBadges.length > 0 ? (
+        <section className="border-b border-border-subtle py-4" aria-label={`Warnungen für ${displayName}`}>
+          <h3 className="mb-2 text-sm font-semibold text-text-primary">Warnungen</h3>
+          <AmpelWarnBadgeList einsatzId={einsatzId} badges={warnBadges} einheitName={displayName} variant="panel" maxVisible={6} />
+        </section>
+      ) : null}
 
       <div className="grid gap-4 pt-4 xl:grid-cols-2">
         <DetailBlock title="PSA-Status" testId="abschnitt-detail-psa" loading={psaQuery.isLoading} error={psaQuery.isError ? 'PSA-Status konnte nicht geladen werden.' : null}>
