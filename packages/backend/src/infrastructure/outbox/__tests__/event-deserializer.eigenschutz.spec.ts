@@ -3,8 +3,10 @@ import { EventSerializer, type SerializedEvent } from '../event-serializer';
 import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
+import { PsaProfilGeaendertEvent } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
 import { KonfliktErkanntEvent } from '@domain/eigenschutz/events/konflikt-erkannt.event';
 import { KonfliktAufgeloestEvent, type SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
+import { VorfallExportiertEvent } from '@domain/eigenschutz/events/vorfall-exportiert.event';
 
 /**
  * Story 3.4 — Round-Trip-Test für `QuittungAbgegebenEvent`.
@@ -49,6 +51,7 @@ describe('EventDeserializer — Eigenschutz QuittungAbgegeben (Story 3.4)', () =
     expect(event.einheitId).toBe(original.einheitId);
     expect(event.propagationGroupId).toBe(original.propagationGroupId);
     expect(event.quittiertAm.toISOString()).toBe(original.quittiertAm.toISOString());
+    expect(event.occurredAt.toISOString()).toBe(serialized.occurredAt);
   });
 
   it('schlägt fehl bei fehlender propagationGroupId', () => {
@@ -75,6 +78,94 @@ describe('EventDeserializer — Eigenschutz QuittungAbgegeben (Story 3.4)', () =
       }),
     );
     expect(result.isFailure).toBe(true);
+  });
+});
+
+describe('EventDeserializer — Eigenschutz PsaProfilGeaendert (Story 6.1)', () => {
+  const deserializer = new EventDeserializer();
+  const serializer = new EventSerializer();
+
+  it('erhält den ursprünglichen Event-Zeitpunkt für Projection-Replay', () => {
+    const original = new PsaProfilGeaendertEvent(
+      'einsatz-cuid2-1234567890123456',
+      'user-cuid2-12345678901234567890',
+      'einheit-cuid2-1234567890123456',
+      'zuw-cuid2-1234567890123',
+      'group-cuid2-12345678901234567',
+      'BASIS',
+      'AKTIVIERT',
+      'Test',
+      undefined,
+      new Date('2026-05-07T11:42:00.000Z'),
+    );
+
+    const serialized = serializer.serialize(original);
+    const result = deserializer.deserialize(serialized);
+
+    expect(result.isSuccess).toBe(true);
+    const event = result.value as PsaProfilGeaendertEvent;
+    expect(event).toBeInstanceOf(PsaProfilGeaendertEvent);
+    expect(event.occurredAt.toISOString()).toBe(serialized.occurredAt);
+  });
+});
+
+describe('EventDeserializer — Eigenschutz VorfallExportiert (Story 5.6)', () => {
+  const deserializer = new EventDeserializer();
+  const serializer = new EventSerializer();
+
+  function createSerialized(payload: Record<string, unknown>): SerializedEvent {
+    return {
+      eventId: 'test-evt-id',
+      eventName: 'eigenschutz.vorfall_exportiert',
+      eventVersion: 1,
+      occurredAt: new Date('2026-05-07T10:30:45.123Z').toISOString(),
+      aggregateId: 'vorfall-cuid2-test',
+      payload,
+    };
+  }
+
+  it('roundtrip: serialize → deserialize liefert äquivalentes Event', () => {
+    const original = new VorfallExportiertEvent('einsatz-cuid2-1234567890123456', 'user-cuid2-12345678901234567890', 'vorfall-cuid2-1234567890123', 'json', new Date('2026-05-07T10:30:45.123Z'));
+
+    const serialized = serializer.serialize(original);
+    expect(serialized.eventName).toBe('eigenschutz.vorfall_exportiert');
+    expect(serialized.payload).toEqual({
+      einsatzId: original.einsatzId,
+      userId: original.userId,
+      vorfallId: original.vorfallId,
+      format: 'json',
+      downloadedAt: original.downloadedAt.toISOString(),
+    });
+
+    const result = deserializer.deserialize(serialized);
+    expect(result.isSuccess).toBe(true);
+    const event = result.value as VorfallExportiertEvent;
+    expect(event).toBeInstanceOf(VorfallExportiertEvent);
+    expect(event.einsatzId).toBe(original.einsatzId);
+    expect(event.userId).toBe(original.userId);
+    expect(event.vorfallId).toBe(original.vorfallId);
+    expect(event.format).toBe('json');
+    expect(event.downloadedAt.toISOString()).toBe(original.downloadedAt.toISOString());
+    expect(event.aggregateId).toBe(original.aggregateId);
+  });
+
+  it('Deserializer: ungültiges Format → Failure', () => {
+    const result = deserializer.deserialize(
+      createSerialized({
+        einsatzId: 'einsatz-1',
+        userId: 'user-1',
+        vorfallId: 'vorfall-1',
+        format: 'xml',
+        downloadedAt: '2026-05-07T10:00:00.000Z',
+      }),
+    );
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toContain('eigenschutz.vorfall_exportiert');
+  });
+
+  it('Serializer: ungültiges Format wirft fail-loudly', () => {
+    const original = new VorfallExportiertEvent('einsatz-1', 'user-1', 'vorfall-1', 'xml' as never, new Date('2026-05-07T10:00:00.000Z'));
+    expect(() => serializer.serialize(original)).toThrow('Invalid VorfallExportiert event payload');
   });
 });
 

@@ -1,0 +1,72 @@
+import { InternalServerErrorException } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { Result } from '@domain/common/result';
+import { GetEigenschutzAmpelStatusQuery } from '@/application/eigenschutz/queries/get-eigenschutz-ampel-status/get-eigenschutz-ampel-status.query';
+import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
+import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
+import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
+import { EigenschutzAmpelController } from '../eigenschutz-ampel.controller';
+
+const EINSATZ_ID = 'clw3h8x9y0000qwertyui06201';
+
+describe('EigenschutzAmpelController', () => {
+  let controller: EigenschutzAmpelController;
+  let queryBus: { execute: jest.Mock };
+
+  beforeEach(async () => {
+    queryBus = { execute: jest.fn() };
+
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [EigenschutzAmpelController],
+      providers: [{ provide: QueryBus, useValue: queryBus }],
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(EinsatzScopeGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermissionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
+
+    controller = module.get(EigenschutzAmpelController);
+  });
+
+  it('trägt die dreistufige Guard-Kette auf Klassen-Ebene', () => {
+    const guards = Reflect.getMetadata('__guards__', EigenschutzAmpelController) as unknown[];
+    expect(guards).toEqual([JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard]);
+  });
+
+  it('Routing trägt einsatz-scoped Path und version="alpha"', () => {
+    expect(Reflect.getMetadata('path', EigenschutzAmpelController)).toBe('einsaetze/:einsatzId/sicherheit/eigenschutz');
+    expect(Reflect.getMetadata('__version__', EigenschutzAmpelController)).toBe('alpha');
+  });
+
+  it('getAmpel trägt @RequiresPermission("eigenschutz:gefaehrdungsbeurteilung:read")', () => {
+    const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzAmpelController.prototype.getAmpel);
+    expect(required).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
+  });
+
+  it('liefert die AmpelProjection-Liste aus dem QueryBus', async () => {
+    const rows = [{ einsatzId: EINSATZ_ID, einheitId: 'einheit-1', status: 'GRUEN' }];
+    queryBus.execute.mockResolvedValue(Result.ok(rows));
+
+    const response = await controller.getAmpel(EINSATZ_ID);
+
+    expect(response).toBe(rows);
+    expect(queryBus.execute).toHaveBeenCalledWith(new GetEigenschutzAmpelStatusQuery(EINSATZ_ID));
+  });
+
+  it('liefert eine leere Liste ohne Spezialfehler', async () => {
+    queryBus.execute.mockResolvedValue(Result.ok([]));
+
+    await expect(controller.getAmpel(EINSATZ_ID)).resolves.toEqual([]);
+  });
+
+  it('mappt InfrastructureError auf 500', async () => {
+    queryBus.execute.mockResolvedValue(Result.fail('InfrastructureError:AmpelProjection:db-down'));
+
+    await expect(controller.getAmpel(EINSATZ_ID)).rejects.toBeInstanceOf(InternalServerErrorException);
+  });
+});

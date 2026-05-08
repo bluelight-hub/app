@@ -18,6 +18,7 @@ export type {
 } from './i-sicherheitsregel-quittung.repository';
 export type { IPsaProfilZuweisungRepository, IPsaProfilZuweisungReadRepository, PsaProfilZuweisungReadRow } from './i-psa-profil-zuweisung.repository';
 export type { IPsaProfilQuittungRepository, PsaProfilQuittungReadModel, UpsertPsaProfilQuittungParams, UpsertPsaProfilQuittungResult } from './i-psa-profil-quittung.repository';
+export type { IAmpelProjectionRepository, AmpelProjectionReadRow, AmpelProjectionUpsertRow, RecalculateAmpelProjectionParams } from './i-ampel-projection.repository';
 export type { IPsaPropagationOverdueQueryPort, PsaPropagationOverdueRow } from './i-psa-propagation-overdue-query.port';
 export type { IPushRecipientLookupPort } from './i-push-recipient-lookup.port';
 export type { ISicherungspostenRepository, SicherungspostenReadModel } from './i-sicherungsposten.repository';

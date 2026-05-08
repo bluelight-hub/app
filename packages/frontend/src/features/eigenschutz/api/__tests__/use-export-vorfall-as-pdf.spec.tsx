@@ -35,7 +35,8 @@ function wrapper(client: QueryClient) {
 describe('useExportVorfallAlsPdf (Story 5.4)', () => {
   beforeEach(() => {
     eigenschutzVorfallControllerExportVorfallVAlphaRaw.mockReset();
-    downloadExportMock.mockClear();
+    downloadExportMock.mockReset();
+    downloadExportMock.mockResolvedValue(undefined);
   });
 
   it('(1) ruft generierten Client mit format="pdf" auf', async () => {
@@ -77,14 +78,37 @@ describe('useExportVorfallAlsPdf (Story 5.4)', () => {
     eigenschutzVorfallControllerExportVorfallVAlphaRaw.mockRejectedValue(new Error('boom'));
 
     const client = makeClient();
+    const invalidateQueries = vi.spyOn(client, 'invalidateQueries');
     const { result } = renderHook(() => useExportVorfallAlsPdf(), { wrapper: wrapper(client) });
     await act(async () => {
       await expect(result.current.mutateAsync({ einsatzId: 'e1', vorfallId: 'v1' })).rejects.toThrow('boom');
     });
     expect(downloadExportMock).not.toHaveBeenCalled();
+    expect(invalidateQueries).not.toHaveBeenCalled();
   });
 
-  it('(4) buildVorfallPdfFilename ist deterministisch bei fixem Datum', () => {
+  it('(4) invalidiert Audit-Timeline auch wenn lokaler Download fehlschlägt', async () => {
+    const blob = new Blob(['pdf'], { type: 'application/pdf' });
+    eigenschutzVorfallControllerExportVorfallVAlphaRaw.mockResolvedValue({
+      raw: { blob: vi.fn().mockResolvedValue(blob) },
+    });
+    downloadExportMock.mockRejectedValue(new Error('download failed'));
+
+    const client = makeClient();
+    const invalidateQueries = vi.spyOn(client, 'invalidateQueries');
+    const { result } = renderHook(() => useExportVorfallAlsPdf(), { wrapper: wrapper(client) });
+
+    await act(async () => {
+      await expect(result.current.mutateAsync({ einsatzId: 'e1', vorfallId: 'v1' })).rejects.toThrow('download failed');
+    });
+
+    expect(invalidateQueries).toHaveBeenCalledTimes(1);
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['eigenschutz-vorfaelle', 'e1', 'detail', 'v1', 'auditTimeline'],
+    });
+  });
+
+  it('(5) buildVorfallPdfFilename ist deterministisch bei fixem Datum', () => {
     const now = new Date('2026-05-07T08:30:00.000Z');
     const filename = buildVorfallPdfFilename('abc', now);
     expect(filename).toMatch(/^vorfall-abc-\d{8}-\d{4}\.pdf$/);

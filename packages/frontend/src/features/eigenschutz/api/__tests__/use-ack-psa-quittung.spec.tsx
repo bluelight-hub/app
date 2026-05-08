@@ -75,6 +75,7 @@ describe('useAckPsaQuittung (Story 3.4 AC9)', () => {
         EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(EINSATZ_ID, PROPAGATION_GROUP_ID),
         EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(EINSATZ_ID),
         EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(EINSATZ_ID, EINHEIT_ID),
+        EIGENSCHUTZ_QUERY_KEYS.ampelStatus(EINSATZ_ID),
       ]),
     );
   });

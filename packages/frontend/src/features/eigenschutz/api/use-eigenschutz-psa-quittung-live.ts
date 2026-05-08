@@ -141,11 +141,13 @@ export function useEigenschutzPsaQuittungLive({ einsatzId, enabled = true }: Use
       if (disposedRef.current) return;
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaQuittungen(einsatzId, payload.propagationGroupId) });
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
     };
 
     const invalidateAfterReconnect = () => {
       // Nach Reconnect: Backfill verpasster Quittungen via Listen-Refetch.
       void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.offenePsaBekanntgaben(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(einsatzId) });
     };
 
     const connect = () => {

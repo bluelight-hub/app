@@ -148,7 +148,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       }
     });
 
-    it('Story-5.1-Fortschritt: 13 Eigenschutz-Events vollständig an 4/4, das übrige 1 weiterhin an 0/4', () => {
+    it('Story-5.6-Fortschritt: alle 14 Eigenschutz-Events vollständig an 4/4', () => {
       const ERSTELLT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_ERSTELLT;
       const AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT;
       const SICHERHEITSREGEL_AUSGERUFEN = EVENT_NAMES.EIGENSCHUTZ.SICHERHEITSREGEL_AUSGERUFEN;
@@ -162,6 +162,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       const SICHERUNGSPOSTEN_EINGERICHTET = EVENT_NAMES.EIGENSCHUTZ.SICHERUNGSPOSTEN_EINGERICHTET;
       const SICHERUNGSPOSTEN_AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.SICHERUNGSPOSTEN_AKTUALISIERT;
       const VORFALL_GEMELDET = EVENT_NAMES.EIGENSCHUTZ.VORFALL_GEMELDET;
+      const VORFALL_EXPORTIERT = EVENT_NAMES.EIGENSCHUTZ.VORFALL_EXPORTIERT;
       expect(sumTuple(countRegistrationSites(ERSTELLT))).toBe(4);
       expect(sumTuple(countRegistrationSites(AKTUALISIERT))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERHEITSREGEL_AUSGERUFEN))).toBe(4);
@@ -175,26 +176,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       expect(sumTuple(countRegistrationSites(SICHERUNGSPOSTEN_EINGERICHTET))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERUNGSPOSTEN_AKTUALISIERT))).toBe(4);
       expect(sumTuple(countRegistrationSites(VORFALL_GEMELDET))).toBe(4);
-
-      const FULLY_REGISTERED = new Set<string>([
-        ERSTELLT,
-        AKTUALISIERT,
-        SICHERHEITSREGEL_AUSGERUFEN,
-        SICHERHEITSREGEL_QUITTIERT,
-        PSA_PROFIL_GEAENDERT,
-        QUITTUNG_ABGEGEBEN,
-        LUECKE_GEMELDET,
-        QUITTUNG_UEBERFAELLIG,
-        KONFLIKT_ERKANNT,
-        KONFLIKT_AUFGELOEST,
-        SICHERUNGSPOSTEN_EINGERICHTET,
-        SICHERUNGSPOSTEN_AKTUALISIERT,
-        VORFALL_GEMELDET,
-      ]);
-      for (const eventName of EIGENSCHUTZ_NAMES) {
-        if (FULLY_REGISTERED.has(eventName)) continue;
-        expect(sumTuple(countRegistrationSites(eventName))).toBe(0);
-      }
+      expect(sumTuple(countRegistrationSites(VORFALL_EXPORTIERT))).toBe(4);
     });
   });
 

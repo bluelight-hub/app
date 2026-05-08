@@ -4,21 +4,20 @@ name = "bluelight-hub"
 
 [setup]
 script = '''
-pnpm install
-pnpm --filter @bluelight-hub/backend prisma:generate
+bash scripts/worktree-setup.sh
 '''
 
 [[actions]]
-name = "Install dependencies"
+name = "Worktree setup"
 icon = "tool"
-command = "pnpm install"
+command = "bash scripts/worktree-setup.sh"
 
 [[actions]]
-name = "Run Frontend"
+name = "Run Web"
 icon = "run"
-command = "pnpm --filter @bluelight-hub/frontend dev"
+command = "pnpm dev:web"
 
 [[actions]]
-name = "Run Backend"
-icon = "run"
-command = "pnpm --filter @bluelight-hub/backend dev"
+name = "Worktree teardown"
+icon = "trash"
+command = "bash scripts/worktree-teardown.sh"

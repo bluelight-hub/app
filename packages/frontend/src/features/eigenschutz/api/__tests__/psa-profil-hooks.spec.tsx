@@ -60,7 +60,7 @@ describe('useChangePsaProfil (Story 3.1 AC1+AC9)', () => {
     mockChangePsa.mockReset();
   });
 
-  it('sendet Mutation an Toggle-Endpoint und invalidiert nur die einheit-spezifische Query', async () => {
+  it('sendet Mutation an Toggle-Endpoint und invalidiert Einheit, Ampelstatus und Kräfte-Liste', async () => {
     const client = makeClient();
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
     mockChangePsa.mockResolvedValue({ data: { propagationGroupId: 'group-1', affected: [] } });
@@ -72,6 +72,7 @@ describe('useChangePsaProfil (Story 3.1 AC1+AC9)', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockChangePsa).toHaveBeenCalledWith(expect.objectContaining({ einsatzId: EINSATZ_ID, einheitId: EINHEIT_ID, changePsaProfilDto: expect.objectContaining({ begruendung: 'Routine' }) }));
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: EIGENSCHUTZ_QUERY_KEYS.psaProfileByEinheit(EINSATZ_ID, EINHEIT_ID) });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: EIGENSCHUTZ_QUERY_KEYS.ampelStatus(EINSATZ_ID) });
   });
 
   it('mappt 409 mit context.currentVersion auf PsaProfilConflictError (OCC)', async () => {

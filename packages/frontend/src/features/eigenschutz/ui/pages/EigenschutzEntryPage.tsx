@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { PiArrowsClockwise, PiClipboardText, PiMapPin, PiShield, PiShieldCheck, PiWarningOctagon } from 'react-icons/pi';
 import { useSyncConflicts } from '@/features/eigenschutz/api/queries';
+import { AmpelDashboard } from '../organisms/AmpelDashboard';
 
 export interface EigenschutzEntryPageProps {
   /**
@@ -13,17 +14,6 @@ export interface EigenschutzEntryPageProps {
   readonly einsatzId?: string;
 }
 
-/**
- * Eigenschutz-Entry-Page (Story 1.6 + 2.1 Task 8).
- *
- * Die Seite ist bewusst leer-aber-lauffähig: sie signalisiert dem Nutzer,
- * dass das Modul für den aktuellen Einsatz verdrahtet ist. Epic 2–5
- * ersetzt den Empty-State schrittweise durch AmpelDashboard, GefährdungenPage,
- * PSA-Profile, Sicherungsposten und Vorfallmeldung.
- *
- * **Story 2.1:** Ein Call-to-Action verlinkt auf die neue
- * Gefährdungsbeurteilungs-Route, sobald eine `einsatzId` bekannt ist.
- */
 export function EigenschutzEntryPage({ einsatzId }: EigenschutzEntryPageProps = {}) {
   return (
     <div className="space-y-4">
@@ -31,10 +21,12 @@ export function EigenschutzEntryPage({ einsatzId }: EigenschutzEntryPageProps = 
         <h1 className="text-2xl font-bold text-text-primary">Eigenschutz</h1>
         <p className="mt-1 text-sm text-text-muted">Arbeitsschutz und Sicherheitsmaßnahmen</p>
       </header>
-      <div className="space-y-3 rounded-lg bg-surface-panel p-4 shadow">
-        <p className="text-text-muted">Hier entstehen Gefährdungsbeurteilung, PSA-Verwaltung, Sicherheitsregeln, Sicherungsposten und Vorfallmeldung.</p>
-        {einsatzId ? <EigenschutzNavLinks einsatzId={einsatzId} /> : null}
-      </div>
+      {einsatzId ? (
+        <>
+          <AmpelDashboard einsatzId={einsatzId} />
+          <EigenschutzNavLinks einsatzId={einsatzId} />
+        </>
+      ) : null}
     </div>
   );
 }
@@ -51,7 +43,7 @@ function EigenschutzNavLinks({ einsatzId }: { einsatzId: string }) {
   const conflictCount = conflictsQuery.data?.length ?? 0;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <nav aria-label="Eigenschutz-Bereiche" className="flex flex-wrap gap-2">
       <Link
         to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen"
         params={{ einsatzId }}
@@ -121,6 +113,6 @@ function EigenschutzNavLinks({ einsatzId }: { einsatzId: string }) {
           </span>
         ) : null}
       </Link>
-    </div>
+    </nav>
   );
 }

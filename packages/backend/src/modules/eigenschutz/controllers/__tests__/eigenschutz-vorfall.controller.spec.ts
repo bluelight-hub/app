@@ -5,12 +5,14 @@ import { Result } from '@domain/common/result';
 import { EigenschutzVorfall } from '@domain/eigenschutz/aggregates/eigenschutz-vorfall.aggregate';
 import type { IEigenschutzVorfallRepository, VorfallListReadRow } from '@domain/eigenschutz/repositories';
 import { ReportVorfallCommand } from '@/application/eigenschutz/commands/report-vorfall/report-vorfall.command';
+import { AuditVorfallExportCommand } from '@/application/eigenschutz/commands/audit-vorfall-export/audit-vorfall-export.command';
+import { GetVorfallAuditTimelineQuery } from '@/application/eigenschutz/queries/get-vorfall-audit-timeline/get-vorfall-audit-timeline.query';
 import { ListVorfaelleQuery } from '@/application/eigenschutz/queries/list-vorfaelle/list-vorfaelle.query';
 import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
 import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
-import { EIGENSCHUTZ_VORFALL_PDF_RENDERER, EIGENSCHUTZ_VORFALL_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { EIGENSCHUTZ_VORFALL_JSON_RENDERER, EIGENSCHUTZ_VORFALL_PDF_RENDERER, EIGENSCHUTZ_VORFALL_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { EigenschutzVorfallController } from '../eigenschutz-vorfall.controller';
 
 const EINSATZ_ID = 'clw3h8x9y0000qwertyui05001';
@@ -51,12 +53,14 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
   let queryBus: { execute: jest.Mock };
   let vorfallRepo: { findById: jest.Mock; save: jest.Mock; existsInEinsatz: jest.Mock };
   let pdfRenderer: { generate: jest.Mock };
+  let jsonRenderer: { generate: jest.Mock };
 
   beforeEach(async () => {
     commandBus = { execute: jest.fn() };
     queryBus = { execute: jest.fn() };
     vorfallRepo = { findById: jest.fn(), save: jest.fn(), existsInEinsatz: jest.fn() };
     pdfRenderer = { generate: jest.fn().mockResolvedValue(Buffer.from('%PDF-1.4 fake')) };
+    jsonRenderer = { generate: jest.fn().mockResolvedValue(Buffer.from('{"schemaVersion":1}', 'utf-8')) };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EigenschutzVorfallController],
@@ -66,6 +70,7 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
         { provide: LOGGER, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() } },
         { provide: EIGENSCHUTZ_VORFALL_REPOSITORY, useValue: vorfallRepo as unknown as IEigenschutzVorfallRepository },
         { provide: EIGENSCHUTZ_VORFALL_PDF_RENDERER, useValue: pdfRenderer },
+        { provide: EIGENSCHUTZ_VORFALL_JSON_RENDERER, useValue: jsonRenderer },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -238,6 +243,7 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
           { provide: LOGGER, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() } },
           { provide: EIGENSCHUTZ_VORFALL_REPOSITORY, useValue: vorfallRepo as unknown as IEigenschutzVorfallRepository },
           { provide: EIGENSCHUTZ_VORFALL_PDF_RENDERER, useValue: pdfRenderer },
+          { provide: EIGENSCHUTZ_VORFALL_JSON_RENDERER, useValue: jsonRenderer },
         ],
       })
         .overrideGuard(JwtAuthGuard)
@@ -268,6 +274,7 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
           { provide: LOGGER, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() } },
           { provide: EIGENSCHUTZ_VORFALL_REPOSITORY, useValue: vorfallRepo as unknown as IEigenschutzVorfallRepository },
           { provide: EIGENSCHUTZ_VORFALL_PDF_RENDERER, useValue: pdfRenderer },
+          { provide: EIGENSCHUTZ_VORFALL_JSON_RENDERER, useValue: jsonRenderer },
         ],
       })
         .overrideGuard(JwtAuthGuard)
@@ -357,6 +364,51 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
         expect(response.context.rule).toBe('KontextSnapshotCorrupt');
         expect(response.context.layer).toBe('infrastructure');
       }
+    });
+  });
+
+  describe('GET /vorfaelle/:vorfallId/audit-timeline (Story 5.6)', () => {
+    it('(A1) getVorfallAuditTimeline erfordert eigenschutz:vorfall:read', () => {
+      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzVorfallController.prototype.getVorfallAuditTimeline);
+      expect(required).toEqual(['eigenschutz:vorfall:read']);
+      expect(required).not.toContain('eigenschutz:vorfall:export');
+    });
+
+    it('(A2) Happy Path: Query wird gebaut und DTO-Dates werden ISO-Strings', async () => {
+      queryBus.execute.mockResolvedValue(
+        Result.ok({
+          eintraege: [
+            {
+              id: 'evt-1',
+              type: 'exported',
+              occurredAt: NOW,
+              userId: USER_ID,
+              userName: 'Rubeen',
+              format: 'pdf',
+              label: 'Export durch Rubeen als PDF',
+            },
+          ],
+        }),
+      );
+
+      const dto = await controller.getVorfallAuditTimeline(EINSATZ_ID, 'clw3h8x9y0000qwertyui05010');
+
+      const query = queryBus.execute.mock.calls[0][0] as GetVorfallAuditTimelineQuery;
+      expect(query).toBeInstanceOf(GetVorfallAuditTimelineQuery);
+      expect(query.einsatzId).toBe(EINSATZ_ID);
+      expect(dto.eintraege).toHaveLength(1);
+      expect(dto.eintraege[0].occurredAt).toBe(NOW.toISOString());
+      expect(dto.eintraege[0].format).toBe('pdf');
+    });
+
+    it('(A3) NotFound:Vorfall → 404', async () => {
+      queryBus.execute.mockResolvedValue(Result.fail('NotFound:Vorfall'));
+      await expect(controller.getVorfallAuditTimeline(EINSATZ_ID, 'cl9vorfallnotfound012345x')).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('(A4) InfrastructureError:* → 500', async () => {
+      queryBus.execute.mockResolvedValue(Result.fail('InfrastructureError:VorfallAuditTimeline:Outbox:Timeout'));
+      await expect(controller.getVorfallAuditTimeline(EINSATZ_ID, 'clw3h8x9y0000qwertyui05010')).rejects.toBeInstanceOf(InternalServerErrorException);
     });
   });
 
@@ -496,6 +548,7 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
     it('(E2-c) Erfolg: 200 + application/pdf + Buffer-Body', async () => {
       const aggregate = buildAggregate();
       queryBus.execute.mockResolvedValue(Result.ok(aggregate));
+      commandBus.execute.mockResolvedValue(Result.ok('audit-event-id'));
       const { res, headers } = buildResponseMock();
 
       await controller.exportVorfall(EINSATZ_ID, aggregate.id.value, undefined, { userId: USER_ID } as never, res as never);
@@ -505,6 +558,13 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
       expect(generateArg.vorfall).toBe(aggregate);
       expect(generateArg.erzeugtVonUserId).toBe(USER_ID);
       expect(generateArg.erzeugtAm).toBeInstanceOf(Date);
+      const auditCommand = commandBus.execute.mock.calls[0][0] as AuditVorfallExportCommand;
+      expect(auditCommand).toBeInstanceOf(AuditVorfallExportCommand);
+      expect(auditCommand.einsatzId).toBe(EINSATZ_ID);
+      expect(auditCommand.vorfallId).toBe(aggregate.id.value);
+      expect(auditCommand.exportedByUserId).toBe(USER_ID);
+      expect(auditCommand.format).toBe('pdf');
+      expect(auditCommand.downloadedAt).toBe(generateArg.erzeugtAm);
 
       expect(headers['content-type']).toBe('application/pdf');
       expect(headers['content-disposition']).toMatch(new RegExp(`^attachment; filename="vorfall-${aggregate.id.value}-\\d{8}-\\d{4}\\.pdf"$`));
@@ -515,27 +575,57 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
       expect(buf.subarray(0, 4).toString()).toBe('%PDF');
     });
 
-    it('(E2-d) format=json → 400 mit notSupported-Sentinel', async () => {
+    it('(E2-d-json) format=json → 200 + application/json + Buffer-Body (Story 5.5)', async () => {
+      const aggregate = buildAggregate();
+      queryBus.execute.mockResolvedValue(Result.ok(aggregate));
+      commandBus.execute.mockResolvedValue(Result.ok('audit-event-id'));
+      const { res, headers } = buildResponseMock();
+
+      await controller.exportVorfall(EINSATZ_ID, aggregate.id.value, 'json', { userId: USER_ID } as never, res as never);
+
+      expect(jsonRenderer.generate).toHaveBeenCalledTimes(1);
+      const generateArg = jsonRenderer.generate.mock.calls[0][0];
+      expect(generateArg.vorfall).toBe(aggregate);
+      expect(generateArg.erzeugtVonUserId).toBe(USER_ID);
+      expect(generateArg.erzeugtAm).toBeInstanceOf(Date);
+      const auditCommand = commandBus.execute.mock.calls[0][0] as AuditVorfallExportCommand;
+      expect(auditCommand).toBeInstanceOf(AuditVorfallExportCommand);
+      expect(auditCommand.format).toBe('json');
+      expect(auditCommand.downloadedAt).toBe(generateArg.erzeugtAm);
+
+      expect(headers['content-type']).toBe('application/json; charset=utf-8');
+      expect(headers['content-disposition']).toMatch(new RegExp(`^attachment; filename="vorfall-${aggregate.id.value}-\\d{8}-\\d{4}\\.json"$`));
+      expect(headers['content-length']).toBeDefined();
+      expect(headers['cache-control']).toBe('no-store, private');
+      expect(res.send).toHaveBeenCalledTimes(1);
+      expect(pdfRenderer.generate).not.toHaveBeenCalled();
+    });
+
+    it('(E2-d-invalid) format=xml → 400 mit notSupported-Sentinel (Sentinel-Pfad bleibt lebendig)', async () => {
       const { res } = buildResponseMock();
       try {
-        await controller.exportVorfall(EINSATZ_ID, VORFALL_ID, 'json', { userId: USER_ID } as never, res as never);
+        await controller.exportVorfall(EINSATZ_ID, VORFALL_ID, 'xml', { userId: USER_ID } as never, res as never);
         fail('expected BadRequestException');
       } catch (e) {
         expect(e).toBeInstanceOf(BadRequestException);
         const response = (e as BadRequestException).getResponse() as { message: string; context: { rule: string; filter: string } };
-        expect(response.message).toBe('ValidationFailed:VorfallExport:format=json:notSupported');
+        expect(response.message).toBe('ValidationFailed:VorfallExport:format=xml:notSupported');
         expect(response.context.rule).toBe('ValidationFailed');
-        expect(response.context.filter).toBe('format=json');
+        expect(response.context.filter).toBe('format=xml');
       }
       expect(pdfRenderer.generate).not.toHaveBeenCalled();
+      expect(jsonRenderer.generate).not.toHaveBeenCalled();
+      expect(commandBus.execute).not.toHaveBeenCalled();
     });
 
     it('(E2-e) format=pdf (explizit) → 200', async () => {
       const aggregate = buildAggregate();
       queryBus.execute.mockResolvedValue(Result.ok(aggregate));
+      commandBus.execute.mockResolvedValue(Result.ok('audit-event-id'));
       const { res } = buildResponseMock();
       await controller.exportVorfall(EINSATZ_ID, aggregate.id.value, 'pdf', { userId: USER_ID } as never, res as never);
       expect(pdfRenderer.generate).toHaveBeenCalledTimes(1);
+      expect(commandBus.execute).toHaveBeenCalledWith(expect.any(AuditVorfallExportCommand));
       expect(res.send).toHaveBeenCalledTimes(1);
     });
 
@@ -567,10 +657,37 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
     it('(E2-f) format weggelassen → Default pdf → 200', async () => {
       const aggregate = buildAggregate();
       queryBus.execute.mockResolvedValue(Result.ok(aggregate));
+      commandBus.execute.mockResolvedValue(Result.ok('audit-event-id'));
       const { res } = buildResponseMock();
       await controller.exportVorfall(EINSATZ_ID, aggregate.id.value, undefined, { userId: USER_ID } as never, res as never);
       expect(pdfRenderer.generate).toHaveBeenCalledTimes(1);
       expect(res.send).toHaveBeenCalledTimes(1);
+    });
+
+    it('(E4) Renderer-Throw: kein Audit-Command und keine Response-Headers', async () => {
+      const aggregate = buildAggregate();
+      queryBus.execute.mockResolvedValue(Result.ok(aggregate));
+      pdfRenderer.generate.mockRejectedValue(new Error('Render failed'));
+      const { res } = buildResponseMock();
+
+      await expect(controller.exportVorfall(EINSATZ_ID, aggregate.id.value, 'pdf', { userId: USER_ID } as never, res as never)).rejects.toThrow('Render failed');
+
+      expect(commandBus.execute).not.toHaveBeenCalled();
+      expect(res.setHeader).not.toHaveBeenCalled();
+      expect(res.send).not.toHaveBeenCalled();
+    });
+
+    it('(E5) Audit-Command-Failure: kein Download wird ausgeliefert', async () => {
+      const aggregate = buildAggregate();
+      queryBus.execute.mockResolvedValue(Result.ok(aggregate));
+      commandBus.execute.mockResolvedValue(Result.fail('InfrastructureError:AuditDown'));
+      const { res } = buildResponseMock();
+
+      await expect(controller.exportVorfall(EINSATZ_ID, aggregate.id.value, 'pdf', { userId: USER_ID } as never, res as never)).rejects.toBeInstanceOf(InternalServerErrorException);
+
+      expect(pdfRenderer.generate).toHaveBeenCalledTimes(1);
+      expect(res.setHeader).not.toHaveBeenCalled();
+      expect(res.send).not.toHaveBeenCalled();
     });
   });
 });

@@ -51,6 +51,10 @@ vi.mock('@/features/eigenschutz/api/queries', () => ({
   useSyncConflicts: () => mocks.syncConflicts,
 }));
 
+vi.mock('../../organisms/AmpelDashboard', () => ({
+  AmpelDashboard: ({ einsatzId }: { readonly einsatzId: string }) => <section data-testid="ampel-dashboard">Dashboard {einsatzId}</section>,
+}));
+
 import { EigenschutzEntryPage } from '../EigenschutzEntryPage';
 
 beforeEach(() => {
@@ -69,6 +73,18 @@ describe('EigenschutzEntryPage', () => {
     expect(screen.getByText(/Arbeitsschutz und Sicherheitsmaßnahmen/)).toBeInTheDocument();
   });
 
+  it('rendert das AmpelDashboard als erste Arbeitsfläche', () => {
+    renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-1" />);
+
+    expect(screen.getByTestId('ampel-dashboard')).toHaveTextContent('Dashboard einsatz-1');
+  });
+
+  it('rendert keinen Root-Platzhaltertext mehr', () => {
+    renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-1" />);
+
+    expect(screen.queryByText(/Hier entstehen/)).toBeNull();
+  });
+
   it('zeigt den Gefährdungsbeurteilungen-Link bei vorhandener einsatzId', () => {
     renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-42" />);
 
@@ -79,6 +95,7 @@ describe('EigenschutzEntryPage', () => {
   it('blendet den Link ohne einsatzId aus', () => {
     renderWithProviders(<EigenschutzEntryPage />);
 
+    expect(screen.queryByTestId('ampel-dashboard')).toBeNull();
     expect(screen.queryByTestId('eigenschutz-gefaehrdungen-link')).toBeNull();
     expect(screen.queryByTestId('eigenschutz-sync-konflikte-link')).toBeNull();
   });

@@ -53,9 +53,11 @@ import { AckPsaQuittungDto } from '@/application/eigenschutz/dto/ack-psa-quittun
 import { MeldeLueckeDto } from '@/application/eigenschutz/dto/melde-luecke.dto';
 import { BulkChangePsaProfilDto, ChangePsaProfilDto, ChangePsaProfilResponseDto, PsaProfilZuweisungDto } from '@/application/eigenschutz/dto/change-psa-profil.dto';
 import { OffenePsaBekanntgabeEntryDto } from '@/application/eigenschutz/dto/offene-psa-bekanntgabe-entry.dto';
+import { OffeneRueckmeldungDto } from '@/application/eigenschutz/dto/offene-rueckmeldung.dto';
 import { PsaQuittungEntryDto } from '@/application/eigenschutz/dto/psa-quittung-entry.dto';
 import { GetPsaProfileByEinheitQuery } from '@/application/eigenschutz/queries/get-psa-profile-by-einheit/get-psa-profile-by-einheit.query';
 import { ListOffenePsaBekanntgabenQuery } from '@/application/eigenschutz/queries/list-offene-psa-bekanntgaben/list-offene-psa-bekanntgaben.query';
+import { ListOffeneRueckmeldungenQuery } from '@/application/eigenschutz/queries/list-offene-rueckmeldungen/list-offene-rueckmeldungen.query';
 import { ListPsaQuittungenQuery } from '@/application/eigenschutz/queries/list-psa-quittungen/list-psa-quittungen.query';
 
 /**
@@ -191,6 +193,31 @@ export class PsaProfilController {
       propagationGroupId: result.value.propagationGroupId,
       affected,
     };
+  }
+
+  /**
+   * Listet einzelne offene Ausrüstungs-Lücken-Rückmeldungen für das
+   * einsatzweite Eigenschutz-Seitenpanel.
+   *
+   * **Routing-Reihenfolge:** Diese statische Route bleibt vor den dynamischen
+   * `propagation-groups/:propagationGroupId/...`-Routen, damit der
+   * Express-Style-Matcher keine statischen Literale als `propagationGroupId`
+   * interpretiert.
+   */
+  @Get('rueckmeldungen/offen')
+  @RequiresPermission('eigenschutz:psa:read')
+  @ApiOperation({ summary: 'Offene Ausrüstungs-Lücken-Rückmeldungen eines Einsatzes auflisten' })
+  @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
+  @ApiWrappedResponse(OffeneRueckmeldungDto, {
+    isArray: true,
+    description: 'Liste offener Rückmeldungen, sortiert nach gemeldetAm DESC und stabilisiert über id ASC.',
+  })
+  async listOffeneRueckmeldungen(@Param('einsatzId') einsatzId: string): Promise<OffeneRueckmeldungDto[]> {
+    const result = (await this.queryBus.execute(new ListOffeneRueckmeldungenQuery(einsatzId))) as Result<OffeneRueckmeldungDto[]>;
+    if (result.isFailure || !result.value) {
+      throw this.mapQueryError(result.error ?? 'Offene Rückmeldungen konnten nicht geladen werden');
+    }
+    return result.value;
   }
 
   /**

@@ -129,6 +129,7 @@ models/AlarmierungEmpfaengerResponseDto.ts
 models/AlarmierungResponseDto.ts
 models/AlarmierungTimelineEventDataDto.ts
 models/AlarmierungTimelineEventDto.ts
+models/AmpelProjectionDto.ts
 models/AnalogDetailsDto.ts
 models/ApiMeta.ts
 models/ApiPagination.ts
@@ -244,9 +245,11 @@ models/DetailedHealthDto.ts
 models/DisconnectResponseDto.ts
 models/DmoDetailsDto.ts
 models/DwdWarnungDto.ts
+models/EigenschutzAmpelControllerGetAmpelVAlpha200Response.ts
 models/EigenschutzHealthControllerGetHealthVAlpha200Response.ts
 models/EigenschutzHealthDto.ts
 models/EigenschutzTelemetryControllerIngestVAlpha200Response.ts
+models/EigenschutzVorfallControllerGetVorfallAuditTimelineVAlpha200Response.ts
 models/EigenschutzVorfallControllerListVorfaelleVAlpha200Response.ts
 models/EigenschutzVorfallControllerReportVorfallVAlpha201Response.ts
 models/EigenschutzVorfallDto.ts
@@ -446,6 +449,7 @@ models/NotizControllerGetByEinsatzVAlpha200Response.ts
 models/NotizResponseDto.ts
 models/OffenePsaBekanntgabeEntryDto.ts
 models/OffenePsaBekanntgabeProfilToggleDto.ts
+models/OffeneRueckmeldungDto.ts
 models/OperativeRoleResponseDto.ts
 models/PersonRegisteredResponseDto.ts
 models/PersonStatistikDto.ts
@@ -465,6 +469,7 @@ models/ProfileControllerUpdateProfileV1200Response.ts
 models/PsaProfilControllerChangePsaProfilVAlpha201Response.ts
 models/PsaProfilControllerGetPsaProfileVAlpha200Response.ts
 models/PsaProfilControllerListOffeneBekanntgabenVAlpha200Response.ts
+models/PsaProfilControllerListOffeneRueckmeldungenVAlpha200Response.ts
 models/PsaProfilControllerListQuittungenVAlpha200Response.ts
 models/PsaProfilToggleDto.ts
 models/PsaProfilZuweisungDto.ts
@@ -603,6 +608,8 @@ models/UserManagementControllerFindAllVAlpha200Response.ts
 models/UserManagementControllerGetUserPermissionsVAlpha200Response.ts
 models/UserManagementControllerRemoveVAlpha200Response.ts
 models/UserPermissionDto.ts
+models/VorfallAuditTimelineDto.ts
+models/VorfallAuditTimelineEintragDto.ts
 models/WarnungenControllerGetDwdWarnungenVAlpha200Response.ts
 models/WarnungenControllerGetNinaGeoJsonVAlpha200Response.ts
 models/WarnungenControllerGetNinaWarnungDetailVAlpha200Response.ts

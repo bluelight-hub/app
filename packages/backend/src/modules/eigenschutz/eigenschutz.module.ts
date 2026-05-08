@@ -11,6 +11,7 @@ import { SyncConflictController } from './controllers/sync-conflict.controller';
 import { EigenschutzTelemetryController } from './controllers/eigenschutz-telemetry.controller';
 import { SicherungspostenController } from './controllers/sicherungsposten.controller';
 import { EigenschutzVorfallController } from './controllers/eigenschutz-vorfall.controller';
+import { EigenschutzAmpelController } from './controllers/eigenschutz-ampel.controller';
 
 /**
  * HTTP-Modul für den Eigenschutz-Feature-Slice.
@@ -40,6 +41,7 @@ import { EigenschutzVorfallController } from './controllers/eigenschutz-vorfall.
     EigenschutzTelemetryController,
     SicherungspostenController,
     EigenschutzVorfallController,
+    EigenschutzAmpelController,
   ],
 })
 export class EigenschutzModule {}

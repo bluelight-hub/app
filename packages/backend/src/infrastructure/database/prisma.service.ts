@@ -283,6 +283,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get eigenschutzVorfall() {
     return this._client.eigenschutzVorfall;
   }
+  get ampelProjection() {
+    return this._client.ampelProjection;
+  }
 
   // Delegate Prisma Client methods
   $connect() {
