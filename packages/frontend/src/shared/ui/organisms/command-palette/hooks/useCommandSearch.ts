@@ -42,6 +42,14 @@ function generatePageId(page: { id?: string; slug?: string; href?: string; name:
   return generateSlug(page.name);
 }
 
+function normalizeSearchText(value: string): string {
+  return value.toLocaleLowerCase('de-DE').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+}
+
+function buildSearchText(cmd: NavigationCommand): string {
+  return normalizeSearchText([cmd.name, cmd.module, cmd.description, ...(cmd.keywords ?? [])].filter(Boolean).join(' '));
+}
+
 /**
  * Hook für die Command-Suche in der Command Palette.
  *
@@ -79,6 +87,7 @@ export function useCommandSearch({ modules, search }: UseCommandSearchProps): Us
             shortcut: page.shortcut,
             badge: page.badge,
             description: page.description,
+            keywords: page.keywords,
             disabled: page.disabled,
             disabledReason: page.disabledReason,
             external: page.external,
@@ -95,8 +104,7 @@ export function useCommandSearch({ modules, search }: UseCommandSearchProps): Us
     () =>
       allCommands.map((cmd) => ({
         ...cmd,
-        nameLower: cmd.name.toLowerCase(),
-        moduleLower: cmd.module.toLowerCase(),
+        searchText: buildSearchText(cmd),
       })),
     [allCommands],
   );
@@ -105,11 +113,9 @@ export function useCommandSearch({ modules, search }: UseCommandSearchProps): Us
   const filteredCommands = useMemo(() => {
     if (!search) return allCommands;
 
-    const searchLower = search.toLowerCase();
-    // Use pre-computed lowercase values to avoid repeated toLowerCase() calls
-    return commandsWithLowerCase
-      .filter((cmd) => cmd.nameLower.includes(searchLower) || cmd.moduleLower.includes(searchLower))
-      .map(({ nameLower: _nameLower, moduleLower: _moduleLower, ...originalCmd }) => originalCmd);
+    const searchLower = normalizeSearchText(search.trim());
+    // Use pre-computed normalized values to avoid repeated string work.
+    return commandsWithLowerCase.filter((cmd) => cmd.searchText.includes(searchLower)).map(({ searchText: _searchText, ...originalCmd }) => originalCmd);
   }, [allCommands, commandsWithLowerCase, search]);
 
   // Group commands by module for display

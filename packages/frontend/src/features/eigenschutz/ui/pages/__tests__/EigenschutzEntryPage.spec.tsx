@@ -9,6 +9,7 @@
  */
 
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
 import type { SyncConflictListItemDto } from '@bluelight-hub/shared/client';
@@ -135,5 +136,17 @@ describe('EigenschutzEntryPage', () => {
     renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-1" />);
 
     expect(screen.queryByTestId('eigenschutz-sync-konflikte-badge')).toBeNull();
+  });
+
+  it('zeigt im Dashboard nur tatsächlich aktive Shortcut-Hilfe-Einträge', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-1" />);
+
+    await user.click(screen.getByTestId('eigenschutz-shortcut-help-trigger'));
+
+    const help = screen.getByTestId('eigenschutz-shortcut-help');
+    expect(help).toHaveTextContent('Tastaturhilfe');
+    expect(help).not.toHaveTextContent('Neue Gefährdungsbeurteilung');
+    expect(help).not.toHaveTextContent('Vorfall melden');
   });
 });

@@ -17,8 +17,10 @@
  */
 
 import { useGefaehrdungsbeurteilung } from '@/features/eigenschutz/api/queries';
+import { buildEigenschutzBrowserUrl } from '@/features/eigenschutz/utils/build-eigenschutz-deep-link';
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { useMemo, useState } from 'react';
 import type { GefaehrdungsbeurteilungHistorieEintrag } from '@bluelight-hub/shared/schemas';
 import { VersionTimestampFooter } from '../molecules/VersionTimestampFooter';
@@ -55,6 +57,13 @@ function GefaehrdungenSkeleton() {
 }
 
 const HISTORIE_POPOVER_ID = 'gefaehrdungsbeurteilung-historie-popover';
+const FORBIDDEN_ENTITY_MESSAGE = 'Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.';
+
+function getHttpStatus(error: unknown): number | null {
+  if (!error || typeof error !== 'object') return null;
+  const candidate = error as { status?: number; response?: { status?: number }; cause?: { status?: number } };
+  return candidate.status ?? candidate.response?.status ?? candidate.cause?.status ?? null;
+}
 
 export function GefaehrdungenDetailPage({ einsatzId, id, focusItem }: GefaehrdungenDetailPageProps) {
   const query = useGefaehrdungsbeurteilung(einsatzId, id);
@@ -72,6 +81,7 @@ export function GefaehrdungenDetailPage({ einsatzId, id, focusItem }: Gefaehrdun
   }
 
   if (query.isError || !query.data) {
+    const isForbidden = getHttpStatus(query.error) === 403;
     return (
       <div
         role="alert"
@@ -79,17 +89,25 @@ export function GefaehrdungenDetailPage({ einsatzId, id, focusItem }: Gefaehrdun
         data-testid="gefaehrdungen-detail-error"
       >
         <div>
-          <p className="font-medium">Gefährdungsbeurteilung konnte nicht geladen werden.</p>
-          <p className="mt-1 text-xs">Bitte erneut versuchen. Falls das Problem bestehen bleibt, ist der Bereich möglicherweise nicht freigegeben.</p>
+          <p className="font-medium">{isForbidden ? FORBIDDEN_ENTITY_MESSAGE : 'Gefährdungsbeurteilung konnte nicht geladen werden.'}</p>
+          {!isForbidden ? <p className="mt-1 text-xs">Bitte erneut versuchen. Falls das Problem bestehen bleibt, ist der Bereich möglicherweise nicht freigegeben.</p> : null}
         </div>
-        <Button intent="danger" appearance="outline" size="sm" type="button" onClick={() => void query.refetch()} data-testid="gefaehrdungen-detail-retry">
-          Erneut versuchen
-        </Button>
+        {!isForbidden ? (
+          <Button intent="danger" appearance="outline" size="sm" type="button" onClick={() => void query.refetch()} data-testid="gefaehrdungen-detail-retry">
+            Erneut versuchen
+          </Button>
+        ) : null}
       </div>
     );
   }
 
   const beurteilung = query.data;
+  const detailUrl = buildEigenschutzBrowserUrl({
+    type: 'gefaehrdungsbeurteilung',
+    einsatzId,
+    id: beurteilung.id,
+    focusItem,
+  });
   const drawerEntry =
     selectedHistorieEintrag?.gueltigBis === null
       ? {
@@ -110,13 +128,16 @@ export function GefaehrdungenDetailPage({ einsatzId, id, focusItem }: Gefaehrdun
             Einheit: <span className="font-medium text-text-primary">{einheitName ?? beurteilung.einheitId}</span>
           </p>
         </div>
-        <span
-          className="inline-flex items-center rounded-control bg-action-secondary px-2 py-1 text-xs font-medium text-text-secondary"
-          title="Optimistic-Concurrency-Token — wird beim Speichern mitgeschickt."
-          data-testid="gefaehrdungen-detail-version-badge"
-        >
-          Version {beurteilung.version}
-        </span>
+        <div className="flex flex-wrap items-start justify-end gap-2">
+          <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="gefaehrdungen-detail-copy-status" />
+          <span
+            className="inline-flex items-center rounded-control bg-action-secondary px-2 py-1 text-xs font-medium text-text-secondary"
+            title="Optimistic-Concurrency-Token — wird beim Speichern mitgeschickt."
+            data-testid="gefaehrdungen-detail-version-badge"
+          >
+            Version {beurteilung.version}
+          </span>
+        </div>
       </header>
 
       <GefaehrdungenEditorOrganism einsatzId={einsatzId} beurteilung={beurteilung} focusItem={focusItem} />

@@ -1,12 +1,15 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { useEigenschutzShortcuts } from '@/features/eigenschutz/hooks/useEigenschutzShortcuts';
+import { useWorkspaceBlockingOverlay } from '@/features/workspace/hooks/use-workspace-blocking-overlay';
 import { useEinsatzEinheiten } from '@/features/kraefte/api/use-einsatz-einheiten';
 import { useListVorfaelle, type VorfallListBackendFilter } from '../../api/use-list-vorfaelle';
 import { replaceFilterState, selectFilterIsActive, useVorfallFilterState, type VorfallFilterState } from '../../stores/vorfall-filter.store';
 import { VorfallFilterBar } from '../organisms/VorfallFilterBar';
 import { VorfallList } from '../organisms/VorfallList';
 import { VorfallMeldenDrawer } from '../organisms/VorfallMeldenDrawer';
+import { EigenschutzShortcutHelpPopover } from '../molecules/EigenschutzShortcutHelpPopover';
 import { resolveAbschnittToEinheitIds } from '../../utils/resolve-abschnitt-einheiten';
 
 export interface VorfaellePageProps {
@@ -14,7 +17,7 @@ export interface VorfaellePageProps {
   readonly einheitId: string | null;
   // AC10 verlangt 2-State-UK-Filter; URL-Schema kennt nur `'1'` (oder
   // weglassen). Tri-State (`'0'`) ist defer (siehe Story-Q-Liste).
-  readonly initialSearch?: { abschnittIds?: ReadonlyArray<string>; von?: string; bis?: string; uk?: '1' };
+  readonly initialSearch?: { abschnittIds?: ReadonlyArray<string>; von?: string; bis?: string; uk?: '1'; action?: 'new-vorfall' };
 }
 
 /**
@@ -42,6 +45,12 @@ function localNextDayStartIso(yyyymmdd: string | undefined): string | undefined 
 
 const ROUTE_PATH = '/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle' as const;
 
+function withoutActionParam(prev: Record<string, unknown>): Record<string, unknown> {
+  const next = { ...prev };
+  delete next.action;
+  return next;
+}
+
 /**
  * Seite „Vorfälle" (Story 5.1 + 5.3).
  *
@@ -52,6 +61,8 @@ const ROUTE_PATH = '/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle' as
  */
 export function VorfaellePage({ einsatzId, einheitId, initialSearch }: VorfaellePageProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
+  const { isBlocking: workspaceIsBlocking } = useWorkspaceBlockingOverlay();
   const navigate = useNavigate();
   const filterState = useVorfallFilterState();
   const filterBarRef = useRef<HTMLButtonElement>(null);
@@ -82,6 +93,10 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
   // Skippt das Schreiben, wenn der Store gerade aus der URL gefüllt wurde —
   // dadurch entstehen keine redundanten History-Einträge / Loop-Reentries.
   useEffect(() => {
+    if (initialSearch?.action === 'new-vorfall') {
+      return;
+    }
+
     const nextKey = stateKey(filterState);
     if (lastSyncedKeyRef.current === nextKey) return;
     lastSyncedKeyRef.current = nextKey;
@@ -92,29 +107,49 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
       search,
       replace: true,
     });
-  }, [filterState, einsatzId, navigate]);
+  }, [filterState, einsatzId, initialSearch?.action, navigate]);
 
-  // `/`-Shortcut: fokussiert das erste Filter-Control. Nur außerhalb von
-  // Eingabefeldern aktiv (sonst kann Sabine kein „/" tippen). Fallback bei
-  // disabled Abschnitt-Dropdown auf das Von-Datum-Input (F15).
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent): void {
-      if (e.key !== '/') return;
-      const target = e.target as HTMLElement | null;
-      const tag = target?.tagName ?? '';
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
-      e.preventDefault();
-      const button = filterBarRef.current;
-      if (button && !button.disabled) {
-        button.focus();
-        return;
-      }
-      const fallback = document.querySelector<HTMLInputElement>('[data-testid="vorfaelle-filter-von"]');
-      fallback?.focus();
+  const focusPrimaryFilter = useCallback(() => {
+    const button = filterBarRef.current;
+    if (button && !button.disabled) {
+      button.focus();
+      return;
     }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    const fallback = document.querySelector<HTMLInputElement>('[data-testid="vorfaelle-filter-von"]');
+    fallback?.focus();
   }, []);
+
+  const clearActionParam = useCallback(() => {
+    if (initialSearch?.action !== 'new-vorfall') return;
+    void (navigate as unknown as (opts: { to: typeof ROUTE_PATH; params: { einsatzId: string }; search: (prev: Record<string, unknown>) => Record<string, unknown>; replace: boolean }) => void)({
+      to: ROUTE_PATH,
+      params: { einsatzId },
+      search: withoutActionParam,
+      replace: true,
+    });
+  }, [einsatzId, initialSearch?.action, navigate]);
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    clearActionParam();
+  }, [clearActionParam]);
+
+  useEffect(() => {
+    if (initialSearch?.action === 'new-vorfall') {
+      setDrawerOpen(true);
+    }
+  }, [initialSearch?.action]);
+
+  useEigenschutzShortcuts({
+    context: 'vorfaelle',
+    enabled: true,
+    isOverlayBlocking: workspaceIsBlocking || drawerOpen || shortcutHelpOpen,
+    isHelpOpen: shortcutHelpOpen,
+    onOpenHelp: () => setShortcutHelpOpen(true),
+    onCloseHelp: () => setShortcutHelpOpen(false),
+    onFocusPrimaryFilter: focusPrimaryFilter,
+    onOpenVorfallCreate: () => setDrawerOpen(true),
+  });
 
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const { backendFilter, truncatedHint } = useMemo(() => {
@@ -142,9 +177,12 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
           <h1 className="text-2xl font-bold text-text-primary">Vorfälle</h1>
           <p className="mt-1 text-sm text-text-muted">Filter persistent über URL — als Deep-Link teilbar.</p>
         </div>
-        <Button data-testid="vorfaelle-add-button" intent="primary" onClick={() => setDrawerOpen(true)}>
-          + Vorfall melden
-        </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <EigenschutzShortcutHelpPopover context="vorfaelle" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} />
+          <Button data-testid="vorfaelle-add-button" intent="primary" onClick={() => setDrawerOpen(true)} kbd="v">
+            + Vorfall melden
+          </Button>
+        </div>
       </header>
 
       <VorfallFilterBar einsatzId={einsatzId} ref={filterBarRef} truncatedHint={truncatedHint} />
@@ -167,7 +205,7 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
         }}
       />
 
-      <VorfallMeldenDrawer einsatzId={einsatzId} einheitId={einheitId} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <VorfallMeldenDrawer einsatzId={einsatzId} einheitId={einheitId} open={drawerOpen} onClose={closeDrawer} />
     </div>
   );
 }

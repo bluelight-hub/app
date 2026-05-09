@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PiClipboard, PiHouse } from 'react-icons/pi';
+import { PiClipboard, PiHouse, PiShieldWarning } from 'react-icons/pi';
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SingleEinsatzLayout } from '../SingleEinsatzLayout';
@@ -27,6 +27,10 @@ const myTeilnahmeState = {
 };
 const currentUserState = {
   user: { id: 'user-1', username: 'einsatz-user' },
+  isLoading: false,
+};
+const myRolleState = {
+  data: { rolle: 'BEFEHLSGEBER', permissions: {} },
   isLoading: false,
 };
 
@@ -104,6 +108,26 @@ const workspaceModules = [
       },
     ],
   },
+  {
+    id: 'sicherheit',
+    label: 'Sicherheit',
+    description: 'Gefahren und Eigenschutz',
+    routeTarget: '/app/einsatz/$einsatzId/sicherheit/gefahren',
+    icon: PiShieldWarning,
+    color: 'red' as const,
+    priority: 40,
+    visibility: { default: 'visible' as const },
+    shortcut: { modifiers: ['alt'], key: '4' },
+    subPages: [
+      {
+        id: 'eigenschutz',
+        label: 'Eigenschutz',
+        href: '/app/einsatz/$einsatzId/sicherheit/eigenschutz',
+        icon: PiShieldWarning,
+        visibility: { default: 'visible' as const },
+      },
+    ],
+  },
 ];
 
 vi.mock('@tanstack/react-router', () => ({
@@ -141,6 +165,10 @@ vi.mock('@/features/befehl', () => ({
   useBefehlWebSocket: vi.fn(),
   useMissedBefehlAlerts: vi.fn(),
   useUnquittierteBefehleCount: () => 0,
+}));
+
+vi.mock('@/features/befehl/api/use-my-einsatz-rolle', () => ({
+  useMyEinsatzRolle: () => myRolleState,
 }));
 
 vi.mock('@/features/einsatz', () => ({
@@ -244,6 +272,16 @@ vi.mock('@/features/workspace', async () => {
   };
 });
 
+vi.mock('@/features/eigenschutz/hooks/use-aktive-einsatz-einheit', () => ({
+  useAktiveEinsatzEinheit: () => ({
+    einheitId: 'einheit-1',
+    einheitName: 'RTW 1',
+    einheiten: [],
+    setAktiveEinheit: vi.fn(),
+    isLoading: false,
+  }),
+}));
+
 vi.mock('@/shared', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/shared')>();
   return {
@@ -294,6 +332,8 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
     clearActiveEinsatzSpy.mockReset();
     currentUserState.user = { id: 'user-1', username: 'einsatz-user' };
     currentUserState.isLoading = false;
+    myRolleState.data = { rolle: 'BEFEHLSGEBER', permissions: {} };
+    myRolleState.isLoading = false;
     myTeilnahmeState.data = {
       data: {
         einsatzPersonId: 'teilnahme-1',
@@ -349,6 +389,31 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
     expect(palette).toHaveTextContent('ETB');
     expect(palette).toHaveTextContent('Kommunikation');
     expect(palette).toHaveTextContent('Protokoll (Später)');
+  });
+
+  it('speist Eigenschutz-Aktionen als eigene Command-Palette-Gruppe ein', async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    await user.click(screen.getAllByRole('button', { name: /befehle und navigation/i })[0]);
+
+    const palette = screen.getByTestId('command-palette');
+    expect(palette).toHaveTextContent('Eigenschutz');
+    expect(palette).toHaveTextContent('Eigenschutz: Neue Gefährdungsbeurteilung');
+    expect(palette).toHaveTextContent('Eigenschutz: Neuer Vorfall');
+    expect(palette).toHaveTextContent('Eigenschutz: PSA-Profil ändern');
+    expect(palette).toHaveTextContent('Eigenschutz: Vorfall-Archiv öffnen');
+  });
+
+  it('zeigt Konfliktauflösung für Nicht-Befehlsgeber als gesperrten Befehl', async () => {
+    const user = userEvent.setup();
+    myRolleState.data = { rolle: 'EMPFAENGER', permissions: {} };
+    renderLayout();
+
+    await user.click(screen.getAllByRole('button', { name: /befehle und navigation/i })[0]);
+
+    const palette = screen.getByTestId('command-palette');
+    expect(palette).toHaveTextContent('Eigenschutz: Konflikte auflösen (Nur Befehlsgeber dürfen Konflikte auflösen.)');
   });
 
   it('blockiert Workspace-Modul-Hotkeys, sobald ein Overlay aktiv ist', () => {

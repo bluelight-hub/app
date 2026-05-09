@@ -8,6 +8,7 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EigenschutzVorfallListItemDto } from '@bluelight-hub/shared/client';
+import { WorkspaceBlockingOverlayProvider } from '@/features/workspace/hooks/use-workspace-blocking-overlay';
 
 const mockNavigate = vi.fn();
 const mockList = vi.fn().mockResolvedValue({ data: [], meta: {} });
@@ -51,7 +52,7 @@ vi.mock('@/features/auth/api/use-users', () => ({
   useUserNames: () => ({ getUserName: () => '' }),
 }));
 
-import { resetFilter } from '../../../stores/vorfall-filter.store';
+import { replaceFilterState, resetFilter } from '../../../stores/vorfall-filter.store';
 import { VorfaellePage } from '../VorfaellePage';
 
 function makeWrapper() {
@@ -98,6 +99,43 @@ describe('VorfaellePage (Story 5.1 + 5.3)', () => {
     expect(screen.getByTestId('vorfall-melden-drawer')).toBeInTheDocument();
   });
 
+  it('(P2b) öffnet den Melde-Drawer per Action-Param und entfernt den Param beim Schließen', async () => {
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfaellePage einsatzId="einsatz-1" einheitId="clw3h8x9y0000qwertyui05002" initialSearch={{ action: 'new-vorfall' }} />
+      </Wrapper>,
+    );
+
+    expect(screen.getByTestId('vorfall-melden-drawer')).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.keyboard('{Escape}');
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle',
+        params: { einsatzId: 'einsatz-1' },
+        search: expect.any(Function),
+        replace: true,
+      }),
+    );
+  });
+
+  it('(P2c) überschreibt den Action-Param beim Initial-Mount nicht mit altem Filter-Store', async () => {
+    replaceFilterState({ vorfallZeitVon: '2026-05-01' });
+    const Wrapper = makeWrapper();
+
+    render(
+      <Wrapper>
+        <VorfaellePage einsatzId="einsatz-1" einheitId="clw3h8x9y0000qwertyui05002" initialSearch={{ action: 'new-vorfall' }} />
+      </Wrapper>,
+    );
+
+    expect(screen.getByTestId('vorfall-melden-drawer')).toBeInTheDocument();
+    await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
+  });
+
   it('(P3) /-Shortcut fokussiert das erste Filter-Control (Abschnitt-Trigger)', async () => {
     const Wrapper = makeWrapper();
     render(
@@ -109,6 +147,62 @@ describe('VorfaellePage (Story 5.1 + 5.3)', () => {
     const user = userEvent.setup();
     await user.keyboard('/');
     await waitFor(() => expect(document.activeElement).toBe(screen.getByTestId('vorfaelle-filter-abschnitt-trigger')));
+  });
+
+  it('(P3b) schützt Filter-Eingaben vor globalem /-Shortcut', async () => {
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfaellePage einsatzId="einsatz-1" einheitId="clw3h8x9y0000qwertyui05002" />
+      </Wrapper>,
+    );
+
+    const user = userEvent.setup();
+    const dateInput = screen.getByTestId('vorfaelle-filter-von');
+    await user.click(dateInput);
+    await user.keyboard('/');
+
+    expect(document.activeElement).toBe(dateInput);
+  });
+
+  it('(P3c) öffnet den bestehenden Melde-Drawer per V-Shortcut und die Hilfe per ?', async () => {
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfaellePage einsatzId="einsatz-1" einheitId="clw3h8x9y0000qwertyui05002" />
+      </Wrapper>,
+    );
+
+    const user = userEvent.setup();
+    await user.keyboard('v');
+    expect(screen.getByTestId('vorfall-melden-drawer')).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByTestId('vorfall-melden-drawer')).not.toBeInTheDocument());
+    await user.keyboard('?');
+    expect(screen.getByTestId('eigenschutz-shortcut-help')).toHaveTextContent('Filter fokussieren');
+    expect(screen.getByTestId('eigenschutz-shortcut-help')).toHaveTextContent('Vorfall melden');
+    await waitFor(() => expect(screen.getByTestId('eigenschutz-shortcut-help-close')).toHaveFocus());
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByTestId('eigenschutz-shortcut-help')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId('eigenschutz-shortcut-help-trigger')).toHaveFocus());
+  });
+
+  it('(P3d) blockiert V-Shortcut, wenn die Workspace-Shell ein Overlay offen hat', async () => {
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <WorkspaceBlockingOverlayProvider isBlocking>
+          <VorfaellePage einsatzId="einsatz-1" einheitId="clw3h8x9y0000qwertyui05002" />
+        </WorkspaceBlockingOverlayProvider>
+      </Wrapper>,
+    );
+
+    const user = userEvent.setup();
+    await user.keyboard('v');
+
+    expect(screen.queryByTestId('vorfall-melden-drawer')).not.toBeInTheDocument();
   });
 
   it('(P4) Initial-Search aus URL füllt den Filter-Store', async () => {

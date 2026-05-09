@@ -284,6 +284,24 @@ describe('VorfallMeldenDrawer (Story 5.1)', () => {
     expect(screen.getByTestId('vorfall-massnahmen-input')).toHaveAttribute('maxlength', '4000');
   });
 
+  it('Shift+Enter in der Maßnahmen-Textarea erzeugt eine neue Zeile und submitet nicht', async () => {
+    mockReport.mockResolvedValue({ data: VORFALL_DTO });
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfallMeldenDrawer einsatzId="einsatz-1" einheitId={VALID_EINHEIT} open={true} onClose={() => {}} />
+      </Wrapper>,
+    );
+
+    const user = userEvent.setup();
+    const massnahmen = screen.getByTestId('vorfall-massnahmen-input') as HTMLTextAreaElement;
+    await user.click(massnahmen);
+    await user.keyboard('Erste Zeile{Shift>}{Enter}{/Shift}zweite Zeile');
+
+    expect(massnahmen.value).toBe('Erste Zeile\nzweite Zeile');
+    expect(mockReport).not.toHaveBeenCalled();
+  });
+
   it('Drawer ist nicht gerendert wenn open=false', () => {
     const Wrapper = makeWrapper();
     render(

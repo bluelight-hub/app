@@ -143,6 +143,29 @@ describe('SicherheitsregelnPage', () => {
     expect(screen.getByTestId('sicherheitsregel-drawer-mode')).toHaveTextContent('create');
   });
 
+  it('öffnet den Create-Drawer per Action-Param und entfernt den Param beim Schließen', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<SicherheitsregelnPage einsatzId={EINSATZ_ID} initialAction="new-sicherheitsregel" />);
+
+    expect(screen.getByTestId('sicherheitsregel-drawer-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('sicherheitsregel-drawer-mode')).toHaveTextContent('create');
+
+    await user.click(screen.getByTestId('sicherheitsregel-drawer-close'));
+
+    expect(drawerProps.closeCount).toBe(1);
+  });
+
+  it('öffnet den Create-Drawer, wenn der Action-Param auf derselben Route nachträglich gesetzt wird', () => {
+    const { rerender } = renderWithProviders(<SicherheitsregelnPage einsatzId={EINSATZ_ID} />);
+
+    expect(screen.queryByTestId('sicherheitsregel-drawer-mock')).toBeNull();
+
+    rerender(<SicherheitsregelnPage einsatzId={EINSATZ_ID} initialAction="new-sicherheitsregel" />);
+
+    expect(screen.getByTestId('sicherheitsregel-drawer-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('sicherheitsregel-drawer-mode')).toHaveTextContent('create');
+  });
+
   it('Zeilen-Klick öffnet Drawer im Edit-Modus mit regel prop', async () => {
     mocks.regelnQuery.data = [
       {

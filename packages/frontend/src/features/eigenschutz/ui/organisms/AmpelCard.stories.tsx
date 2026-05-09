@@ -8,7 +8,9 @@
 
 import type { ComponentType } from 'react';
 import { AmpelProjectionDtoAktivePsaProfileEnum, AmpelProjectionDtoStatusEnum, type AmpelProjectionDto } from '@bluelight-hub/shared/client';
+import { SyncStatusBadge } from '../molecules/SyncStatusBadge';
 import { AmpelCard } from './AmpelCard';
+import { SeverityBanner } from './SeverityBanner';
 
 type ComponentProps<T> = T extends ComponentType<infer P> ? P : never;
 interface Meta<T> {
@@ -115,6 +117,87 @@ export const SchmalerContainer: Story = {
   render: (args) => (
     <div className="max-w-[360px]">
       <AmpelCard {...args} />
+    </div>
+  ),
+};
+
+export const NachtEinsatzPruefmatrix: Story = {
+  render: () => (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section className="rounded-panel border border-border-subtle bg-surface-canvas p-4 text-text-primary">
+        <h2 className="mb-3 text-title-sm font-semibold">Hell</h2>
+        <div className="space-y-3">
+          <SeverityBanner
+            variant="critical"
+            tone="assertive"
+            headline="PSA-Hochstufung erforderlich"
+            body="CBRN-Patientenlage im Abschnitt Nord."
+            primaryActionLabel="Quittieren"
+            onPrimary={() => undefined}
+          />
+          <SeverityBanner variant="warning" headline="Sicherheitsregel geändert" body="Neue Rückmeldung aus dem Einsatzabschnitt." />
+          <SeverityBanner variant="info" headline="Neue Regel verfügbar" body="Bitte vor dem Betreten prüfen." />
+          <div className="flex flex-wrap gap-2">
+            <SyncStatusBadge status="synced" savedVersion={3} />
+            <SyncStatusBadge status="syncing" />
+            <SyncStatusBadge status="offline-queued" />
+            <SyncStatusBadge status="conflict" />
+            <SyncStatusBadge status="error" />
+          </div>
+          <AmpelCard
+            projection={makeProjection({
+              status: AmpelProjectionDtoStatusEnum.Rot,
+              aktivePsaProfile: [
+                AmpelProjectionDtoAktivePsaProfileEnum.Basis,
+                AmpelProjectionDtoAktivePsaProfileEnum.Infektion,
+                AmpelProjectionDtoAktivePsaProfileEnum.Vu,
+                AmpelProjectionDtoAktivePsaProfileEnum.CbrnPatient,
+                AmpelProjectionDtoAktivePsaProfileEnum.Vollschutz,
+              ],
+              offeneVorfaelle: 1,
+              ausstehendePsaQuittungen: 2,
+            })}
+            einheitName="Abschnitt CBRN"
+          />
+        </div>
+      </section>
+      <section className="dark rounded-panel border border-border-subtle bg-surface-canvas p-4 text-text-primary">
+        <h2 className="mb-3 text-title-sm font-semibold">Dunkel</h2>
+        <div className="space-y-3">
+          <SeverityBanner
+            variant="critical"
+            tone="assertive"
+            headline="PSA-Hochstufung erforderlich"
+            body="CBRN-Patientenlage im Abschnitt Nord."
+            primaryActionLabel="Quittieren"
+            onPrimary={() => undefined}
+          />
+          <SeverityBanner variant="warning" headline="Sicherheitsregel geändert" body="Neue Rückmeldung aus dem Einsatzabschnitt." />
+          <SeverityBanner variant="info" headline="Neue Regel verfügbar" body="Bitte vor dem Betreten prüfen." />
+          <div className="flex flex-wrap gap-2">
+            <SyncStatusBadge status="synced" savedVersion={3} />
+            <SyncStatusBadge status="syncing" />
+            <SyncStatusBadge status="offline-queued" />
+            <SyncStatusBadge status="conflict" />
+            <SyncStatusBadge status="error" />
+          </div>
+          <AmpelCard
+            projection={makeProjection({
+              status: AmpelProjectionDtoStatusEnum.Rot,
+              aktivePsaProfile: [
+                AmpelProjectionDtoAktivePsaProfileEnum.Basis,
+                AmpelProjectionDtoAktivePsaProfileEnum.Infektion,
+                AmpelProjectionDtoAktivePsaProfileEnum.Vu,
+                AmpelProjectionDtoAktivePsaProfileEnum.CbrnPatient,
+                AmpelProjectionDtoAktivePsaProfileEnum.Vollschutz,
+              ],
+              offeneVorfaelle: 1,
+              ausstehendePsaQuittungen: 2,
+            })}
+            einheitName="Abschnitt CBRN"
+          />
+        </div>
+      </section>
     </div>
   ),
 };

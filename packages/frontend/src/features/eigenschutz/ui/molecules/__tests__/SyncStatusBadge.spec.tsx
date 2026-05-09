@@ -32,4 +32,23 @@ describe('SyncStatusBadge (Story 2.5)', () => {
 
     expect(screen.getByTestId('sync-status-badge')).toHaveTextContent('Version 8 gespeichert');
   });
+
+  it.each([
+    ['idle' as const, 'sync-synced'],
+    ['synced' as const, 'sync-synced'],
+    ['dirty' as const, 'sync-pending'],
+    ['debouncing' as const, 'sync-pending'],
+    ['local-saved' as const, 'sync-pending'],
+    ['syncing' as const, 'sync-pending'],
+    ['offline-queued' as const, 'sync-offline'],
+    ['conflict' as const, 'sync-conflict'],
+    ['error' as const, 'sync-conflict'],
+  ])('nutzt für %s die Sync-Tokenfamilie %s', (status, tokenFamily) => {
+    render(<SyncStatusBadge status={status} />);
+
+    const badge = screen.getByTestId('sync-status-badge');
+    expect(badge.className).toContain(`border-${tokenFamily}-border`);
+    expect(badge.className).toContain(`bg-${tokenFamily}-surface`);
+    expect(badge.className).toContain(`text-${tokenFamily}-text`);
+  });
 });

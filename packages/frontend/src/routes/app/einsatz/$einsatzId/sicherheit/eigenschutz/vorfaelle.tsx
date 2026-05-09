@@ -50,6 +50,7 @@ const VorfaelleSearchSchema = z
       .optional()
       .catch(undefined),
     uk: z.literal('1').optional().catch(undefined),
+    action: z.literal('new-vorfall').optional().catch(undefined),
   })
   .passthrough();
 

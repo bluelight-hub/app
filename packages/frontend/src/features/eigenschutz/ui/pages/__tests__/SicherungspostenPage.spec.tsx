@@ -9,9 +9,16 @@
 import { renderWithProviders } from '@/test/utils';
 import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 
 vi.mock('../../organisms/SicherungspostenList', () => ({
-  SicherungspostenList: (props: { einsatzId: string }) => <div data-testid="sicherungsposten-list-stub" data-einsatz-id={props.einsatzId} />,
+  SicherungspostenList: (props: { einsatzId: string; onCreate: () => void }) => (
+    <div data-testid="sicherungsposten-list-stub" data-einsatz-id={props.einsatzId}>
+      <button type="button" onClick={props.onCreate} data-testid="sicherungsposten-create-stub">
+        anlegen
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock('../../organisms/SicherungspostenDrawer', () => ({
@@ -45,5 +52,34 @@ describe('SicherungspostenPage', () => {
     const dialog = screen.getByTestId('aufloese-dialog-stub');
     expect(dialog.dataset.einsatzId).toBe('einsatz-42');
     expect(dialog.dataset.open).toBe('false');
+  });
+
+  it('öffnet den Create-Drawer per Action-Param', () => {
+    renderWithProviders(<SicherungspostenPage einsatzId="einsatz-42" initialAction="new-sicherungsposten" />);
+
+    const drawer = screen.getByTestId('sicherungsposten-drawer-stub');
+    expect(drawer.dataset.mode).toBe('create');
+    expect(drawer.dataset.open).toBe('true');
+  });
+
+  it('öffnet den Create-Drawer, wenn der Action-Param auf derselben Route nachträglich gesetzt wird', () => {
+    const { rerender } = renderWithProviders(<SicherungspostenPage einsatzId="einsatz-42" />);
+
+    expect(screen.getByTestId('sicherungsposten-drawer-stub').dataset.open).toBe('false');
+
+    rerender(<SicherungspostenPage einsatzId="einsatz-42" initialAction="new-sicherungsposten" />);
+
+    const drawer = screen.getByTestId('sicherungsposten-drawer-stub');
+    expect(drawer.dataset.mode).toBe('create');
+    expect(drawer.dataset.open).toBe('true');
+  });
+
+  it('öffnet den bestehenden Create-Flow weiterhin über die Liste', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<SicherungspostenPage einsatzId="einsatz-42" />);
+
+    await user.click(screen.getByTestId('sicherungsposten-create-stub'));
+
+    expect(screen.getByTestId('sicherungsposten-drawer-stub').dataset.open).toBe('true');
   });
 });

@@ -21,47 +21,47 @@ export function SyncStatusBadge({ status, savedVersion, className }: SyncStatusB
     idle: {
       label: 'Synchronisiert',
       icon: <PiCheckCircleFill className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-border-subtle bg-surface-panel text-text-muted',
+      className: 'border-sync-synced-border bg-sync-synced-surface text-sync-synced-text',
     },
     dirty: {
       label: 'Änderungen offen',
       icon: <PiPencilSimpleLine className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-status-warning-border bg-status-warning-surface text-status-warning-text',
+      className: 'border-sync-pending-border bg-sync-pending-surface text-sync-pending-text',
     },
     debouncing: {
       label: 'Änderungen offen',
       icon: <PiPencilSimpleLine className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-status-warning-border bg-status-warning-surface text-status-warning-text',
+      className: 'border-sync-pending-border bg-sync-pending-surface text-sync-pending-text',
     },
     'local-saved': {
       label: 'Lokal gespeichert',
       icon: <PiFloppyDiskLight className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-status-info-border bg-status-info-surface text-status-info-text',
+      className: 'border-sync-pending-border bg-sync-pending-surface text-sync-pending-text',
     },
     syncing: {
       label: 'Wird synchronisiert',
       icon: <PiArrowsClockwise className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-status-info-border bg-status-info-surface text-status-info-text',
+      className: 'border-sync-pending-border bg-sync-pending-surface text-sync-pending-text',
     },
     synced: {
       label: savedVersion === undefined ? 'Synchronisiert' : `Version ${savedVersion} gespeichert`,
       icon: <PiCheckCircleFill className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-status-success-border bg-status-success-surface text-status-success-text',
+      className: 'border-sync-synced-border bg-sync-synced-surface text-sync-synced-text',
     },
     'offline-queued': {
       label: 'Offline gespeichert',
       icon: <PiCloudSlash className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-status-warning-border bg-status-warning-surface text-status-warning-text',
+      className: 'border-sync-offline-border bg-sync-offline-surface text-sync-offline-text',
     },
     conflict: {
       label: 'Konflikt',
       icon: <PiWarningFill className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-status-warning-border bg-status-warning-surface text-status-warning-text',
+      className: 'border-sync-conflict-border bg-sync-conflict-surface text-sync-conflict-text',
     },
     error: {
       label: 'Speichern fehlgeschlagen',
       icon: <PiXCircleFill className="h-4 w-4" aria-hidden="true" />,
-      className: 'border-status-danger-border bg-status-danger-surface text-status-danger-text',
+      className: 'border-sync-conflict-border bg-sync-conflict-surface text-sync-conflict-text',
     },
   };
 

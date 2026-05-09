@@ -12,6 +12,8 @@
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import type { EigenschutzVorfallDto, EigenschutzVorfallDtoBeteiligteInner, EigenschutzVorfallDtoWo } from '@bluelight-hub/shared/client';
+import { buildEigenschutzBrowserUrl } from '@/features/eigenschutz/utils/build-eigenschutz-deep-link';
+import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { useExportVorfallAlsJson } from '../../api/use-export-vorfall-as-json';
 import { useExportVorfallAlsPdf } from '../../api/use-export-vorfall-as-pdf';
 import { useGetVorfall } from '../../api/use-get-vorfall';
@@ -35,6 +37,10 @@ function extractHttpStatus(error: unknown): number | null {
 
 function is404(error: unknown): boolean {
   return extractHttpStatus(error) === 404;
+}
+
+function is403(error: unknown): boolean {
+  return extractHttpStatus(error) === 403;
 }
 
 function VorfallDetailSkeleton() {
@@ -193,6 +199,14 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
   if (query.isLoading) return <VorfallDetailSkeleton />;
 
   if (query.isError) {
+    if (is403(query.error)) {
+      return (
+        <div data-testid="vorfall-detail-forbidden" className="rounded-panel border border-status-warning-border bg-status-warning-surface p-4">
+          <h2 className="text-base font-semibold text-status-warning-text">Vorfall nicht freigegeben</h2>
+          <p className="mt-1 text-sm text-text-muted">Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.</p>
+        </div>
+      );
+    }
     if (is404(query.error)) {
       return (
         <div data-testid="vorfall-detail-not-found" className="rounded-panel border border-status-warning-border bg-status-warning-surface p-4">
@@ -211,16 +225,18 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
 
   const vorfall = query.data as EigenschutzVorfallDto | undefined;
   if (!vorfall) return <VorfallDetailSkeleton />;
+  const detailUrl = buildEigenschutzBrowserUrl({ type: 'vorfall', einsatzId, vorfallId });
 
   return (
     <div className="space-y-4" data-testid="vorfall-detail-page">
-      <header className="flex items-start justify-between gap-4">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-text-primary">Vorfall vom {formatDateTime(vorfall.vorfallZeit)}</h1>
           {vorfall.unfallkasseRelevant ? <p className="mt-1 text-sm font-medium text-status-warning-text">Unfallkassen-relevant</p> : null}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="vorfall-detail-copy-status" />
             <button
               type="button"
               className="text-action-primary-foreground rounded-control bg-action-primary px-3 py-1.5 text-sm font-medium hover:bg-action-primary-hover disabled:cursor-not-allowed disabled:opacity-60"

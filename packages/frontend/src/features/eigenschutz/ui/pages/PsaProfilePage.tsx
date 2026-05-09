@@ -21,6 +21,8 @@ export interface PsaProfilePageProps {
   readonly einsatzId: string;
   readonly focusGroup?: string;
   readonly focusEinheitId?: string;
+  readonly initialAction?: 'psa-change';
+  readonly onActionConsumed?: () => void;
 }
 
 const FADE_DURATION_MS = 600;
@@ -37,7 +39,7 @@ const FADE_DURATION_MS = 600;
  * markieren wir die mutierten Einheiten kurz mit einem Fade — bei
  * `prefers-reduced-motion: reduce` ohne Animation.
  */
-export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId }: PsaProfilePageProps) {
+export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, initialAction, onActionConsumed }: PsaProfilePageProps) {
   const { user } = useCurrentUser();
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const selection = useEigenschutzSelection();
@@ -62,9 +64,38 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId }: PsaPro
     [],
   );
 
+  const clearActionParam = useCallback(() => {
+    if (initialAction !== 'psa-change') return;
+    onActionConsumed?.();
+  }, [initialAction, onActionConsumed]);
+
+  useEffect(() => {
+    if (initialAction !== 'psa-change') {
+      return;
+    }
+
+    if (!focusEinheitId) {
+      onActionConsumed?.();
+      return;
+    }
+
+    if (einheitenQuery.isLoading) {
+      return;
+    }
+
+    const targetExists = (einheitenQuery.data ?? []).some((einheit) => einheit.id === focusEinheitId);
+    if (targetExists) {
+      setSingleDrawerEinheitId(focusEinheitId);
+      return;
+    }
+
+    onActionConsumed?.();
+  }, [einheitenQuery.data, einheitenQuery.isLoading, focusEinheitId, initialAction, onActionConsumed]);
+
   const handleSingleSaved = useCallback(() => {
     setSingleDrawerEinheitId(null);
-  }, []);
+    clearActionParam();
+  }, [clearActionParam]);
 
   const triggerFade = useCallback(
     (einheitIds: readonly string[]) => {
@@ -192,7 +223,10 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId }: PsaPro
                 einheiten={allEinheiten}
                 callerUserId={user.id}
                 open={true}
-                onClose={() => setSingleDrawerEinheitId(null)}
+                onClose={() => {
+                  setSingleDrawerEinheitId(null);
+                  clearActionParam();
+                }}
                 onSaved={handleSingleSaved}
               />
             );

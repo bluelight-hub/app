@@ -72,6 +72,7 @@ export function CommandItem({ command, onSelect, isActive = true }: CommandItemP
   return (
     <Command.Item
       value={`${command.module} ${command.name}`}
+      keywords={command.keywords}
       onSelect={isDisabled ? undefined : () => onSelect(command)}
       disabled={isDisabled}
       aria-disabled={isDisabled}

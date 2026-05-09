@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SicherungspostenDto } from '@bluelight-hub/shared/client';
 import { AufloeseSicherungspostenDialog } from '../organisms/AufloeseSicherungspostenDialog';
 import { SicherungspostenDrawer } from '../organisms/SicherungspostenDrawer';
@@ -10,6 +10,8 @@ export interface SicherungspostenPageProps {
    * weitergereicht.
    */
   readonly einsatzId: string;
+  readonly initialAction?: 'new-sicherungsposten';
+  readonly onActionConsumed?: () => void;
 }
 
 type DrawerMode = 'closed' | 'create' | 'edit';
@@ -21,10 +23,17 @@ type DrawerMode = 'closed' | 'create' | 'edit';
  * Modus-Transitionen — die Page selbst hat keinen API-Aufruf, alle Daten
  * laden die Organisms eigenständig.
  */
-export function SicherungspostenPage({ einsatzId }: SicherungspostenPageProps) {
-  const [drawerMode, setDrawerMode] = useState<DrawerMode>('closed');
+export function SicherungspostenPage({ einsatzId, initialAction, onActionConsumed }: SicherungspostenPageProps) {
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>(initialAction === 'new-sicherungsposten' ? 'create' : 'closed');
   const [selectedPosten, setSelectedPosten] = useState<SicherungspostenDto | undefined>(undefined);
   const [aufloesenPosten, setAufloesenPosten] = useState<SicherungspostenDto | null>(null);
+
+  useEffect(() => {
+    if (initialAction === 'new-sicherungsposten') {
+      setSelectedPosten(undefined);
+      setDrawerMode('create');
+    }
+  }, [initialAction]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -53,6 +62,9 @@ export function SicherungspostenPage({ einsatzId }: SicherungspostenPageProps) {
         onClose={() => {
           setDrawerMode('closed');
           setSelectedPosten(undefined);
+          if (initialAction === 'new-sicherungsposten') {
+            onActionConsumed?.();
+          }
         }}
         posten={drawerMode === 'edit' ? selectedPosten : undefined}
       />

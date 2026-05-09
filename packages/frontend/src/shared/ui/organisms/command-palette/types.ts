@@ -9,6 +9,7 @@ export interface SubCommand {
   icon?: ComponentType<{ className?: string }>;
   description?: string;
   shortcut?: string[];
+  keywords?: string[];
 }
 
 export type CommandAction = (value?: unknown) => void | Promise<void>;
@@ -24,6 +25,7 @@ export interface NavigationCommand {
   shortcut?: string[];
   badge?: string;
   description?: string;
+  keywords?: string[];
   disabled?: boolean;
   disabledReason?: string;
   external?: boolean;
@@ -41,6 +43,7 @@ export interface ModuleSubPage {
   shortcut?: string[];
   badge?: string;
   description?: string;
+  keywords?: string[];
   disabled?: boolean;
   disabledReason?: string;
   external?: boolean;

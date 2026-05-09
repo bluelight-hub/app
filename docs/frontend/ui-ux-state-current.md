@@ -43,7 +43,7 @@ Es ergänzt die zeitlosen Ring-Verträge um eine momentane Bestandsaufnahme.
 - **Token-Namespace:** `--ring-1-*` (primitive) + Tailwind-`@theme inline`-Aliase (semantisch)
 - **Kategorien-Abdeckung:** Farbe ✅ · Typografie ✅ · Spacing/Density ✅ · Radius ✅ · Shadow ✅ · Warnstufen ✅ · Motion ✅
 - **Light/Dark-Mode:** vollständige Abdeckung, gesteuert über `.dark` auf `<html>` via `next-themes`
-- **Jüngste Erweiterung (Issue #627):** Warnstufen-Tokens `--ring-1-color-warnstufe-{keine|niedrig|mittel|hoch|akut}-{fill|stroke|text|glow}` + Akut-Glow-Shadow
+- **Jüngste Erweiterung (Story 7.1):** Eigenschutz-Nacht-Einsatz-Tokens für Severity-, PSA-Profil-, Sync- und kritische Fokuszustände, inklusive Light-/Dark-Parität und automatisierten Kontrasttests
 - **Offene Punkte:**
   - `Geist`/`Geist Mono` wurden in Story 1.1 bewusst nicht eingeführt — Entscheidung gilt fort, solange keine Marketing-nahe Fläche dazukommt
   - `surface-elevated` ist aktuell Alias auf `surface-raised` — bei Bedarf eigenständiger Token
@@ -77,7 +77,21 @@ Die Gefährdungsbeurteilungs-Detailseite nutzt seit Story 415-2-5 keinen generis
 
 Die Statuszeile wird über `SyncStatusBadge` gerendert und nutzt `aria-live="polite"`. Sichtbare Zustände sind: `Änderungen offen`, `Lokal gespeichert`, `Wird synchronisiert`, `Synchronisiert`, `Version {n} gespeichert`, `Konflikt`, `Speichern fehlgeschlagen` und `Offline gespeichert`. Konflikte und Fehler bleiben inline in der bestehenden `SeverityBanner`-Fläche; es gibt keine Sonner-Toasts für Save-, Offline- oder Konfliktzustände.
 
+Seit Story 7.1 nutzen `SeverityBanner`, PSA-Profil-Chips und `SyncStatusBadge` fachliche Ring-1-Tokenfamilien statt lokaler Tailwind-Palettenfarben. Die Abdeckung wird über Ring-1-Kontrasttests und die `AmpelCard`-Prüfmatrix für Light-/Dark-Zustände nachgewiesen; Farbenfehlsichtigkeits-Simulationen bleiben manuelle Prüfpunkte auf derselben Matrix.
+
 Offline-Auto-Saves werden als feature-lokale Pending Commands unter `bluelight:eigenschutz:pending-commands:v1` abgelegt. Der Zugriff läuft ausschließlich über den Platform Storage Adapter. Auto-Save-Commands derselben Gefährdungsbeurteilung und `expectedVersion` werden zusammengeführt; Replay läuft FIFO. Ein echter 409 bleibt als Konflikt sichtbar, während ein bereits angewandter Payload entfernt werden kann.
+
+### Eigenschutz: Keyboard-Shortcuts und Kbd-Legende
+
+Seit Story 7.2 liegen die fachlichen Eigenschutz-Shortcuts zentral unter `features/eigenschutz/constants/shortcuts.constants.ts`; die Registrierung läuft über `useEigenschutzShortcuts` auf Basis von `react-hotkeys-hook`. `⌘K`/`Ctrl+K` bleibt bewusst im bestehenden Shell-Pfad der `CommandPalette`, während `/`, `N`, `V`, `?` und `Esc` kontextbezogen in den Eigenschutz-Flächen verdrahtet sind. Eingabefelder, Textareas, Selects, `contenteditable` und ARIA-Textfelder sind gegen globale Einzelbuchstaben-Hotkeys geschützt.
+
+Das neue shared Atom `<Kbd>` rendert semantisches `<kbd>` mit Ring-1-Tokenklassen und plattformgerechter `mod`-/`cmd`-Anzeige. Gefährdungsbeurteilungen und Vorfälle zeigen zusätzlich eine ruhige Shortcut-Hilfe als kleines Overlay; die Hilfe listet nur die für den aktuellen Kontext sinnvollen Kürzel und bleibt über `?`, `Esc` und einen sichtbaren Schließen-Button bedienbar.
+
+### Eigenschutz: Command-Palette-Aktionen
+
+Seit Story 7.3 ergänzt die bestehende Shell-Command-Palette eine eigene Gruppe „Eigenschutz" mit operativen Einsprüngen für Gefährdungsbeurteilung, Vorfallmeldung, PSA-Profiländerung, Sicherheitsregel, Sicherungsposten, Dashboard, Konfliktauflösung und Vorfall-Archiv. Die Gruppe wird in `SingleEinsatzLayout` über den bestehenden `ModuleConfig`-Vertrag eingespeist; es gibt keine zweite Palette und keinen zusätzlichen globalen `⌘K`-/`Ctrl+K`-Listener.
+
+Drawer-basierte Aktionen nutzen kleine, defensive Search-Params (`action=...`) und entfernen diese nach Schließen oder Speichern wieder per `replace`, damit Refresh und Browser-Back keine Wiederöffnungsschleifen erzeugen. Disabled-Zustände übernehmen den Workspace-/Rollen-Grund aus der Sicherheitsfläche; sekundäre Rollen können dadurch keine Eigenschutz-Mutationsbefehle aktiv auslösen. Die Palette-Suche normalisiert deutsche Umlaute und Keyword-Aliase, sodass sowohl `Gefährdung` als auch `Gefaehrdung` passende Befehle finden.
 
 ## Komponenten (Ring 3)
 

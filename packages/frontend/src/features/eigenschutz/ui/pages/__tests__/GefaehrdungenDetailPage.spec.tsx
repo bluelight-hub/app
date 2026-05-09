@@ -121,6 +121,16 @@ describe('GefaehrdungenDetailPage (Story 2.2 Task 9)', () => {
     expect(refetch).toHaveBeenCalled();
   });
 
+  it('unterscheidet 403 vom generischen Fehlerpfad', () => {
+    mocks.detailQuery.isPending = false;
+    mocks.detailQuery.isError = true;
+    mocks.detailQuery.error = { response: { status: 403 } };
+
+    renderWithProviders(<GefaehrdungenDetailPage einsatzId="einsatz-1" id="b-1" />);
+
+    expect(screen.getByTestId('gefaehrdungen-detail-error')).toHaveTextContent('Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.');
+  });
+
   it('rendert Heading + Version-Badge + Editor-Organism bei Success', () => {
     mocks.detailQuery.isPending = false;
     mocks.detailQuery.isError = false;
@@ -142,6 +152,7 @@ describe('GefaehrdungenDetailPage (Story 2.2 Task 9)', () => {
     expect(screen.getByRole('heading', { level: 1, name: /Gefährdungsbeurteilung/ })).toBeInTheDocument();
     expect(screen.getByText('Rettungstrupp 1')).toBeInTheDocument();
     expect(screen.getByTestId('gefaehrdungen-detail-version-badge')).toHaveTextContent('Version 7');
+    expect(screen.getByRole('button', { name: 'Link kopieren' })).toBeInTheDocument();
     expect(screen.getByTestId('editor-organism-stub')).toHaveTextContent('editor:einsatz-1:cl1beurteilungiddetailxx1:v7');
   });
 

@@ -6,6 +6,7 @@
  */
 
 import { renderWithProviders } from '@/test/utils';
+import { WorkspaceBlockingOverlayProvider } from '@/features/workspace/hooks/use-workspace-blocking-overlay';
 import type { Gefaehrdungsbeurteilung } from '@bluelight-hub/shared/schemas';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -145,6 +146,47 @@ describe('GefaehrdungenPage', () => {
     expect(screen.getByTestId('drawer-stub')).toBeInTheDocument();
   });
 
+  it('öffnet den bestehenden Drawer per Action-Param und entfernt den Param beim Schließen', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<GefaehrdungenPage einsatzId="ceinsatz000000000000001" initialAction="new-gefaehrdung" />);
+
+    expect(screen.getByTestId('drawer-stub')).toBeInTheDocument();
+
+    await user.click(screen.getByTestId('drawer-stub-close'));
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/',
+      params: { einsatzId: 'ceinsatz000000000000001' },
+      search: expect.any(Function),
+      replace: true,
+    });
+  });
+
+  it('öffnet den bestehenden Drawer per N-Shortcut und zeigt die Shortcut-Hilfe per ?', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<GefaehrdungenPage einsatzId="ceinsatz000000000000001" />);
+
+    await user.keyboard('n');
+    expect(screen.getByTestId('drawer-stub')).toBeInTheDocument();
+
+    await user.click(screen.getByTestId('drawer-stub-close'));
+    await user.keyboard('?');
+    expect(screen.getByTestId('eigenschutz-shortcut-help')).toHaveTextContent('Neue Gefährdungsbeurteilung');
+  });
+
+  it('blockiert N-Shortcut, wenn die Workspace-Shell ein Overlay offen hat', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <WorkspaceBlockingOverlayProvider isBlocking>
+        <GefaehrdungenPage einsatzId="ceinsatz000000000000001" />
+      </WorkspaceBlockingOverlayProvider>,
+    );
+
+    await user.keyboard('n');
+
+    expect(screen.queryByTestId('drawer-stub')).toBeNull();
+  });
+
   it('rendert vorhandene Beurteilungen als Liste mit Einheitenname und Risiko', () => {
     mocks.beurteilungenQuery = {
       data: [
@@ -201,5 +243,18 @@ describe('GefaehrdungenPage', () => {
       params: { einsatzId: 'ceinsatz000000000000001', id: 'cbeurteilung0000000000001' },
     });
     expect(screen.queryByTestId('drawer-stub')).toBeNull();
+  });
+
+  it('navigiert aus dem Action-Param-Erfolgspfad direkt in die Detail-Route', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<GefaehrdungenPage einsatzId="ceinsatz000000000000001" initialAction="new-gefaehrdung" />);
+
+    await user.click(screen.getByTestId('drawer-stub-success'));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/$id',
+      params: { einsatzId: 'ceinsatz000000000000001', id: 'cbeurteilung0000000000001' },
+    });
   });
 });

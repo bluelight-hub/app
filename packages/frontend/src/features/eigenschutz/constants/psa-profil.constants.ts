@@ -6,8 +6,7 @@ import type { PsaProfilValue } from '@bluelight-hub/shared/schemas/eigenschutz/p
  * UI-Metadaten pro PSA-Profil (Story 3.1).
  *
  * **Farben:** Tailwind-Klassen für Chip-Hintergrund + Border bei aktivem
- * Zustand (UX-Spec PSA-Profil — high-contrast Severity-Tokens, Story 7.1
- * Dark-Mode-Verifikation pending).
+ * Zustand (UX-Spec PSA-Profil — fachliche Ring-1-Tokens aus Story 7.1).
  *
  * **Icons:** Phosphor-Duotone (über `react-icons/pi`).
  */
@@ -26,35 +25,35 @@ export const PSA_PROFIL_META: Readonly<Record<PsaProfilValue, PsaProfilMeta>> = 
     label: 'Basis',
     kurzbeschreibung: 'Standard-Schutz für aktive Einheiten — Warnweste, Helm, festes Schuhwerk.',
     icon: PiBandaids,
-    chipColorClass: 'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200',
-    chipColorActiveClass: 'border-slate-500 bg-slate-200 text-slate-900 dark:border-slate-400 dark:bg-slate-700 dark:text-white',
+    chipColorClass: 'border-psa-profile-basis-border bg-psa-profile-basis-surface text-psa-profile-basis-text',
+    chipColorActiveClass: 'border-psa-profile-basis-active-border bg-psa-profile-basis-active-surface text-psa-profile-basis-active-text',
   },
   INFEKTION: {
     label: 'Infektion',
     kurzbeschreibung: 'Schutz vor Aerosol/Tröpfchen-Übertragung — FFP2/3, Schutzbrille, Einmalkittel.',
     icon: PiVirus,
-    chipColorClass: 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-600 dark:bg-amber-950 dark:text-amber-100',
-    chipColorActiveClass: 'border-amber-500 bg-amber-100 text-amber-900 dark:border-amber-400 dark:bg-amber-900 dark:text-amber-50',
+    chipColorClass: 'border-psa-profile-infektion-border bg-psa-profile-infektion-surface text-psa-profile-infektion-text',
+    chipColorActiveClass: 'border-psa-profile-infektion-active-border bg-psa-profile-infektion-active-surface text-psa-profile-infektion-active-text',
   },
   VU: {
     label: 'Verkehrsunfall',
     kurzbeschreibung: 'Verkehrsunfall-Einsatz — Helm, Warnweste, schnittfeste Handschuhe.',
     icon: PiHardHat,
-    chipColorClass: 'border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-600 dark:bg-orange-950 dark:text-orange-100',
-    chipColorActiveClass: 'border-orange-500 bg-orange-100 text-orange-900 dark:border-orange-400 dark:bg-orange-900 dark:text-orange-50',
+    chipColorClass: 'border-psa-profile-vu-border bg-psa-profile-vu-surface text-psa-profile-vu-text',
+    chipColorActiveClass: 'border-psa-profile-vu-active-border bg-psa-profile-vu-active-surface text-psa-profile-vu-active-text',
   },
   CBRN_PATIENT: {
     label: 'CBRN-Patient',
     kurzbeschreibung: 'Verdacht auf CBRN-Kontamination — Schutzanzug, FFP3, Spritzschutz.',
     icon: PiBiohazard,
-    chipColorClass: 'border-red-300 bg-red-50 text-red-800 dark:border-red-600 dark:bg-red-950 dark:text-red-100',
-    chipColorActiveClass: 'border-red-500 bg-red-100 text-red-900 dark:border-red-400 dark:bg-red-900 dark:text-red-50',
+    chipColorClass: 'border-psa-profile-cbrn-patient-border bg-psa-profile-cbrn-patient-surface text-psa-profile-cbrn-patient-text',
+    chipColorActiveClass: 'border-psa-profile-cbrn-patient-active-border bg-psa-profile-cbrn-patient-active-surface text-psa-profile-cbrn-patient-active-text',
   },
   VOLLSCHUTZ: {
     label: 'Vollschutz',
     kurzbeschreibung: 'Vollschutzanzug für nicht-Patientenkontakt-Tätigkeiten in CBRN-Lage.',
     icon: PiShield,
-    chipColorClass: 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-600 dark:bg-rose-950 dark:text-rose-100',
-    chipColorActiveClass: 'border-rose-500 bg-rose-100 text-rose-900 dark:border-rose-400 dark:bg-rose-900 dark:text-rose-50',
+    chipColorClass: 'border-psa-profile-vollschutz-border bg-psa-profile-vollschutz-surface text-psa-profile-vollschutz-text',
+    chipColorActiveClass: 'border-psa-profile-vollschutz-active-border bg-psa-profile-vollschutz-active-surface text-psa-profile-vollschutz-active-text',
   },
 };

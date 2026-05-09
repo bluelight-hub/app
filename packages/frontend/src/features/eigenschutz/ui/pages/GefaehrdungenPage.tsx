@@ -12,22 +12,36 @@
  */
 
 import { useGefaehrdungsbeurteilungen } from '@/features/eigenschutz/api/queries';
+import { useEigenschutzShortcuts } from '@/features/eigenschutz/hooks/useEigenschutzShortcuts';
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
+import { useWorkspaceBlockingOverlay } from '@/features/workspace/hooks/use-workspace-blocking-overlay';
 import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PiClipboardText, PiPlus } from 'react-icons/pi';
 import { GefaehrdungsbeurteilungListItem } from '../molecules/GefaehrdungsbeurteilungListItem';
+import { EigenschutzShortcutHelpPopover } from '../molecules/EigenschutzShortcutHelpPopover';
 import { GefaehrdungseditorDrawer } from '../organisms/GefaehrdungseditorDrawer.organism';
 
 export interface GefaehrdungenPageProps {
   readonly einsatzId: string;
+  readonly initialAction?: 'new-gefaehrdung';
 }
 
-export function GefaehrdungenPage({ einsatzId }: GefaehrdungenPageProps) {
+const ROUTE_PATH = '/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/' as const;
+
+function withoutActionParam(prev: Record<string, unknown>): Record<string, unknown> {
+  const next = { ...prev };
+  delete next.action;
+  return next;
+}
+
+export function GefaehrdungenPage({ einsatzId, initialAction }: GefaehrdungenPageProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
+  const { isBlocking: workspaceIsBlocking } = useWorkspaceBlockingOverlay();
   const navigate = useNavigate();
   const beurteilungenQuery = useGefaehrdungsbeurteilungen(einsatzId);
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
@@ -40,6 +54,32 @@ export function GefaehrdungenPage({ einsatzId }: GefaehrdungenPageProps) {
   const handleOpen = useCallback(() => {
     setDrawerOpen(true);
   }, []);
+
+  const clearActionParam = useCallback(() => {
+    if (initialAction !== 'new-gefaehrdung') return;
+    void (navigate as unknown as (opts: { to: typeof ROUTE_PATH; params: { einsatzId: string }; search: (prev: Record<string, unknown>) => Record<string, unknown>; replace: boolean }) => void)({
+      to: ROUTE_PATH,
+      params: { einsatzId },
+      search: withoutActionParam,
+      replace: true,
+    });
+  }, [einsatzId, initialAction, navigate]);
+
+  useEffect(() => {
+    if (initialAction === 'new-gefaehrdung') {
+      setDrawerOpen(true);
+    }
+  }, [initialAction]);
+
+  useEigenschutzShortcuts({
+    context: 'gefaehrdungen',
+    enabled: true,
+    isOverlayBlocking: workspaceIsBlocking || drawerOpen || shortcutHelpOpen,
+    isHelpOpen: shortcutHelpOpen,
+    onOpenHelp: () => setShortcutHelpOpen(true),
+    onCloseHelp: () => setShortcutHelpOpen(false),
+    onOpenGefaehrdungCreate: handleOpen,
+  });
 
   const handleSelect = useCallback(
     (beurteilungId: string) => {
@@ -62,15 +102,18 @@ export function GefaehrdungenPage({ einsatzId }: GefaehrdungenPageProps) {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-start justify-between gap-4">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Gefährdungsbeurteilungen</h1>
           <p className="mt-1 text-sm text-text-muted">Pro Einheit eine Beurteilung anlegen, Gefährdungen erfassen und Schutzmaßnahmen dokumentieren.</p>
         </div>
-        <Button intent="primary" onClick={handleOpen} data-testid="gefaehrdungen-neue-beurteilung">
-          <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-          Neue Gefährdungsbeurteilung
-        </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <EigenschutzShortcutHelpPopover context="gefaehrdungen" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} />
+          <Button intent="primary" onClick={handleOpen} data-testid="gefaehrdungen-neue-beurteilung" kbd="n">
+            <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+            Neue Gefährdungsbeurteilung
+          </Button>
+        </div>
       </header>
 
       {beurteilungenQuery.isPending ? (
@@ -114,7 +157,17 @@ export function GefaehrdungenPage({ einsatzId }: GefaehrdungenPageProps) {
         </ul>
       ) : null}
 
-      {drawerOpen ? <GefaehrdungseditorDrawer einsatzId={einsatzId} open={drawerOpen} onClose={() => setDrawerOpen(false)} onCreated={handleCreated} /> : null}
+      {drawerOpen ? (
+        <GefaehrdungseditorDrawer
+          einsatzId={einsatzId}
+          open={drawerOpen}
+          onClose={() => {
+            setDrawerOpen(false);
+            clearActionParam();
+          }}
+          onCreated={handleCreated}
+        />
+      ) : null}
     </div>
   );
 }
