@@ -20,6 +20,7 @@ const { mocks, drawerProps } = vi.hoisted(() => ({
       data: [] as unknown[],
       isPending: false,
       isError: false,
+      error: undefined as unknown,
       refetch: vi.fn(),
     },
     einheitenQuery: {
@@ -69,6 +70,7 @@ beforeEach(() => {
   mocks.regelnQuery.data = [];
   mocks.regelnQuery.isPending = false;
   mocks.regelnQuery.isError = false;
+  mocks.regelnQuery.error = undefined;
   mocks.regelnQuery.refetch = vi.fn();
   mocks.einheitenQuery.data = [{ id: EINHEIT_ID, name: 'Rettungstrupp 1' }];
   drawerProps.lastOpen = false;
@@ -95,6 +97,22 @@ describe('SicherheitsregelnPage', () => {
     expect(screen.getByTestId('sicherheitsregeln-list-error')).toBeInTheDocument();
     await user.click(screen.getByTestId('sicherheitsregeln-list-retry'));
     expect(mocks.regelnQuery.refetch).toHaveBeenCalled();
+  });
+
+  it('unterscheidet 403 vom generischen Error-State', () => {
+    mocks.regelnQuery.isError = true;
+    mocks.regelnQuery.error = { response: { status: 403 } };
+
+    renderWithProviders(<SicherheitsregelnPage einsatzId={EINSATZ_ID} />);
+
+    expect(screen.getByTestId('sicherheitsregeln-list-error')).toHaveTextContent('Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.');
+    expect(screen.queryByTestId('sicherheitsregeln-list-retry')).toBeNull();
+  });
+
+  it('rendert im Detailmodus einen Link-kopieren-Button', () => {
+    renderWithProviders(<SicherheitsregelnPage einsatzId={EINSATZ_ID} focusRegelId={REGEL_ID} />);
+
+    expect(screen.getByRole('button', { name: 'Link kopieren' })).toBeInTheDocument();
   });
 
   it('rendert aktive Regeln mit Zuordnung und Version', () => {
@@ -188,5 +206,83 @@ describe('SicherheitsregelnPage', () => {
     await user.click(screen.getByTestId(`sicherheitsregel-zeile-${REGEL_ID}`));
     expect(screen.getByTestId('sicherheitsregel-drawer-mode')).toHaveTextContent('edit');
     expect(drawerProps.lastRegel).toMatchObject({ id: REGEL_ID });
+  });
+
+  it('öffnet den vorhandenen Drawer per Sicherheitsregel-Deep-Link im Edit-Modus', async () => {
+    mocks.regelnQuery.data = [
+      {
+        id: REGEL_ID,
+        einsatzId: EINSATZ_ID,
+        einheitId: null,
+        einsatzweit: true,
+        titel: 'Absperrung 20 m',
+        inhalt: 'Rund um die Einsatzstelle 20 m Abstand halten.',
+        version: 2,
+        erstelltAm: '2026-04-24T10:00:00.000Z',
+        erstelltVonUserId: 'u1',
+        aktualisiertAm: '2026-04-24T12:00:00.000Z',
+        aktualisiertVonUserId: 'u1',
+        propagationGroupId: 'g1',
+      },
+    ];
+
+    renderWithProviders(<SicherheitsregelnPage einsatzId={EINSATZ_ID} focusRegelId={REGEL_ID} />);
+
+    expect(await screen.findByTestId('sicherheitsregel-drawer-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('sicherheitsregel-drawer-mode')).toHaveTextContent('edit');
+    expect(drawerProps.lastRegel).toMatchObject({ id: REGEL_ID });
+  });
+
+  it('öffnet den Detail-Drawer nach manuellem Schließen bei Refetch nicht erneut', async () => {
+    const user = userEvent.setup();
+    const regel = {
+      id: REGEL_ID,
+      einsatzId: EINSATZ_ID,
+      einheitId: null,
+      einsatzweit: true,
+      titel: 'Absperrung 20 m',
+      inhalt: 'Rund um die Einsatzstelle 20 m Abstand halten.',
+      version: 2,
+      erstelltAm: '2026-04-24T10:00:00.000Z',
+      erstelltVonUserId: 'u1',
+      aktualisiertAm: '2026-04-24T12:00:00.000Z',
+      aktualisiertVonUserId: 'u1',
+      propagationGroupId: 'g1',
+    };
+    mocks.regelnQuery.data = [regel];
+
+    const { rerender } = renderWithProviders(<SicherheitsregelnPage einsatzId={EINSATZ_ID} focusRegelId={REGEL_ID} />);
+    expect(await screen.findByTestId('sicherheitsregel-drawer-mock')).toBeInTheDocument();
+
+    await user.click(screen.getByTestId('sicherheitsregel-drawer-close'));
+    expect(screen.queryByTestId('sicherheitsregel-drawer-mock')).toBeNull();
+
+    mocks.regelnQuery.data = [{ ...regel, version: 3 }];
+    rerender(<SicherheitsregelnPage einsatzId={EINSATZ_ID} focusRegelId={REGEL_ID} />);
+
+    expect(screen.queryByTestId('sicherheitsregel-drawer-mock')).toBeNull();
+  });
+
+  it('zeigt einen Inline-Hinweis, wenn die verlinkte Sicherheitsregel fehlt', async () => {
+    mocks.regelnQuery.data = [
+      {
+        id: 'andere-regel',
+        einsatzId: EINSATZ_ID,
+        einheitId: null,
+        einsatzweit: true,
+        titel: 'Andere Regel',
+        inhalt: 'Inhalt',
+        version: 1,
+        erstelltAm: '2026-04-24T10:00:00.000Z',
+        erstelltVonUserId: 'u1',
+        aktualisiertAm: '2026-04-24T12:00:00.000Z',
+        aktualisiertVonUserId: 'u1',
+        propagationGroupId: 'g1',
+      },
+    ];
+
+    renderWithProviders(<SicherheitsregelnPage einsatzId={EINSATZ_ID} focusRegelId={REGEL_ID} />);
+
+    expect(await screen.findByTestId('sicherheitsregel-missing-state')).toHaveTextContent('Sicherheitsregel nicht gefunden');
   });
 });

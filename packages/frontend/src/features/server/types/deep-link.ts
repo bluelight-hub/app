@@ -2,7 +2,9 @@
  * Deep Link Integration Types
  *
  * Definiert die Typen für Deep Link Parameter Handling.
- * Deep Links folgen dem Schema: bluelight://connect?url=...&invite=...&expires=...
+ * Deep Links folgen den Schemas:
+ * - bluelight://connect?url=...&invite=...&expires=...
+ * - bluelight://open?path=...
  */
 
 /**
@@ -18,16 +20,21 @@ export interface DeepLinkParams {
   expiresAt: string | null;
 }
 
+export interface EntityDeepLinkParams {
+  path: string;
+}
+
 /**
  * Deep Link Event Types
  */
-export type DeepLinkEvent = 'deep-link-received' | 'deep-link-error';
+export type DeepLinkEvent = 'deep-link-received' | 'entity-link-received' | 'deep-link-error';
 
 /**
  * Deep Link Error Types
  */
 export enum DeepLinkError {
   INVALID_PROTOCOL = 'INVALID_PROTOCOL',
+  INVALID_TARGET = 'INVALID_TARGET',
   MISSING_PARAMETERS = 'MISSING_PARAMETERS',
   EXPIRED_LINK = 'EXPIRED_LINK',
   PARSE_ERROR = 'PARSE_ERROR',

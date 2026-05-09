@@ -95,6 +95,10 @@ function buildBeurteilung(overrides: Partial<Parameters<typeof GefaehrdungenEdit
 
 describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
   beforeEach(() => {
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: vi.fn(),
+    });
     mocks.updateMutation.mutate = vi.fn();
     mocks.updateMutation.mutateAsync = vi.fn();
     mocks.updateMutation.mutateAsync.mockResolvedValue(buildBeurteilung({ version: 4, items: [{ title: 'Strom neu' }] }));
@@ -315,6 +319,31 @@ describe('GefaehrdungenEditorOrganism (Story 2.2 Task 9)', () => {
     await user.click(screen.getByTestId('gefaehrdungen-editor-add'));
 
     expect(screen.getAllByTestId('gefaehrdung-item-editor')).toHaveLength(1);
+  });
+
+  it('scrollt und fokussiert ein vorhandenes focusItem', () => {
+    renderWithProviders(
+      <GefaehrdungenEditorOrganism
+        einsatzId="einsatz-1"
+        focusItem="item-b"
+        beurteilung={buildBeurteilung({
+          items: [
+            { id: 'item-a', title: 'Strom' },
+            { id: 'item-b', title: 'Rauch' },
+          ],
+        })}
+      />,
+    );
+
+    expect(document.querySelector('[data-focus-target="true"]')).toBeInTheDocument();
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    expect(screen.getAllByTestId('gefaehrdung-item-title')[1]).toHaveFocus();
+  });
+
+  it('zeigt einen Inline-Hinweis, wenn ein focusItem fehlt', () => {
+    renderWithProviders(<GefaehrdungenEditorOrganism einsatzId="einsatz-1" focusItem="item-fehlt" beurteilung={buildBeurteilung()} />);
+
+    expect(screen.getByTestId('gefaehrdungen-editor-focus-missing')).toHaveTextContent('Gefährdung nicht gefunden');
   });
 
   it('Abbrechen setzt lokale Items auf beurteilung.items zurück', async () => {

@@ -199,6 +199,15 @@ Besonders komplex:
 
 - **Auth-Guards:** `/app/*` und `/admin/*` sind via `auth/guards/` geschützt. `/auth`, `/server/setup` sind öffentlich.
 
+- **Eigenschutz-Entity-URLs:** Die Detailpfade sind stabil und dürfen aus UI-Flächen heraus kopiert werden:
+  - `/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/$id`
+  - `/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile/$zuweisungId`
+  - `/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherheitsregeln/$id`
+  - `/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherungsposten/$id`
+  - `/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle/$vorfallId`
+
+  Fokus-Search-Params bleiben fachlich typisiert: `focusItem` gehört zu Gefährdungs-Items, `focusGroup` zu PSA-Bekanntgaben und `einheitId` zu betroffenen Einheiten. PSA-Zuweisungs-IDs werden nicht mit `propagationGroupId` vermischt.
+
 ---
 
 ## 3.5 State-Management
@@ -275,7 +284,7 @@ Zentrales Shared-UI in `packages/frontend/src/shared/ui/`:
 ## 3.8 Tauri-Integration (`src-tauri/`)
 
 - **Zielplattformen:** macOS (arm64 + x64), Windows, Linux, iOS, Android.
-- **Deep-Linking:** Scheme `bluelight://…` — Single-Instance-Handler leitet an Router weiter.
+- **Deep-Linking:** Scheme `bluelight://…` — Single-Instance-Handler leitet an Router weiter. Invite-Links nutzen `bluelight://connect?url=...&invite=...`; Entity-Links nutzen `bluelight://open?path=<encoded-internal-path>` und akzeptieren nur interne `/app/einsatz/...`-Pfade.
 - **Store-Backend:** siehe `docs/frontend-tauri-plugin-store-setup.md` (Stronghold-basiert, typisierte Singleton-Accessor).
 - **CSP:** im Development `null`, Production konfiguriert.
 - **Ressourcen:** MP3-Sounds im `sounds/`-Ordner, ausgeliefert als Tauri-Resource.

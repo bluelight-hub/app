@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { DeepLinkService } from './deep-link.service';
 import { DeepLinkError } from '../types/deep-link';
-import type { DeepLinkParams } from '../types/deep-link';
+import type { DeepLinkParams, EntityDeepLinkParams } from '../types/deep-link';
 
 // Mock Tauri Core API - isTauri() muss true zurückgeben für Tests
 vi.mock('@tauri-apps/api/core', () => ({
@@ -148,6 +148,52 @@ describe('DeepLinkService', () => {
         inviteCode: 'INV_12345678',
         expiresAt: null,
       });
+    });
+
+    it('should emit entity-link-received for bluelight open links with internal Einsatz path', async () => {
+      // Given (Arrange)
+      const path = '/app/einsatz/einsatz-1/sicherheit/eigenschutz/gefaehrdungen/beurteilung-1?focusItem=item-1';
+      const url = `bluelight://open?path=${encodeURIComponent(path)}`;
+      const receivedParams: EntityDeepLinkParams[] = [];
+
+      service.on('entity-link-received', (params) => {
+        receivedParams.push(params);
+      });
+
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
+      await service.initialize();
+      const callback = onOpenUrlMock.mock.calls[0][0];
+
+      // When (Act)
+      callback([url]);
+
+      // Then (Assert)
+      expect(receivedParams).toEqual([{ path }]);
+    });
+
+    it('should reject entity open links outside the Einsatz app path', async () => {
+      // Given (Arrange)
+      const url = `bluelight://open?path=${encodeURIComponent('https://evil.example/app/einsatz/einsatz-1')}`;
+      const errors: Array<{ error: DeepLinkError; message: string }> = [];
+
+      service.on('deep-link-error', (error, message) => {
+        errors.push({ error, message });
+      });
+
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
+      await service.initialize();
+      const callback = onOpenUrlMock.mock.calls[0][0];
+
+      // When (Act)
+      callback([url]);
+
+      // Then (Assert)
+      expect(errors).toHaveLength(1);
+      expect(errors[0].error).toBe(DeepLinkError.INVALID_TARGET);
     });
 
     it('should emit error for invalid protocol (https://)', async () => {

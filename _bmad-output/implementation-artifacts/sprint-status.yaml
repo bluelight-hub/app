@@ -1,4 +1,5 @@
 # generated: 2026-04-21
+# last_updated: 2026-05-09 (Story 7.4 → done: BMAD-Code-Review mit drei Subagents im Auto-Mode abgeschlossen. 10 Patch-Findings angewendet: Layout-Routen/Index-Routen für PSA- und Sicherheitsregel-Detailpfade, Hook-Reihenfolge der PSA-Bekanntgaben, Query/Hash-sichere Tauri-Entity-Navigation, Copy-Header für PSA/Sicherheitsregeln, sichtbare PSA-Missing-States, 403/404-Differenzierung, Redirect-Sanitizer-Reuse, Sicherheitsregel-Fokus-Dismissal und Entfernung der pnpm-Drift. Validierung: Review-Fix-Scope 63/63, relevante Eigenschutz+Server-Suite 971/971, TypeScript grün, Oxlint Exit 0 mit bestehenden Warnungen, Oxfmt grün, git diff --check grün.)
 # last_updated: 2026-05-09 (Story 7.3 → done: BMAD-Code-Review in Auto Mode abgeschlossen. 6 Patch-Findings angewendet: same-route Action-Params, cmdk-Suchfilter, PSA-Action-Cleanup, BEFEHLSGEBER-Gating für Konfliktauflösung, Gefährdungs-Erfolgspfad und Vorfall-URL-Sync. Validierung: Patch-Specs 58/58, Command-Palette-/Route-Scope 15/15, Eigenschutz-Suite 926/926, SingleEinsatzLayout-Hotkeys 10/10, TypeScript grün, Frontend lint/root lint grün mit bestehenden Warnungen.)
 # last_updated: 2026-05-09 (Story 7.4 → ready-for-dev: Deep-Links pro Entität + „Link kopieren"-Button erstellt. Story umfasst stabile Entity-URLs für Gefährdungsbeurteilung, PSA-Zuweisung, Sicherheitsregel, Sicherungsposten und Vorfall, Header-LinkCopy mit Statuszeile statt Toast, Refresh-/Fokusvertrag für Warn-Badges und PSA-Checklisten, getrennten Tauri-Open-Link-Contract ohne Bruch des Invite-Deep-Link-Flows, 403/404-Fehlerdifferenzierung, Router-Dokumentation und strikten Frontend-only Scope ohne Backend/API-Generator.)
 # last_updated: 2026-05-08 (Story 7.2 → done: BMAD-Code-Review mit drei Subagents abgeschlossen. 8 Patch-Findings angewendet: Shell-Overlay-Blocking für Eigenschutz-Hotkeys, Dashboard-Hilfe ohne nicht aktive N/V-Aktionen, layoutfreundliche Symbol-Shortcuts, Fokus-/ARIA-Fix der Shortcut-Hilfe, mod+k-Guard-Abdeckung, Kbd-Hover-Kontrast und Pfeiltasten-Alternativen. Validierung: Hook 7/7, Atom 9/9, Page 26/26, SingleEinsatzLayout-Hotkeys 8/8, Eigenschutz-Frontend 911/911, TypeScript grün, Frontend lint 0 Errors/34 bestehende Warnungen und Format grün.)
@@ -63,7 +64,7 @@
 
 generated: 2026-04-21
 last_updated: >-
-  2026-05-09 (Story 7.4 → in-progress: Deep-Links pro Entität + „Link kopieren"-Button gestartet. Status im BMAD-Workflow vor Implementierung synchronisiert.)
+  2026-05-09 (Story 7.4 → done: BMAD-Code-Review mit drei Subagents im Auto-Mode abgeschlossen. 10 Patch-Findings angewendet: Layout-Routen/Index-Routen für PSA- und Sicherheitsregel-Detailpfade, Hook-Reihenfolge der PSA-Bekanntgaben, Query/Hash-sichere Tauri-Entity-Navigation, Copy-Header für PSA/Sicherheitsregeln, sichtbare PSA-Missing-States, 403/404-Differenzierung, Redirect-Sanitizer-Reuse, Sicherheitsregel-Fokus-Dismissal und Entfernung der pnpm-Drift. Validierung: Review-Fix-Scope 63/63, relevante Eigenschutz+Server-Suite 971/971, TypeScript grün, Oxlint Exit 0 mit bestehenden Warnungen, Oxfmt grün, git diff --check grün.)
 project: bluelight-hub
 project_key: NOKEY
 tracking_system: file-system
@@ -139,7 +140,7 @@ development_status:
   415-7-1-dark-mode-severity-tokens-nacht-einsatz-verifikation: done
   415-7-2-keyboard-shortcuts-global-kontextuell-kbd-legende: done
   415-7-3-command-palette-integration-fuer-eigenschutz-aktionen: done
-  415-7-4-deep-links-pro-entitaet-link-kopieren-button: in-progress
+  415-7-4-deep-links-pro-entitaet-link-kopieren-button: done
   415-7-5-syncstatusbadge-offline-ux-ohne-blockierende-modale: backlog
   415-7-6-zero-success-toast-policy-destructive-actions-pattern-konsistenz-review: backlog
   415-7-7-responsive-verifikation-auf-referenz-geraeten: backlog
