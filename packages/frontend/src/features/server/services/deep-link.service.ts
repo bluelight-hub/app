@@ -7,15 +7,19 @@
  * Unterstützt Cold Start (App geschlossen) und Warm Start (App läuft).
  */
 
-import type { DeepLinkParams, DeepLinkEvent } from '../types/deep-link';
+import type { DeepLinkParams, DeepLinkEvent, EntityDeepLinkParams } from '../types/deep-link';
 import { DeepLinkError } from '../types/deep-link';
 import { isTauri } from '@tauri-apps/api/core';
+import { sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 
 /**
  * Event Callback Type für Deep Link Events
  */
 type DeepLinkCallback = (params: DeepLinkParams) => void;
+type EntityDeepLinkCallback = (params: EntityDeepLinkParams) => void;
 type DeepLinkErrorCallback = (error: DeepLinkError, message: string) => void;
+
+type ParsedDeepLink = { kind: 'invite'; params: DeepLinkParams } | { kind: 'entity'; params: EntityDeepLinkParams | null } | null;
 
 /**
  * Deep Link Service Singleton
@@ -25,7 +29,7 @@ type DeepLinkErrorCallback = (error: DeepLinkError, message: string) => void;
  */
 export class DeepLinkService {
   private static instance: DeepLinkService | null = null;
-  private listeners: Map<DeepLinkEvent, Array<DeepLinkCallback | DeepLinkErrorCallback>> = new Map();
+  private listeners: Map<DeepLinkEvent, Array<DeepLinkCallback | EntityDeepLinkCallback | DeepLinkErrorCallback>> = new Map();
   private isInitialized = false;
 
   /**
@@ -114,12 +118,23 @@ export class DeepLinkService {
     const url = urls[0];
     console.info('[DeepLinkService] Received deep link:', url);
 
-    const params = this.parseUrl(url);
+    const parsed = this.parseUrl(url);
 
-    if (!params) {
+    if (!parsed) {
       this.emitError(DeepLinkError.INVALID_PROTOCOL, `Invalid deep link protocol: ${url}`);
       return;
     }
+
+    if (parsed.kind === 'entity') {
+      if (!parsed.params) {
+        this.emitError(DeepLinkError.INVALID_TARGET, 'Entity deep link target is not an internal Einsatz path');
+        return;
+      }
+      this.emit('entity-link-received', parsed.params);
+      return;
+    }
+
+    const { params } = parsed;
 
     // Parameter Validation (IMMER zuerst!)
     if (!params.serverUrl || !params.inviteCode) {
@@ -148,7 +163,7 @@ export class DeepLinkService {
    * @param url - Deep Link URL
    * @returns Parsed Parameter oder null bei ungültigem Protocol
    */
-  private parseUrl(url: string): DeepLinkParams | null {
+  private parseUrl(url: string): ParsedDeepLink {
     try {
       const urlObj = new URL(url);
 
@@ -157,15 +172,43 @@ export class DeepLinkService {
         return null;
       }
 
+      if (urlObj.hostname === 'open') {
+        return {
+          kind: 'entity',
+          params: this.parseEntityOpenUrl(urlObj),
+        };
+      }
+
       return {
-        serverUrl: urlObj.searchParams.get('url'),
-        inviteCode: urlObj.searchParams.get('invite'),
-        expiresAt: urlObj.searchParams.get('expires'),
+        kind: 'invite',
+        params: {
+          serverUrl: urlObj.searchParams.get('url'),
+          inviteCode: urlObj.searchParams.get('invite'),
+          expiresAt: urlObj.searchParams.get('expires'),
+        },
       };
     } catch (error) {
       console.error('[DeepLinkService] URL parse error:', error);
       return null;
     }
+  }
+
+  private parseEntityOpenUrl(urlObj: URL): EntityDeepLinkParams | null {
+    const path = this.sanitizeEntityPath(urlObj.searchParams.get('path'));
+    return path ? { path } : null;
+  }
+
+  private sanitizeEntityPath(path: string | null): string | null {
+    if (typeof path !== 'string') {
+      return null;
+    }
+
+    const safePath = sanitizeInternalRedirectPath(path);
+    if (!safePath?.startsWith('/app/einsatz/')) {
+      return null;
+    }
+
+    return safePath;
   }
 
   /**
@@ -217,8 +260,9 @@ export class DeepLinkService {
    * @param callback - Callback Function
    */
   public on(event: 'deep-link-received', callback: DeepLinkCallback): void;
+  public on(event: 'entity-link-received', callback: EntityDeepLinkCallback): void;
   public on(event: 'deep-link-error', callback: DeepLinkErrorCallback): void;
-  public on(event: DeepLinkEvent, callback: DeepLinkCallback | DeepLinkErrorCallback): void {
+  public on(event: DeepLinkEvent, callback: DeepLinkCallback | EntityDeepLinkCallback | DeepLinkErrorCallback): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
     }
@@ -236,8 +280,9 @@ export class DeepLinkService {
    * @param callback - Callback Function (optional, entfernt alle wenn nicht angegeben)
    */
   public off(event: 'deep-link-received', callback?: DeepLinkCallback): void;
+  public off(event: 'entity-link-received', callback?: EntityDeepLinkCallback): void;
   public off(event: 'deep-link-error', callback?: DeepLinkErrorCallback): void;
-  public off(event: DeepLinkEvent, callback?: DeepLinkCallback | DeepLinkErrorCallback): void {
+  public off(event: DeepLinkEvent, callback?: DeepLinkCallback | EntityDeepLinkCallback | DeepLinkErrorCallback): void {
     if (!callback) {
       this.listeners.delete(event);
       return;
@@ -258,11 +303,13 @@ export class DeepLinkService {
    * @param event - Event Name
    * @param params - Event Parameter
    */
-  private emit(event: 'deep-link-received', params: DeepLinkParams): void {
+  private emit(event: 'deep-link-received', params: DeepLinkParams): void;
+  private emit(event: 'entity-link-received', params: EntityDeepLinkParams): void;
+  private emit(event: 'deep-link-received' | 'entity-link-received', params: DeepLinkParams | EntityDeepLinkParams): void {
     const eventListeners = this.listeners.get(event);
     if (eventListeners) {
       for (const callback of eventListeners) {
-        (callback as DeepLinkCallback)(params);
+        (callback as DeepLinkCallback | EntityDeepLinkCallback)(params as DeepLinkParams & EntityDeepLinkParams);
       }
     }
   }
@@ -306,10 +353,11 @@ export class DeepLinkService {
    * niemals Events manuell emittieren.
    */
   public emitForTesting(event: 'deep-link-received', params: DeepLinkParams): void;
+  public emitForTesting(event: 'entity-link-received', params: EntityDeepLinkParams): void;
   public emitForTesting(event: 'deep-link-error', error: DeepLinkError, message: string): void;
-  public emitForTesting(event: DeepLinkEvent, ...args: [DeepLinkParams] | [DeepLinkError, string]): void {
-    if (event === 'deep-link-received') {
-      this.emit(event, args[0] as DeepLinkParams);
+  public emitForTesting(event: DeepLinkEvent, ...args: [DeepLinkParams] | [EntityDeepLinkParams] | [DeepLinkError, string]): void {
+    if (event === 'deep-link-received' || event === 'entity-link-received') {
+      this.emit(event, args[0] as DeepLinkParams & EntityDeepLinkParams);
     } else if (event === 'deep-link-error') {
       this.emitError(args[0] as DeepLinkError, args[1] as string);
     }

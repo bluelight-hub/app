@@ -81,7 +81,9 @@ export function GefaehrdungenDetailPage({ einsatzId, id, focusItem }: Gefaehrdun
   }
 
   if (query.isError || !query.data) {
-    const isForbidden = getHttpStatus(query.error) === 403;
+    const status = getHttpStatus(query.error);
+    const isForbidden = status === 403;
+    const isNotFound = status === 404;
     return (
       <div
         role="alert"
@@ -89,10 +91,10 @@ export function GefaehrdungenDetailPage({ einsatzId, id, focusItem }: Gefaehrdun
         data-testid="gefaehrdungen-detail-error"
       >
         <div>
-          <p className="font-medium">{isForbidden ? FORBIDDEN_ENTITY_MESSAGE : 'Gefährdungsbeurteilung konnte nicht geladen werden.'}</p>
-          {!isForbidden ? <p className="mt-1 text-xs">Bitte erneut versuchen. Falls das Problem bestehen bleibt, ist der Bereich möglicherweise nicht freigegeben.</p> : null}
+          <p className="font-medium">{isForbidden ? FORBIDDEN_ENTITY_MESSAGE : isNotFound ? 'Gefährdungsbeurteilung nicht gefunden.' : 'Gefährdungsbeurteilung konnte nicht geladen werden.'}</p>
+          {!isForbidden && !isNotFound ? <p className="mt-1 text-xs">Bitte erneut versuchen. Falls das Problem bestehen bleibt, ist der Bereich möglicherweise nicht freigegeben.</p> : null}
         </div>
-        {!isForbidden ? (
+        {!isForbidden && !isNotFound ? (
           <Button intent="danger" appearance="outline" size="sm" type="button" onClick={() => void query.refetch()} data-testid="gefaehrdungen-detail-retry">
             Erneut versuchen
           </Button>

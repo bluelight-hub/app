@@ -1,74 +1,177 @@
-/**
- * Integration Tests: useDeepLinkEffect
- *
- * Testet vollständige Deep Link Integration:
- * - DeepLinkService Event Emission
- * - useExchangeInvite Mutation
- * - Navigation zu Login Screen
- * - Toast Notifications
- *
- * HINWEIS: Diese Tests sind temporär übersprungen wegen Problemen mit
- * Mock-Hoisting und dem generierten API-Client. Die Enums aus
- * @bluelight-hub/shared/client werden bei Modul-Initialisierung
- * ausgewertet, bevor Vitest-Mocks angewendet werden können.
- *
- * Das Problem: Zod's z.nativeEnum() wird bei Modul-Load ausgeführt und
- * benötigt die Enum-Werte sofort. Da Vitest-Mocks nach dem initialen
- * Module-Graph-Loading angewendet werden, sind die Enums undefined.
- *
- * TODO: #285 - Behebe die Mock-Infrastruktur für API-Client Enums
- */
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { DeepLinkError, type DeepLinkEvent, type DeepLinkParams, type EntityDeepLinkParams } from '../types/deep-link';
 
-import { describe, it, expect } from 'vitest';
+type Listener = (...args: never[]) => void;
 
-describe('useDeepLinkEffect Integration', () => {
-  describe.skip('Success Flow (skipped - mock infrastructure issue)', () => {
-    it('should handle deep link → exchange → navigate flow', () => {
-      expect(true).toBe(true);
+const { mocks } = vi.hoisted(() => ({
+  mocks: {
+    navigate: vi.fn(),
+    router: {
+      history: {
+        push: vi.fn(),
+        replace: vi.fn(),
+        flush: vi.fn(),
+      },
+    },
+    exchangeInvite: vi.fn(),
+    initialize: vi.fn(),
+    on: vi.fn(),
+    off: vi.fn(),
+    handlers: new Map<string, Set<Listener>>(),
+    toastLoading: vi.fn(),
+    toastSuccess: vi.fn(),
+    toastError: vi.fn(),
+  },
+}));
+
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mocks.navigate,
+  useRouter: () => mocks.router,
+}));
+
+vi.mock('sonner', () => ({
+  toast: {
+    loading: mocks.toastLoading,
+    success: mocks.toastSuccess,
+    error: mocks.toastError,
+  },
+}));
+
+vi.mock('@/shared/lib/logger', () => ({
+  logger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+vi.mock('../api/mutations', () => ({
+  useExchangeInvite: () => ({
+    mutateAsync: mocks.exchangeInvite,
+  }),
+}));
+
+vi.mock('../services/deep-link.service', () => ({
+  DeepLinkService: {
+    getInstance: () => ({
+      initialize: mocks.initialize,
+      on: mocks.on,
+      off: mocks.off,
+    }),
+  },
+}));
+
+import { useDeepLinkEffect } from './useDeepLinkEffect';
+
+function emitEntityLink(params: EntityDeepLinkParams) {
+  for (const handler of mocks.handlers.get('entity-link-received') ?? []) {
+    handler(params as never);
+  }
+}
+
+function emitInviteLink(params: DeepLinkParams) {
+  for (const handler of mocks.handlers.get('deep-link-received') ?? []) {
+    handler(params as never);
+  }
+}
+
+function emitDeepLinkError(error: DeepLinkError, message: string) {
+  for (const handler of mocks.handlers.get('deep-link-error') ?? []) {
+    handler(error as never, message as never);
+  }
+}
+
+describe('useDeepLinkEffect', () => {
+  beforeEach(() => {
+    mocks.navigate.mockReset();
+    mocks.navigate.mockResolvedValue(undefined);
+    mocks.router.history.push.mockReset();
+    mocks.router.history.replace.mockReset();
+    mocks.router.history.flush.mockReset();
+    mocks.exchangeInvite.mockReset();
+    mocks.exchangeInvite.mockResolvedValue({
+      data: {
+        serverInfo: {
+          name: 'Testserver',
+          baseUrl: 'https://api.example.de',
+        },
+      },
     });
-
-    it('should handle deep link with expiry date (valid)', () => {
-      expect(true).toBe(true);
+    mocks.initialize.mockReset();
+    mocks.initialize.mockResolvedValue(undefined);
+    mocks.toastLoading.mockReset();
+    mocks.toastLoading.mockReturnValue('toast-loading');
+    mocks.toastSuccess.mockReset();
+    mocks.toastError.mockReset();
+    mocks.handlers.clear();
+    mocks.on.mockReset();
+    mocks.on.mockImplementation((event: DeepLinkEvent, handler: Listener) => {
+      const handlers = mocks.handlers.get(event) ?? new Set<Listener>();
+      handlers.add(handler);
+      mocks.handlers.set(event, handlers);
+    });
+    mocks.off.mockReset();
+    mocks.off.mockImplementation((event: DeepLinkEvent, handler?: Listener) => {
+      if (!handler) {
+        mocks.handlers.delete(event);
+        return;
+      }
+      mocks.handlers.get(event)?.delete(handler);
     });
   });
 
-  describe.skip('Error Handling (skipped - mock infrastructure issue)', () => {
-    it('should show error toast when invite exchange fails', () => {
-      expect(true).toBe(true);
+  it('navigiert Entity-Deep-Links direkt zur internen Route', async () => {
+    const { unmount } = renderHook(() => useDeepLinkEffect());
+
+    await waitFor(() => expect(mocks.initialize).toHaveBeenCalledOnce());
+    await act(async () => {
+      emitEntityLink({
+        path: '/app/einsatz/einsatz-1/sicherheit/eigenschutz/gefaehrdungen/beurteilung-1?focusItem=item-1',
+      });
     });
 
-    it('should show error toast when link is expired (client-side)', () => {
-      expect(true).toBe(true);
-    });
+    expect(mocks.router.history.push).toHaveBeenCalledWith('/app/einsatz/einsatz-1/sicherheit/eigenschutz/gefaehrdungen/beurteilung-1?focusItem=item-1');
+    expect(mocks.router.history.flush).toHaveBeenCalled();
+
+    unmount();
+    expect(mocks.off).toHaveBeenCalledWith('entity-link-received', expect.any(Function));
   });
 
-  describe.skip('Deep Link Error Events (skipped - mock infrastructure issue)', () => {
-    it('should handle INVALID_PROTOCOL error', () => {
-      expect(true).toBe(true);
+  it('lässt den bestehenden Invite-Flow über Exchange und /auth-Navigation intakt', async () => {
+    renderHook(() => useDeepLinkEffect());
+
+    await waitFor(() => expect(mocks.initialize).toHaveBeenCalledOnce());
+    await act(async () => {
+      emitInviteLink({
+        serverUrl: 'https://api.example.de',
+        inviteCode: 'INV_12345678',
+        expiresAt: null,
+      });
     });
 
-    it('should handle MISSING_PARAMETERS error', () => {
-      expect(true).toBe(true);
+    expect(mocks.exchangeInvite).toHaveBeenCalledWith({
+      inviteCode: 'INV_12345678',
+      serverUrl: 'https://api.example.de',
     });
-
-    it('should handle EXPIRED_LINK error', () => {
-      expect(true).toBe(true);
-    });
-
-    it('should handle PARSE_ERROR error', () => {
-      expect(true).toBe(true);
-    });
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/auth' });
+    expect(mocks.toastSuccess).toHaveBeenCalledWith("Server 'Testserver' hinzugefügt", expect.objectContaining({ id: 'toast-loading' }));
   });
 
-  describe.skip('Cleanup (skipped - mock infrastructure issue)', () => {
-    it('should remove event listeners on unmount', () => {
-      expect(true).toBe(true);
-    });
-  });
+  it('zeigt für ungültige Entity-Ziele eine verständliche Fehlermeldung', async () => {
+    renderHook(() => useDeepLinkEffect());
 
-  // Placeholder test to ensure the file is not empty
-  it('tests are temporarily skipped due to mock infrastructure issues', () => {
-    // See TODO: #285 for tracking
-    expect(true).toBe(true);
+    await waitFor(() => expect(mocks.initialize).toHaveBeenCalledOnce());
+    act(() => {
+      emitDeepLinkError(DeepLinkError.INVALID_TARGET, 'Entity deep link target is not an internal Einsatz path');
+    });
+
+    expect(mocks.toastError).toHaveBeenCalledWith(
+      'Ungültiger Link',
+      expect.objectContaining({
+        description: 'Dieser Link zeigt nicht auf eine gültige Einsatzansicht.',
+      }),
+    );
   });
 });

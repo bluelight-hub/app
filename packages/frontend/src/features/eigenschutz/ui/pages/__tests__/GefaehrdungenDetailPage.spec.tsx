@@ -131,6 +131,17 @@ describe('GefaehrdungenDetailPage (Story 2.2 Task 9)', () => {
     expect(screen.getByTestId('gefaehrdungen-detail-error')).toHaveTextContent('Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.');
   });
 
+  it('unterscheidet 404 vom generischen Fehlerpfad', () => {
+    mocks.detailQuery.isPending = false;
+    mocks.detailQuery.isError = true;
+    mocks.detailQuery.error = { response: { status: 404 } };
+
+    renderWithProviders(<GefaehrdungenDetailPage einsatzId="einsatz-1" id="b-1" />);
+
+    expect(screen.getByTestId('gefaehrdungen-detail-error')).toHaveTextContent('Gefährdungsbeurteilung nicht gefunden');
+    expect(screen.queryByTestId('gefaehrdungen-detail-retry')).toBeNull();
+  });
+
   it('rendert Heading + Version-Badge + Editor-Organism bei Success', () => {
     mocks.detailQuery.isPending = false;
     mocks.detailQuery.isError = false;

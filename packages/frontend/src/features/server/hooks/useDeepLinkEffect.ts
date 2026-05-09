@@ -12,12 +12,13 @@
  */
 
 import { logger } from '@/shared/lib/logger';
-import { useNavigate } from '@tanstack/react-router';
+import { navigateToInternalRedirect } from '@/shared/lib/navigation/router-redirect';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useExchangeInvite } from '../api/mutations';
 import { DeepLinkService } from '../services/deep-link.service';
-import type { DeepLinkParams } from '../types/deep-link';
+import type { DeepLinkParams, EntityDeepLinkParams } from '../types/deep-link';
 import { DeepLinkError } from '../types/deep-link';
 
 /**
@@ -35,6 +36,7 @@ import { DeepLinkError } from '../types/deep-link';
  */
 export function useDeepLinkEffect() {
   const navigate = useNavigate();
+  const router = useRouter();
   const exchangeInvite = useExchangeInvite();
 
   // eslint-disable-next-line react/exhaustive-deps -- exchangeInvite.mutateAsync causes re-registration on every mutation
@@ -120,6 +122,20 @@ export function useDeepLinkEffect() {
       }
     };
 
+    const handleEntityLinkReceived = async (params: EntityDeepLinkParams) => {
+      logger.debug('Entity deep link received', params);
+
+      try {
+        navigateToInternalRedirect(router, params.path, { replace: false });
+      } catch (error) {
+        logger.error('Entity deep link navigation failed', error);
+        toast.error('Link konnte nicht geöffnet werden', {
+          description: 'Die Zielansicht ist aktuell nicht erreichbar.',
+          duration: 5000,
+        });
+      }
+    };
+
     /**
      * Error Handler: Deep Link Parse/Validation Fehler
      *
@@ -137,6 +153,10 @@ export function useDeepLinkEffect() {
         [DeepLinkError.INVALID_PROTOCOL]: {
           title: 'Ungültiger Link',
           description: 'Dieser Link ist kein gültiger Bluelight-Einladungslink.',
+        },
+        [DeepLinkError.INVALID_TARGET]: {
+          title: 'Ungültiger Link',
+          description: 'Dieser Link zeigt nicht auf eine gültige Einsatzansicht.',
         },
         [DeepLinkError.MISSING_PARAMETERS]: {
           title: 'Ungültiger Link',
@@ -173,12 +193,14 @@ export function useDeepLinkEffect() {
 
     // Register Event Listeners
     deepLinkService.on('deep-link-received', handleDeepLinkReceived);
+    deepLinkService.on('entity-link-received', handleEntityLinkReceived);
     deepLinkService.on('deep-link-error', handleDeepLinkError);
 
     // Cleanup (remove listeners on unmount)
     return () => {
       deepLinkService.off('deep-link-received', handleDeepLinkReceived);
+      deepLinkService.off('entity-link-received', handleEntityLinkReceived);
       deepLinkService.off('deep-link-error', handleDeepLinkError);
     };
-  }, [navigate]);
+  }, [navigate, router]);
 }

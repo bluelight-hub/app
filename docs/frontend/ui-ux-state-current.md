@@ -93,6 +93,12 @@ Seit Story 7.3 ergänzt die bestehende Shell-Command-Palette eine eigene Gruppe 
 
 Drawer-basierte Aktionen nutzen kleine, defensive Search-Params (`action=...`) und entfernen diese nach Schließen oder Speichern wieder per `replace`, damit Refresh und Browser-Back keine Wiederöffnungsschleifen erzeugen. Disabled-Zustände übernehmen den Workspace-/Rollen-Grund aus der Sicherheitsfläche; sekundäre Rollen können dadurch keine Eigenschutz-Mutationsbefehle aktiv auslösen. Die Palette-Suche normalisiert deutsche Umlaute und Keyword-Aliase, sodass sowohl `Gefährdung` als auch `Gefaehrdung` passende Befehle finden.
 
+### Eigenschutz: Entity-Deep-Links
+
+Seit Story 7.4 haben Eigenschutz-Entitäten stabile, kopierbare Detail-URLs. Gefährdungsbeurteilungen, Vorfälle und Sicherungsposten nutzen ihre bestehenden Detailseiten; PSA-Zuweisungen und Sicherheitsregeln ergänzen additive Detailrouten, die die vorhandenen Listen-/Drawer-Flächen öffnen. Der Link-kopieren-Button verwendet das shared `CopyButton`-Pattern mit ruhigem Inline-Status statt Toast.
+
+Fokus-Links bleiben refreshfest: `focusItem` scrollt und fokussiert Gefährdungs-Items, PSA-Links unterscheiden echte Zuweisungs-IDs von `propagationGroupId`, und fehlende Ziele zeigen Inline-Hinweise. Desktop-Deep-Links nutzen `bluelight://open?path=...` und akzeptieren nur interne `/app/einsatz/...`-Ziele.
+
 ## Komponenten (Ring 3)
 
 ### Reife pro Ebene

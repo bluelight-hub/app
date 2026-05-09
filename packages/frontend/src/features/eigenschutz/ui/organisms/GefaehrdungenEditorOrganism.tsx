@@ -53,6 +53,7 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung, focusItem 
   const lastSyncedVersionRef = useRef<number>(beurteilung.version);
   const lastSyncedItemsRef = useRef<GefaehrdungItem[]>(beurteilung.items);
   const lastSyncedItemsKeyRef = useRef<string>(serializeItems(beurteilung.items));
+  const focusItemRef = useRef<HTMLDivElement | null>(null);
   const replayInFlightRef = useRef(false);
 
   // Validierungs-Status lokal ableiten — TanStack-Form wäre Overkill für
@@ -76,6 +77,14 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung, focusItem 
       setAutoFocusIndex(index);
     }
   }, [beurteilung.items, focusItem]);
+
+  const focusedItemFound = Boolean(focusItem && beurteilung.items.some((item) => item.id === focusItem));
+
+  useEffect(() => {
+    if (!focusedItemFound || !focusItemRef.current) return;
+    focusItemRef.current.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    focusItemRef.current.querySelector<HTMLElement>('input, textarea, button')?.focus();
+  }, [focusedItemFound, focusItem]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -322,20 +331,31 @@ export function GefaehrdungenEditorOrganism({ einsatzId, beurteilung, focusItem 
         />
       ) : null}
 
+      {focusItem && !focusedItemFound ? (
+        <SeverityBanner
+          variant="warning"
+          title="Gefährdung nicht gefunden"
+          description="Das verlinkte Item ist in dieser Beurteilung nicht mehr vorhanden."
+          data-testid="gefaehrdungen-editor-focus-missing"
+        />
+      ) : null}
+
       <div className="space-y-3" data-testid="gefaehrdungen-editor-items">
-        {items.map((item, idx) => (
-          <GefaehrdungItemEditor
-            // Stable key pro-Index reicht — Items tragen erst nach Backend-Save
-            // eine `id`. Das ist konsistent mit dem vorhandenen Drawer-Muster.
-            key={item.id ?? `item-${idx}`}
-            index={idx}
-            value={item}
-            onChange={(next) => handleItemChange(idx, next)}
-            onRemove={() => handleRemove(idx)}
-            autoFocusTitle={autoFocusIndex === idx}
-            disabled={editorBusy}
-          />
-        ))}
+        {items.map((item, idx) => {
+          const isFocusTarget = Boolean(focusItem && item.id === focusItem);
+          return (
+            <div key={item.id ?? `item-${idx}`} ref={isFocusTarget ? focusItemRef : undefined} data-focus-target={isFocusTarget || undefined}>
+              <GefaehrdungItemEditor
+                index={idx}
+                value={item}
+                onChange={(next) => handleItemChange(idx, next)}
+                onRemove={() => handleRemove(idx)}
+                autoFocusTitle={autoFocusIndex === idx}
+                disabled={editorBusy}
+              />
+            </div>
+          );
+        })}
         {items.length === 0 ? (
           <p className="rounded-panel border border-dashed border-border-subtle bg-surface-panel p-4 text-center text-sm text-text-muted">
             Keine Gefährdungen erfasst. Füge eine hinzu, um zu starten.

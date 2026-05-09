@@ -12,9 +12,9 @@ import type { OffenePsaBekanntgabeEntry, PsaQuittungEntry } from '../../../api/q
 
 const { mocks } = vi.hoisted(() => ({
   mocks: {
-    offene: undefined as { data?: OffenePsaBekanntgabeEntry[]; isLoading: boolean } | undefined,
+    offene: undefined as { data?: OffenePsaBekanntgabeEntry[]; isLoading: boolean; isError?: boolean; error?: unknown } | undefined,
     quittungen: { data: [] as PsaQuittungEntry[], isPending: false },
-    einheiten: { data: [], isLoading: false, isError: false },
+    einheiten: { data: [], isLoading: false, isError: false } as { data: Array<{ id: string; name: string }>; isLoading: boolean; isError: boolean; error?: unknown },
     profileByEinheit: new Map<string, Array<{ id: string; profil: 'BASIS'; propagationGroupId: string }>>(),
   },
 }));
@@ -23,7 +23,7 @@ vi.mock('../../../api/queries', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../api/queries')>();
   return {
     ...actual,
-    useOffenePsaBekanntgaben: () => mocks.offene ?? { data: [], isLoading: false },
+    useOffenePsaBekanntgaben: () => mocks.offene ?? { data: [], isLoading: false, isError: false },
     useEigenschutzPsaQuittungen: () => mocks.quittungen,
     usePsaProfileByEinheit: (_einsatzId: string, einheitId: string) => ({ data: mocks.profileByEinheit.get(einheitId) ?? [], isLoading: false, isPending: false }),
     useAckPsaQuittung: () => ({ mutateAsync: vi.fn().mockResolvedValue(undefined), isPending: false }),
@@ -65,9 +65,13 @@ const makeClient = () =>
 
 describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13)', () => {
   beforeEach(() => {
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: vi.fn(),
+    });
     mocks.offene = undefined;
     mocks.quittungen = { data: [], isPending: false };
-    mocks.einheiten = { data: [], isLoading: false, isError: false };
+    mocks.einheiten = { data: [], isLoading: false, isError: false, error: undefined };
     mocks.profileByEinheit = new Map();
   });
 
@@ -134,6 +138,8 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
 
       render(<PsaProfilePage einsatzId="einsatz-1" focusEinheitId="einheit-psa-action" initialAction="psa-change" />, { wrapper: wrapper(client) });
 
+      expect(screen.getByTestId('psa-einheit-card-einheit-psa-action')).toHaveAttribute('data-focus-target', 'true');
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
       expect(screen.getByTestId('psa-change-drawer')).toBeInTheDocument();
     });
 
@@ -152,7 +158,7 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
       expect(onActionConsumed).toHaveBeenCalledTimes(1);
     });
 
-    it('öffnet eine aktive PSA-Zuweisung per echter Zuweisungs-ID', () => {
+    it('öffnet eine aktive PSA-Zuweisung per echter Zuweisungs-ID', async () => {
       mocks.einheiten = {
         data: [
           { id: 'einheit-a', name: 'RTW 1' },
@@ -170,10 +176,35 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
       render(<PsaProfilePage einsatzId="einsatz-1" focusZuweisungId="zuweisung-b" />, { wrapper: wrapper(client) });
 
       expect(screen.getByTestId('psa-einheit-card-einheit-b')).toHaveAttribute('data-focus-target', 'true');
-      expect(screen.getByTestId('psa-change-drawer')).toBeInTheDocument();
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+      expect(await screen.findByTestId('psa-change-drawer')).toBeInTheDocument();
     });
 
-    it('zeigt einen Inline-Hinweis, wenn die PSA-Zuweisung nicht mehr aktiv ist', () => {
+    it('setzt den Zuweisungs-Lookup bei wechselnder focusZuweisungId neu auf', async () => {
+      mocks.einheiten = {
+        data: [
+          { id: 'einheit-a', name: 'RTW 1' },
+          { id: 'einheit-b', name: 'KTW 2' },
+        ],
+        isLoading: false,
+        isError: false,
+      };
+      mocks.profileByEinheit = new Map([
+        ['einheit-a', [{ id: 'zuweisung-a', profil: 'BASIS', propagationGroupId: 'group-a' }]],
+        ['einheit-b', [{ id: 'zuweisung-b', profil: 'BASIS', propagationGroupId: 'group-b' }]],
+      ]);
+      const client = makeClient();
+
+      const { rerender } = render(<PsaProfilePage einsatzId="einsatz-1" focusZuweisungId="zuweisung-a" />, { wrapper: wrapper(client) });
+      expect(screen.getByTestId('psa-einheit-card-einheit-a')).toHaveAttribute('data-focus-target', 'true');
+
+      rerender(<PsaProfilePage einsatzId="einsatz-1" focusZuweisungId="zuweisung-b" />);
+
+      expect(screen.getByTestId('psa-einheit-card-einheit-a')).not.toHaveAttribute('data-focus-target', 'true');
+      expect(screen.getByTestId('psa-einheit-card-einheit-b')).toHaveAttribute('data-focus-target', 'true');
+    });
+
+    it('zeigt einen Inline-Hinweis, wenn die PSA-Zuweisung nicht mehr aktiv ist', async () => {
       mocks.einheiten = {
         data: [{ id: 'einheit-a', name: 'RTW 1' }],
         isLoading: false,
@@ -184,7 +215,49 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
 
       render(<PsaProfilePage einsatzId="einsatz-1" focusZuweisungId="zuweisung-fehlt" />, { wrapper: wrapper(client) });
 
-      expect(screen.getByTestId('psa-zuweisung-missing-state')).toHaveTextContent('PSA-Zuweisung ist nicht mehr aktiv');
+      expect(await screen.findByTestId('psa-zuweisung-missing-state')).toHaveTextContent('PSA-Zuweisung ist nicht mehr aktiv');
+    });
+
+    it('zeigt im Detailmodus einen Link-kopieren-Button für PSA-Zuweisungen', () => {
+      mocks.einheiten = {
+        data: [{ id: 'einheit-a', name: 'RTW 1' }],
+        isLoading: false,
+        isError: false,
+        error: undefined,
+      };
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" focusZuweisungId="zuweisung-a" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByRole('button', { name: 'Link kopieren' })).toBeInTheDocument();
+    });
+
+    it('zeigt einen Inline-Hinweis, wenn die fokussierte Einheit fehlt', () => {
+      mocks.einheiten = {
+        data: [{ id: 'andere-einheit', name: 'RTW 1' }],
+        isLoading: false,
+        isError: false,
+        error: undefined,
+      };
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" focusEinheitId="einheit-fehlt" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByTestId('psa-einheit-missing-state')).toHaveTextContent('Einheit nicht gefunden');
+    });
+
+    it('unterscheidet 403 beim Laden der PSA-Einheiten', () => {
+      mocks.einheiten = {
+        data: [],
+        isLoading: false,
+        isError: true,
+        error: { response: { status: 403 } },
+      };
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.');
     });
 
     it('rendert pro Eintrag einen „Checkliste anzeigen"-Button', () => {
@@ -291,6 +364,55 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
 
       render(<PsaProfilePage einsatzId="einsatz-1" focusGroup="group-focus" />, { wrapper: wrapper(client) });
 
+      expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    });
+
+    it('zeigt einen Inline-Hinweis, wenn der focusGroup-Deep-Link veraltet ist', () => {
+      mocks.offene = {
+        data: [
+          {
+            propagationGroupId: 'andere-gruppe',
+            occurredAt: '2026-04-24T08:30:00.000Z',
+            begruendungAnriss: 'Verdacht auf Kontamination',
+            profilToggles: [{ profil: 'CBRN_PATIENT', aktion: 'AKTIVIERT' }],
+            betroffeneEinheitIds: ['e1'],
+            ackCount: 0,
+            totalCount: 1,
+            status: 'pending',
+          },
+        ],
+        isLoading: false,
+      };
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" focusGroup="group-fehlt" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByTestId('psa-focusgroup-missing-state')).toHaveTextContent('PSA-Bekanntgabe nicht gefunden');
+    });
+
+    it('behält die Hook-Reihenfolge beim Wechsel von Loading zu Daten stabil', () => {
+      mocks.offene = { data: [], isLoading: true };
+      const client = makeClient();
+      const { rerender } = render(<PsaProfilePage einsatzId="einsatz-1" focusGroup="group-focus" />, { wrapper: wrapper(client) });
+
+      mocks.offene = {
+        data: [
+          {
+            propagationGroupId: 'group-focus',
+            occurredAt: '2026-04-24T08:30:00.000Z',
+            begruendungAnriss: 'Verdacht auf Kontamination',
+            profilToggles: [{ profil: 'CBRN_PATIENT', aktion: 'AKTIVIERT' }],
+            betroffeneEinheitIds: ['e1'],
+            ackCount: 0,
+            totalCount: 1,
+            status: 'pending',
+          },
+        ],
+        isLoading: false,
+      };
+
+      expect(() => rerender(<PsaProfilePage einsatzId="einsatz-1" focusGroup="group-focus" />)).not.toThrow();
       expect(screen.getByTestId('psa-profil-detail-drawer')).toBeInTheDocument();
     });
   });

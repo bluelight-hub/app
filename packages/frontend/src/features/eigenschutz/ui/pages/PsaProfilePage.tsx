@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useCurrentUser } from '@/features/auth/api/use-current-user';
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
+import { buildEigenschutzBrowserUrl } from '@/features/eigenschutz/utils/build-eigenschutz-deep-link';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
+import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
 import { PiShield, PiShieldCheck, PiWarningOctagon } from 'react-icons/pi';
 import { PSA_PROFIL_META } from '../../constants/psa-profil.constants';
@@ -21,11 +23,29 @@ export interface PsaProfilePageProps {
   readonly einsatzId: string;
   readonly focusGroup?: string;
   readonly focusEinheitId?: string;
+  readonly focusZuweisungId?: string;
   readonly initialAction?: 'psa-change';
   readonly onActionConsumed?: () => void;
 }
 
+interface ZuweisungLookupEntry {
+  readonly einheitId: string;
+  readonly found: boolean;
+}
+
+interface ZuweisungLookupState {
+  readonly focusZuweisungId?: string;
+  readonly entries: ReadonlyMap<string, ZuweisungLookupEntry>;
+}
+
 const FADE_DURATION_MS = 600;
+const FORBIDDEN_ENTITY_MESSAGE = 'Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.';
+
+function getHttpStatus(error: unknown): number | null {
+  if (!error || typeof error !== 'object') return null;
+  const candidate = error as { status?: number; response?: { status?: number }; cause?: { status?: number } };
+  return candidate.status ?? candidate.response?.status ?? candidate.cause?.status ?? null;
+}
 
 /**
  * Übersichts-Page für PSA-Profile pro Einheit (Story 3.1 + Story 3.2 Bulk).
@@ -39,7 +59,7 @@ const FADE_DURATION_MS = 600;
  * markieren wir die mutierten Einheiten kurz mit einem Fade — bei
  * `prefers-reduced-motion: reduce` ohne Animation.
  */
-export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, initialAction, onActionConsumed }: PsaProfilePageProps) {
+export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, focusZuweisungId, initialAction, onActionConsumed }: PsaProfilePageProps) {
   const { user } = useCurrentUser();
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const selection = useEigenschutzSelection();
@@ -56,6 +76,7 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, initialA
   // Recently-mutated-Set für den Orange-Fade-Indikator (AC7).
   const [recentlyMutated, setRecentlyMutated] = useState<ReadonlySet<string>>(() => new Set<string>());
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [zuweisungLookup, setZuweisungLookup] = useState<ZuweisungLookupState>(() => ({ focusZuweisungId, entries: new Map() }));
 
   useEffect(
     () => () => {
@@ -91,6 +112,20 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, initialA
 
     onActionConsumed?.();
   }, [einheitenQuery.data, einheitenQuery.isLoading, focusEinheitId, initialAction, onActionConsumed]);
+
+  const handleZuweisungLookup = useCallback(
+    (entry: ZuweisungLookupEntry) => {
+      setZuweisungLookup((prev) => {
+        const baseEntries = prev.focusZuweisungId === focusZuweisungId ? prev.entries : new Map<string, ZuweisungLookupEntry>();
+        const existing = baseEntries.get(entry.einheitId);
+        if (existing?.found === entry.found && prev.focusZuweisungId === focusZuweisungId) return prev;
+        const next = new Map(baseEntries);
+        next.set(entry.einheitId, entry);
+        return { focusZuweisungId, entries: next };
+      });
+    },
+    [focusZuweisungId],
+  );
 
   const handleSingleSaved = useCallback(() => {
     setSingleDrawerEinheitId(null);
@@ -170,6 +205,23 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, initialA
   // wir die einheiten-Liste, damit der Drawer beim 409-Conflict den
   // Einheit-Namen statt der rohen CUID rendern kann.
   const allEinheiten = (einheitenQuery.data ?? []).map((e) => ({ id: e.id, name: e.name }));
+  const zuweisungLookupEntries = zuweisungLookup.focusZuweisungId === focusZuweisungId ? zuweisungLookup.entries : new Map<string, ZuweisungLookupEntry>();
+  const matchedZuweisungEinheitId = focusZuweisungId ? [...zuweisungLookupEntries.values()].find((entry) => entry.found)?.einheitId : undefined;
+  const showZuweisungMissing =
+    Boolean(focusZuweisungId) &&
+    !einheitenQuery.isLoading &&
+    (einheitenQuery.data?.length ?? 0) > 0 &&
+    zuweisungLookupEntries.size >= (einheitenQuery.data?.length ?? 0) &&
+    matchedZuweisungEinheitId === undefined;
+  const showEinheitMissing = Boolean(focusEinheitId) && !einheitenQuery.isLoading && !einheitenQuery.isError && !(einheitenQuery.data ?? []).some((einheit) => einheit.id === focusEinheitId);
+  const detailUrl = focusZuweisungId ? buildEigenschutzBrowserUrl({ type: 'psa-zuweisung', einsatzId, zuweisungId: focusZuweisungId }) : undefined;
+  const einheitenErrorStatus = getHttpStatus((einheitenQuery as { error?: unknown }).error);
+
+  useEffect(() => {
+    if (matchedZuweisungEinheitId) {
+      setSingleDrawerEinheitId(matchedZuweisungEinheitId);
+    }
+  }, [matchedZuweisungEinheitId]);
 
   return (
     <div className="space-y-4">
@@ -178,6 +230,9 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, initialA
           <h1 className="text-2xl font-bold text-text-primary">PSA-Profile</h1>
           <p className="mt-1 text-sm text-text-muted">Schutzstufe pro Einheit aktivieren oder deaktivieren — jede Änderung ist auditierbar.</p>
         </div>
+        {detailUrl ? (
+          <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="psa-profile-copy-status" />
+        ) : null}
       </header>
 
       {selection.isMultiSelectActive ? <PsaBulkActionBar selectionCount={selection.selectionCount} onChange={handleBulkOpen} onCancel={handleBulkCancel} /> : null}
@@ -186,7 +241,7 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, initialA
         <p className="text-sm text-text-muted">Lade Einheiten…</p>
       ) : einheitenQuery.isError ? (
         <p role="alert" className="rounded-control border border-status-danger bg-status-danger/10 px-3 py-2 text-sm text-status-danger">
-          Einheiten konnten nicht geladen werden.
+          {einheitenErrorStatus === 403 ? FORBIDDEN_ENTITY_MESSAGE : einheitenErrorStatus === 404 ? 'Einsatz oder Einheit nicht gefunden.' : 'Einheiten konnten nicht geladen werden.'}
         </p>
       ) : !einheitenQuery.data || einheitenQuery.data.length === 0 ? (
         <EmptyState icon={PiShield} title="Keine Einheiten im Einsatz" description="Sobald Einheiten dem Einsatz beigetreten sind, kannst du hier PSA-Profile aktivieren." />
@@ -204,12 +259,42 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, initialA
                 onEnterMultiSelect={() => selection.enterMultiSelect(einheit.id)}
                 onToggleSelection={() => selection.toggleSelection(einheit.id)}
                 recentlyMutated={recentlyMutated.has(einheit.id)}
-                focusTarget={focusEinheitId === einheit.id}
+                focusTarget={focusEinheitId === einheit.id || matchedZuweisungEinheitId === einheit.id}
+                focusZuweisungId={focusZuweisungId}
+                onZuweisungLookup={handleZuweisungLookup}
               />
             </li>
           ))}
         </ul>
       )}
+
+      {showZuweisungMissing ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-panel border border-status-warning-border bg-status-warning-surface px-4 py-3 text-sm text-status-warning-text"
+          data-testid="psa-zuweisung-missing-state"
+        >
+          <p className="font-medium">PSA-Zuweisung ist nicht mehr aktiv.</p>
+          <a href={`/app/einsatz/${encodeURIComponent(einsatzId)}/sicherheit/eigenschutz/psa-profile`} className="mt-1 inline-flex font-medium text-action-primary underline-offset-2 hover:underline">
+            Zur PSA-Übersicht
+          </a>
+        </div>
+      ) : null}
+
+      {showEinheitMissing ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-panel border border-status-warning-border bg-status-warning-surface px-4 py-3 text-sm text-status-warning-text"
+          data-testid="psa-einheit-missing-state"
+        >
+          <p className="font-medium">Einheit nicht gefunden.</p>
+          <a href={`/app/einsatz/${encodeURIComponent(einsatzId)}/sicherheit/eigenschutz/psa-profile`} className="mt-1 inline-flex font-medium text-action-primary underline-offset-2 hover:underline">
+            Zur PSA-Übersicht
+          </a>
+        </div>
+      ) : null}
 
       {singleDrawerEinheitId !== null && user
         ? (() => {
@@ -272,6 +357,9 @@ function OffenePsaBekanntgabenSection({ einsatzId, focusGroup }: { readonly eins
   // anderen Eintrag ersetzt den aktuellen Drawer (gleiches Pattern wie der
   // Banner-Drawer-Slot).
   const [checklistDrawerGroup, setChecklistDrawerGroup] = useState<string | null>(null);
+  const checklistButtonRefs = useRef(new Map<string, HTMLButtonElement>());
+  const eintraege = offeneQuery.data ?? [];
+  const showMissingFocusGroup = Boolean(focusGroup) && !offeneQuery.isLoading && !offeneQuery.isError && !eintraege.some((eintrag) => eintrag.propagationGroupId === focusGroup);
 
   useEffect(() => {
     if (focusGroup) {
@@ -279,11 +367,17 @@ function OffenePsaBekanntgabenSection({ einsatzId, focusGroup }: { readonly eins
     }
   }, [focusGroup]);
 
+  useEffect(() => {
+    if (!focusGroup || offeneQuery.isLoading) return;
+    const button = checklistButtonRefs.current.get(focusGroup);
+    if (!button) return;
+    button.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    button.focus();
+  }, [focusGroup, offeneQuery.isLoading, eintraege.length]);
+
   if (offeneQuery.isLoading) {
     return null;
   }
-
-  const eintraege = offeneQuery.data ?? [];
 
   // Lookup `einheitId → einheitName` für den Sender-Drawer-Mount; Fallback
   // auf den rohen einheitId-String, wenn der Eintrag im Kräfte-Listing fehlt
@@ -334,6 +428,13 @@ function OffenePsaBekanntgabenSection({ einsatzId, focusGroup }: { readonly eins
                 ) : null}
                 <button
                   type="button"
+                  ref={(node) => {
+                    if (node) {
+                      checklistButtonRefs.current.set(eintrag.propagationGroupId, node);
+                    } else {
+                      checklistButtonRefs.current.delete(eintrag.propagationGroupId);
+                    }
+                  }}
                   onClick={() => setChecklistDrawerGroup(eintrag.propagationGroupId)}
                   className="inline-flex min-h-11 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-surface-panel-elevated hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-status-info"
                   data-testid={`offene-psa-bekanntgabe-checkliste-${eintrag.propagationGroupId}`}
@@ -346,6 +447,20 @@ function OffenePsaBekanntgabenSection({ einsatzId, focusGroup }: { readonly eins
           ))}
         </ul>
       )}
+
+      {showMissingFocusGroup ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-panel border border-status-warning-border bg-status-warning-surface px-4 py-3 text-sm text-status-warning-text"
+          data-testid="psa-focusgroup-missing-state"
+        >
+          <p className="font-medium">PSA-Bekanntgabe nicht gefunden.</p>
+          <a href={`/app/einsatz/${encodeURIComponent(einsatzId)}/sicherheit/eigenschutz/psa-profile`} className="mt-1 inline-flex font-medium text-action-primary underline-offset-2 hover:underline">
+            Zur PSA-Übersicht
+          </a>
+        </div>
+      ) : null}
 
       {/* Story 3.5 AC11 — Sender-Read-Only-Drawer: KEIN onQuittieren /
           onMeldeLuecke (Sender quittiert nicht selbst). Decision-Aufloesung:
@@ -389,6 +504,8 @@ interface PsaEinheitCardProps {
   onToggleSelection: () => void;
   recentlyMutated: boolean;
   focusTarget: boolean;
+  focusZuweisungId?: string;
+  onZuweisungLookup?: (entry: ZuweisungLookupEntry) => void;
 }
 
 function PsaEinheitCard({
@@ -402,9 +519,25 @@ function PsaEinheitCard({
   onToggleSelection,
   recentlyMutated,
   focusTarget,
+  focusZuweisungId,
+  onZuweisungLookup,
 }: PsaEinheitCardProps) {
   const profilQuery = usePsaProfileByEinheit(einsatzId, einheitId);
   const aktiveProfile: PsaProfilValue[] = (profilQuery.data ?? []).map((row) => row.profil);
+  const hasFocusZuweisung = Boolean(focusZuweisungId && (profilQuery.data ?? []).some((row) => row.id === focusZuweisungId));
+  const articleRef = useRef<HTMLElement | null>(null);
+  const isDeepLinkFocusTarget = focusTarget || hasFocusZuweisung;
+
+  useEffect(() => {
+    if (!focusZuweisungId || profilQuery.isLoading) return;
+    onZuweisungLookup?.({ einheitId, found: hasFocusZuweisung });
+  }, [einheitId, focusZuweisungId, hasFocusZuweisung, onZuweisungLookup, profilQuery.isLoading]);
+
+  useEffect(() => {
+    if (!isDeepLinkFocusTarget || !articleRef.current) return;
+    articleRef.current.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    articleRef.current.focus();
+  }, [isDeepLinkFocusTarget]);
 
   const longPress = useLongPress({
     onLongPress: () => {
@@ -445,17 +578,19 @@ function PsaEinheitCard({
 
   return (
     <article
+      ref={articleRef}
       className={cn(
         'flex h-full flex-col gap-3 rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel transition-colors',
         multiSelectActive && 'cursor-pointer select-none',
         isSelected && 'border-status-info ring-2 ring-status-info',
-        focusTarget && 'border-status-warning-border ring-2 ring-status-warning-border',
+        isDeepLinkFocusTarget && 'border-status-warning-border ring-2 ring-status-warning-border',
         recentlyMutated && 'bg-status-warning-surface duration-[600ms]',
       )}
       data-testid={`psa-einheit-card-${einheitId}`}
       data-multi-selected={isSelected || undefined}
       data-recently-mutated={recentlyMutated || undefined}
-      data-focus-target={focusTarget || undefined}
+      data-focus-target={isDeepLinkFocusTarget || undefined}
+      tabIndex={isDeepLinkFocusTarget ? -1 : undefined}
       aria-pressed={multiSelectActive ? isSelected : undefined}
       onClick={handleCardClick}
       onPointerDown={longPress.onPointerDown}
