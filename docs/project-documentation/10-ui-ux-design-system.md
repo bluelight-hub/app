@@ -63,6 +63,7 @@ Zusatz: [`00-design-system-overview.md`](../frontend/00-design-system-overview.m
 | Action     | `primary` (+ `hover`/`pressed`), `secondary` (+ `hover`/`pressed`), `focus-ring`                                     |
 | Status     | `info`, `success`, `warning`, `danger` — jeweils als `-surface` / `-border` / `-text`                                |
 | Warnstufen | `keine`, `niedrig`, `mittel`, `hoch`, `akut` — jeweils `-fill` / `-stroke` / `-text`, `akut` zusätzlich `-glow`      |
+| Eigenschutz | `severity-*`, `psa-profile-*`, `sync-*`, `focus-ring-critical` — fachliche Nachteinsatz-Tokens mit Light-/Dark-Parität |
 | Akzent     | `primary-50` … `primary-950` (11 Schritte der Primäraktions-Palette)                                                 |
 
 **Dreifach-Signal-Regel für Warnstufen & Alarme:** Farbe **+** Text/Zähler **+** Icon oder Motion. Niemals nur Rot, niemals nur Pulsieren.

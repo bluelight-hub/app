@@ -65,6 +65,64 @@
   --ring-1-color-status-danger-border: #f5bbb6;
   --ring-1-color-status-danger-text: #a23834;
 
+  /* Eigenschutz Nacht-Einsatz-Tokens (Story 7.1) — fachliche Statusfamilien
+   * für SeverityBanner, PSA-Chips und Sync-Badges. */
+  --ring-1-color-severity-critical-assertive-surface: #fff0ed;
+  --ring-1-color-severity-critical-assertive-border: #b84a3a;
+  --ring-1-color-severity-critical-assertive-text: #7a120d;
+  --ring-1-color-severity-warning-surface: #fff6df;
+  --ring-1-color-severity-warning-border: #9b6500;
+  --ring-1-color-severity-warning-text: #6f4500;
+  --ring-1-color-severity-info-surface: #e9f4ff;
+  --ring-1-color-severity-info-border: #3970b8;
+  --ring-1-color-severity-info-text: #173f75;
+
+  --ring-1-color-psa-profile-basis-surface: #f0f4f8;
+  --ring-1-color-psa-profile-basis-border: #75859a;
+  --ring-1-color-psa-profile-basis-text: #2f3c4d;
+  --ring-1-color-psa-profile-basis-active-surface: #dfe7f0;
+  --ring-1-color-psa-profile-basis-active-border: #536275;
+  --ring-1-color-psa-profile-basis-active-text: #142033;
+  --ring-1-color-psa-profile-infektion-surface: #fff7d6;
+  --ring-1-color-psa-profile-infektion-border: #8f6b00;
+  --ring-1-color-psa-profile-infektion-text: #5f4300;
+  --ring-1-color-psa-profile-infektion-active-surface: #ffe9a8;
+  --ring-1-color-psa-profile-infektion-active-border: #765600;
+  --ring-1-color-psa-profile-infektion-active-text: #3f2d00;
+  --ring-1-color-psa-profile-vu-surface: #fff0e0;
+  --ring-1-color-psa-profile-vu-border: #9a5a10;
+  --ring-1-color-psa-profile-vu-text: #723a05;
+  --ring-1-color-psa-profile-vu-active-surface: #ffd8b5;
+  --ring-1-color-psa-profile-vu-active-border: #7d4307;
+  --ring-1-color-psa-profile-vu-active-text: #4f2800;
+  --ring-1-color-psa-profile-cbrn-patient-surface: #fff0ed;
+  --ring-1-color-psa-profile-cbrn-patient-border: #b84a3a;
+  --ring-1-color-psa-profile-cbrn-patient-text: #7a120d;
+  --ring-1-color-psa-profile-cbrn-patient-active-surface: #ffd8d2;
+  --ring-1-color-psa-profile-cbrn-patient-active-border: #9b2f24;
+  --ring-1-color-psa-profile-cbrn-patient-active-text: #5f0d09;
+  --ring-1-color-psa-profile-vollschutz-surface: #fff0f7;
+  --ring-1-color-psa-profile-vollschutz-border: #8b4763;
+  --ring-1-color-psa-profile-vollschutz-text: #6f2445;
+  --ring-1-color-psa-profile-vollschutz-active-surface: #ffd8e8;
+  --ring-1-color-psa-profile-vollschutz-active-border: #74344f;
+  --ring-1-color-psa-profile-vollschutz-active-text: #501631;
+
+  --ring-1-color-sync-synced-surface: #e6f4ee;
+  --ring-1-color-sync-synced-border: #2f7f5c;
+  --ring-1-color-sync-synced-text: #18553c;
+  --ring-1-color-sync-pending-surface: #fff6df;
+  --ring-1-color-sync-pending-border: #9b6500;
+  --ring-1-color-sync-pending-text: #6f4500;
+  --ring-1-color-sync-offline-surface: #edf2f7;
+  --ring-1-color-sync-offline-border: #64758a;
+  --ring-1-color-sync-offline-text: #304052;
+  --ring-1-color-sync-conflict-surface: #fff0ed;
+  --ring-1-color-sync-conflict-border: #b84a3a;
+  --ring-1-color-sync-conflict-text: #7a120d;
+
+  --ring-1-color-focus-ring-critical: #b84a3a;
+
   /* Warnstufe (Issue #627) — Map- und UI-Tokens pro Stufe.
    * Slots: -fill (Map-Füllung) | -stroke (Map-Kontur) | -text (UI-Kontrast) | -glow (nur AKUT).
    * Dark-Mode-Variante unten im .dark-Block. */
@@ -104,6 +162,7 @@
   --ring-1-shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --ring-1-shadow-button-primary: 0 1px 2px 0 rgb(37 90 169 / 0.15);
   --ring-1-shadow-focus: 0 0 0 1px var(--ring-1-color-focus-ring), 0 0 0 4px rgb(78 132 213 / 0.22);
+  --ring-1-shadow-focus-ring-critical: 0 0 0 1px var(--ring-1-color-focus-ring-critical), 0 0 0 4px rgb(184 74 58 / 0.24);
   --ring-1-shadow-alarm-glow-soft: 0 0 5px rgb(162 56 52 / 0.5);
   --ring-1-shadow-alarm-glow-strong: 0 0 15px rgb(162 56 52 / 1), 0 0 25px rgb(162 56 52 / 0.5);
   --ring-1-shadow-alarm-glow-reduced: 0 0 10px rgb(162 56 52 / 0.8);
@@ -165,6 +224,62 @@
   --ring-1-color-status-danger-border: rgb(245 187 182 / 0.38);
   --ring-1-color-status-danger-text: #ffe0dd;
 
+  --ring-1-color-severity-critical-assertive-surface: #351411;
+  --ring-1-color-severity-critical-assertive-border: #d66a56;
+  --ring-1-color-severity-critical-assertive-text: #ffd8d2;
+  --ring-1-color-severity-warning-surface: #332512;
+  --ring-1-color-severity-warning-border: #d89c38;
+  --ring-1-color-severity-warning-text: #ffe1a1;
+  --ring-1-color-severity-info-surface: #132235;
+  --ring-1-color-severity-info-border: #72a8ee;
+  --ring-1-color-severity-info-text: #d9ecff;
+
+  --ring-1-color-psa-profile-basis-surface: #1a2533;
+  --ring-1-color-psa-profile-basis-border: #73849a;
+  --ring-1-color-psa-profile-basis-text: #d9e3ef;
+  --ring-1-color-psa-profile-basis-active-surface: #253448;
+  --ring-1-color-psa-profile-basis-active-border: #9aaac0;
+  --ring-1-color-psa-profile-basis-active-text: #f3f7fb;
+  --ring-1-color-psa-profile-infektion-surface: #30250e;
+  --ring-1-color-psa-profile-infektion-border: #c59b2a;
+  --ring-1-color-psa-profile-infektion-text: #ffe7a8;
+  --ring-1-color-psa-profile-infektion-active-surface: #46340c;
+  --ring-1-color-psa-profile-infektion-active-border: #e0b844;
+  --ring-1-color-psa-profile-infektion-active-text: #fff1c8;
+  --ring-1-color-psa-profile-vu-surface: #33200f;
+  --ring-1-color-psa-profile-vu-border: #cf7b35;
+  --ring-1-color-psa-profile-vu-text: #ffd9bb;
+  --ring-1-color-psa-profile-vu-active-surface: #482b12;
+  --ring-1-color-psa-profile-vu-active-border: #ef9652;
+  --ring-1-color-psa-profile-vu-active-text: #ffe8d4;
+  --ring-1-color-psa-profile-cbrn-patient-surface: #351615;
+  --ring-1-color-psa-profile-cbrn-patient-border: #d66a56;
+  --ring-1-color-psa-profile-cbrn-patient-text: #ffd8d2;
+  --ring-1-color-psa-profile-cbrn-patient-active-surface: #4b1c18;
+  --ring-1-color-psa-profile-cbrn-patient-active-border: #f28a77;
+  --ring-1-color-psa-profile-cbrn-patient-active-text: #ffe9e4;
+  --ring-1-color-psa-profile-vollschutz-surface: #351725;
+  --ring-1-color-psa-profile-vollschutz-border: #d6789c;
+  --ring-1-color-psa-profile-vollschutz-text: #ffd7e6;
+  --ring-1-color-psa-profile-vollschutz-active-surface: #4a1f33;
+  --ring-1-color-psa-profile-vollschutz-active-border: #ee9fbd;
+  --ring-1-color-psa-profile-vollschutz-active-text: #ffe7f0;
+
+  --ring-1-color-sync-synced-surface: #10291f;
+  --ring-1-color-sync-synced-border: #56b489;
+  --ring-1-color-sync-synced-text: #d8f3e5;
+  --ring-1-color-sync-pending-surface: #332512;
+  --ring-1-color-sync-pending-border: #d89c38;
+  --ring-1-color-sync-pending-text: #ffe1a1;
+  --ring-1-color-sync-offline-surface: #182334;
+  --ring-1-color-sync-offline-border: #74869d;
+  --ring-1-color-sync-offline-text: #d7e3f0;
+  --ring-1-color-sync-conflict-surface: #351615;
+  --ring-1-color-sync-conflict-border: #d66a56;
+  --ring-1-color-sync-conflict-text: #ffd8d2;
+
+  --ring-1-color-focus-ring-critical: #d66a56;
+
   /* Warnstufe Dark (Issue #627) — aufgehellte Fills für dunklen Kartenhintergrund,
    * hoch-kontrastige Stroke- und Text-Slots. */
   --ring-1-color-warnstufe-keine-fill: rgba(160, 180, 200, 0.2);
@@ -188,6 +303,7 @@
   --ring-1-shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.15);
   --ring-1-shadow-button-primary: 0 1px 2px 0 rgb(37 90 169 / 0.25);
   --ring-1-shadow-focus: 0 0 0 1px var(--ring-1-color-focus-ring), 0 0 0 4px rgb(127 176 255 / 0.2);
+  --ring-1-shadow-focus-ring-critical: 0 0 0 1px var(--ring-1-color-focus-ring-critical), 0 0 0 4px rgb(214 106 86 / 0.24);
   --ring-1-shadow-alarm-glow-soft: 0 0 6px rgb(245 187 182 / 0.45);
   --ring-1-shadow-alarm-glow-strong: 0 0 18px rgb(245 187 182 / 0.9), 0 0 28px rgb(162 56 52 / 0.55);
   --ring-1-shadow-alarm-glow-reduced: 0 0 12px rgb(245 187 182 / 0.6);
@@ -236,6 +352,7 @@
   --shadow-button-primary: var(--ring-1-shadow-button-primary);
   --shadow-focus: var(--ring-1-shadow-focus);
   --shadow-focus-ring: var(--ring-1-shadow-focus);
+  --shadow-focus-ring-critical: var(--ring-1-shadow-focus-ring-critical);
 
   --color-surface-canvas: var(--ring-1-color-surface-canvas);
   --color-surface-panel: var(--ring-1-color-surface-panel);
@@ -267,6 +384,7 @@
   --color-action-secondary-pressed: var(--ring-1-color-action-secondary-pressed);
 
   --color-focus-ring: var(--ring-1-color-focus-ring);
+  --color-focus-ring-critical: var(--ring-1-color-focus-ring-critical);
   --color-focus-ring-offset: var(--ring-1-color-focus-ring-offset);
   --color-selection-surface: var(--ring-1-color-selection-surface);
   --color-highlight-surface: var(--ring-1-color-highlight-surface);
@@ -294,6 +412,60 @@
   --color-status-danger-text: var(--ring-1-color-status-danger-text);
   --color-status-danger: var(--ring-1-color-status-danger-text);
   --color-status-danger-soft: var(--ring-1-color-status-danger-surface);
+
+  --color-severity-critical-assertive-surface: var(--ring-1-color-severity-critical-assertive-surface);
+  --color-severity-critical-assertive-border: var(--ring-1-color-severity-critical-assertive-border);
+  --color-severity-critical-assertive-text: var(--ring-1-color-severity-critical-assertive-text);
+  --color-severity-warning-surface: var(--ring-1-color-severity-warning-surface);
+  --color-severity-warning-border: var(--ring-1-color-severity-warning-border);
+  --color-severity-warning-text: var(--ring-1-color-severity-warning-text);
+  --color-severity-info-surface: var(--ring-1-color-severity-info-surface);
+  --color-severity-info-border: var(--ring-1-color-severity-info-border);
+  --color-severity-info-text: var(--ring-1-color-severity-info-text);
+
+  --color-psa-profile-basis-surface: var(--ring-1-color-psa-profile-basis-surface);
+  --color-psa-profile-basis-border: var(--ring-1-color-psa-profile-basis-border);
+  --color-psa-profile-basis-text: var(--ring-1-color-psa-profile-basis-text);
+  --color-psa-profile-basis-active-surface: var(--ring-1-color-psa-profile-basis-active-surface);
+  --color-psa-profile-basis-active-border: var(--ring-1-color-psa-profile-basis-active-border);
+  --color-psa-profile-basis-active-text: var(--ring-1-color-psa-profile-basis-active-text);
+  --color-psa-profile-infektion-surface: var(--ring-1-color-psa-profile-infektion-surface);
+  --color-psa-profile-infektion-border: var(--ring-1-color-psa-profile-infektion-border);
+  --color-psa-profile-infektion-text: var(--ring-1-color-psa-profile-infektion-text);
+  --color-psa-profile-infektion-active-surface: var(--ring-1-color-psa-profile-infektion-active-surface);
+  --color-psa-profile-infektion-active-border: var(--ring-1-color-psa-profile-infektion-active-border);
+  --color-psa-profile-infektion-active-text: var(--ring-1-color-psa-profile-infektion-active-text);
+  --color-psa-profile-vu-surface: var(--ring-1-color-psa-profile-vu-surface);
+  --color-psa-profile-vu-border: var(--ring-1-color-psa-profile-vu-border);
+  --color-psa-profile-vu-text: var(--ring-1-color-psa-profile-vu-text);
+  --color-psa-profile-vu-active-surface: var(--ring-1-color-psa-profile-vu-active-surface);
+  --color-psa-profile-vu-active-border: var(--ring-1-color-psa-profile-vu-active-border);
+  --color-psa-profile-vu-active-text: var(--ring-1-color-psa-profile-vu-active-text);
+  --color-psa-profile-cbrn-patient-surface: var(--ring-1-color-psa-profile-cbrn-patient-surface);
+  --color-psa-profile-cbrn-patient-border: var(--ring-1-color-psa-profile-cbrn-patient-border);
+  --color-psa-profile-cbrn-patient-text: var(--ring-1-color-psa-profile-cbrn-patient-text);
+  --color-psa-profile-cbrn-patient-active-surface: var(--ring-1-color-psa-profile-cbrn-patient-active-surface);
+  --color-psa-profile-cbrn-patient-active-border: var(--ring-1-color-psa-profile-cbrn-patient-active-border);
+  --color-psa-profile-cbrn-patient-active-text: var(--ring-1-color-psa-profile-cbrn-patient-active-text);
+  --color-psa-profile-vollschutz-surface: var(--ring-1-color-psa-profile-vollschutz-surface);
+  --color-psa-profile-vollschutz-border: var(--ring-1-color-psa-profile-vollschutz-border);
+  --color-psa-profile-vollschutz-text: var(--ring-1-color-psa-profile-vollschutz-text);
+  --color-psa-profile-vollschutz-active-surface: var(--ring-1-color-psa-profile-vollschutz-active-surface);
+  --color-psa-profile-vollschutz-active-border: var(--ring-1-color-psa-profile-vollschutz-active-border);
+  --color-psa-profile-vollschutz-active-text: var(--ring-1-color-psa-profile-vollschutz-active-text);
+
+  --color-sync-synced-surface: var(--ring-1-color-sync-synced-surface);
+  --color-sync-synced-border: var(--ring-1-color-sync-synced-border);
+  --color-sync-synced-text: var(--ring-1-color-sync-synced-text);
+  --color-sync-pending-surface: var(--ring-1-color-sync-pending-surface);
+  --color-sync-pending-border: var(--ring-1-color-sync-pending-border);
+  --color-sync-pending-text: var(--ring-1-color-sync-pending-text);
+  --color-sync-offline-surface: var(--ring-1-color-sync-offline-surface);
+  --color-sync-offline-border: var(--ring-1-color-sync-offline-border);
+  --color-sync-offline-text: var(--ring-1-color-sync-offline-text);
+  --color-sync-conflict-surface: var(--ring-1-color-sync-conflict-surface);
+  --color-sync-conflict-border: var(--ring-1-color-sync-conflict-border);
+  --color-sync-conflict-text: var(--ring-1-color-sync-conflict-text);
 
   /* Warnstufe-Tokens (Issue #627) — als Tailwind-Farben exponiert, damit Komponenten
    * wie WarnstufeChip sie über Utility-Klassen nutzen können. */

@@ -118,6 +118,7 @@ describe('SicherungspostenDetailPage', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: /Eingang Hörsaal C/ })).toBeInTheDocument();
     expect(screen.getByTestId('sicherungsposten-detail-version-badge')).toHaveTextContent('v3');
+    expect(screen.getByRole('button', { name: 'Link kopieren' })).toBeInTheDocument();
     expect(screen.queryByTestId('sicherungsposten-detail-aufgeloest-badge')).not.toBeInTheDocument();
   });
 
@@ -179,6 +180,16 @@ describe('SicherungspostenDetailPage', () => {
     const back = screen.getByTestId('sicherungsposten-detail-not-found-back');
     expect(back).toHaveAttribute('data-to', '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherungsposten');
     expect(JSON.parse(back.getAttribute('data-params') ?? '{}')).toEqual({ einsatzId: 'einsatz-1' });
+  });
+
+  it('unterscheidet 403 vom generischen Fehlerpfad', () => {
+    mocks.detailQuery.isPending = false;
+    mocks.detailQuery.isError = true;
+    mocks.detailQuery.error = { response: { status: 403 } };
+
+    renderWithProviders(<SicherungspostenDetailPage einsatzId="einsatz-1" id="posten-1" />);
+
+    expect(screen.getByTestId('sicherungsposten-detail-forbidden')).toHaveTextContent('Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.');
   });
 
   it('Generic-Error-Path: Banner mit Retry-Button → triggert refetch', async () => {

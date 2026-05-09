@@ -23,6 +23,8 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { SicherungspostenDto, SicherungspostenDtoPersonalInner, SicherungspostenDtoStandort } from '@bluelight-hub/shared/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
+import { buildEigenschutzBrowserUrl } from '@/features/eigenschutz/utils/build-eigenschutz-deep-link';
 import { useGetSicherungsposten } from '../../api/use-sicherungsposten';
 import { AufloeseSicherungspostenDialog } from '../organisms/AufloeseSicherungspostenDialog';
 import { SicherungspostenDrawer } from '../organisms/SicherungspostenDrawer';
@@ -59,6 +61,11 @@ function SicherungspostenDetailSkeleton() {
  */
 function is404(error: unknown): boolean {
   return (error as { response?: { status?: number } } | null)?.response?.status === 404;
+}
+
+function is403(error: unknown): boolean {
+  const candidate = error as { status?: number; response?: { status?: number }; cause?: { status?: number } } | null;
+  return (candidate?.status ?? candidate?.response?.status ?? candidate?.cause?.status) === 403;
 }
 
 function formatStandort(standort: SicherungspostenDtoStandort | undefined | null): { label: string; coordinates?: string } {
@@ -144,6 +151,26 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
     );
   }
 
+  if (query.isError && is403(query.error)) {
+    return (
+      <div
+        role="alert"
+        className="flex flex-col items-start gap-3 rounded-panel border border-status-warning-border bg-status-warning-surface px-4 py-3 text-sm text-status-warning-text"
+        data-testid="sicherungsposten-detail-forbidden"
+      >
+        <p className="font-medium">Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.</p>
+        <Link
+          to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherungsposten"
+          params={{ einsatzId }}
+          className="text-sm font-medium text-action-primary underline-offset-2 hover:underline"
+          data-testid="sicherungsposten-detail-forbidden-back"
+        >
+          Zur Sicherungsposten-Liste
+        </Link>
+      </div>
+    );
+  }
+
   if (query.isError || !query.data) {
     return (
       <div
@@ -163,6 +190,7 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
   const posten = query.data;
   const istAufgeloest = posten.aufgeloestAm != null;
   const standort = formatStandort(posten.standort);
+  const detailUrl = buildEigenschutzBrowserUrl({ type: 'sicherungsposten', einsatzId, id: posten.id });
   const isCoordinate = (posten.standort as { kind?: unknown } | null | undefined)?.kind === 'coordinate';
   const personal = Array.isArray(posten.personal) ? posten.personal : [];
   const zustaendigkeitsbereich = (posten.zustaendigkeitsbereich as string | null | undefined) ?? null;
@@ -212,6 +240,7 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
             Zuletzt aktualisiert: {aktualisiertAmFormatted} (von {aktualisiertVonShort})
           </p>
         </div>
+        <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="sicherungsposten-detail-copy-status" />
       </header>
 
       <section

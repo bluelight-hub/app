@@ -131,11 +131,19 @@ describe('VorfallDetailPage (Story 5.2 AC12)', () => {
     expect(screen.getByTestId('vorfall-detail-error')).toBeInTheDocument();
   });
 
+  it('unterscheidet 403 vom generischen Fehlerpfad', () => {
+    mocks.query.isError = true;
+    mocks.query.error = { response: { status: 403 } };
+    renderWithProviders(<VorfallDetailPage einsatzId="cl9einsatz12345678901234" vorfallId="vorfall-1" />);
+    expect(screen.getByTestId('vorfall-detail-forbidden')).toHaveTextContent('Diese Entität gehört zu einem anderen Einsatz oder ist für dich nicht freigegeben.');
+  });
+
   it('rendert Vorfall-Daten + IncidentContextSnapshot bei Erfolg (Story 5.1-Stub `{}` → unavailable)', () => {
     mocks.query.data = VORFALL_DTO;
     renderWithProviders(<VorfallDetailPage einsatzId="cl9einsatz12345678901234" vorfallId="vorfall-1" />);
     expect(screen.getByTestId('vorfall-detail-page')).toBeInTheDocument();
     expect(screen.getByTestId('vorfall-detail-section-fakten')).toHaveTextContent('Sturz beim Aufbau');
+    expect(screen.getByRole('button', { name: 'Link kopieren' })).toBeInTheDocument();
     expect(screen.getByTestId('vorfall-detail-section-massnahmen')).toHaveTextContent('Erstversorgung');
     // 5.1-Bestand (`{}`) → EmptyState im Snapshot-Organism.
     expect(screen.getByTestId('incident-snapshot-unavailable')).toBeInTheDocument();

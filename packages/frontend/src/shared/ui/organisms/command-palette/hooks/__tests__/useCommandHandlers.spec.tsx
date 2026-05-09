@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCommandHandlers } from '../useCommandHandlers';
 
 const navigateSpy = vi.fn();
@@ -9,6 +9,10 @@ vi.mock('@tanstack/react-router', () => ({
 }));
 
 describe('useCommandHandlers', () => {
+  beforeEach(() => {
+    navigateSpy.mockReset();
+  });
+
   it('erhält beim internen Navigieren den bestehenden Search-Kontext', () => {
     const onOpenChange = vi.fn();
     const selectCommand = vi.fn();
@@ -38,5 +42,33 @@ describe('useCommandHandlers', () => {
       filter: 'offen',
       befehlId: 'cmd-1',
     });
+  });
+
+  it('löst disabled Commands nicht aus und schließt die Palette nicht', () => {
+    const onOpenChange = vi.fn();
+    const selectCommand = vi.fn();
+    const action = vi.fn();
+
+    const { result } = renderHook(() =>
+      useCommandHandlers({
+        onOpenChange,
+        selectCommand,
+      }),
+    );
+
+    result.current.handleSelect({
+      id: 'eigenschutz-new-vorfall',
+      name: 'Eigenschutz: Neuer Vorfall',
+      module: 'Eigenschutz',
+      moduleColor: 'red',
+      disabled: true,
+      disabledReason: 'Keine Berechtigung',
+      action,
+    });
+
+    expect(selectCommand).toHaveBeenCalled();
+    expect(action).not.toHaveBeenCalled();
+    expect(navigateSpy).not.toHaveBeenCalled();
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 });

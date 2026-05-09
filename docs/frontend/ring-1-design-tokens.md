@@ -100,6 +100,32 @@ Beispiele:
 - Warn-/Gefahr-Prompts nutzen Icon plus Text, nicht nur Rot.
 - Badge-/Chip-Zustände tragen Text oder numerische Marker zusätzlich zur Farbe.
 
+## Eigenschutz Nacht-Einsatz-Tokens
+
+Story `7.1` ergänzt fachliche Tokenfamilien für Nachteinsatz-Oberflächen. Sie liegen wie alle Ring-1-Farben in [`packages/frontend/src/index.tailwind.css`](../../packages/frontend/src/index.tailwind.css), besitzen Light- und Dark-Werte und werden über Tailwind-Utilities ausgespielt.
+
+| Familie | Slots | Zweck |
+| --- | --- | --- |
+| `severity-critical-assertive` | `surface` · `border` · `text` | CBRN-/PSA-Alarm im `SeverityBanner`; stärker und eindeutiger als normale `status-danger-*`-Hinweise |
+| `severity-warning` | `surface` · `border` · `text` | Warnende Sicherheits- und Rückmeldungsflächen ohne Alarmcharakter |
+| `severity-info` | `surface` · `border` · `text` | Ruhige Informationsflächen für neue oder geänderte Hinweise |
+| `psa-profile-{basis|infektion|vu|cbrn-patient|vollschutz}` | `surface` · `border` · `text` plus `active-*` | PSA-Chips mit fachlich stabilen Farben in normalen und aktiven Zuständen |
+| `sync-{synced|pending|offline|conflict}` | `surface` · `border` · `text` | Speichern-/Offline-/Konfliktzustände in `SyncStatusBadge` |
+| `focus-ring-critical` | Shadow-Utility | Kritische Primary-Aktionen in assertiven Alarmflächen |
+
+Verwendungsregeln:
+
+- `SeverityBanner`, PSA-Chips und `SyncStatusBadge` verwenden diese Familien direkt und keine `red-*`, `rose-*`, `amber-*`, `orange-*`, `blue-*` oder `slate-*`-Palettenklassen.
+- `severity-critical-assertive` ist für Alarmflächen reserviert. Normale Fehler, Formvalidierungen und generische Danger-Hinweise bleiben auf `status-danger-*`.
+- PSA-Profile und Sync-Zustände bleiben redundant unterscheidbar: Icon plus Text bzw. Label sind Pflicht; Farbe allein reicht nicht.
+- Dark-Mode-Werte sind gedämpft und warm. Prominenz entsteht über Textkontrast, Border und Fokus, nicht über Blinken oder Pulsieren.
+
+### Kontrast- und Farbenfehlsichtigkeits-Prüfung
+
+Der Test `ring-1-design-tokens.spec.ts` prüft die Story-7.1-Familien automatisiert gegen `surface-canvas` und `surface-panel`: normaler Text mindestens WCAG AA (`4.5:1`), kritischer assertiver Text mindestens `7:1`, relevante Borders mindestens `3:1`.
+
+Prüfnotiz für Protanopia, Deuteranopia und Tritanopia: Die Tokenmatrix ist so angelegt, dass die fünf PSA-Profile nicht allein über Farbton unterschieden werden. In den produktiven Chips bleiben Profilname und Phosphor-Icon sichtbar; `SyncStatusBadge` behält Text und Icon; Ampel-/Warnzustände behalten Zähler oder fachliche Labels. Die CSF-Fixture `NachtEinsatzPruefmatrix` in `AmpelCard.stories.tsx` zeigt Light- und Dark-Zustände nebeneinander und dient als manuelle Prüffläche für diese drei Simulationsmodi.
+
 ## Fokusführung
 
 | Token | Zweck |
@@ -108,6 +134,7 @@ Beispiele:
 | `focus-ring-offset` | Gegenfläche für den Fokuskontrast |
 | `shadow-focus` | verstärkter Fokuszustand für Buttons und interaktive Controls |
 | `shadow-focus-ring` | Alias für den gemeinsamen Ring-1-Fokuszustand in Utilities |
+| `shadow-focus-ring-critical` | verstärkter Fokuszustand für kritische assertive Alarmaktionen |
 
 Regel:
 

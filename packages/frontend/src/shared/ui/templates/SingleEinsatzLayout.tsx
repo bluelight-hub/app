@@ -6,6 +6,7 @@ import { AkutBroadcastToast } from '@/features/gefahrenmatrix/ui/organisms/AkutB
 import { useMyEinsatzRolle } from '@/features/befehl/api/use-my-einsatz-rolle';
 import { EINSATZ_QUERY_KEYS, EinsatzRolleProvider, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { ETB_QUERY_KEYS, useNeuerEtbEintragHotkey } from '@/features/etb';
+import { useEigenschutzCommandModule } from '@/features/eigenschutz/hooks/use-eigenschutz-command-module';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
@@ -34,7 +35,7 @@ import {
 } from '@/features/reminders';
 import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-ownership';
 import { AudioSettingsDialog } from '@/features/settings';
-import { useEinsatzRolleWorkspaceRestrictions, useEinsatzWorkspaceShell, useWorkspaceModules, useWorkspaceResume, WorkspaceShell } from '@/features/workspace';
+import { useEinsatzRolleWorkspaceRestrictions, useEinsatzWorkspaceShell, useWorkspaceModules, useWorkspaceResume, WorkspaceBlockingOverlayProvider, WorkspaceShell } from '@/features/workspace';
 import { api, EinsatzDtoStatusEnum } from '@/shared';
 import { cn } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -415,6 +416,20 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     [modules],
   );
 
+  const sicherheitModule = useMemo(() => modules.find((module) => module.id === 'sicherheit'), [modules]);
+  const eigenschutzWorkspacePage = useMemo(() => sicherheitModule?.subPages.find((page) => page.id === 'eigenschutz'), [sicherheitModule]);
+  const syncConflictsDisabledReason = isRolleLoading || !meineRolle ? 'Einsatzrolle wird geprüft.' : meineRolle.rolle === 'BEFEHLSGEBER' ? undefined : 'Nur Befehlsgeber dürfen Konflikte auflösen.';
+  const eigenschutzCommandModule = useEigenschutzCommandModule({
+    einsatzId,
+    hidden: !sicherheitModule || isHiddenVisibility(sicherheitModule.visibility) || (eigenschutzWorkspacePage ? isHiddenVisibility(eigenschutzWorkspacePage.visibility) : false),
+    disabledReason: isDisabledVisibility(sicherheitModule?.visibility ?? { default: 'visible' })
+      ? sicherheitModule?.visibility.reason
+      : eigenschutzWorkspacePage && isDisabledVisibility(eigenschutzWorkspacePage.visibility)
+        ? eigenschutzWorkspacePage.visibility.reason
+        : undefined,
+    syncConflictsDisabledReason,
+  });
+
   const einsatzActionsModule = useMemo<ModuleConfig>(() => {
     const einsatzBeendet = einsatz?.status === EinsatzDtoStatusEnum.Abgeschlossen || einsatz?.status === EinsatzDtoStatusEnum.Archiviert;
 
@@ -456,7 +471,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     };
   }, [einsatz?.status, isFuehrungskraft]);
 
-  const allCommandPaletteModules = useMemo(() => [einsatzActionsModule, ...commandPaletteModules], [einsatzActionsModule, commandPaletteModules]);
+  const allCommandPaletteModules = useMemo(() => [einsatzActionsModule, eigenschutzCommandModule, ...commandPaletteModules], [einsatzActionsModule, eigenschutzCommandModule, commandPaletteModules]);
 
   /**
    * Handler für Fullscreen-Toggle
@@ -580,7 +595,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
             </Button>
           </div>
         ) : (
-          <Outlet />
+          <WorkspaceBlockingOverlayProvider isBlocking={workspaceIsBlocked}>
+            <Outlet />
+          </WorkspaceBlockingOverlayProvider>
         )}
       </WorkspaceShell>
 

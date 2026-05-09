@@ -1,4 +1,16 @@
 # generated: 2026-04-21
+# last_updated: 2026-05-09 (Story 7.3 → done: BMAD-Code-Review in Auto Mode abgeschlossen. 6 Patch-Findings angewendet: same-route Action-Params, cmdk-Suchfilter, PSA-Action-Cleanup, BEFEHLSGEBER-Gating für Konfliktauflösung, Gefährdungs-Erfolgspfad und Vorfall-URL-Sync. Validierung: Patch-Specs 58/58, Command-Palette-/Route-Scope 15/15, Eigenschutz-Suite 926/926, SingleEinsatzLayout-Hotkeys 10/10, TypeScript grün, Frontend lint/root lint grün mit bestehenden Warnungen.)
+# last_updated: 2026-05-09 (Story 7.4 → ready-for-dev: Deep-Links pro Entität + „Link kopieren"-Button erstellt. Story umfasst stabile Entity-URLs für Gefährdungsbeurteilung, PSA-Zuweisung, Sicherheitsregel, Sicherungsposten und Vorfall, Header-LinkCopy mit Statuszeile statt Toast, Refresh-/Fokusvertrag für Warn-Badges und PSA-Checklisten, getrennten Tauri-Open-Link-Contract ohne Bruch des Invite-Deep-Link-Flows, 403/404-Fehlerdifferenzierung, Router-Dokumentation und strikten Frontend-only Scope ohne Backend/API-Generator.)
+# last_updated: 2026-05-08 (Story 7.2 → done: BMAD-Code-Review mit drei Subagents abgeschlossen. 8 Patch-Findings angewendet: Shell-Overlay-Blocking für Eigenschutz-Hotkeys, Dashboard-Hilfe ohne nicht aktive N/V-Aktionen, layoutfreundliche Symbol-Shortcuts, Fokus-/ARIA-Fix der Shortcut-Hilfe, mod+k-Guard-Abdeckung, Kbd-Hover-Kontrast und Pfeiltasten-Alternativen. Validierung: Hook 7/7, Atom 9/9, Page 26/26, SingleEinsatzLayout-Hotkeys 8/8, Eigenschutz-Frontend 911/911, TypeScript grün, Frontend lint 0 Errors/34 bestehende Warnungen und Format grün.)
+# last_updated: 2026-05-08 (Story 7.3 → ready-for-dev: Command-Palette-Integration für Eigenschutz-Aktionen erstellt. Story umfasst acht Eigenschutz-Befehle in der bestehenden `cmdk`-Palette, eigene Gruppe „Eigenschutz", bestehende Drawer-/Route-Flows, Permission-/Readonly-Gating, kleine Action-Search-Params als Vorbereitung für Story 7.4, umlaut- und keyword-fähige Suche, Shell-/Shortcut-Vertrag aus Story 7.2 sowie strikten Frontend-only Scope ohne Backend/API-Generator.)
+# last_updated: 2026-05-08 (Story 7.2 → ready-for-dev: Keyboard-Shortcuts global + kontextuell sowie `<Kbd>`-Legende erstellt. Story umfasst zentralen Eigenschutz-Shortcut-Vertrag, `react-hotkeys-hook`-basierte Registrierung, Input-/Overlay-Guards, Wiederverwendung der bestehenden Command-Palette, Quick-Create-Shortcuts `N`/`V`, `/`-Filterfokus, `Esc`-Schließverhalten, `<Kbd>`-Atom, Shortcut-Hilfe-Popover, Storybook-/Vitest-Abdeckung und strikten Frontend-only Scope.)
+# last_updated: 2026-05-08 (Story 7.1 → done: BMAD-Code-Review mit drei Subagents abgeschlossen. 6 Patch-Findings angewendet: Fokus-Outline-Fallbacks, aktive PSA-/Fokus-Kontrasttests, vollständige Nacht-Einsatz-Prüfmatrix, Ring-1-Actionfarben, kontrastneutrale Body-/Footer-Texte und kritischer Default-Tone. Validierung: Review-Fix-Scope 47/47, Theme-/Provider-Vertrag 4/4, Eigenschutz-Frontend 897/897, TypeScript grün, Frontend lint:check 0 Errors/34 bestehende Warnungen, Root lint:check 0 Errors/36 bestehende Warnungen.)
+# last_updated: 2026-05-08 (Story 7.1 → review: Dark-Mode-Severity-Tokens + Nacht-Einsatz-Verifikation umgesetzt. Ring-1-Tokenfamilien für Severity/PSA/Sync/Fokus ergänzt, Verbraucher umgestellt, Kontrast-/Komponententests und Dokumentation aktualisiert. Validierung: Story-Specs 45/45, Eigenschutz-Frontend 895/895, TypeScript grün, Frontend lint:check 0 Errors/34 bestehende Warnungen, Root lint:check 0 Errors/36 bestehende Warnungen, Browser-Smoke auf Port 3190 begrenzt grün.)
+# last_updated: 2026-05-08 (Story 7.1 → in-progress: Dark-Mode-Severity-Tokens + Nacht-Einsatz-Verifikation gestartet. Status im BMAD-Workflow vor Implementierung synchronisiert.)
+# last_updated: 2026-05-08 (Story 7.1 → ready-for-dev: Dark-Mode-Severity-Tokens + Nacht-Einsatz-Verifikation erstellt. Epic 7 automatisch auf `in-progress` gesetzt. Story umfasst zentrale Ring-1-Token-Erweiterung in `index.tailwind.css`, Severity-/PSA-/Sync-/Focus-Tokens mit Light/Dark-Parität, Kontrasttests, next-themes-Vertrag, Farbenfehlsichtigkeitsprüfung, Dokumentationspflicht und strikten Frontend-only Scope.)
+# last_updated: 2026-05-08 (Correct Course: Epic-6-Retro-Handoffs in Epic 7 eingearbeitet. `epics.md` schärft Story 7.4, 7.7, 7.8, 7.10 und 7.11 um Deep-Link-Fokusziele, Date-Client-Verträge, Epic-6-A11y-/Responsive-Scope, Read-Model-/Query-Layer-Hardening und Validierungsnoise-Policy.)
+# last_updated: 2026-05-08 (Epic 6 → done: Retrospektive erstellt unter `epic-6-retro-2026-05-08.md`; alle Stories 6.1-6.5 waren bereits `done`, Retro-Action-Items R6-A1 bis R6-A8 dokumentiert.)
+# last_updated: 2026-05-08 (Story 6.5 → done: BMAD-Code-Review mit drei Subagents abgeschlossen. 7 Patch-Findings angewendet: PSA-Fokuslink, 44-px-Touch-Ziel, Date-Vertrag, stabile Fallback-IDs, PSA-Prioritäts-Cap, typbewusstes Per-Einheit-Cap und Row-A11y. Validierung: Review-Fix Backend 38/38, Frontend 47/47, Frontend Eigenschutz 881/881, TypeScript grün, lint 0 Errors mit 36 bestehenden Warnungen, check:arch grün mit bekannter Funkkanal-Warnung, check:di:imports außerhalb Sandbox grün. Breite Backend-Eigenschutz-Suite hat 1 unrelated Failure in `prisma-gefaehrdungsbeurteilung.repository.spec.ts`.)
 # last_updated: 2026-05-08 (Story 6.4 → done: BMAD-Code-Review mit drei Agents abgeschlossen. 8 Patch-Findings angewendet, 1 Defer persistiert, 7 dismissed. Validierung grün im Story-Scope; root lint:check nur wegen untracked `.air/worktree.json`-Format außerhalb Story-Scope rot.)
 # last_updated: 2026-05-08 (Story 6.3 → done: BMAD-Code-Review mit drei Subagents abgeschlossen. 7 Patch-Findings angewendet: Store-Hydration und Storage-Writes race-sicher, einsatzweite Sicherheitsregeln mit `einheitId: undefined` sichtbar, leere PSA-Detaildaten korrekt als leer, Fokus-Tooltip tastaturzugänglich, kompakte Rows overflow-stabil, Adapter-/Race-Regressions-Tests ergänzt. Validierung: Review-Fix-Scope 57/57 grün, Eigenschutz-Frontend-Suite 841/841 grün, TypeScript grün, Frontend lint:check 0 Errors mit 34 bestehenden Warnungen und Format grün. Keine Backend-/DTO-/generate-api-Arbeit.)
 # last_updated: 2026-05-08 (Story 6.2 → done: BMAD-Code-Review mit drei Agents abgeschlossen. 11 Patch-Findings angewendet: Drift-Fallbacks, A11y, 1440px-Grid, Container-Queries und Ampelstatus-Invalidierung. Validierung: Review-Fix-Scope 93/93, relevante Frontend-Eigenschutz-Suite 801/801, TypeScript grün, Frontend lint:check 0 Errors mit 34 bestehenden Warnungen.)
@@ -51,7 +63,7 @@
 
 generated: 2026-04-21
 last_updated: >-
-  2026-05-08 (Story 6.4 → done: BMAD-Code-Review mit drei Agents abgeschlossen. 8 Patch-Findings angewendet, 1 Defer persistiert, 7 dismissed. Fixes: DTO-String-Contract + generate-api, Lücken-/Vorfall-Invalidierung, Outbox-Gruppenfilter, Rückmeldungs-Cap-Hinweis, UK-Icon, MediaQuery-Listener, Panel-Tests erweitert. Validierung: Backend Review-Fix-Scope 14/14 grün, Frontend Review-Fix-Scope 57/57 grün, Frontend Eigenschutz-Suite 868/868 grün, Backend relevante Suite 166/166 grün, TypeScript grün, check:arch grün mit bestehender Funkkanal-Warnung, check:di:imports grün. Root lint:check 0 Errors/36 bestehende Warnungen, aber Format rot wegen untracked .air/worktree.json außerhalb Story-Scope.)
+  2026-05-09 (Story 7.4 → in-progress: Deep-Links pro Entität + „Link kopieren"-Button gestartet. Status im BMAD-Workflow vor Implementierung synchronisiert.)
 project: bluelight-hub
 project_key: NOKEY
 tracking_system: file-system
@@ -114,20 +126,20 @@ development_status:
   epic-5-retrospective: done
 
   # Epic 6: Ampel-Dashboard & Live-Status-Übersicht
-  epic-6: in-progress
+  epic-6: done
   415-6-1-ampel-projektion-backend-read-model-event-handler: done
   415-6-2-ampeldashboard-ampelcard-direction-b-default: done
   415-6-3-focus-view-direction-c-opt-in-view-toggle-persistent: done
   415-6-4-offene-vorfaelle-rueckmeldungen-seitenpanel: done
-  415-6-5-warn-markierungen-fuer-unbearbeitete-gefaehrdungen-nicht-quittierte-psa: backlog
-  epic-6-retrospective: optional
+  415-6-5-warn-markierungen-fuer-unbearbeitete-gefaehrdungen-nicht-quittierte-psa: done
+  epic-6-retrospective: done
 
   # Epic 7: MVP-Polish: Accessibility, Keyboard, Dark-Mode, Deep-Links & Telemetrie
-  epic-7: backlog
-  415-7-1-dark-mode-severity-tokens-nacht-einsatz-verifikation: backlog
-  415-7-2-keyboard-shortcuts-global-kontextuell-kbd-legende: backlog
-  415-7-3-command-palette-integration-fuer-eigenschutz-aktionen: backlog
-  415-7-4-deep-links-pro-entitaet-link-kopieren-button: backlog
+  epic-7: in-progress
+  415-7-1-dark-mode-severity-tokens-nacht-einsatz-verifikation: done
+  415-7-2-keyboard-shortcuts-global-kontextuell-kbd-legende: done
+  415-7-3-command-palette-integration-fuer-eigenschutz-aktionen: done
+  415-7-4-deep-links-pro-entitaet-link-kopieren-button: in-progress
   415-7-5-syncstatusbadge-offline-ux-ohne-blockierende-modale: backlog
   415-7-6-zero-success-toast-policy-destructive-actions-pattern-konsistenz-review: backlog
   415-7-7-responsive-verifikation-auf-referenz-geraeten: backlog

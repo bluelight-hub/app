@@ -19,9 +19,10 @@ import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
 
-const { captured, mockUseParams, mockNavigate } = vi.hoisted(() => ({
-  captured: { components: [] as Array<() => React.JSX.Element> },
+const { captured, mockUseParams, mockUseSearch, mockNavigate } = vi.hoisted(() => ({
+  captured: { routes: [] as Array<{ component: () => React.JSX.Element; validateSearch?: (search: Record<string, unknown>) => unknown }> },
   mockUseParams: vi.fn(() => ({ einsatzId: 'einsatz-1', id: 'beurteilung-7' })),
+  mockUseSearch: vi.fn(() => ({})),
   mockNavigate: vi.fn(),
 }));
 
@@ -33,9 +34,10 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
     ...actual,
     createFileRoute: (_path: string) => (arg: RouteArg) => {
       const options = typeof arg === 'function' ? arg() : arg;
-      captured.components.push(options.component);
+      captured.routes.push(options);
       return {
         useParams: mockUseParams,
+        useSearch: mockUseSearch,
         options,
       };
     },
@@ -44,7 +46,11 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
 });
 
 vi.mock('@/features/eigenschutz', () => ({
-  GefaehrdungenPage: ({ einsatzId }: { einsatzId: string }) => <div data-testid="gefaehrdungen-page">GefaehrdungenPage:{einsatzId}</div>,
+  GefaehrdungenPage: ({ einsatzId, initialAction }: { einsatzId: string; initialAction?: string }) => (
+    <div data-testid="gefaehrdungen-page">
+      GefaehrdungenPage:{einsatzId}:{initialAction ?? 'no-action'}
+    </div>
+  ),
   GefaehrdungenDetailPage: ({ einsatzId, id }: { einsatzId: string; id: string }) => (
     <div data-testid="gefaehrdungen-detail-page">
       GefaehrdungenDetailPage:{einsatzId}:{id}
@@ -57,33 +63,46 @@ import '../eigenschutz/gefaehrdungen/index';
 import '../eigenschutz/gefaehrdungen/$id';
 
 function lastComponent(): () => React.JSX.Element {
-  const component = captured.components.at(-1);
-  if (!component) {
+  const route = captured.routes.at(-1);
+  if (!route?.component) {
     throw new Error('Keine Route-Komponente erfasst — Reihenfolge der Imports prüfen.');
   }
-  return component;
+  return route.component;
 }
 
 describe('Gefährdungen-Routen (Story 2.1)', () => {
   beforeEach(() => {
     mockUseParams.mockReturnValue({ einsatzId: 'einsatz-1', id: 'beurteilung-7' });
+    mockUseSearch.mockReturnValue({});
     mockNavigate.mockReset();
   });
 
   it('index.tsx rendert die GefaehrdungenPage mit der einsatzId aus den Params', () => {
     // Der Import-Reihenfolge folgend ist `index.tsx` der vorletzte Eintrag.
-    const IndexComponent = captured.components[0];
+    const IndexComponent = captured.routes[0]?.component;
     renderWithProviders(<IndexComponent />);
 
-    expect(screen.getByTestId('gefaehrdungen-page')).toHaveTextContent('GefaehrdungenPage:einsatz-1');
+    expect(screen.getByTestId('gefaehrdungen-page')).toHaveTextContent('GefaehrdungenPage:einsatz-1:no-action');
   });
 
   it('index.tsx propagiert eine andere einsatzId, wenn Params sich ändern', () => {
     mockUseParams.mockReturnValueOnce({ einsatzId: 'einsatz-xyz', id: 'beurteilung-7' });
-    const IndexComponent = captured.components[0];
+    const IndexComponent = captured.routes[0]?.component;
     renderWithProviders(<IndexComponent />);
 
-    expect(screen.getByTestId('gefaehrdungen-page')).toHaveTextContent('GefaehrdungenPage:einsatz-xyz');
+    expect(screen.getByTestId('gefaehrdungen-page')).toHaveTextContent('GefaehrdungenPage:einsatz-xyz:no-action');
+  });
+
+  it('index.tsx validiert und propagiert den neuen Action-Param defensiv', () => {
+    const indexRoute = captured.routes[0];
+    expect(indexRoute?.validateSearch?.({ action: 'new-gefaehrdung' })).toEqual({ action: 'new-gefaehrdung' });
+    expect(indexRoute?.validateSearch?.({ action: 'bogus' })).toEqual({ action: undefined });
+
+    mockUseSearch.mockReturnValueOnce({ action: 'new-gefaehrdung' });
+    const IndexComponent = indexRoute?.component;
+    renderWithProviders(<IndexComponent />);
+
+    expect(screen.getByTestId('gefaehrdungen-page')).toHaveTextContent('GefaehrdungenPage:einsatz-1:new-gefaehrdung');
   });
 
   it('$id.tsx rendert die GefaehrdungenDetailPage mit einsatzId und id (Story 2.2)', () => {

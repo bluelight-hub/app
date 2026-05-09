@@ -109,6 +109,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
           )}
         >
           <Command
+            filter={() => 1}
             className="overflow-hidden [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-text-secondary"
             onKeyDown={(e) => {
               // Handle navigation edge cases when no results

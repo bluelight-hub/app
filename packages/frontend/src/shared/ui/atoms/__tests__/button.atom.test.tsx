@@ -39,9 +39,11 @@ describe('Button atom', () => {
   it('rendert Shortcut-Badges auf gefuellten Aktionen ohne harte Weisswerte', () => {
     render(<Button kbd="cmd+k">Palette</Button>);
 
-    const shortcut = screen.getByText('⌘').closest('kbd');
+    const shortcut = screen.getByText('Ctrl').closest('kbd');
     expect(shortcut).not.toBeNull();
     expect(shortcut).toHaveClass('bg-surface-inverse/16');
     expect(shortcut).toHaveClass('text-text-inverse');
+    expect(shortcut).toHaveClass('group-hover:bg-surface-inverse/24');
+    expect(shortcut).not.toHaveClass('group-hover:bg-action-secondary-hover');
   });
 });

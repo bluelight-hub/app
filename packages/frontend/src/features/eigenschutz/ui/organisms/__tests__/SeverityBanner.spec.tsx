@@ -15,6 +15,62 @@ describe('SeverityBanner (Story 2.7 AC1)', () => {
     expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'assertive');
   });
 
+  it('setzt kritische Banner ohne expliziten Tone auf assertive', () => {
+    render(<SeverityBanner variant="critical" headline="PSA-Hochstufung erforderlich" />);
+    expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'assertive');
+  });
+
+  it('nutzt Eigenschutz-Severity-Tokens statt red/amber/blue-Palettenklassen', () => {
+    render(
+      <SeverityBanner variant="critical" tone="assertive" headline="PSA-Hochstufung erforderlich" primaryActionLabel="Quittieren" onPrimary={() => undefined} inlineError="Quittung fehlgeschlagen" />,
+    );
+
+    const banner = screen.getByRole('status');
+    expect(banner.className).toContain('border-severity-critical-assertive-border');
+    expect(banner.className).toContain('bg-severity-critical-assertive-surface');
+    expect(banner.className).toContain('text-severity-critical-assertive-text');
+    expect(banner.className).not.toMatch(/\b(?:border|bg|text)-(?:red|rose|amber|blue)-/);
+
+    const primaryAction = screen.getByRole('button', { name: 'Quittieren' });
+    expect(primaryAction.className).toContain('focus-visible:shadow-focus-ring-critical');
+    expect(primaryAction.className).toContain('focus-visible:outline-focus-ring-critical');
+
+    const alert = screen.getByRole('alert');
+    expect(alert.className).not.toMatch(/\b(?:border|bg|text)-(?:red|rose|amber|blue)-/);
+  });
+
+  it('nutzt Ring-1-Aliase statt undefinierter foreground/background-Utilities für Actions', () => {
+    render(
+      <SeverityBanner
+        variant="warning"
+        headline="Statushinweis"
+        primaryActionLabel="Quittieren"
+        onPrimary={() => undefined}
+        secondaryActionLabel="Später"
+        onSecondary={() => undefined}
+        tertiaryActionLabel="Details ansehen"
+        onTertiary={() => undefined}
+      />,
+    );
+
+    for (const button of screen.getAllByRole('button')) {
+      expect(button.className).not.toMatch(/\b(?:bg|text|border|outline)-(?:foreground|background)\b/);
+      expect(button.className).toMatch(/focus-visible:outline/);
+    }
+  });
+
+  it.each([
+    ['warning' as const, 'severity-warning'],
+    ['info' as const, 'severity-info'],
+  ])('mappt %s auf Severity-Tokenklassen', (variant, tokenFamily) => {
+    render(<SeverityBanner variant={variant} headline="Statushinweis" />);
+
+    const banner = screen.getByRole('status');
+    expect(banner.className).toContain(`border-${tokenFamily}-border`);
+    expect(banner.className).toContain(`bg-${tokenFamily}-surface`);
+    expect(banner.className).toContain(`text-${tokenFamily}-text`);
+  });
+
   it('kürzt Headline > 60 Zeichen mit Ellipsis', () => {
     const longHeadline = 'X'.repeat(80);
     render(<SeverityBanner variant="info" headline={longHeadline} />);

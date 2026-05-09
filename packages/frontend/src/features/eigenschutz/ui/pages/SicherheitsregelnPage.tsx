@@ -20,11 +20,13 @@ import { useEinsatzEinheiten } from '@/features/kraefte/api';
 import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PiPlus, PiShieldCheck } from 'react-icons/pi';
 
 export interface SicherheitsregelnPageProps {
   readonly einsatzId: string;
+  readonly initialAction?: 'new-sicherheitsregel';
+  readonly onActionConsumed?: () => void;
 }
 
 /**
@@ -49,13 +51,20 @@ function truncate(value: string, max = 120): string {
   return `${value.slice(0, max - 1)}…`;
 }
 
-export function SicherheitsregelnPage({ einsatzId }: SicherheitsregelnPageProps) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+export function SicherheitsregelnPage({ einsatzId, initialAction, onActionConsumed }: SicherheitsregelnPageProps) {
+  const [drawerOpen, setDrawerOpen] = useState(initialAction === 'new-sicherheitsregel');
   const [editRegel, setEditRegel] = useState<SicherheitsregelDto | undefined>(undefined);
   const aktiveEinheit = useAktiveEinsatzEinheit(einsatzId);
   const regelnQuery = useSicherheitsregeln(einsatzId);
   const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const regeln = regelnQuery.data ?? [];
+
+  useEffect(() => {
+    if (initialAction === 'new-sicherheitsregel') {
+      setEditRegel(undefined);
+      setDrawerOpen(true);
+    }
+  }, [initialAction]);
 
   const einheitNameById = useMemo(() => {
     return new Map((einheitenQuery.data ?? []).map((einheit) => [einheit.id, einheit.name]));
@@ -66,6 +75,11 @@ export function SicherheitsregelnPage({ einsatzId }: SicherheitsregelnPageProps)
     setDrawerOpen(true);
   }, []);
 
+  const clearActionParam = useCallback(() => {
+    if (initialAction !== 'new-sicherheitsregel') return;
+    onActionConsumed?.();
+  }, [initialAction, onActionConsumed]);
+
   const handleOpenEdit = useCallback((regel: SicherheitsregelDto) => {
     setEditRegel(regel);
     setDrawerOpen(true);
@@ -74,15 +88,17 @@ export function SicherheitsregelnPage({ einsatzId }: SicherheitsregelnPageProps)
   const handleClose = useCallback(() => {
     setDrawerOpen(false);
     setEditRegel(undefined);
-  }, []);
+    clearActionParam();
+  }, [clearActionParam]);
 
   const handleSaved = useCallback(
     (regelIds: string[]) => {
       logger.info('Sicherheitsregel(n) gespeichert', { einsatzId, regelIds });
       setDrawerOpen(false);
       setEditRegel(undefined);
+      clearActionParam();
     },
-    [einsatzId],
+    [clearActionParam, einsatzId],
   );
 
   return (

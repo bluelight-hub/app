@@ -15,6 +15,7 @@ const { mocks } = vi.hoisted(() => ({
     offene: undefined as { data?: OffenePsaBekanntgabeEntry[]; isLoading: boolean } | undefined,
     quittungen: { data: [] as PsaQuittungEntry[], isPending: false },
     einheiten: { data: [], isLoading: false, isError: false },
+    profileByEinheit: new Map<string, Array<{ id: string; profil: 'BASIS'; propagationGroupId: string }>>(),
   },
 }));
 
@@ -24,7 +25,7 @@ vi.mock('../../../api/queries', async (importOriginal) => {
     ...actual,
     useOffenePsaBekanntgaben: () => mocks.offene ?? { data: [], isLoading: false },
     useEigenschutzPsaQuittungen: () => mocks.quittungen,
-    usePsaProfileByEinheit: () => ({ data: [], isPending: false }),
+    usePsaProfileByEinheit: (_einsatzId: string, einheitId: string) => ({ data: mocks.profileByEinheit.get(einheitId) ?? [], isLoading: false, isPending: false }),
     useAckPsaQuittung: () => ({ mutateAsync: vi.fn().mockResolvedValue(undefined), isPending: false }),
   };
 });
@@ -67,6 +68,7 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
     mocks.offene = undefined;
     mocks.quittungen = { data: [], isPending: false };
     mocks.einheiten = { data: [], isLoading: false, isError: false };
+    mocks.profileByEinheit = new Map();
   });
 
   afterEach(() => {
@@ -117,6 +119,74 @@ describe('PsaProfilePage — Sektion „Offene PSA-Bekanntgaben" (Story 3.4 AC13
   });
 
   describe('Story 3.5 AC11 — „Checkliste anzeigen" öffnet Sender-Read-Only-Drawer', () => {
+    it('öffnet den bestehenden PSA-Ändern-Drawer per Action-Param für eine fokussierte Einheit', () => {
+      mocks.einheiten = {
+        data: [
+          {
+            id: 'einheit-psa-action',
+            name: 'RTW 1',
+          },
+        ],
+        isLoading: false,
+        isError: false,
+      };
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" focusEinheitId="einheit-psa-action" initialAction="psa-change" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByTestId('psa-change-drawer')).toBeInTheDocument();
+    });
+
+    it('entfernt einen PSA-Action-Param, wenn keine gültige Ziel-Einheit vorhanden ist', () => {
+      const onActionConsumed = vi.fn();
+      mocks.einheiten = {
+        data: [{ id: 'einheit-psa-action', name: 'RTW 1' }],
+        isLoading: false,
+        isError: false,
+      };
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" focusEinheitId="bogus" initialAction="psa-change" onActionConsumed={onActionConsumed} />, { wrapper: wrapper(client) });
+
+      expect(screen.queryByTestId('psa-change-drawer')).toBeNull();
+      expect(onActionConsumed).toHaveBeenCalledTimes(1);
+    });
+
+    it('öffnet eine aktive PSA-Zuweisung per echter Zuweisungs-ID', () => {
+      mocks.einheiten = {
+        data: [
+          { id: 'einheit-a', name: 'RTW 1' },
+          { id: 'einheit-b', name: 'KTW 2' },
+        ],
+        isLoading: false,
+        isError: false,
+      };
+      mocks.profileByEinheit = new Map([
+        ['einheit-a', [{ id: 'zuweisung-a', profil: 'BASIS', propagationGroupId: 'group-a' }]],
+        ['einheit-b', [{ id: 'zuweisung-b', profil: 'BASIS', propagationGroupId: 'group-b' }]],
+      ]);
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" focusZuweisungId="zuweisung-b" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByTestId('psa-einheit-card-einheit-b')).toHaveAttribute('data-focus-target', 'true');
+      expect(screen.getByTestId('psa-change-drawer')).toBeInTheDocument();
+    });
+
+    it('zeigt einen Inline-Hinweis, wenn die PSA-Zuweisung nicht mehr aktiv ist', () => {
+      mocks.einheiten = {
+        data: [{ id: 'einheit-a', name: 'RTW 1' }],
+        isLoading: false,
+        isError: false,
+      };
+      mocks.profileByEinheit = new Map([['einheit-a', [{ id: 'andere-zuweisung', profil: 'BASIS', propagationGroupId: 'group-a' }]]]);
+      const client = makeClient();
+
+      render(<PsaProfilePage einsatzId="einsatz-1" focusZuweisungId="zuweisung-fehlt" />, { wrapper: wrapper(client) });
+
+      expect(screen.getByTestId('psa-zuweisung-missing-state')).toHaveTextContent('PSA-Zuweisung ist nicht mehr aktiv');
+    });
+
     it('rendert pro Eintrag einen „Checkliste anzeigen"-Button', () => {
       mocks.offene = {
         data: [

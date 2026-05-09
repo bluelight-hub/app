@@ -71,7 +71,7 @@ export interface SeverityBannerProps {
  */
 export function SeverityBanner({
   variant,
-  tone = 'polite',
+  tone: toneProp,
   headline,
   body,
   footer,
@@ -88,10 +88,15 @@ export function SeverityBanner({
   primaryActionTestId,
 }: SeverityBannerProps) {
   const toneClass: Record<SeverityBannerVariant, string> = {
-    critical: 'border-red-600 bg-red-50 dark:border-red-500 dark:bg-red-950/40',
-    warning: 'border-amber-600 bg-amber-50 dark:border-amber-500 dark:bg-amber-950/40',
-    info: 'border-blue-600 bg-blue-50 dark:border-blue-500 dark:bg-blue-950/40',
+    critical: 'border-severity-critical-assertive-border bg-severity-critical-assertive-surface text-severity-critical-assertive-text',
+    warning: 'border-severity-warning-border bg-severity-warning-surface text-severity-warning-text',
+    info: 'border-severity-info-border bg-severity-info-surface text-severity-info-text',
   };
+  const tone = toneProp ?? (variant === 'critical' ? 'assertive' : 'polite');
+  const actionFocusClass =
+    variant === 'critical' && tone === 'assertive'
+      ? 'focus-visible:shadow-focus-ring-critical focus-visible:outline-focus-ring-critical'
+      : 'focus-visible:shadow-focus-ring focus-visible:outline-focus-ring';
 
   return (
     <section
@@ -104,8 +109,8 @@ export function SeverityBanner({
       <header className="flex items-start justify-between gap-4">
         <h3 className="text-base leading-tight font-semibold">{headline.length > 60 ? `${headline.slice(0, 57)}…` : headline}</h3>
       </header>
-      {body !== undefined && body.length > 0 && <p className="text-foreground/80 dark:text-foreground/90 mt-2 text-sm">{body.length > 140 ? `${body.slice(0, 137)}…` : body}</p>}
-      {footer !== undefined && <footer className="text-foreground/60 mt-2 text-xs">{footer}</footer>}
+      {body !== undefined && body.length > 0 && <p className="mt-2 text-sm">{body.length > 140 ? `${body.slice(0, 137)}…` : body}</p>}
+      {footer !== undefined && <footer className="mt-2 text-xs">{footer}</footer>}
       {(primaryActionLabel !== undefined || secondaryActionLabel !== undefined || tertiaryActionLabel !== undefined) && (
         <div className="mt-3 flex flex-wrap gap-2">
           {primaryActionLabel !== undefined && (
@@ -116,8 +121,9 @@ export function SeverityBanner({
               data-testid={primaryActionTestId}
               className={cn(
                 'inline-flex min-h-12 min-w-12 items-center justify-center rounded-md px-4 py-2 text-sm font-medium',
-                'bg-foreground text-background hover:bg-foreground/90',
-                'focus-visible:outline-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                'bg-surface-inverse text-text-inverse hover:opacity-90',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                actionFocusClass,
                 'disabled:cursor-not-allowed disabled:opacity-50',
               )}
             >
@@ -131,8 +137,8 @@ export function SeverityBanner({
               disabled={onSecondary === undefined}
               className={cn(
                 'inline-flex min-h-12 min-w-12 items-center justify-center rounded-md border px-4 py-2 text-sm font-medium',
-                'border-foreground/40 text-foreground hover:bg-foreground/5',
-                'focus-visible:outline-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                'border-current text-current hover:bg-current/10',
+                'focus-visible:shadow-focus-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
               )}
             >
               {secondaryActionLabel}
@@ -149,8 +155,8 @@ export function SeverityBanner({
                 // visuell schwächer als Primary/Secondary (UX-DR21 — der
                 // Tertiary-Pfad ist ein Detail-View-Trigger, kein Mutator).
                 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium',
-                'text-foreground/80 hover:bg-foreground/5 hover:text-foreground',
-                'focus-visible:outline-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                'text-current hover:bg-current/10',
+                'focus-visible:shadow-focus-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
                 'disabled:cursor-not-allowed disabled:opacity-50',
               )}
             >
@@ -162,7 +168,7 @@ export function SeverityBanner({
       {inlineError !== undefined && inlineError.length > 0 && (
         <div
           role="alert"
-          className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-red-500/60 bg-red-50/40 px-3 py-2 text-sm text-red-700 dark:border-red-500 dark:bg-red-950/20 dark:text-red-200"
+          className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-status-danger-border bg-status-danger-surface px-3 py-2 text-sm text-status-danger-text"
         >
           <span>{inlineError}</span>
           {onRetry !== undefined && (
@@ -171,7 +177,8 @@ export function SeverityBanner({
               onClick={onRetry}
               className={cn(
                 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium',
-                'border border-red-600 text-red-700 hover:bg-red-100/50 dark:border-red-400 dark:text-red-100 dark:hover:bg-red-900/30',
+                'border border-status-danger-border text-status-danger-text hover:bg-status-danger-surface/70',
+                'focus-visible:shadow-focus-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring',
               )}
             >
               Erneut versuchen

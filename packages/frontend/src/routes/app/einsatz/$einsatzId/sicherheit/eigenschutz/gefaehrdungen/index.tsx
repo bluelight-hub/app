@@ -11,10 +11,14 @@ import { createFileRoute } from '@tanstack/react-router';
  * `../gefaehrdungen/$id`.
  */
 export const Route = createFileRoute('/app/einsatz/$einsatzId/sicherheit/eigenschutz/gefaehrdungen/')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    action: search.action === 'new-gefaehrdung' ? 'new-gefaehrdung' : undefined,
+  }),
   component: GefaehrdungenIndexRoute,
 });
 
 function GefaehrdungenIndexRoute() {
   const { einsatzId } = Route.useParams();
-  return <GefaehrdungenPage einsatzId={einsatzId} />;
+  const { action } = Route.useSearch();
+  return <GefaehrdungenPage einsatzId={einsatzId} initialAction={action} />;
 }

@@ -1713,6 +1713,23 @@ So that **ich ohne aktives Suchen Aufmerksamkeits-Punkte finde (FR40)**.
 
 Das Eigenschutz-Modul ist pilot-ready: WCAG 2.1 AA + BITV 2.0 konform, Keyboard-Shortcuts als First-Class-Bedienungspfad, Command-Palette-Integration, Deep-Links pro Entität, Dark-Mode-Severity-Tokens nachteinsatz-tauglich, Offline-UX ohne blockierende Modale, Zero-Toast-Policy, Destructive-Actions-Pattern, Alarm-Budget. Telemetrie + Prometheus sind für Pilot-Review einsatzbereit. Performance-Gates sind verifiziert.
 
+### Epic-6-Handoff: verbindliche Schärfung für Epic 7
+
+Die Retrospektive `epic-6-retro-2026-05-08.md` hat keinen Richtungswechsel ausgelöst, aber Epic 7 als Pilotfähigkeits-Epic geschärft. Die Handoffs aus R6-A2 bis R6-A8 werden direkt in Story 7.4, 7.7, 7.8, 7.10 und 7.11 aufgenommen oder als explizite Hardening-Folgepunkte sichtbar gehalten.
+
+**Direkt in Epic 7 einzuarbeiten:**
+
+- Deep-Link-Fokusziele für Warn-Badges, PSA-Checklisten und Gefährdungsdetails sind Produktvertrag, nicht optionales UI-Verhalten.
+- Generated-Client-Date-Verträge werden in UI-/Journey-Tests mit echten `Date`-Objekten abgesichert, nicht mit still passenden String-Fixtures.
+- Epic-6-Komponenten sind expliziter A11y- und Responsive-Audit-Scope: `StatusIndicator`, `AmpelCard`, `AmpelDashboardRow`, `AbschnittDetailPanel`, `EigenschutzOffenePunktePanel` und `AmpelWarnBadgeList`.
+- Story-Validierungen trennen story-blockierende Fehler, Sandbox-Effekte und unrelated Repo-Signale sichtbar im Bericht.
+
+**Als Hardening sichtbar halten, nicht im Polish verstecken:**
+
+- Ampel-Read-Model-Konsistenz: monotone `letzteAenderungAm`, konsistenter Recompute-Snapshot und Sicherheitsregel-Versionierung müssen vor belastbarer Performance-Aussage bewusst entschieden oder als explizites Risiko dokumentiert sein.
+- Query-Layer-Port-Schnitt für offene Rückmeldungen: direkter `PrismaService`-Zugriff wird bewusst akzeptiert, refaktoriert oder als separater Architektur-Follow-up geführt.
+- Die unrelated Backend-Failure aus Story 6.5 in `prisma-gefaehrdungsbeurteilung.repository.spec.ts` wird separat triagiert und darf Epic-7-Story-Scope nicht verdecken.
+
 ### Story 7.1: Dark-Mode-Severity-Tokens + Nacht-Einsatz-Verifikation
 
 As a **Sicherheitsbeauftragter im Nachteinsatz**,
@@ -1832,6 +1849,11 @@ So that **ich einem Kollegen im Einsatz per Chat oder Funk einen Link schicken k
 
 **And** die Deep-Link-Struktur ist in der OpenAPI-/Router-Doku als stabile URL-Contract dokumentiert.
 
+**Given** ein Nutzer aktiviert einen Warn-Badge-, PSA-Checklisten- oder Gefährdungsdetail-Fokus aus `AmpelWarnBadgeList`, `AmpelCard`, `AmpelDashboardRow` oder `AbschnittDetailPanel`
+**When** der Deep-Link geöffnet, kopiert oder nach Refresh wiederhergestellt wird
+**Then** öffnet die Zielroute den richtigen Drawer bzw. das richtige Panel, scrollt das Ziel sichtbar in den Viewport und setzt den Tastaturfokus auf das fachlich gemeinte Element
+**And** fehlende oder nicht mehr vorhandene Fokusziele zeigen einen zugänglichen Inline-Hinweis statt still auf die Oberseite zurückzufallen.
+
 ### Story 7.5: `SyncStatusBadge` + Offline-UX ohne blockierende Modale
 
 As a **Nutzer im Einsatz**,
@@ -1919,6 +1941,11 @@ So that **Markus und Steffi auf ihren realen Geräten ohne Layout-Brüche arbeit
 **When** er für die 6 Referenz-Geräte erstellt wird
 **Then** dokumentiert er: (a) Breakpoint-Verifikation pro Gerät, (b) Touch-Target-Messung, (c) keine horizontalen Scrollbars bis 200 % Zoom (WCAG 1.4.10), (d) Performance-Kennzahlen (Route-TTI).
 
+**Given** die in Epic 6 gelieferten Dashboard-Komponenten
+**When** die Referenz-Geräte geprüft werden
+**Then** umfasst die Checkliste mindestens `AmpelCard`, `AmpelDashboardRow`, `AbschnittDetailPanel`, `EigenschutzOffenePunktePanel`, `AmpelWarnBadgeList`, Cap-Hinweise und Seitenpanel/Dialog-Zustände
+**And** Touch-Ziele, Row-Overflow, Badge-Umbruch, Fokuslinks und Warnanzahl bleiben auf allen Referenz-Geräten bedienbar und lesbar.
+
 ### Story 7.8: A11y-Audit + axe-core + Screenreader-Walk
 
 As a **Accessibility-Advocate**,
@@ -1948,6 +1975,11 @@ So that **das Modul BITV-2.0-kompatibel ist und Nutzer mit Einschränkungen es p
 **When** er abgeschlossen ist
 **Then** liegt er als Markdown-Dokument unter `docs/audits/eigenschutz-a11y-audit-{date}.md`
 **And** enthält Kontrast-Verifikation (WCAG 1.4.3 ≥ 4.5:1 Normal, ≥ 7:1 Kritisch) in Light + Dark Mode.
+
+**Given** der Audit-Scope wird festgelegt
+**When** Epic-6-Komponenten aufgenommen werden
+**Then** sind `StatusIndicator`, `AmpelCard`, `AmpelDashboardRow`, `AbschnittDetailPanel`, `EigenschutzOffenePunktePanel` und `AmpelWarnBadgeList` explizit gelistet
+**And** der Audit prüft Statuskommunikation redundant über Text, Icon, zugänglichen Namen und Zähler, nicht nur über Farbe oder Position.
 
 ### Story 7.9: Prometheus-Metriken + Grafana-Ready
 
@@ -1998,6 +2030,15 @@ So that **das Modul auch auf Stabs-Tablets flüssig läuft (NFR-P1–P7)**.
 **Then** bleibt die Propagations-Latenz ≤ 2 s (p95, NFR-P2)
 **And** die Ampel-Aktualisierung ≤ 1 s (p95, NFR-P4).
 
+**Given** die Ampel-Aktualisierung als NFR-P4 gemessen wird
+**When** der Audit vorbereitet wird
+**Then** ist vorher dokumentiert, wie `AmpelProjection` monotone `letzteAenderungAm`, konsistente Recompute-Snapshots und Sicherheitsregel-Versionierung behandelt
+**And** falls eine dieser Konsistenzfragen noch offen ist, enthält der Performance-Audit ein explizites Risiko mit Owner und Folgepfad statt die Messung als uneingeschränkt belastbar zu markieren.
+
+**Given** offene Rückmeldungen und offene Punkte in die Eigenschutz-Startseite einfließen
+**When** der Performance- und Architektur-Hotspot-Check läuft
+**Then** wird der direkte `PrismaService`-Zugriff im Rückmeldungs-Read bewusst akzeptiert, auf einen Read-Port-Schnitt refaktoriert oder als separater Architektur-Follow-up mit Owner dokumentiert.
+
 **Given** ein PDF-Export für einen Standard-Vorfall
 **When** er ausgelöst wird
 **Then** ist er in ≤ 5 s fertig (NFR-P5).
@@ -2047,6 +2088,19 @@ So that **Regressionen vor dem Pilot automatisch entdeckt werden (NFR-M1)**.
 **When** der Test ausgeführt wird
 **Then** misst er die End-to-End-Dauer des Bulk-PSA-Changes + 3 Quittungen
 **And** schlägt fehl bei Dauer > 90 s (Sanity-Check, kein Hard-Gate).
+
+**Given** die CBRN- und Export-Journeys laufen
+**When** fachliche Zustände erzeugt oder exportiert werden
+**Then** wird die Eigenschutz-Startseite zusätzlich verifiziert: Ampelstatus, offene Punkte, Warn-Badges und relevante Fokuslinks zeigen den erwarteten Zustand nach den Journey-Schritten.
+
+**Given** Tests oder Fixtures Ampel-Warnungen und Zeitdarstellungen prüfen
+**When** Daten aus dem generierten Client verwendet werden
+**Then** nutzen die Tests echte `Date`-Objekte gemäß Client-Vertrag und decken `AmpelWarnBadgeList` sowie verwandte Zeitdarstellungen gegen String-/Date-Drift ab.
+
+**Given** der Validierungsbericht zu Story 7.11 erstellt wird
+**When** einzelne Gates rot oder auffällig sind
+**Then** trennt der Bericht story-blockierende Fehler, Sandbox-Effekte und unrelated Repo-Signale
+**And** die aus Story 6.5 bekannte unrelated Failure in `prisma-gefaehrdungsbeurteilung.repository.spec.ts` ist separat triagiert oder mit Owner und Status verlinkt.
 
 **And** die Tests sind als Teil der CI-Pipeline ausgeführt (nicht nur on-demand).
 

@@ -1,4 +1,5 @@
 import { cn } from '@/shared/ui/cn';
+import { Kbd } from './kbd.atom';
 import { InlineSpinner } from './spinner.atom.tsx';
 import { Button as HeadlessButton } from '@headlessui/react';
 import * as React from 'react';
@@ -84,24 +85,6 @@ const CONTENT_SIZES = {
   icon: 'text-body-sm',
 };
 
-const KBD_INTENT_COLORS = {
-  primary: 'bg-primary-100 text-primary-700 group-hover:bg-primary-200',
-  secondary: 'bg-action-secondary text-text-secondary group-hover:bg-action-secondary-hover',
-  danger: 'bg-status-danger-surface text-status-danger-text',
-  warning: 'bg-status-warning-surface text-status-warning-text',
-  success: 'bg-status-success-surface text-status-success-text',
-  info: 'bg-status-info-surface text-status-info-text',
-};
-
-const KEY_MAP: Record<string, string> = {
-  cmd: '⌘',
-  ctrl: 'Ctrl',
-  shift: '⇧',
-  alt: '⌥',
-  option: '⌥',
-  enter: '↩︎',
-};
-
 /**
  * Button Atom Component
  *
@@ -116,13 +99,8 @@ export const Button = React.memo(
       // Animation classes only applied when animate=true
       const animationStyles = animate ? 'hover:-translate-y-px active:translate-y-0' : '';
 
-      // Keyboard shortcut badge styles based on intent and appearance
-      const kbdStyles =
-        appearance === 'filled'
-          ? intent === 'secondary'
-            ? 'bg-surface-panel/70 text-text-secondary group-hover:bg-surface-panel'
-            : 'bg-surface-inverse/16 text-text-inverse group-hover:bg-surface-inverse/24'
-          : KBD_INTENT_COLORS[intent];
+      const kbdTone = appearance === 'filled' && intent !== 'secondary' ? 'inverse' : 'subtle';
+      const kbdHoverClass = kbdTone === 'inverse' ? 'group-hover:bg-surface-inverse/24' : 'group-hover:bg-action-secondary-hover';
 
       return (
         <HeadlessButton
@@ -143,15 +121,7 @@ export const Button = React.memo(
           {/* Content - unsichtbar wenn loading, damit Button-Größe erhalten bleibt */}
           <span className={cn('inline-flex items-center', CONTENT_SIZES[size], loading && 'invisible')}>
             {children}
-            {kbd && (
-              <kbd className={cn('ml-2 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-medium', kbdStyles)}>
-                {kbd.split('+').map((key) => {
-                  const normalizedKey = key.trim().toLowerCase();
-                  const displayKey = KEY_MAP[normalizedKey] || key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
-                  return <span key={key}>{displayKey}</span>;
-                })}
-              </kbd>
-            )}
+            {kbd && <Kbd keys={kbd} tone={kbdTone} size="sm" className={cn('ml-2', kbdHoverClass)} />}
           </span>
         </HeadlessButton>
       );
