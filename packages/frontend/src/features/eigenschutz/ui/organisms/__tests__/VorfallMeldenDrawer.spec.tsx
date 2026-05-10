@@ -18,6 +18,15 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockReport = vi.fn();
+const { mockToastSuccess } = vi.hoisted(() => ({
+  mockToastSuccess: vi.fn(),
+}));
+
+vi.mock('sonner', () => ({
+  toast: {
+    success: mockToastSuccess,
+  },
+}));
 
 vi.mock('@/shared', () => ({
   api: {
@@ -68,6 +77,7 @@ const VALID_EINHEIT = 'clw3h8x9y0000qwertyui05002';
 
 beforeEach(() => {
   mockReport.mockReset();
+  mockToastSuccess.mockReset();
 });
 
 describe('VorfallMeldenDrawer (Story 5.1)', () => {
@@ -205,6 +215,7 @@ describe('VorfallMeldenDrawer (Story 5.1)', () => {
       expect(onSuccess).toHaveBeenCalled();
       expect(onClose).toHaveBeenCalled();
     });
+    expect(mockToastSuccess).not.toHaveBeenCalled();
   });
 
   it('422 mit context.field=wo zeigt Field-Error inline', async () => {

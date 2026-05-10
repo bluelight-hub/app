@@ -6,10 +6,12 @@ import { useEigenschutzQuittungUeberfaelligLive } from '@/features/eigenschutz/a
 import { useEigenschutzKonfliktErkanntLive } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live';
 import { useEigenschutzKonfliktAufgeloestLive } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-aufgeloest-live';
 import { useEigenschutzTelemetry } from '@/features/eigenschutz/hooks/useEigenschutzTelemetry';
+import { useEigenschutzSyncStatus } from '@/features/eigenschutz/hooks/useEigenschutzSyncStatus';
 import type { KonfliktNotice } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live';
 import { PsaProfilEmpfangBanner } from '@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner';
 import { EinsatzleiterReprompEskalationBanner } from '@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanner';
 import { KonfliktErkanntMikroBanner } from '@/features/eigenschutz/ui/molecules/KonfliktErkanntMikroBanner';
+import { EigenschutzSyncStatusPopover } from '@/features/eigenschutz/ui/molecules/EigenschutzSyncStatusPopover';
 import { logger } from '@/shared/lib/logger';
 import { Outlet, createFileRoute, useLocation, useNavigate } from '@tanstack/react-router';
 
@@ -72,6 +74,7 @@ function EigenschutzRouteComponent() {
   // Visibility/Pagehide). Die Queue selbst lebt modul-global; der Hook
   // bindet nur den Flush-Pfad an den Einsatz-Kontext.
   useEigenschutzTelemetry(einsatzId);
+  const syncStatus = useEigenschutzSyncStatus(einsatzId);
 
   const navigate = useNavigate();
   // Story 3.10 AC9 §4 — Wiring der Mikro-Banner-Navigation aus Story 3.9.
@@ -89,6 +92,15 @@ function EigenschutzRouteComponent() {
     [navigate, einsatzId],
   );
 
+  const handleOpenSyncConflicts = useCallback(() => {
+    void navigate({
+      to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/sync-konflikte',
+      params: { einsatzId },
+      search: {},
+    });
+  }, [navigate, einsatzId]);
+  const syncConflictsHref = `/app/einsatz/${encodeURIComponent(einsatzId)}/sicherheit/eigenschutz/sync-konflikte`;
+
   const isEigenschutzRoot = location.pathname.replace(/\/+$/, '').endsWith('/sicherheit/eigenschutz');
 
   // AC6-Stub: Story 3.3 verlangt einen Stub-Handler für die Primary-Action
@@ -101,9 +113,33 @@ function EigenschutzRouteComponent() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-end gap-2" data-testid="eigenschutz-sync-status-row">
+        <EigenschutzSyncStatusPopover einsatzId={einsatzId} syncStatus={syncStatus} onOpenConflicts={handleOpenSyncConflicts} />
+      </div>
       <PsaProfilEmpfangBanner einsatzId={einsatzId} onShowDetails={handleShowPsaDetails} repromptNotices={reprompt.notices} onRepromptDismiss={reprompt.dismiss} />
       <EinsatzleiterReprompEskalationBanner einsatzId={einsatzId} notices={reprompt.notices} onDismiss={reprompt.dismiss} />
       <KonfliktErkanntMikroBanner einsatzId={einsatzId} notices={konfliktLive.notices} onDismiss={konfliktLive.dismissNotice} onOpenConflict={handleOpenConflict} />
+      {syncStatus.conflictCount > 0 && konfliktLive.notices.length === 0 ? (
+        <section
+          role="status"
+          aria-live="polite"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-sync-conflict-border bg-sync-conflict-surface px-3 py-2 text-body-sm text-sync-conflict-text"
+          data-testid="eigenschutz-sync-conflict-summary-banner"
+        >
+          <span className="font-medium">Sync-Konflikt: jetzt auflösen</span>
+          <a
+            href={syncConflictsHref}
+            onClick={(event) => {
+              event.preventDefault();
+              handleOpenSyncConflicts();
+            }}
+            className="inline-flex min-h-11 items-center rounded-control px-3 py-1.5 text-body-sm font-semibold hover:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring"
+            data-testid="eigenschutz-sync-conflict-summary-link"
+          >
+            Konflikte auflösen
+          </a>
+        </section>
+      ) : null}
       {isEigenschutzRoot ? <EigenschutzEntryPage einsatzId={einsatzId} /> : <Outlet />}
     </div>
   );

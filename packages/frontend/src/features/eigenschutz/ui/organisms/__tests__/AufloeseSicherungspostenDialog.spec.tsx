@@ -49,6 +49,15 @@ describe('AufloeseSicherungspostenDialog', () => {
     expect(confirm).toBeDisabled();
   });
 
+  it('rendert Destructive-Pattern mit Hinweistext direkt über Outline-Danger-Button', () => {
+    renderWithProviders(<AufloeseSicherungspostenDialog einsatzId="einsatz-1" posten={POSTEN} onClose={vi.fn()} />);
+
+    expect(screen.getByTestId('aufloese-dialog-destructive-hint')).toHaveTextContent('Diese Änderung wird historisiert und kann nicht gelöscht werden.');
+    const confirm = screen.getByTestId('aufloese-dialog-confirm');
+    expect(confirm.className).toMatch(/border-status-danger-border/);
+    expect(confirm.className).not.toMatch(/bg-status-danger-text/);
+  });
+
   it('Confirm ruft mutateAsync mit expectedVersion + Begründung und schließt Dialog', async () => {
     const user = userEvent.setup();
     mocks.aufloesenMutation.mutateAsync = vi.fn().mockResolvedValue({});

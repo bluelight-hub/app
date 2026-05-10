@@ -3,7 +3,9 @@ import {
   EIGENSCHUTZ_PENDING_COMMANDS_STORAGE_KEY,
   type EigenschutzPendingCommandV1,
   loadPendingCommands,
+  loadPendingCommandsWithMeta,
   markPendingCommandConflict,
+  subscribeToPendingCommandChanges,
   removePendingCommand,
   replayPendingCommands,
   upsertPendingCommand,
@@ -67,6 +69,25 @@ describe('pending-command-queue (Story 2.5)', () => {
     expect(mocks.loggerWarn).toHaveBeenCalledWith(expect.stringContaining('Pending Commands verworfen'), expect.objectContaining({ error: expect.anything() }));
   });
 
+  it('liefert Meta-Informationen für beschädigte Storage-Payloads, ohne den alten Loader zu brechen', async () => {
+    mocks.getItem.mockResolvedValue('{kaputt');
+
+    await expect(loadPendingCommandsWithMeta()).resolves.toMatchObject({
+      commands: [],
+      readError: true,
+    });
+  });
+
+  it('meldet Storage-Adapter-Fehler als ruhigen Lesefehler', async () => {
+    mocks.getItem.mockRejectedValue(new Error('Storage nicht erreichbar'));
+
+    await expect(loadPendingCommandsWithMeta()).resolves.toMatchObject({
+      commands: [],
+      readError: true,
+    });
+    expect(mocks.loggerWarn).toHaveBeenCalledWith(expect.stringContaining('Pending Commands verworfen'), expect.objectContaining({ error: expect.any(Error) }));
+  });
+
   it('coalesced Auto-Save-Commands derselben Entität und expectedVersion auf den neuesten Payload', async () => {
     mocks.getItem.mockResolvedValue(JSON.stringify([command({ id: 'cmd-alt', payload: { items: [{ title: 'Alt' }] } })]));
 
@@ -85,6 +106,16 @@ describe('pending-command-queue (Story 2.5)', () => {
       payload: { items: [{ title: 'Neu' }] },
       updatedAt: '2026-04-24T10:00:02.000Z',
     });
+  });
+
+  it('benachrichtigt Subscriber nach Queue-Änderungen', async () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeToPendingCommandChanges(listener);
+
+    await upsertPendingCommand(command({ id: 'cmd-notify' }));
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
   });
 
   it('entfernt Commands per removePendingCommand', async () => {

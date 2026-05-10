@@ -28,6 +28,7 @@ import { GefaehrdungenEditorOrganism } from '../organisms/GefaehrdungenEditorOrg
 import { GefaehrdungsbeurteilungHistoriePopover } from '../organisms/GefaehrdungsbeurteilungHistoriePopover';
 import { GefaehrdungsbeurteilungVersionDrawer } from '../organisms/GefaehrdungsbeurteilungVersionDrawer';
 
+// consistency-allow: destructive-pattern - Retry-Button bei Ladefehler, keine destruktive Mutation.
 export interface GefaehrdungenDetailPageProps {
   readonly einsatzId: string;
   readonly id: string;

@@ -25,6 +25,7 @@ import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PiPlus, PiShieldCheck } from 'react-icons/pi';
 
+// consistency-allow: destructive-pattern - Retry-Button bei Ladefehler, keine destruktive Mutation.
 export interface SicherheitsregelnPageProps {
   readonly einsatzId: string;
   readonly initialAction?: 'new-sicherheitsregel';

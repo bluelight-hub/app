@@ -25,6 +25,7 @@ import { GefaehrdungsbeurteilungListItem } from '../molecules/Gefaehrdungsbeurte
 import { EigenschutzShortcutHelpPopover } from '../molecules/EigenschutzShortcutHelpPopover';
 import { GefaehrdungseditorDrawer } from '../organisms/GefaehrdungseditorDrawer.organism';
 
+// consistency-allow: destructive-pattern - Retry-Button bei Ladefehler, keine destruktive Mutation.
 export interface GefaehrdungenPageProps {
   readonly einsatzId: string;
   readonly initialAction?: 'new-gefaehrdung';

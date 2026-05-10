@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useEinsatzEinheiten } from '@/features/kraefte/api/use-einsatz-einheiten';
@@ -215,7 +214,6 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
     }
     try {
       await reportVorfall.mutateAsync(body);
-      toast.success('Vorfall gemeldet');
       onSuccess?.();
       onClose();
     } catch (error) {

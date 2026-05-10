@@ -10,6 +10,7 @@ import { api } from '@/shared';
 import { EIGENSCHUTZ_QUERY_KEYS, PsaProfilConflictError, useChangePsaProfil, usePsaProfileByEinheit, type ChangePsaProfilHookInput, type PsaProfileByEinheitDto } from '../../api/queries';
 import { eigenschutzTelemetryQueue, getOrCreateSessionId } from '../../lib/telemetry-queue';
 import { PSA_PROFIL_META } from '../../constants/psa-profil.constants';
+import { DESTRUCTIVE_HINT_TEXT } from '../../constants/destructive-actions.constants';
 import type { PsaProfilValue } from '@bluelight-hub/shared/schemas/eigenschutz/psa-profil.schema';
 import { PSAProfileMultiSelect } from './PSAProfileMultiSelect';
 
@@ -72,7 +73,6 @@ export function PSAChangeDrawer(props: PSAChangeDrawerProps) {
 
   const [pendingMap, setPendingMap] = useState<Map<PsaProfilValue, boolean>>(new Map());
   const [begruendung, setBegruendung] = useState('');
-  const [destructiveModalOpen, setDestructiveModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
@@ -123,7 +123,6 @@ export function PSAChangeDrawer(props: PSAChangeDrawerProps) {
   useEffect(() => {
     setPendingMap(new Map());
     setBegruendung('');
-    setDestructiveModalOpen(false);
     setSubmitError(null);
     // P10: Veralteten Mutation-Error zurücksetzen, damit ein vorheriger
     // Konflikt-Banner beim erneuten Öffnen nicht reaktiviert wird.
@@ -377,10 +376,6 @@ export function PSAChangeDrawer(props: PSAChangeDrawerProps) {
   async function handleSubmitClick(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (submitDisabled) return;
-    if (isLastBasisRemoval) {
-      setDestructiveModalOpen(true);
-      return;
-    }
     await handleConfirmedSubmit();
   }
 
@@ -548,53 +543,31 @@ export function PSAChangeDrawer(props: PSAChangeDrawerProps) {
                   </p>
                 ) : null}
 
-                <footer className="mt-auto flex items-center justify-end gap-2 border-t border-border-subtle pt-3">
+                {isLastBasisRemoval ? (
+                  <section className="rounded-control border border-status-danger-border bg-status-danger-surface px-3 py-2 text-sm text-status-danger-text" data-testid="psa-last-basis-inline">
+                    <p className="font-medium">Letztes Basis-Profil entfernen</p>
+                    <p className="mt-1">Du entfernst das einzige aktive Basis-Profil dieser Einheit, während andere Profile aktiv bleiben. {DESTRUCTIVE_HINT_TEXT}</p>
+                  </section>
+                ) : null}
+
+                <footer className="mt-auto flex flex-col gap-3 border-t border-border-subtle pt-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
                   <Button type="button" intent="secondary" onClick={onClose} disabled={changeMutation.isPending}>
                     Abbrechen
                   </Button>
-                  <Button type="submit" intent="primary" disabled={submitDisabled} data-testid="psa-change-submit">
-                    {changeMutation.isPending ? 'Wird gespeichert…' : 'Änderung speichern'}
-                  </Button>
+                  {isLastBasisRemoval ? (
+                    <Button type="submit" intent="danger" appearance="outline" disabled={submitDisabled} data-testid="psa-last-basis-confirm">
+                      {changeMutation.isPending ? 'Wird entfernt…' : 'Basis entfernen'}
+                    </Button>
+                  ) : (
+                    <Button type="submit" intent="primary" disabled={submitDisabled} data-testid="psa-change-submit">
+                      {changeMutation.isPending ? 'Wird gespeichert…' : 'Änderung speichern'}
+                    </Button>
+                  )}
                 </footer>
               </form>
             </Dialog.Panel>
           </Transition.Child>
         </div>
-
-        {destructiveModalOpen ? (
-          <Dialog as="div" className="relative z-[60]" open={destructiveModalOpen} onClose={() => setDestructiveModalOpen(false)} aria-modal="true">
-            <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
-            <div className="fixed inset-0 flex items-center justify-center p-4">
-              <Dialog.Panel className="w-full max-w-md rounded-panel bg-surface-panel p-5 shadow-panel" data-testid="psa-last-basis-modal">
-                <Dialog.Title className="text-lg font-semibold text-text-primary">Letztes Basis-Profil entfernen?</Dialog.Title>
-                <Dialog.Description className="mt-2 text-sm text-text-muted">
-                  Du entfernst das einzige aktive Basis-Profil dieser Einheit, während andere Profile (z. B.{' '}
-                  {[...currentActive]
-                    .filter((p) => p !== 'BASIS')
-                    .map((p) => PSA_PROFIL_META[p].label)
-                    .join(', ')}
-                  ) aktiv bleiben. Bitte bestätige.
-                </Dialog.Description>
-                <div className="mt-4 flex justify-end gap-2">
-                  <Button type="button" intent="secondary" onClick={() => setDestructiveModalOpen(false)}>
-                    Abbrechen
-                  </Button>
-                  <Button
-                    type="button"
-                    intent="danger"
-                    onClick={async () => {
-                      setDestructiveModalOpen(false);
-                      await handleConfirmedSubmit();
-                    }}
-                    data-testid="psa-last-basis-confirm"
-                  >
-                    Trotzdem entfernen
-                  </Button>
-                </div>
-              </Dialog.Panel>
-            </div>
-          </Dialog>
-        ) : null}
       </Dialog>
     </Transition>
   );

@@ -2,11 +2,12 @@ import { cn } from '@/shared/ui/cn';
 import type { ReactNode } from 'react';
 import { PiArrowsClockwise, PiCheckCircleFill, PiCloudSlash, PiFloppyDiskLight, PiPencilSimpleLine, PiWarningFill, PiXCircleFill } from 'react-icons/pi';
 
-export type SyncStatusBadgeStatus = 'idle' | 'dirty' | 'debouncing' | 'local-saved' | 'syncing' | 'synced' | 'offline-queued' | 'conflict' | 'error';
+export type SyncStatusBadgeStatus = 'idle' | 'dirty' | 'debouncing' | 'local-saved' | 'syncing' | 'synced' | 'offline-queued' | 'pending' | 'offline' | 'conflict' | 'error';
 
 export interface SyncStatusBadgeProps {
   readonly status: SyncStatusBadgeStatus;
   readonly savedVersion?: number;
+  readonly pendingCount?: number;
   readonly className?: string;
 }
 
@@ -16,7 +17,7 @@ interface StatusView {
   readonly className: string;
 }
 
-export function SyncStatusBadge({ status, savedVersion, className }: SyncStatusBadgeProps) {
+export function SyncStatusBadge({ status, savedVersion, pendingCount = 0, className }: SyncStatusBadgeProps) {
   const views: Record<SyncStatusBadgeStatus, StatusView> = {
     idle: {
       label: 'Synchronisiert',
@@ -43,6 +44,11 @@ export function SyncStatusBadge({ status, savedVersion, className }: SyncStatusB
       icon: <PiArrowsClockwise className="h-4 w-4" aria-hidden="true" />,
       className: 'border-sync-pending-border bg-sync-pending-surface text-sync-pending-text',
     },
+    pending: {
+      label: pendingCount > 0 ? `Lokal · ${pendingCount} ungesynct` : 'Sync wird geprüft',
+      icon: <PiFloppyDiskLight className="h-4 w-4" aria-hidden="true" />,
+      className: 'border-sync-pending-border bg-sync-pending-surface text-sync-pending-text',
+    },
     synced: {
       label: savedVersion === undefined ? 'Synchronisiert' : `Version ${savedVersion} gespeichert`,
       icon: <PiCheckCircleFill className="h-4 w-4" aria-hidden="true" />,
@@ -50,6 +56,11 @@ export function SyncStatusBadge({ status, savedVersion, className }: SyncStatusB
     },
     'offline-queued': {
       label: 'Offline gespeichert',
+      icon: <PiCloudSlash className="h-4 w-4" aria-hidden="true" />,
+      className: 'border-sync-offline-border bg-sync-offline-surface text-sync-offline-text',
+    },
+    offline: {
+      label: 'Offline',
       icon: <PiCloudSlash className="h-4 w-4" aria-hidden="true" />,
       className: 'border-sync-offline-border bg-sync-offline-surface text-sync-offline-text',
     },
@@ -70,12 +81,12 @@ export function SyncStatusBadge({ status, savedVersion, className }: SyncStatusB
     <span
       aria-live="polite"
       data-testid="sync-status-badge"
-      className={cn('inline-flex min-h-[32px] items-center gap-2 rounded-control border px-2.5 py-1 text-body-sm font-medium', view.className, className)}
+      className={cn('inline-flex min-h-[32px] max-w-full items-center gap-2 rounded-control border px-2.5 py-1 text-body-sm font-medium', view.className, className)}
     >
       <span data-testid="sync-status-badge-icon" className="inline-flex shrink-0 items-center">
         {view.icon}
       </span>
-      <span>{view.label}</span>
+      <span className="min-w-0 break-words">{view.label}</span>
     </span>
   );
 }

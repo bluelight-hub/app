@@ -97,7 +97,7 @@ describe('PSAChangeDrawer (Story 3.1)', () => {
     expect(onSaved).toHaveBeenCalledWith('group-1', expect.any(Array));
   });
 
-  it('Last-BASIS-Modal erscheint beim Deaktivieren von BASIS, wenn andere Profile aktiv bleiben', async () => {
+  it('Last-BASIS-Entfernung läuft ohne zweites Modal über Inline-Danger-Confirm', async () => {
     hoisted.profileQuery.data = [
       { profil: 'BASIS', version: 1 },
       { profil: 'INFEKTION', version: 1 },
@@ -105,16 +105,13 @@ describe('PSAChangeDrawer (Story 3.1)', () => {
     renderDrawer();
     fireEvent.click(screen.getByRole('checkbox', { name: 'PSA-Profil Basis' }));
     fireEvent.change(screen.getByTestId('psa-change-begruendung'), { target: { value: 'Lage geklärt' } });
-    fireEvent.click(screen.getByTestId('psa-change-submit'));
 
-    await waitFor(() => expect(screen.getByTestId('psa-last-basis-modal')).toBeInTheDocument());
-    expect(hoisted.changeMutation.mutateAsync).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('psa-last-basis-modal')).not.toBeInTheDocument();
+    expect(screen.getByTestId('psa-last-basis-inline')).toHaveTextContent(/historisiert/i);
 
-    // P-30: UX-DR27-Pattern — der Confirm-Button im Last-BASIS-Modal MUSS
-    // visuell als destruktive Aktion gerendert sein (variant="danger" → CSS-
-    // Class, die `bg-status-danger` o. ä. trägt). Wir prüfen strukturell.
     const confirmButton = screen.getByTestId('psa-last-basis-confirm');
-    expect(confirmButton.className).toMatch(/danger|destruct/i);
+    expect(confirmButton.className).toMatch(/border-status-danger-border/);
+    expect(confirmButton.className).not.toMatch(/bg-status-danger-text/);
 
     fireEvent.click(confirmButton);
     await waitFor(() => expect(hoisted.changeMutation.mutateAsync).toHaveBeenCalledTimes(1));
