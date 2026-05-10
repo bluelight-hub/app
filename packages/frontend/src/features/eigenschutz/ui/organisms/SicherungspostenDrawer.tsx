@@ -75,6 +75,7 @@ function AutoSaveBadge({ status }: AutoSaveBadgeProps) {
   );
 }
 
+// consistency-allow: destructive-pattern - Personal-Entfernen ist eine lokale Formularzeile; Persistenz läuft über den nicht-destruktiven Speichern-Flow.
 export interface SicherungspostenDrawerProps {
   readonly einsatzId: string;
   readonly mode: 'create' | 'edit';

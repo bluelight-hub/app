@@ -17,6 +17,7 @@ import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useAufloeseSicherungsposten } from '../../api/use-sicherungsposten';
 import { aufloeseFormSchema } from '../../schemas/sicherungsposten.schema';
+import { DESTRUCTIVE_HINT_TEXT } from '../../constants/destructive-actions.constants';
 
 export interface AufloeseSicherungspostenDialogProps {
   readonly einsatzId: string;
@@ -141,12 +142,16 @@ export function AufloeseSicherungspostenDialog({ einsatzId, posten, onClose }: A
           ) : null}
         </div>
       </Dialog.Body>
-      <Dialog.Footer loading={aufloesenMutation.isPending}>
+      <Dialog.Footer loading={aufloesenMutation.isPending} className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+        <p className="text-sm text-status-danger-text sm:mr-auto" data-testid="aufloese-dialog-destructive-hint">
+          {DESTRUCTIVE_HINT_TEXT}
+        </p>
         <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} data-testid="aufloese-dialog-cancel">
           Abbrechen
         </Button>
         <Button
           intent="danger"
+          appearance="outline"
           type="button"
           onClick={handleConfirm}
           disabled={!isValid || aufloesenMutation.isPending || bereitsAufgeloest}

@@ -13,10 +13,11 @@ import { renderWithProviders } from '@/test/utils';
  * direkt verfügbar bleibt.
  */
 
-const { captured, mockUseParams, mockUseLocation } = vi.hoisted(() => ({
+const { captured, mockUseParams, mockUseLocation, mockNavigate } = vi.hoisted(() => ({
   captured: { component: null as (() => React.JSX.Element) | null },
   mockUseParams: vi.fn(() => ({ einsatzId: 'einsatz-1' })),
   mockUseLocation: vi.fn(() => ({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' })),
+  mockNavigate: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
@@ -33,6 +34,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
       };
     },
     useLocation: () => mockUseLocation(),
+    useNavigate: () => mockNavigate,
     // Ohne `<RouterProvider>` crasht der echte Outlet in Tests — deshalb
     // stubben wir ihn hier isoliert.
     Outlet: () => <div data-testid="outlet" />,
@@ -51,10 +53,26 @@ vi.mock('@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanne
   EinsatzleiterReprompEskalationBanner: ({ einsatzId }: { einsatzId: string }) => <div data-testid="einsatzleiter-reprompt-mock">EinsatzleiterReprompt:{einsatzId}</div>,
 }));
 
-const { mockQuittungLive, mockLueckeLive, mockUeberfaelligLive } = vi.hoisted(() => ({
+vi.mock('@/features/eigenschutz/ui/molecules/EigenschutzSyncStatusPopover', () => ({
+  EigenschutzSyncStatusPopover: ({ einsatzId }: { einsatzId: string }) => <div data-testid="eigenschutz-sync-status-popover-mock">SyncStatus:{einsatzId}</div>,
+}));
+
+const { mockQuittungLive, mockLueckeLive, mockUeberfaelligLive, mockKonfliktLive, mockUseSyncStatus } = vi.hoisted(() => ({
   mockQuittungLive: vi.fn(),
   mockLueckeLive: vi.fn(),
   mockUeberfaelligLive: vi.fn(),
+  mockKonfliktLive: vi.fn(),
+  mockUseSyncStatus: vi.fn(() => ({
+    status: 'synced',
+    isLoaded: true,
+    isOnline: true,
+    pendingCount: 0,
+    conflictCount: 0,
+    oldestPendingAt: null,
+    lastSyncAt: null,
+    hasStorageReadError: false,
+    hasPausedConflictQuery: false,
+  })),
 }));
 vi.mock('@/features/eigenschutz/api/use-eigenschutz-psa-quittung-live', () => ({
   useEigenschutzPsaQuittungLive: (...args: unknown[]) => {
@@ -74,6 +92,21 @@ vi.mock('@/features/eigenschutz/api/use-eigenschutz-quittung-ueberfaellig-live',
     return { status: 'connected', notices: [], dismiss: () => {} };
   },
 }));
+vi.mock('@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live', () => ({
+  useEigenschutzKonfliktErkanntLive: (...args: unknown[]) => {
+    mockKonfliktLive(...args);
+    return { notices: [], dismissNotice: () => {} };
+  },
+}));
+vi.mock('@/features/eigenschutz/api/use-eigenschutz-konflikt-aufgeloest-live', () => ({
+  useEigenschutzKonfliktAufgeloestLive: vi.fn(),
+}));
+vi.mock('@/features/eigenschutz/hooks/useEigenschutzTelemetry', () => ({
+  useEigenschutzTelemetry: vi.fn(),
+}));
+vi.mock('@/features/eigenschutz/hooks/useEigenschutzSyncStatus', () => ({
+  useEigenschutzSyncStatus: () => mockUseSyncStatus(),
+}));
 
 // Route-Import muss NACH den vi.mock-Aufrufen stehen (captured.component
 // wird beim Modul-Import vom gemockten createFileRoute befüllt).
@@ -89,8 +122,20 @@ function renderRoute() {
 
 describe('Eigenschutz Route (Story 1.6)', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz/gefaehrdungen' });
     mockUseParams.mockReturnValue({ einsatzId: 'einsatz-1' });
+    mockUseSyncStatus.mockReturnValue({
+      status: 'synced',
+      isLoaded: true,
+      isOnline: true,
+      pendingCount: 0,
+      conflictCount: 0,
+      oldestPendingAt: null,
+      lastSyncAt: null,
+      hasStorageReadError: false,
+      hasPausedConflictQuery: false,
+    });
   });
 
   it('(a) rendert die EntryPage direkt auf der Eigenschutz-Root-Route', () => {
@@ -169,6 +214,35 @@ describe('Eigenschutz Route (Story 1.6)', () => {
     mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
     renderRoute();
     expect(screen.getByTestId('einsatzleiter-reprompt-mock')).toHaveTextContent('EinsatzleiterReprompt:einsatz-1');
+  });
+
+  it('mountet den zentralen SyncStatusBadge oberhalb der Eigenschutz-Inhalte (Story 7.5 AC1)', () => {
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz/gefaehrdungen' });
+    renderRoute();
+
+    const syncStatus = screen.getByTestId('eigenschutz-sync-status-popover-mock');
+    const outlet = screen.getByTestId('outlet');
+    expect(syncStatus).toHaveTextContent('SyncStatus:einsatz-1');
+    expect(syncStatus.compareDocumentPosition(outlet) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('rendert einen Konflikt-Summary-Banner, wenn offene Konflikte ohne Live-Notice existieren (Story 7.5 AC6)', () => {
+    mockUseSyncStatus.mockReturnValue({
+      status: 'conflict',
+      isLoaded: true,
+      isOnline: true,
+      pendingCount: 0,
+      conflictCount: 2,
+      oldestPendingAt: null,
+      lastSyncAt: null,
+      hasStorageReadError: false,
+      hasPausedConflictQuery: false,
+    });
+
+    renderRoute();
+
+    expect(screen.getByTestId('eigenschutz-sync-conflict-summary-banner')).toHaveTextContent('Sync-Konflikt: jetzt auflösen');
+    expect(screen.getByTestId('eigenschutz-sync-conflict-summary-link')).toHaveAttribute('href', '/app/einsatz/einsatz-1/sicherheit/eigenschutz/sync-konflikte');
   });
 
   it('propagiert die aktuelle einsatzId an die EntryPage', () => {

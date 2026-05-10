@@ -28,6 +28,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { PiTrashLight } from 'react-icons/pi';
 import { RiskMatrix5x5 } from '../organisms/RiskMatrix5x5';
 
+// consistency-allow: destructive-pattern - Entfernen löscht nur eine lokale Draft-Gefährdungszeile; Persistenz erfolgt versioniert im Parent-Editor.
 export interface GefaehrdungItemEditorProps {
   readonly value: GefaehrdungItem;
   readonly onChange: (value: GefaehrdungItem) => void;

@@ -6,6 +6,8 @@ describe('SyncStatusBadge (Story 2.5)', () => {
   const cases: Array<[SyncStatusBadgeStatus, RegExp]> = [
     ['dirty', /Änderungen offen/],
     ['local-saved', /Lokal gespeichert/],
+    ['pending', /Sync wird geprüft/],
+    ['offline', /Offline/],
     ['syncing', /Wird synchronisiert/],
     ['synced', /Synchronisiert/],
     ['conflict', /Konflikt/],
@@ -39,7 +41,9 @@ describe('SyncStatusBadge (Story 2.5)', () => {
     ['dirty' as const, 'sync-pending'],
     ['debouncing' as const, 'sync-pending'],
     ['local-saved' as const, 'sync-pending'],
+    ['pending' as const, 'sync-pending'],
     ['syncing' as const, 'sync-pending'],
+    ['offline' as const, 'sync-offline'],
     ['offline-queued' as const, 'sync-offline'],
     ['conflict' as const, 'sync-conflict'],
     ['error' as const, 'sync-conflict'],

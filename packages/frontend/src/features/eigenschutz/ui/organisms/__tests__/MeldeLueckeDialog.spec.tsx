@@ -78,6 +78,16 @@ describe('MeldeLueckeDialog (Story 3.6 AC11)', () => {
     expect(submit).not.toBeDisabled();
   });
 
+  it('rendert Destructive-Pattern mit Hinweistext und Outline-Danger-Submit', () => {
+    const client = makeClient();
+    render(<MeldeLueckeDialog einsatzId="einsatz-1" open={baseOpen} onClose={vi.fn()} onSuccess={vi.fn()} />, { wrapper: wrapper(client) });
+
+    expect(screen.getByTestId('melde-luecke-destructive-hint')).toHaveTextContent('Diese Änderung wird historisiert und kann nicht gelöscht werden.');
+    const submit = screen.getByTestId('melde-luecke-submit');
+    expect(submit.className).toMatch(/border-status-danger-border/);
+    expect(submit.className).not.toMatch(/bg-status-danger-text/);
+  });
+
   it('Senden-Button bleibt disabled bei Whitespace-only-Notiz', () => {
     const client = makeClient();
     render(<MeldeLueckeDialog einsatzId="einsatz-1" open={{ ...baseOpen, vorbereiteteNotiz: '' }} onClose={vi.fn()} onSuccess={vi.fn()} />, { wrapper: wrapper(client) });

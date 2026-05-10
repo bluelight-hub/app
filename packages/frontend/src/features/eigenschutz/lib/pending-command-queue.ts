@@ -25,6 +25,12 @@ export const eigenschutzPendingCommandV1Schema = z.object({
 export type EigenschutzPendingCommandV1 = z.infer<typeof eigenschutzPendingCommandV1Schema>;
 
 const eigenschutzPendingCommandListSchema = z.array(eigenschutzPendingCommandV1Schema);
+const pendingCommandListeners = new Set<() => void>();
+
+export interface LoadPendingCommandsMetaResult {
+  readonly commands: EigenschutzPendingCommandV1[];
+  readonly readError: boolean;
+}
 
 export interface ReplayPendingCommandsOptions {
   readonly shouldReplay?: (command: EigenschutzPendingCommandV1) => boolean;
@@ -38,24 +44,41 @@ function getHttpStatus(error: unknown): number | undefined {
 
 async function savePendingCommands(commands: EigenschutzPendingCommandV1[]): Promise<void> {
   await getStorageAdapter().setItem(EIGENSCHUTZ_PENDING_COMMANDS_STORAGE_KEY, JSON.stringify(commands));
+  notifyPendingCommandChange();
 }
 
-export async function loadPendingCommands(): Promise<EigenschutzPendingCommandV1[]> {
-  const raw = await getStorageAdapter().getItem(EIGENSCHUTZ_PENDING_COMMANDS_STORAGE_KEY);
-  if (!raw) return [];
+export function subscribeToPendingCommandChanges(listener: () => void): () => void {
+  pendingCommandListeners.add(listener);
+  return () => pendingCommandListeners.delete(listener);
+}
 
+export function notifyPendingCommandChange(): void {
+  for (const listener of pendingCommandListeners) {
+    listener();
+  }
+}
+
+export async function loadPendingCommandsWithMeta(): Promise<LoadPendingCommandsMetaResult> {
   try {
+    const raw = await getStorageAdapter().getItem(EIGENSCHUTZ_PENDING_COMMANDS_STORAGE_KEY);
+    if (!raw) return { commands: [], readError: false };
+
     const parsedJson = JSON.parse(raw) as unknown;
     const parsed = eigenschutzPendingCommandListSchema.safeParse(parsedJson);
     if (!parsed.success) {
       logger.warn('Eigenschutz Pending Commands verworfen: Storage-Payload ist ungültig', { error: parsed.error });
-      return [];
+      return { commands: [], readError: true };
     }
-    return parsed.data;
+    return { commands: parsed.data, readError: false };
   } catch (error) {
     logger.warn('Eigenschutz Pending Commands verworfen: Storage-Payload konnte nicht gelesen werden', { error });
-    return [];
+    return { commands: [], readError: true };
   }
+}
+
+export async function loadPendingCommands(): Promise<EigenschutzPendingCommandV1[]> {
+  const result = await loadPendingCommandsWithMeta();
+  return result.commands;
 }
 
 export async function upsertPendingCommand(command: EigenschutzPendingCommandV1): Promise<void> {

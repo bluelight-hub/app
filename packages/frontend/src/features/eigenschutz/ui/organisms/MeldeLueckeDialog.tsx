@@ -3,6 +3,7 @@ import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useMeldeLuecke } from '../../api/queries';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
+import { DESTRUCTIVE_HINT_TEXT } from '../../constants/destructive-actions.constants';
 
 const MAX_NOTIZ_LENGTH = 1000;
 const COUNTER_WARNING_THRESHOLD = 900;
@@ -186,11 +187,14 @@ export function MeldeLueckeDialog({ einsatzId, open, onClose, onSuccess }: Melde
             </p>
           )}
         </Dialog.Body>
-        <Dialog.Footer loading={isPending}>
+        <Dialog.Footer loading={isPending} className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+          <p className="text-sm text-status-danger-text sm:mr-auto" data-testid="melde-luecke-destructive-hint">
+            {DESTRUCTIVE_HINT_TEXT}
+          </p>
           <Button data-testid="melde-luecke-cancel" intent="secondary" onClick={onClose} disabled={isPending}>
             Abbrechen
           </Button>
-          <Button data-testid="melde-luecke-submit" intent="primary" onClick={() => void submit()} disabled={isSubmitDisabled}>
+          <Button data-testid="melde-luecke-submit" intent="danger" appearance="outline" onClick={() => void submit()} disabled={isSubmitDisabled}>
             Senden
           </Button>
         </Dialog.Footer>

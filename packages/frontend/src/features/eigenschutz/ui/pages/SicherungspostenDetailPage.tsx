@@ -29,6 +29,7 @@ import { useGetSicherungsposten } from '../../api/use-sicherungsposten';
 import { AufloeseSicherungspostenDialog } from '../organisms/AufloeseSicherungspostenDialog';
 import { SicherungspostenDrawer } from '../organisms/SicherungspostenDrawer';
 
+// consistency-allow: destructive-pattern - Auflösen-Button öffnet den Pattern-konformen AufloeseSicherungspostenDialog; Retry-Button ist nur Fehler-Recovery.
 export interface SicherungspostenDetailPageProps {
   readonly einsatzId: string;
   readonly id: string;

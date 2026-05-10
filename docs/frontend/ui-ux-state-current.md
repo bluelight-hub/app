@@ -81,6 +81,8 @@ Seit Story 7.1 nutzen `SeverityBanner`, PSA-Profil-Chips und `SyncStatusBadge` f
 
 Offline-Auto-Saves werden als feature-lokale Pending Commands unter `bluelight:eigenschutz:pending-commands:v1` abgelegt. Der Zugriff läuft ausschließlich über den Platform Storage Adapter. Auto-Save-Commands derselben Gefährdungsbeurteilung und `expectedVersion` werden zusammengeführt; Replay läuft FIFO. Ein echter 409 bleibt als Konflikt sichtbar, während ein bereits angewandter Payload entfernt werden kann.
 
+Seit Story 7.5 zeigt das gemeinsame Eigenschutz-Layout zusätzlich einen zentralen `SyncStatusBadge` mit den Produktzuständen `Synchronisiert`, `Lokal · N ungesynct`, `Offline` und `Konflikt`. Der Status wird aus der bestehenden Pending-Command-Queue, der Sync-Konflikte-Query und dem TanStack-Online-State abgeleitet; `conflict` gewinnt vor `offline`, danach folgt `pending`. Ein Headless-UI-Popover zeigt Pending-Zahl, älteste lokale Änderung, letzte bekannte Sync-Zeit, Konfliktzahl und den Link zur bestehenden Konfliktliste. Offline-Wechsel erzeugen keinen Dialog, kein Modal und keinen Toast; offene Konflikte erhalten nur dann einen kompakten Summary-Banner, wenn der bestehende Live-Mikro-Banner gerade keine Notices zeigt.
+
 ### Eigenschutz: Keyboard-Shortcuts und Kbd-Legende
 
 Seit Story 7.2 liegen die fachlichen Eigenschutz-Shortcuts zentral unter `features/eigenschutz/constants/shortcuts.constants.ts`; die Registrierung läuft über `useEigenschutzShortcuts` auf Basis von `react-hotkeys-hook`. `⌘K`/`Ctrl+K` bleibt bewusst im bestehenden Shell-Pfad der `CommandPalette`, während `/`, `N`, `V`, `?` und `Esc` kontextbezogen in den Eigenschutz-Flächen verdrahtet sind. Eingabefelder, Textareas, Selects, `contenteditable` und ARIA-Textfelder sind gegen globale Einzelbuchstaben-Hotkeys geschützt.
@@ -98,6 +100,12 @@ Drawer-basierte Aktionen nutzen kleine, defensive Search-Params (`action=...`) u
 Seit Story 7.4 haben Eigenschutz-Entitäten stabile, kopierbare Detail-URLs. Gefährdungsbeurteilungen, Vorfälle und Sicherungsposten nutzen ihre bestehenden Detailseiten; PSA-Zuweisungen und Sicherheitsregeln ergänzen additive Detailrouten, die die vorhandenen Listen-/Drawer-Flächen öffnen. Der Link-kopieren-Button verwendet das shared `CopyButton`-Pattern mit ruhigem Inline-Status statt Toast.
 
 Fokus-Links bleiben refreshfest: `focusItem` scrollt und fokussiert Gefährdungs-Items, PSA-Links unterscheiden echte Zuweisungs-IDs von `propagationGroupId`, und fehlende Ziele zeigen Inline-Hinweise. Desktop-Deep-Links nutzen `bluelight://open?path=...` und akzeptieren nur interne `/app/einsatz/...`-Ziele.
+
+### Eigenschutz: Toast-freie Mutationen und destruktive Aktionen
+
+Seit Story 7.6 ist die Eigenschutz-Linie für Mutations-Feedback in [`packages/frontend/src/features/eigenschutz/CONSISTENCY.md`](../../packages/frontend/src/features/eigenschutz/CONSISTENCY.md) dokumentiert: Erfolgreiche Mutationen erzeugen keinen Sonner-Success-Toast, sondern werden über Statusänderung sichtbar. Der Vorfall-Melden-Drawer schließt nach Erfolg und die Vorfallliste aktualisiert sich über den bestehenden Query-Pfad; PDF-/JSON-Exports bleiben bei Inline-Banner und `meta: { silentError: true }`.
+
+Destruktive Aktionen nutzen ein einheitliches Pattern aus Pflicht-Begründung, dem Hinweis „Diese Änderung wird historisiert und kann nicht gelöscht werden." und `intent="danger"` mit `appearance="outline"`. Das frühere Last-Basis-Confirm-Modal im `PSAChangeDrawer` ist durch einen Inline-Bestätigungsblock im Drawer ersetzt. `AufloeseSicherungspostenDialog` und `MeldeLueckeDialog` folgen derselben Linie. Ein automatisierter Konsistenz-Test unter `features/eigenschutz/__tests__/consistency.spec.ts` blockiert neue `toast.success`-Aufrufe und undokumentierte Destructive-Pattern-Abweichungen.
 
 ## Komponenten (Ring 3)
 

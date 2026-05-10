@@ -172,6 +172,7 @@ Besonders komplex:
 - **lagekarte/** mit `drawing/`, `detail-providers/`
 - **reminders/** mit eigenen `services/` für Tauri-Audio-Bindings
 - **server/** mit `services/` für Server-Discovery
+- **eigenschutz/** mit feature-lokaler Pending-Command-Queue, `useEigenschutzSyncStatus` als zentralem Status-Contract und Sync-Konflikte-Route. Der Hook liest ausschließlich die bestehende Queue, `useSyncConflicts` und den TanStack-Online-State; er baut keine zweite Offline-Persistenz auf.
 
 ---
 
