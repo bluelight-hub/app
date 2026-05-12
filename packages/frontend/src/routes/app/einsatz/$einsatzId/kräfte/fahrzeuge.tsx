@@ -76,9 +76,6 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
     return map;
   }, [einheiten]);
 
-  /** Einheiten-Optionen für Dropdowns */
-  const einheitenOptions = useMemo(() => einheiten.map((e) => ({ id: e.id, name: e.name, typ: e.typ })), [einheiten]);
-
   /** Filter-Zähler */
   const filterCounts = useMemo(
     () => ({
@@ -274,9 +271,9 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
         <FahrzeugDetailPanel
           isOpen={!!selectedFahrzeugId}
           onClose={handleCloseDetail}
+          einsatzId={einsatzId}
           fahrzeug={selectedFahrzeug}
           zeichen={zeichenByFahrzeug.get(selectedFahrzeug.id)}
-          einheiten={einheitenOptions}
           onStatusChange={handleStatusChange}
           onEinheitAssign={handleEinheitAssign}
           onManageZeichen={handleOpenZeichen}

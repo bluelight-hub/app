@@ -41,7 +41,7 @@ import {
   type CreateGefaehrdungsbeurteilungFormValues,
   type CreateGefaehrdungsbeurteilungInput,
 } from '@/features/eigenschutz/schemas/gefaehrdungsbeurteilung.schema';
-import { useEinsatzEinheiten } from '@/features/kraefte/api';
+import { EinheitCombobox } from '@/features/kraefte/ui/molecules';
 import { api } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
@@ -159,7 +159,6 @@ const DEFAULT_VALUES: CreateGefaehrdungsbeurteilungFormValues = {
 
 export function GefaehrdungseditorDrawer({ einsatzId, open, onClose, onCreated }: GefaehrdungseditorDrawerProps) {
   const vorlagenQuery = useGefaehrdungsbeurteilungVorlagen(einsatzId);
-  const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const gefahrenzonenQuery = useGefahrenzonenFuerEinsatz(einsatzId, open);
   const mutation = useCreateGefaehrdungsbeurteilung(einsatzId);
 
@@ -234,7 +233,6 @@ export function GefaehrdungseditorDrawer({ einsatzId, open, onClose, onCreated }
   }, [open]);
 
   const vorlagen = vorlagenQuery.data ?? [];
-  const einheiten = einheitenQuery.data ?? [];
   const gefahrenzonen = gefahrenzonenQuery.data ?? [];
   const gefahrenzonenVerfuegbar = !gefahrenzonenQuery.isPending && gefahrenzonen.length > 0;
 
@@ -252,7 +250,7 @@ export function GefaehrdungseditorDrawer({ einsatzId, open, onClose, onCreated }
     });
   }, [vorlagen]);
 
-  const isSubmitDisabled = mutation.isPending || vorlagenQuery.isPending || einheitenQuery.isPending;
+  const isSubmitDisabled = mutation.isPending || vorlagenQuery.isPending;
 
   return (
     <Dialog.SlideIn
@@ -333,27 +331,15 @@ export function GefaehrdungseditorDrawer({ einsatzId, open, onClose, onCreated }
         <section className="space-y-3">
           <form.Field name="einheitId">
             {(field) => (
-              <label htmlFor="gefaehrdungseditor-einheit" className="block text-sm">
-                <span className="block font-medium text-text-primary">
-                  Einheit <span className="text-status-danger-text">*</span>
-                </span>
-                <select
-                  id="gefaehrdungseditor-einheit"
-                  value={field.state.value ?? ''}
-                  onChange={(event) => field.handleChange(event.target.value as CreateGefaehrdungsbeurteilungFormValues['einheitId'])}
-                  onBlur={field.handleBlur}
-                  disabled={einheitenQuery.isPending || mutation.isPending}
-                  className="mt-1 block min-h-[2.75rem] w-full rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring"
-                  data-testid="gefaehrdungseditor-einheit"
-                >
-                  <option value="">{einheitenQuery.isPending ? 'Einheiten werden geladen…' : 'Bitte wählen…'}</option>
-                  {einheiten.map((einheit) => (
-                    <option key={einheit.id} value={einheit.id}>
-                      {einheit.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <EinheitCombobox
+                einsatzId={einsatzId}
+                value={field.state.value ?? ''}
+                onChange={(value) => field.handleChange(value as CreateGefaehrdungsbeurteilungFormValues['einheitId'])}
+                onBlur={field.handleBlur}
+                disabled={mutation.isPending}
+                label="Einheit *"
+                placeholder="Einheit suchen…"
+              />
             )}
           </form.Field>
 

@@ -27,6 +27,7 @@
 import { SicherheitsregelCreateSchemaV1, type SicherheitsregelDto } from '@/features/eigenschutz/schemas/sicherheitsregel.schema';
 import { SicherheitsregelConflictError, useCreateSicherheitsregel, useSicherheitsregel, useUpdateSicherheitsregel } from '@/features/eigenschutz/api/queries';
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
+import { EinheitMultiCombobox } from '@/features/kraefte/ui/molecules';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
@@ -475,52 +476,15 @@ export function SicherheitsregelDrawer({ einsatzId, open, onClose, onSaved, rege
                 <form.Field name="einheitIds">
                   {(field) => (
                     <div className="mt-2">
-                      <span className="mb-1 block text-xs font-medium text-text-muted">Einheiten (Mehrfachauswahl möglich)</span>
-                      {einheitenQuery.isPending ? (
-                        <p className="text-sm text-text-muted">Einheiten werden geladen…</p>
-                      ) : (
-                        <ul
-                          role="listbox"
-                          aria-multiselectable="true"
-                          aria-labelledby="sicherheitsregel-zuordnung-heading"
-                          className="max-h-52 space-y-1 overflow-auto rounded-control border border-border-subtle bg-surface-panel p-2"
-                          data-testid="sicherheitsregel-einheiten-listbox"
-                        >
-                          {einheiten.map((einheit) => {
-                            const selected = field.state.value.includes(einheit.id);
-                            // Während laufender Mutation kein Toggle —
-                            // sonst driftet die User-Auswahl vom abgesendeten
-                            // State weg (Code-Review-Patch).
-                            const itemDisabled = createMutation.isPending || updateMutation.isPending;
-                            const toggle = () => {
-                              if (itemDisabled) return;
-                              const next = selected ? field.state.value.filter((id) => id !== einheit.id) : [...field.state.value, einheit.id];
-                              field.handleChange(next);
-                            };
-                            return (
-                              <li
-                                key={einheit.id}
-                                role="option"
-                                aria-selected={selected}
-                                aria-disabled={itemDisabled}
-                                tabIndex={itemDisabled ? -1 : 0}
-                                onClick={toggle}
-                                onKeyDown={(event) => {
-                                  if (event.key === ' ' || event.key === 'Enter') {
-                                    event.preventDefault();
-                                    toggle();
-                                  }
-                                }}
-                                className={`flex items-center gap-2 rounded-control px-2 py-1 text-sm ${itemDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${selected ? 'bg-action-primary-soft text-text-primary' : !itemDisabled ? 'hover:bg-surface-panel-elevated' : ''}`}
-                                data-testid={`sicherheitsregel-einheit-${einheit.id}`}
-                              >
-                                <span aria-hidden="true" className={`inline-block h-3 w-3 rounded-sm border ${selected ? 'border-action-primary bg-action-primary' : 'border-border-subtle'}`} />
-                                <span>{einheit.name}</span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
+                      <EinheitMultiCombobox
+                        einsatzId={einsatzId}
+                        values={field.state.value}
+                        onChange={field.handleChange}
+                        onBlur={field.handleBlur}
+                        disabled={createMutation.isPending || updateMutation.isPending}
+                        label="Einheiten (Mehrfachauswahl möglich)"
+                        testId="sicherheitsregel-einheiten-combobox"
+                      />
                     </div>
                   )}
                 </form.Field>
