@@ -25,7 +25,10 @@ vi.mock('@/features/eigenschutz/ui/pages/PsaProfilePage', () => ({
   PsaProfilePage: () => null,
 }));
 
-import '../eigenschutz/psa-profile';
+// Explizit auf das Index-Modul zeigen: die Sibling-Datei `psa-profile.tsx`
+// ist nur noch ein Layout-Wrapper ohne `validateSearch`, die echte Route
+// liegt unter `psa-profile/index.tsx`.
+import '../eigenschutz/psa-profile/index';
 
 describe('PsaProfile Route', () => {
   it('akzeptiert den PSA-Action-Param nur mit Ziel-Einheit', () => {
