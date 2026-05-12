@@ -197,8 +197,27 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
       title="Neuen Einsatz erstellen"
       description="Erstelle schnell einen neuen Einsatz. Das Alarmstichwort ist verpflichtend; weitere Details können direkt danach ergänzt werden."
       size="lg"
+      footer={
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-body-xs text-text-secondary">
+            <kbd className="rounded-lg border border-border-subtle bg-surface-raised px-2 py-1 text-body-xs font-semibold text-text-primary">
+              {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
+            </kbd>{' '}
+            zum schnellen Erstellen
+          </span>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleClose} intent="secondary" appearance="ghost">
+              Abbrechen
+            </Button>
+            <Button type="submit" form="einsatz-create-form" disabled={form.state.isSubmitting}>
+              {form.state.isSubmitting ? 'Erstelle...' : 'Einsatz erstellen'}
+            </Button>
+          </div>
+        </div>
+      }
     >
       <form
+        id="einsatz-create-form"
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -332,24 +351,6 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
             )}
           </div>
         )}
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3 border-t pt-4">
-          <Button onClick={handleClose} intent="secondary" appearance="ghost">
-            Abbrechen
-          </Button>
-          <Button type="submit" disabled={form.state.isSubmitting}>
-            {form.state.isSubmitting ? 'Erstelle...' : 'Einsatz erstellen'}
-          </Button>
-        </div>
-
-        {/* Keyboard Hint */}
-        <div className="text-center text-body-xs text-text-secondary">
-          <kbd className="rounded-lg border border-border-subtle bg-surface-raised px-2 py-1 text-body-xs font-semibold text-text-primary">
-            {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
-          </kbd>{' '}
-          zum schnellen Erstellen
-        </div>
       </form>
     </Dialog.SlideIn>
   );

@@ -34,7 +34,7 @@ export function EigenschutzOffenePunktePanel({ einsatzId, mode = 'inline', class
           data-testid="offene-punkte-compact-trigger"
           aria-label={`${totalCount} offene Punkte im Eigenschutz`}
           onClick={() => setDialogOpen(true)}
-          className="focus:ring-focus flex w-full items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-panel px-3 py-2 text-left text-sm text-text-primary shadow-sm transition hover:border-border-strong focus:ring-2 focus:outline-none"
+          className="focus:ring-focus flex min-h-11 w-full items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-panel px-3 py-2 text-left text-sm text-text-primary shadow-sm transition hover:border-border-strong focus:ring-2 focus:outline-none"
         >
           <span className="inline-flex min-w-0 items-center gap-2">
             <PiWarningCircle className="h-4 w-4 shrink-0 text-status-warning-text" aria-hidden="true" />
@@ -174,9 +174,11 @@ export function OffenerVorfallPanelItem({ einsatzId, vorfall, einheitName }: { r
                 </span>
               </Badge>
             ) : null}
+            {/* touch-target-allow: inline-secondary-link in Listen-Item, primärer Touch-Bereich ist die Vorfall-Karte */}
             <Link
               to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle/$vorfallId"
               params={{ einsatzId, vorfallId: vorfall.id }}
+              data-touch-target-allow="inline-secondary-link in Vorfall-Listen-Item"
               className="text-primary inline-flex items-center gap-1 text-xs font-semibold hover:underline"
             >
               Öffnen <PiArrowSquareOut className="h-3.5 w-3.5" aria-hidden="true" />
@@ -214,9 +216,11 @@ export function UngeloesteRueckmeldungPanelItem({
               {rueckmeldung.begruendungAnriss}
             </p>
           ) : null}
+          {/* touch-target-allow: inline-secondary-link in Listen-Item, primärer Touch-Bereich ist die Rückmeldung-Karte */}
           <Link
             to="/app/einsatz/$einsatzId/sicherheit/eigenschutz/psa-profile"
             params={{ einsatzId }}
+            data-touch-target-allow="inline-secondary-link in Rückmeldung-Listen-Item"
             className="text-primary mt-2 inline-flex items-center gap-1 text-xs font-semibold hover:underline"
           >
             Bearbeiten <PiArrowSquareOut className="h-3.5 w-3.5" aria-hidden="true" />

@@ -23,6 +23,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { SicherungspostenDto, SicherungspostenDtoPersonalInner, SicherungspostenDtoStandort } from '@bluelight-hub/shared/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { buildEigenschutzBrowserUrl } from '@/features/eigenschutz/utils/build-eigenschutz-deep-link';
 import { useGetSicherungsposten } from '../../api/use-sicherungsposten';
@@ -220,7 +221,9 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold text-text-primary">{posten.bezeichnung}</h1>
+            <Heading as="h1" size="2xl">
+              {posten.bezeichnung}
+            </Heading>
             <span
               className="inline-flex items-center rounded-control bg-action-secondary px-2 py-1 text-xs font-medium text-text-secondary"
               title="Optimistic-Concurrency-Token — wird beim Speichern mitgeschickt."
@@ -249,9 +252,9 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
         className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4"
         data-testid="sicherungsposten-detail-section-standort"
       >
-        <h2 id="sicherungsposten-detail-standort-heading" className="text-sm font-semibold text-text-primary">
+        <Heading as="h2" size="sm" id="sicherungsposten-detail-standort-heading">
           Standort
-        </h2>
+        </Heading>
         <p className="text-sm text-text-secondary">
           <span className="font-medium text-text-primary">Typ:</span> {standort.label}
         </p>
@@ -263,9 +266,9 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
         className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4"
         data-testid="sicherungsposten-detail-section-personal"
       >
-        <h2 id="sicherungsposten-detail-personal-heading" className="text-sm font-semibold text-text-primary">
+        <Heading as="h2" size="sm" id="sicherungsposten-detail-personal-heading">
           Personal
-        </h2>
+        </Heading>
         {personal.length === 0 ? (
           <p className="text-sm text-text-muted">Kein Personal hinterlegt.</p>
         ) : (
@@ -284,9 +287,9 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
         className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4"
         data-testid="sicherungsposten-detail-section-zustaendigkeit"
       >
-        <h2 id="sicherungsposten-detail-zustaendigkeit-heading" className="text-sm font-semibold text-text-primary">
+        <Heading as="h2" size="sm" id="sicherungsposten-detail-zustaendigkeit-heading">
           Zuständigkeitsbereich
-        </h2>
+        </Heading>
         {zustaendigkeitsbereich && zustaendigkeitsbereich.length > 0 ? (
           <p className="text-sm whitespace-pre-wrap text-text-secondary">{zustaendigkeitsbereich}</p>
         ) : (
@@ -299,9 +302,9 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
         className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4"
         data-testid="sicherungsposten-detail-section-abloesezeiten"
       >
-        <h2 id="sicherungsposten-detail-abloesezeiten-heading" className="text-sm font-semibold text-text-primary">
+        <Heading as="h2" size="sm" id="sicherungsposten-detail-abloesezeiten-heading">
           Ablösezeiten
-        </h2>
+        </Heading>
         {abloesezeiten && abloesezeiten.length > 0 ? (
           <p className="text-sm whitespace-pre-wrap text-text-secondary">{abloesezeiten}</p>
         ) : (

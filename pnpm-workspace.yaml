@@ -1,2 +1,16 @@
 packages:
   - packages/*
+allowBuilds:
+  '@compodoc/compodoc': true
+  '@nestjs/core': true
+  '@openapitools/openapi-generator-cli': true
+  '@playwright/browser-chromium': true
+  '@prisma/engines': true
+  '@scarf/scarf': true
+  '@swc/core': true
+  bcrypt: true
+  esbuild: true
+  prisma: true
+  protobufjs: true
+  unix-dgram: true
+  unrs-resolver: true

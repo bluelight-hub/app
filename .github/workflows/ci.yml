@@ -268,6 +268,91 @@ jobs:
             packages/backend/coverage/
             **/trace.zip
 
+  # Linux end-to-end tests (Story 7.11) — Playwright gegen Out-of-Process-Backend + vite preview
+  linux-e2e:
+    name: Linux E2E (Playwright)
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @bluelight-hub/backend prisma:generate
+
+      - name: Run Prisma migrations
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+        run: pnpm --filter @bluelight-hub/backend prisma:deploy
+
+      - name: Build shared package
+        run: pnpm --filter @bluelight-hub/shared build
+
+      - name: Build backend
+        run: pnpm --filter @bluelight-hub/backend build
+
+      # P18 (Review): VITE_API_BASE_URL wird zur Build-Zeit inlined. Wer
+      # E2E_BACKEND_PORT umstellt, muss diesen Wert hier ebenfalls anpassen, sonst läuft
+      # `vite preview` weiterhin gegen :3091. Dokumentation siehe Audit-Bericht Sektion 1.
+      - name: Build frontend (with VITE_API_BASE_URL pinned for vite preview)
+        env:
+          VITE_API_BASE_URL: http://127.0.0.1:3091/api
+        run: pnpm --filter @bluelight-hub/frontend build
+
+      - name: Install Playwright browser (chromium)
+        run: pnpm --filter @bluelight-hub/frontend exec playwright install --with-deps chromium
+
+      - name: Run Playwright E2E suite
+        env:
+          NODE_ENV: test
+          CI: 'true'
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          JWT_SECRET: test-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+          E2E_BACKEND_PORT: '3091'
+          E2E_FRONTEND_PORT: '4173'
+        run: pnpm --filter @bluelight-hub/frontend test:e2e:ci
+
+      # P28 (Review): `if: always()` greift auch bei Setup-Phase-Failures (DB unreachable,
+      # spawn ENOENT) — sonst stehen keine Diagnose-Artifacts zur Verfügung.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-artifacts-linux-e2e
+          path: |
+            packages/frontend/playwright-report/
+            packages/frontend/test-results/
+            **/trace.zip
+
   # Linux frontend tests — split across shards (Performance-Gates laufen separat)
   linux-frontend:
     name: Linux Frontend (Shard ${{ matrix.shard }}/3)
@@ -435,7 +520,7 @@ jobs:
   # Summary job for branch protection
   summary:
     name: CI Pipeline Summary
-    needs: [detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-frontend, linux-frontend-performance, docker-build]
+    needs: [detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-e2e, linux-frontend, linux-frontend-performance, docker-build]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -446,6 +531,7 @@ jobs:
           quality="${{ needs.linux-quality.result }}"
           backend_unit="${{ needs.linux-backend-unit.result }}"
           backend_db="${{ needs.linux-backend-db.result }}"
+          e2e="${{ needs.linux-e2e.result }}"
           frontend="${{ needs.linux-frontend.result }}"
           frontend_perf="${{ needs.linux-frontend-performance.result }}"
           docker="${{ needs.docker-build.result }}"
@@ -460,6 +546,7 @@ jobs:
           if [[ "$quality" != "success" && "$quality" != "skipped" ]] || \
              [[ "$backend_unit" != "success" && "$backend_unit" != "skipped" ]] || \
              [[ "$backend_db" != "success" && "$backend_db" != "skipped" ]] || \
+             [[ "$e2e" != "success" && "$e2e" != "skipped" ]] || \
              [[ "$frontend" != "success" && "$frontend" != "skipped" ]] || \
              [[ "$frontend_perf" != "success" && "$frontend_perf" != "skipped" ]] || \
              [[ "$docker" != "success" && "$docker" != "skipped" ]]; then
@@ -468,6 +555,7 @@ jobs:
             echo "Linux Quality: $quality"
             echo "Linux Backend Unit: $backend_unit"
             echo "Linux Backend DB: $backend_db"
+            echo "Linux E2E: $e2e"
             echo "Linux Frontend: $frontend"
             echo "Linux Frontend Performance: $frontend_perf"
             echo "Docker: $docker"
@@ -486,6 +574,7 @@ jobs:
           quality="${{ needs.linux-quality.result }}"
           backend_unit="${{ needs.linux-backend-unit.result }}"
           backend_db="${{ needs.linux-backend-db.result }}"
+          e2e="${{ needs.linux-e2e.result }}"
           frontend="${{ needs.linux-frontend.result }}"
           frontend_perf="${{ needs.linux-frontend-performance.result }}"
           docker="${{ needs.docker-build.result }}"
@@ -502,6 +591,7 @@ jobs:
           echo "| Linux Quality (Build + Lint) | $(status_icon "$quality") $quality |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Backend Unit (3 Shards) | $(status_icon "$backend_unit") $backend_unit |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Backend DB (3 Shards) | $(status_icon "$backend_db") $backend_db |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux E2E (Playwright) | $(status_icon "$e2e") $e2e |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Frontend Tests (3 Shards) | $(status_icon "$frontend") $frontend |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Frontend Performance | $(status_icon "$frontend_perf") $frontend_perf |" >> $GITHUB_STEP_SUMMARY
           echo "| Docker Build | $(status_icon "$docker") $docker |" >> $GITHUB_STEP_SUMMARY

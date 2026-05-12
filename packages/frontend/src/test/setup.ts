@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { afterEach, expect } from 'vitest';
+import { expectNoAxeViolations, type ExpectNoAxeViolationsOptions } from './a11y';
 import { createMatchMediaList, resetTestViewport } from './viewport';
 
 function createStorageMock(): Storage {
@@ -87,3 +88,33 @@ global.ResizeObserver = class ResizeObserver implements globalThis.ResizeObserve
 };
 
 resetTestViewport();
+
+/**
+ * A11y-Audit (Story 7.8) — `toHaveNoAxeViolations`-Matcher.
+ *
+ * Verwendung:
+ * ```ts
+ * await expect(container).toHaveNoAxeViolations();
+ * await expect(container).toHaveNoAxeViolations({ rules: { region: { enabled: false } } });
+ * ```
+ *
+ * Default-Tags und deaktivierte Regeln (`color-contrast`,
+ * `color-contrast-enhanced`) stammen aus `./a11y.ts`. jsdom-spezifische
+ * Limits sind dort dokumentiert.
+ */
+expect.extend({
+  async toHaveNoAxeViolations(received: HTMLElement, options?: ExpectNoAxeViolationsOptions) {
+    try {
+      await expectNoAxeViolations(received, options);
+      return {
+        pass: true,
+        message: () => 'erwartete A11y-Verstöße — keine gefunden',
+      };
+    } catch (error) {
+      return {
+        pass: false,
+        message: () => (error as Error).message,
+      };
+    }
+  },
+});

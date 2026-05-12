@@ -13,11 +13,13 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import type { EigenschutzVorfallDto, EigenschutzVorfallDtoBeteiligteInner, EigenschutzVorfallDtoWo } from '@bluelight-hub/shared/client';
 import { buildEigenschutzBrowserUrl } from '@/features/eigenschutz/utils/build-eigenschutz-deep-link';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { useExportVorfallAlsJson } from '../../api/use-export-vorfall-as-json';
 import { useExportVorfallAlsPdf } from '../../api/use-export-vorfall-as-pdf';
 import { useGetVorfall } from '../../api/use-get-vorfall';
 import { useVorfallAuditTimeline, type VorfallAuditTimelineEntry } from '../../api/use-vorfall-audit-timeline';
+import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { IncidentContextSnapshot } from '../organisms/IncidentContextSnapshot';
 
 export interface VorfallDetailPageProps {
@@ -108,7 +110,9 @@ function formatAuditActor(entry: VorfallAuditTimelineEntry): string {
 function ExportHistorySection({ entries, isLoading, isError }: { readonly entries: readonly VorfallAuditTimelineEntry[] | undefined; readonly isLoading: boolean; readonly isError: boolean }) {
   return (
     <section data-testid="vorfall-export-history-section" className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4">
-      <h2 className="text-sm font-semibold text-text-primary">Export-Historie</h2>
+      <Heading as="h2" size="sm">
+        Export-Historie
+      </Heading>
       {isLoading ? (
         <p data-testid="vorfall-export-history-loading" className="text-sm text-text-muted">
           Export-Historie wird geladen…
@@ -229,61 +233,63 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
 
   return (
     <div className="space-y-4" data-testid="vorfall-detail-page">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary">Vorfall vom {formatDateTime(vorfall.vorfallZeit)}</h1>
-          {vorfall.unfallkasseRelevant ? <p className="mt-1 text-sm font-medium text-status-warning-text">Unfallkassen-relevant</p> : null}
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="vorfall-detail-copy-status" />
-            <button
-              type="button"
-              className="text-action-primary-foreground rounded-control bg-action-primary px-3 py-1.5 text-sm font-medium hover:bg-action-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-              data-testid="vorfall-export-pdf-button"
-              disabled={exportPdf.isPending}
-              aria-busy={exportPdf.isPending}
-              onClick={() => exportPdf.mutate({ einsatzId, vorfallId })}
-            >
-              {exportPdf.isPending ? 'PDF wird erzeugt…' : 'Als PDF exportieren'}
-            </button>
-            <button
-              type="button"
-              className="hover:bg-surface-muted rounded-control border border-border-subtle bg-surface-panel px-3 py-1.5 text-sm font-medium text-text-primary disabled:cursor-not-allowed disabled:opacity-60"
-              data-testid="vorfall-export-json-button"
-              disabled={exportJson.isPending}
-              aria-busy={exportJson.isPending}
-              onClick={() => exportJson.mutate({ einsatzId, vorfallId })}
-            >
-              {exportJson.isPending ? 'JSON wird erzeugt…' : 'Als JSON exportieren'}
-            </button>
+      <EigenschutzPageHeader
+        title={<>Vorfall vom {formatDateTime(vorfall.vorfallZeit)}</>}
+        description={vorfall.unfallkasseRelevant ? <p className="text-sm font-medium text-status-warning-text">Unfallkassen-relevant</p> : undefined}
+        actions={
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="vorfall-detail-copy-status" />
+              <button
+                type="button"
+                className="text-action-primary-foreground rounded-control bg-action-primary px-3 py-1.5 text-sm font-medium hover:bg-action-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+                data-testid="vorfall-export-pdf-button"
+                disabled={exportPdf.isPending}
+                aria-busy={exportPdf.isPending}
+                onClick={() => exportPdf.mutate({ einsatzId, vorfallId })}
+              >
+                {exportPdf.isPending ? 'PDF wird erzeugt…' : 'Als PDF exportieren'}
+              </button>
+              <button
+                type="button"
+                className="hover:bg-surface-muted rounded-control border border-border-subtle bg-surface-panel px-3 py-1.5 text-sm font-medium text-text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                data-testid="vorfall-export-json-button"
+                disabled={exportJson.isPending}
+                aria-busy={exportJson.isPending}
+                onClick={() => exportJson.mutate({ einsatzId, vorfallId })}
+              >
+                {exportJson.isPending ? 'JSON wird erzeugt…' : 'Als JSON exportieren'}
+              </button>
+            </div>
+            {exportPdf.isError ? (
+              <ExportErrorBanner
+                error={exportPdf.error}
+                onRetry={() => {
+                  exportPdf.reset();
+                  exportPdf.mutate({ einsatzId, vorfallId });
+                }}
+              />
+            ) : null}
+            {exportJson.isError ? (
+              <ExportErrorBanner
+                error={exportJson.error}
+                testId="vorfall-export-json-error-banner"
+                retryTestId="vorfall-export-json-retry-button"
+                genericMessage="JSON-Export fehlgeschlagen — bitte erneut versuchen."
+                onRetry={() => {
+                  exportJson.reset();
+                  exportJson.mutate({ einsatzId, vorfallId });
+                }}
+              />
+            ) : null}
           </div>
-          {exportPdf.isError ? (
-            <ExportErrorBanner
-              error={exportPdf.error}
-              onRetry={() => {
-                exportPdf.reset();
-                exportPdf.mutate({ einsatzId, vorfallId });
-              }}
-            />
-          ) : null}
-          {exportJson.isError ? (
-            <ExportErrorBanner
-              error={exportJson.error}
-              testId="vorfall-export-json-error-banner"
-              retryTestId="vorfall-export-json-retry-button"
-              genericMessage="JSON-Export fehlgeschlagen — bitte erneut versuchen."
-              onRetry={() => {
-                exportJson.reset();
-                exportJson.mutate({ einsatzId, vorfallId });
-              }}
-            />
-          ) : null}
-        </div>
-      </header>
+        }
+      />
 
       <section data-testid="vorfall-detail-section-fakten" className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4">
-        <h2 className="text-sm font-semibold text-text-primary">Was, Wann, Wo</h2>
+        <Heading as="h2" size="sm">
+          Was, Wann, Wo
+        </Heading>
         <dl className="space-y-1 text-sm text-text-primary">
           <div className="flex gap-2">
             <dt className="w-24 text-text-muted">Was:</dt>
@@ -301,7 +307,9 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
       </section>
 
       <section data-testid="vorfall-detail-section-beteiligte" className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4">
-        <h2 className="text-sm font-semibold text-text-primary">Beteiligte</h2>
+        <Heading as="h2" size="sm">
+          Beteiligte
+        </Heading>
         {vorfall.beteiligte.length === 0 ? (
           <p className="text-sm text-text-muted">Keine Beteiligten erfasst.</p>
         ) : (
@@ -314,7 +322,9 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
       </section>
 
       <section data-testid="vorfall-detail-section-massnahmen" className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4">
-        <h2 className="text-sm font-semibold text-text-primary">Maßnahmen</h2>
+        <Heading as="h2" size="sm">
+          Maßnahmen
+        </Heading>
         {vorfall.massnahmen.length === 0 ? <p className="text-sm text-text-muted">Keine Maßnahmen erfasst.</p> : <p className="text-sm whitespace-pre-line text-text-primary">{vorfall.massnahmen}</p>}
       </section>
 

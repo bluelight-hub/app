@@ -43,12 +43,13 @@ vi.mock('@/shared/ui/atoms/date-input.atom', () => ({
 
 vi.mock('@/shared/ui/molecules/dialog.molecule', () => ({
   Dialog: {
-    SlideIn: ({ isOpen, title, description, children }: { isOpen: boolean; title: string; description?: string; children: React.ReactNode }) =>
+    SlideIn: ({ isOpen, title, description, children, footer }: { isOpen: boolean; title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode }) =>
       isOpen ? (
         <div>
           <h2>{title}</h2>
           {description ? <p>{description}</p> : null}
           {children}
+          {footer ? <div>{footer}</div> : null}
         </div>
       ) : null,
   },

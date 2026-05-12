@@ -99,14 +99,35 @@ export function AlarmierungErstellenDrawer({ einsatzId, isOpen, onClose }: Alarm
   };
 
   return (
-    <Dialog.SlideIn isOpen={isOpen} onClose={handleClose} title="Neue Alarmierung" size="lg" position="right">
-      {/*
-        Layout: Der äußere `Dialog.SlideIn`-Content scrollt bereits (`overflow-y-auto px-5 py-4`).
-        Wir nutzen daher *keinen* zweiten Flex-Scroll-Container, sondern halten den Footer via
-        `sticky bottom-0` am sichtbaren Rand — sonst rutscht der Submit-Button bei langen
-        Empfängerlisten aus dem Viewport.
-      */}
+    <Dialog.SlideIn
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Neue Alarmierung"
+      size="lg"
+      position="right"
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={mutation.isPending}>
+            Abbrechen
+          </Button>
+          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting, state.values.empfaenger.length, state.values.bezeichnung] as const}>
+            {([canSubmit, isSubmitting, empfaengerCount, bezeichnung]) => (
+              <Button
+                intent="primary"
+                type="submit"
+                form="alarmierung-erstellen-form"
+                disabled={!canSubmit || mutation.isPending || empfaengerCount === 0 || !bezeichnung.trim()}
+                loading={Boolean(isSubmitting) || mutation.isPending}
+              >
+                Alarmierung auslösen
+              </Button>
+            )}
+          </form.Subscribe>
+        </div>
+      }
+    >
       <form
+        id="alarmierung-erstellen-form"
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -272,19 +293,6 @@ export function AlarmierungErstellenDrawer({ einsatzId, isOpen, onClose }: Alarm
             }}
           </form.Field>
         </div>
-
-        <footer className="sticky bottom-0 z-10 -mx-5 mt-5 flex items-center justify-end gap-2 border-t border-slate-200 bg-surface-panel px-5 py-3 dark:border-slate-800">
-          <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={mutation.isPending}>
-            Abbrechen
-          </Button>
-          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting, state.values.empfaenger.length, state.values.bezeichnung] as const}>
-            {([canSubmit, isSubmitting, empfaengerCount, bezeichnung]) => (
-              <Button intent="primary" type="submit" disabled={!canSubmit || mutation.isPending || empfaengerCount === 0 || !bezeichnung.trim()} loading={Boolean(isSubmitting) || mutation.isPending}>
-                Alarmierung auslösen
-              </Button>
-            )}
-          </form.Subscribe>
-        </footer>
       </form>
     </Dialog.SlideIn>
   );

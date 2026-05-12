@@ -144,6 +144,46 @@ export function PsaProfilDetailDrawer({
       description={isReadOnly ? 'Sender-Sicht — Soll-Ausrüstung als Referenz, keine Aktionen.' : 'Ausrüstung prüfen und quittieren oder Lücke melden.'}
       size="lg"
       position="right"
+      footer={
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {isReadOnly ? (
+            <>
+              <span className="mr-auto text-xs text-text-muted" data-testid="psa-profil-detail-read-only-hint">
+                Sender-Sicht — keine Aktionen
+              </span>
+              <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose}>
+                Schließen
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                intent="primary"
+                type="button"
+                onClick={() => void handleQuittieren()}
+                loading={ackMutation.isPending}
+                disabled={ackMutation.isPending}
+                data-testid="psa-profil-detail-quittieren"
+              >
+                Verstanden, Ausrüstung vorhanden
+              </Button>
+              <Button
+                intent="secondary"
+                type="button"
+                onClick={handleMeldeLuecke}
+                disabled={onMeldeLuecke === undefined}
+                title={onMeldeLuecke === undefined ? 'Verfügbar ab Story 3.6 (Rückmeldung an Sicherheitsbeauftragten)' : undefined}
+                data-testid="psa-profil-detail-luecke"
+              >
+                Ausrüstungs-Lücke melden
+              </Button>
+              <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose}>
+                Schließen
+              </Button>
+            </>
+          )}
+        </div>
+      }
     >
       <div
         className="flex h-full flex-col gap-5"
@@ -268,45 +308,6 @@ export function PsaProfilDetailDrawer({
             {ackError}
           </p>
         ) : null}
-
-        <footer className="mt-auto flex flex-wrap items-center justify-end gap-2 border-t border-border-subtle pt-4">
-          {isReadOnly ? (
-            <>
-              <span className="mr-auto text-xs text-text-muted" data-testid="psa-profil-detail-read-only-hint">
-                Sender-Sicht — keine Aktionen
-              </span>
-              <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose}>
-                Schließen
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                intent="primary"
-                type="button"
-                onClick={() => void handleQuittieren()}
-                loading={ackMutation.isPending}
-                disabled={ackMutation.isPending}
-                data-testid="psa-profil-detail-quittieren"
-              >
-                Verstanden, Ausrüstung vorhanden
-              </Button>
-              <Button
-                intent="secondary"
-                type="button"
-                onClick={handleMeldeLuecke}
-                disabled={onMeldeLuecke === undefined}
-                title={onMeldeLuecke === undefined ? 'Verfügbar ab Story 3.6 (Rückmeldung an Sicherheitsbeauftragten)' : undefined}
-                data-testid="psa-profil-detail-luecke"
-              >
-                Ausrüstungs-Lücke melden
-              </Button>
-              <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose}>
-                Schließen
-              </Button>
-            </>
-          )}
-        </footer>
       </div>
     </Dialog.SlideIn>
   );

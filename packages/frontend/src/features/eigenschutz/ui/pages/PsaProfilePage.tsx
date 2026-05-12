@@ -4,6 +4,7 @@ import { useCurrentUser } from '@/features/auth/api/use-current-user';
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
 import { buildEigenschutzBrowserUrl } from '@/features/eigenschutz/utils/build-eigenschutz-deep-link';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { cn } from '@/shared/ui/cn';
 import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
@@ -14,6 +15,7 @@ import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { useEigenschutzSelection } from '../../stores/eigenschutz-selection.store';
 import { PSAChangeDrawer } from '../organisms/PSAChangeDrawer';
 import { PsaProfilDetailDrawer } from '../organisms/PsaProfilDetailDrawer';
+import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { PsaBulkActionBar } from '../molecules/PsaBulkActionBar';
 import { useOffenePsaBekanntgaben, usePsaProfileByEinheit, type OffenePsaBekanntgabeEntry } from '../../api/queries';
 import { AcknowledgmentStatusBadge } from '../molecules/AcknowledgmentStatusBadge';
@@ -225,15 +227,15 @@ export function PsaProfilePage({ einsatzId, focusGroup, focusEinheitId, focusZuw
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">PSA-Profile</h1>
-          <p className="mt-1 text-sm text-text-muted">Schutzstufe pro Einheit aktivieren oder deaktivieren — jede Änderung ist auditierbar.</p>
-        </div>
-        {detailUrl ? (
-          <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="psa-profile-copy-status" />
-        ) : null}
-      </header>
+      <EigenschutzPageHeader
+        title="PSA-Profile"
+        description="Schutzstufe pro Einheit aktivieren oder deaktivieren — jede Änderung ist auditierbar."
+        actions={
+          detailUrl ? (
+            <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="psa-profile-copy-status" />
+          ) : null
+        }
+      />
 
       {selection.isMultiSelectActive ? <PsaBulkActionBar selectionCount={selection.selectionCount} onChange={handleBulkOpen} onCancel={handleBulkCancel} /> : null}
 
@@ -390,7 +392,9 @@ function OffenePsaBekanntgabenSection({ einsatzId, focusGroup }: { readonly eins
   return (
     <section data-testid="offene-psa-bekanntgaben-section" className="space-y-3">
       <header>
-        <h2 className="text-lg font-semibold text-text-primary">Offene PSA-Bekanntgaben</h2>
+        <Heading as="h2" size="lg">
+          Offene PSA-Bekanntgaben
+        </Heading>
         <p className="mt-1 text-sm text-text-muted">Bekanntgaben der letzten 24 Stunden, die noch nicht von allen Empfängern quittiert wurden.</p>
       </header>
 
@@ -600,7 +604,9 @@ function PsaEinheitCard({
       onContextMenu={longPress.onContextMenu}
     >
       <header className="flex items-start justify-between gap-2">
-        <h2 className="text-base font-semibold text-text-primary">{einheitName}</h2>
+        <Heading as="h2" size="md">
+          {einheitName}
+        </Heading>
         <PiShieldCheck aria-hidden="true" className="h-5 w-5 shrink-0 text-text-muted" />
       </header>
       <div className="flex flex-wrap gap-2">

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { useEinsatzRolleContext } from '@/features/einsatz';
+import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { ConflictResolutionList } from '../organisms/ConflictResolutionList';
 
 export interface SyncConflictsPageProps {
@@ -51,10 +52,7 @@ export function SyncConflictsPage({ einsatzId }: SyncConflictsPageProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold text-text-primary">Sync-Konflikte</h1>
-        <p className="text-sm text-text-muted">Multi-Device-Konflikte (FR50) — auf jeder Zeile entscheiden, welche Version gilt.</p>
-      </header>
+      <EigenschutzPageHeader title="Sync-Konflikte" description="Multi-Device-Konflikte (FR50) — auf jeder Zeile entscheiden, welche Version gilt." />
       <ConflictResolutionList einsatzId={einsatzId} initialFilter={initialFilter} canResolve={canResolve} />
     </div>
   );

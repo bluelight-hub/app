@@ -295,15 +295,40 @@ export function SicherungspostenDrawer({ einsatzId, mode, open, onClose, posten 
       description={isEditMode ? 'Bezeichnung, Standort, Personal oder Zuständigkeit anpassen.' : 'Posten für den aktuellen Einsatz anlegen.'}
       size="lg"
       position="right"
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            intent="secondary"
+            appearance="ghost"
+            type="button"
+            onClick={() => {
+              void handleClose();
+            }}
+          >
+            Abbrechen
+          </Button>
+          <Button
+            intent="primary"
+            type="submit"
+            form="sicherungsposten-form"
+            disabled={isSubmitDisabled}
+            loading={createMutation.isPending || updateMutation.isPending}
+            data-testid="sicherungsposten-drawer-submit"
+          >
+            {isEditMode ? 'Speichern' : 'Anlegen'}
+          </Button>
+        </div>
+      }
     >
       <form
+        id="sicherungsposten-form"
         data-testid="sicherungsposten-drawer"
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
           void form.handleSubmit();
         }}
-        className="flex h-full flex-col gap-5"
+        className="flex flex-col gap-5"
       >
         <section className="space-y-3">
           <form.Field name="bezeichnung">
@@ -628,22 +653,6 @@ export function SicherungspostenDrawer({ einsatzId, mode, open, onClose, posten 
             {inlineError}
           </p>
         ) : null}
-
-        <footer className="mt-auto flex items-center justify-end gap-2 border-t border-border-subtle pt-4">
-          <Button
-            intent="secondary"
-            appearance="ghost"
-            type="button"
-            onClick={() => {
-              void handleClose();
-            }}
-          >
-            Abbrechen
-          </Button>
-          <Button intent="primary" type="submit" disabled={isSubmitDisabled} loading={createMutation.isPending || updateMutation.isPending} data-testid="sicherungsposten-drawer-submit">
-            {isEditMode ? 'Speichern' : 'Anlegen'}
-          </Button>
-        </footer>
       </form>
     </Dialog.SlideIn>
   );

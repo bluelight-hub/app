@@ -213,6 +213,12 @@ auth-page-debug.png
 # Artillery Performance Tests (nur Ergebnisse ignorieren)
 packages/backend/artillery/results/
 
+# Playwright (Story 7.11 — E2E-Run-Outputs lokal + CI)
+packages/frontend/playwright-report/
+packages/frontend/test-results/
+packages/frontend/playwright/.cache/
+packages/frontend/e2e/.auth/
+
 # Auto Claude data directory
 .auto-claude/
 

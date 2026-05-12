@@ -125,14 +125,36 @@ export function NachalarmierungDialog({ einsatzId, ursprung, isOpen, onClose }: 
   };
 
   return (
-    <Dialog.SlideIn isOpen={isOpen} onClose={handleClose} title="Nachalarmierung anlegen" description={`Bezug: „${ursprung.bezeichnung}"`} size="lg" position="right">
-      {/*
-        Layout: Der äußere `Dialog.SlideIn`-Content scrollt bereits (`overflow-y-auto px-5 py-4`).
-        Wir nutzen daher *keinen* zweiten Flex-Scroll-Container, sondern halten den Footer via
-        `sticky bottom-0` am sichtbaren Rand — sonst rutscht der Submit-Button bei langen
-        Empfängerlisten aus dem Viewport.
-      */}
+    <Dialog.SlideIn
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Nachalarmierung anlegen"
+      description={`Bezug: „${ursprung.bezeichnung}"`}
+      size="lg"
+      position="right"
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={mutation.isPending}>
+            Abbrechen
+          </Button>
+          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting, state.values.empfaenger.length, state.values.bezeichnung] as const}>
+            {([canSubmit, isSubmitting, empfaengerCount, bezeichnung]) => (
+              <Button
+                intent="primary"
+                type="submit"
+                form="nachalarmierung-form"
+                disabled={!canSubmit || mutation.isPending || empfaengerCount === 0 || !bezeichnung.trim()}
+                loading={Boolean(isSubmitting) || mutation.isPending}
+              >
+                Nachalarmierung auslösen
+              </Button>
+            )}
+          </form.Subscribe>
+        </div>
+      }
+    >
       <form
+        id="nachalarmierung-form"
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -299,19 +321,6 @@ export function NachalarmierungDialog({ einsatzId, ursprung, isOpen, onClose }: 
             }}
           </form.Field>
         </div>
-
-        <footer className="flex items-center justify-end gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
-          <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={mutation.isPending}>
-            Abbrechen
-          </Button>
-          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting, state.values.empfaenger.length, state.values.bezeichnung] as const}>
-            {([canSubmit, isSubmitting, empfaengerCount, bezeichnung]) => (
-              <Button intent="primary" type="submit" disabled={!canSubmit || mutation.isPending || empfaengerCount === 0 || !bezeichnung.trim()} loading={Boolean(isSubmitting) || mutation.isPending}>
-                Nachalarmierung auslösen
-              </Button>
-            )}
-          </form.Subscribe>
-        </footer>
       </form>
     </Dialog.SlideIn>
   );

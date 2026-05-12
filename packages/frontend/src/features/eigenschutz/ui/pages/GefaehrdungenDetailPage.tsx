@@ -23,6 +23,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { useMemo, useState } from 'react';
 import type { GefaehrdungsbeurteilungHistorieEintrag } from '@bluelight-hub/shared/schemas';
+import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { VersionTimestampFooter } from '../molecules/VersionTimestampFooter';
 import { GefaehrdungenEditorOrganism } from '../organisms/GefaehrdungenEditorOrganism';
 import { GefaehrdungsbeurteilungHistoriePopover } from '../organisms/GefaehrdungsbeurteilungHistoriePopover';
@@ -124,24 +125,26 @@ export function GefaehrdungenDetailPage({ einsatzId, id, focusItem }: Gefaehrdun
 
   return (
     <div className="space-y-4 md:space-y-6" data-testid="gefaehrdungen-detail-page">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Gefährdungsbeurteilung</h1>
-          <p className="mt-1 text-sm text-text-muted">
+      <EigenschutzPageHeader
+        title="Gefährdungsbeurteilung"
+        description={
+          <p className="text-sm text-text-muted">
             Einheit: <span className="font-medium text-text-primary">{einheitName ?? beurteilung.einheitId}</span>
           </p>
-        </div>
-        <div className="flex flex-wrap items-start justify-end gap-2">
-          <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="gefaehrdungen-detail-copy-status" />
-          <span
-            className="inline-flex items-center rounded-control bg-action-secondary px-2 py-1 text-xs font-medium text-text-secondary"
-            title="Optimistic-Concurrency-Token — wird beim Speichern mitgeschickt."
-            data-testid="gefaehrdungen-detail-version-badge"
-          >
-            Version {beurteilung.version}
-          </span>
-        </div>
-      </header>
+        }
+        actions={
+          <>
+            <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="gefaehrdungen-detail-copy-status" />
+            <span
+              className="inline-flex items-center rounded-control bg-action-secondary px-2 py-1 text-xs font-medium text-text-secondary"
+              title="Optimistic-Concurrency-Token — wird beim Speichern mitgeschickt."
+              data-testid="gefaehrdungen-detail-version-badge"
+            >
+              Version {beurteilung.version}
+            </span>
+          </>
+        }
+      />
 
       <GefaehrdungenEditorOrganism einsatzId={einsatzId} beurteilung={beurteilung} focusItem={focusItem} />
 
