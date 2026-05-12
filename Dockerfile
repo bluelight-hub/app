@@ -35,8 +35,10 @@ RUN pnpm --filter @bluelight-hub/backend build
 
 ## Production dependencies: use pnpm deploy for reliable workspace isolation
 ## (pnpm prune --prod does not reliably preserve workspace packages' dependencies)
+## --legacy: pnpm v10+ verlangt sonst inject-workspace-packages=true; wir
+## nutzen klassische Symlinks/Direkt-Deploy ohne Injection.
 FROM shared-builder AS prod-deps
-RUN pnpm --filter @bluelight-hub/backend deploy --prod /prod/backend
+RUN pnpm --filter @bluelight-hub/backend deploy --prod --legacy /prod/backend
 
 ## Production image: minimal runtime with pre-built artifacts only
 FROM node:25-alpine AS production
