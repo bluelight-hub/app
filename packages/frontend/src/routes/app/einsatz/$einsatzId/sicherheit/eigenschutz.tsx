@@ -10,6 +10,7 @@ import { useEigenschutzSyncStatus } from '@/features/eigenschutz/hooks/useEigens
 import type { KonfliktNotice } from '@/features/eigenschutz/api/use-eigenschutz-konflikt-erkannt-live';
 import { PsaProfilEmpfangBanner } from '@/features/eigenschutz/ui/organisms/PsaProfilEmpfangBanner';
 import { EinsatzleiterReprompEskalationBanner } from '@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanner';
+import { EigenschutzSubNav } from '@/features/eigenschutz/ui/organisms/EigenschutzSubNav';
 import { KonfliktErkanntMikroBanner } from '@/features/eigenschutz/ui/molecules/KonfliktErkanntMikroBanner';
 import { EigenschutzSyncStatusPopover } from '@/features/eigenschutz/ui/molecules/EigenschutzSyncStatusPopover';
 import { logger } from '@/shared/lib/logger';
@@ -119,6 +120,7 @@ function EigenschutzRouteComponent() {
       <PsaProfilEmpfangBanner einsatzId={einsatzId} onShowDetails={handleShowPsaDetails} repromptNotices={reprompt.notices} onRepromptDismiss={reprompt.dismiss} />
       <EinsatzleiterReprompEskalationBanner einsatzId={einsatzId} notices={reprompt.notices} onDismiss={reprompt.dismiss} />
       <KonfliktErkanntMikroBanner einsatzId={einsatzId} notices={konfliktLive.notices} onDismiss={konfliktLive.dismissNotice} onOpenConflict={handleOpenConflict} />
+      <EigenschutzSubNav einsatzId={einsatzId} />
       {syncStatus.conflictCount > 0 && konfliktLive.notices.length === 0 ? (
         <section
           role="status"

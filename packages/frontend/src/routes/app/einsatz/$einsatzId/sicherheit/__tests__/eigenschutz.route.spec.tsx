@@ -57,6 +57,10 @@ vi.mock('@/features/eigenschutz/ui/molecules/EigenschutzSyncStatusPopover', () =
   EigenschutzSyncStatusPopover: ({ einsatzId }: { einsatzId: string }) => <div data-testid="eigenschutz-sync-status-popover-mock">SyncStatus:{einsatzId}</div>,
 }));
 
+vi.mock('@/features/eigenschutz/ui/organisms/EigenschutzSubNav', () => ({
+  EigenschutzSubNav: ({ einsatzId }: { einsatzId: string }) => <div data-testid="eigenschutz-subnav-mock">SubNav:{einsatzId}</div>,
+}));
+
 const { mockQuittungLive, mockLueckeLive, mockUeberfaelligLive, mockKonfliktLive, mockUseSyncStatus } = vi.hoisted(() => ({
   mockQuittungLive: vi.fn(),
   mockLueckeLive: vi.fn(),
@@ -243,6 +247,26 @@ describe('Eigenschutz Route (Story 1.6)', () => {
 
     expect(screen.getByTestId('eigenschutz-sync-conflict-summary-banner')).toHaveTextContent('Sync-Konflikt: jetzt auflösen');
     expect(screen.getByTestId('eigenschutz-sync-conflict-summary-link')).toHaveAttribute('href', '/app/einsatz/einsatz-1/sicherheit/eigenschutz/sync-konflikte');
+  });
+
+  it('mountet die EigenschutzSubNav auf der Root-Route oberhalb der EntryPage (Wayfinding)', () => {
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
+    renderRoute();
+
+    const subnav = screen.getByTestId('eigenschutz-subnav-mock');
+    const entry = screen.getByTestId('entry-page');
+    expect(subnav).toHaveTextContent('SubNav:einsatz-1');
+    expect(subnav.compareDocumentPosition(entry) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('mountet die EigenschutzSubNav auch auf Child-Routen oberhalb des Outlets (Wayfinding)', () => {
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz/gefaehrdungen' });
+    renderRoute();
+
+    const subnav = screen.getByTestId('eigenschutz-subnav-mock');
+    const outlet = screen.getByTestId('outlet');
+    expect(subnav).toBeInTheDocument();
+    expect(subnav.compareDocumentPosition(outlet) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('propagiert die aktuelle einsatzId an die EntryPage', () => {
