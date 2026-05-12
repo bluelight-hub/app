@@ -8,7 +8,7 @@
 import { cn } from '@/shared/ui/cn';
 import { Switch } from '@/shared/ui/atoms/switch.atom';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
-import { PiCloudRain, PiGlobeHemisphereWest, PiMapTrifold, PiMegaphone, PiMountains, PiPoliceCarFill, PiShieldWarning, PiSiren, PiStack, PiWaves } from 'react-icons/pi';
+import { PiCloudRain, PiGlobeHemisphereWest, PiMapTrifold, PiMapPinFill, PiMegaphone, PiMountains, PiPoliceCarFill, PiShieldWarning, PiSiren, PiStack, PiWaves } from 'react-icons/pi';
 import type { BaseLayerConfig, BaseLayerId } from '../../utils/map-config';
 import type { NinaOverlayState, NinaSource } from '../../stores/map-layer.store';
 import { setBaseLayer, setDwdOverlay, setNinaOverlay } from '../../stores/map-layer.store';
@@ -123,6 +123,18 @@ export function MapLayerSwitcher({ availableLayers, selectedBaseLayer, dwdOverla
             </label>
           ))}
         </div>
+
+        {/* Separator */}
+        <div className="my-2 border-t border-border-subtle" />
+
+        {/* Legende — Story 4.3 T7.4: Marker-Symbole erläutern */}
+        <div className="px-3 pb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Legende</div>
+        <ul className="space-y-0.5 px-3 pb-1">
+          <li data-testid="map-legend-sicherungsposten" className="flex items-center gap-2 py-1.5 text-sm text-text-primary">
+            <PiMapPinFill className="h-4 w-4 text-action-primary" aria-hidden="true" />
+            <span>Sicherungsposten</span>
+          </li>
+        </ul>
       </PopoverPanel>
     </Popover>
   );
