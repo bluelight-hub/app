@@ -44,7 +44,7 @@ export default async function globalTeardown(): Promise<void> {
   // 1. DB-Cleanup mit Marker
   try {
     const seedState = await readSeedState();
-    await cleanupMarkedData(seedState.marker);
+    await cleanupMarkedData(seedState.marker, seedState.usernameMarker);
   } catch (err) {
     process.stderr.write(`[E2E-Teardown] DB-Cleanup übersprungen: ${(err as Error).message}\n`);
   }

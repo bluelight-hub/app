@@ -54,9 +54,10 @@ const TEST_PASSWORD = 'E2E711TestPass!';
 
 export async function seedTestData({ backendBaseUrl, frontendBaseUrl }: SeedOptions): Promise<SeedState> {
   const marker = `E2E711-${Date.now()}`;
-  // Username-Variante des Markers ohne Bindestriche und lowercase: Backend-Regex erlaubt nur
-  // [a-zA-Z0-9_]; `findByUsername` normalisiert zusätzlich auf lowercase, daher gleich passend speichern.
-  const usernameMarker = marker.replace(/-/g, '_').toLowerCase();
+  // Username-Variante: kompakter, lowercase, ohne Bindestriche. Backend-LoginDto begrenzt Username
+  // auf max 30 Zeichen (Username-VO erlaubt 50, der DTO ist strikter) — daher base36-Timestamp,
+  // damit auch der laengste Suffix "einheitsfuehrer" (15 Zeichen) noch passt.
+  const usernameMarker = `e711_${Date.now().toString(36).slice(-7)}`.toLowerCase();
   const adminUsername = `${usernameMarker}_admin`;
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, BCRYPT_COST_FACTOR_PASSWORD);
 
@@ -208,6 +209,7 @@ export async function seedTestData({ backendBaseUrl, frontendBaseUrl }: SeedOpti
   // 7. seed-state.json persistieren
   const seedState: SeedState = {
     marker,
+    usernameMarker,
     einsatzId,
     abschnitte,
     users: {

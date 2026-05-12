@@ -135,13 +135,16 @@ export async function findVorfallByWasContains(einsatzId: string, wasSubstring: 
  * `sicherungsposten`), plus deren Versionen-Tabellen. Reihenfolge: Children-First
  * (FK-tief), dann Aggregate, dann Roots.
  */
-export async function cleanupMarkedData(marker: string): Promise<void> {
+export async function cleanupMarkedData(marker: string, usernameMarker?: string): Promise<void> {
   const likePattern = `${marker}%`;
+  // Test-User werden mit einem kompakten, Login-DTO-tauglichen Username-Marker erzeugt
+  // (siehe seed.ts). Fallback auf `marker`, falls Seed-State von einem alten Run stammt.
+  const userPattern = `${usernameMarker ?? marker}%`;
   await withClient(async (client) => {
     const einsatzIdsResult = await client.query<{ id: string }>(`SELECT id FROM einsaetze WHERE nummer LIKE $1`, [likePattern]);
     const einsatzIds = einsatzIdsResult.rows.map((row) => row.id);
     if (einsatzIds.length === 0) {
-      await client.query(`DELETE FROM "User" WHERE username LIKE $1`, [likePattern]);
+      await client.query(`DELETE FROM "User" WHERE username LIKE $1`, [userPattern]);
       return;
     }
 
@@ -178,6 +181,6 @@ export async function cleanupMarkedData(marker: string): Promise<void> {
     await client.query(`DELETE FROM einsaetze WHERE id = ANY($1)`, [einsatzIds]);
 
     // 6. Test-User
-    await client.query(`DELETE FROM "User" WHERE username LIKE $1`, [likePattern]);
+    await client.query(`DELETE FROM "User" WHERE username LIKE $1`, [userPattern]);
   });
 }

@@ -8,6 +8,11 @@ export interface SeedStateUser {
 
 export interface SeedState {
   marker: string;
+  /**
+   * Username-Variante des Markers (lowercase, ohne Bindestriche, kompakt fuer LoginDto.maxLength=30).
+   * Wird vom Teardown benoetigt, um Test-User per LIKE-Match zu loeschen.
+   */
+  usernameMarker: string;
   einsatzId: string;
   abschnitte: Array<{ id: string; name: string; einheitId: string }>;
   users: {
