@@ -148,7 +148,19 @@ let cachedSessionId: string | null = null;
 export function getOrCreateSessionId(): string {
   if (cachedSessionId) return cachedSessionId;
   const cryptoApi = typeof globalThis !== 'undefined' && 'crypto' in globalThis ? (globalThis.crypto as Crypto) : null;
-  cachedSessionId = cryptoApi && typeof cryptoApi.randomUUID === 'function' ? cryptoApi.randomUUID() : `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  if (cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+    cachedSessionId = cryptoApi.randomUUID();
+  } else if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+    // Fallback für sehr alte Browser ohne randomUUID: 128 Bit aus getRandomValues
+    // statt Math.random (CodeQL js/insecure-randomness, Session-ID landet im
+    // Telemetrie-Pfad und identifiziert User-Sessions).
+    const bytes = new Uint8Array(16);
+    cryptoApi.getRandomValues(bytes);
+    cachedSessionId = `session-${Date.now()}-${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
+  } else {
+    // Letztes Sicherheitsnetz für nicht-Browser-Umgebungen ohne Crypto-API.
+    cachedSessionId = `session-${Date.now()}-fallback`;
+  }
   return cachedSessionId;
 }
 
