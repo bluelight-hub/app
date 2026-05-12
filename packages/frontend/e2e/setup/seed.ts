@@ -1,5 +1,6 @@
 import { request } from '@playwright/test';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { withClient } from './test-db';
@@ -14,8 +15,15 @@ const BCRYPT_COST_FACTOR_PASSWORD = 10;
 function cuid24(): string {
   // Test-eigene 24-Zeichen-ID (timestamp36 + random36). Wir importieren bewusst nicht
   // `@paralleldrive/cuid2` aus dem Backend — kein Cross-Workspace-Coupling im Test-Setup.
+  // CodeQL js/insecure-randomness: ID landet in DB-Primärschlüsseln eines Test-
+  // Seeds — kryptografisch starker RNG kostet hier nichts und stillt die Regel.
   const ts = Date.now().toString(36).padStart(10, '0');
-  const rand = Math.random().toString(36).slice(2, 16).padStart(14, '0');
+  const rand = randomBytes(9)
+    .toString('base64url')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 14)
+    .padStart(14, '0');
   return (ts + rand).slice(0, 24);
 }
 
