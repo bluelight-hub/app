@@ -258,6 +258,12 @@ jobs:
           JWT_REFRESH_SECRET: test-refresh-secret
           NODE_ENV: test
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          # VAPID-Stubs nur für Test-Bootstrap (kein echter Push-Versand).
+          # PushNotificationsModule.onModuleInit prüft Fail-Fast (AC3) und
+          # bricht sonst alle e2e/integration Tests ab, die Nest booten.
+          VAPID_PUBLIC_KEY: BFXVdS1XbF4WsymeQ8ALDXxPjBS8WBXOGZuxw5Z_K-eqTMA4Y3srt2DfeQuUOjIma376b026FqKG7YpRKOxnwCg
+          VAPID_PRIVATE_KEY: eQLRNH_aGO0c69kvha8CEKiomjs7_vGwgrFwwIPFN-E
+          VAPID_SUBJECT: 'mailto:ci@bluelight-hub.test'
         run: pnpm --filter @bluelight-hub/backend test:db -- --shard=${{ matrix.shard }}/3
 
       - uses: actions/upload-artifact@v7
@@ -340,6 +346,11 @@ jobs:
           JWT_REFRESH_SECRET: test-refresh-secret
           E2E_BACKEND_PORT: '3091'
           E2E_FRONTEND_PORT: '4173'
+          # VAPID-Stubs für den Out-of-Process-Backend-Bootstrap; ohne diese
+          # bricht PushNotificationsModule.onModuleInit (AC3, Fail-Fast).
+          VAPID_PUBLIC_KEY: BFXVdS1XbF4WsymeQ8ALDXxPjBS8WBXOGZuxw5Z_K-eqTMA4Y3srt2DfeQuUOjIma376b026FqKG7YpRKOxnwCg
+          VAPID_PRIVATE_KEY: eQLRNH_aGO0c69kvha8CEKiomjs7_vGwgrFwwIPFN-E
+          VAPID_SUBJECT: 'mailto:ci@bluelight-hub.test'
         run: pnpm --filter @bluelight-hub/frontend test:e2e:ci
 
       # P28 (Review): `if: always()` greift auch bei Setup-Phase-Failures (DB unreachable,
@@ -386,6 +397,11 @@ jobs:
         env:
           NODE_ENV: test
           SHARD_INDEX: ${{ matrix.shard }}
+          # Mehrere Specs (z. B. VorfallDetailPage Story 5.6) assertieren
+          # konkrete Berlin-Zeit-Strings. CI-Runner laufen in UTC, lokal sind
+          # die Tests CEST/CET — TZ explizit pinnen, damit Datums-Renderings
+          # in jedem Lauf identisch sind.
+          TZ: Europe/Berlin
         run: |
           pnpm --filter @bluelight-hub/frontend exec vitest \
             --run \
