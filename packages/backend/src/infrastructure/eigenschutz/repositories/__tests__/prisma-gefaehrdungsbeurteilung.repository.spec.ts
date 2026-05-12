@@ -426,19 +426,27 @@ describe('PrismaGefaehrdungsbeurteilungRepository - Integration Tests', () => {
   });
 
   describe('findById()/findReadModelById() — Reconstitution-Failure', () => {
+    // Pure-Mock-Suite: prisma wird mocked, kein DB-Bootstrap nötig.
+    // Hartkodierte CUIDs vermeiden, dass `testEinsatzId` (nur in beforeAll
+    // bei verfügbarer DB gesetzt) undefined ist und die einsatzId-Pflicht-
+    // prüfung VOR dem zu testenden Fehler greift.
+    const reconstitutionFixtureEinsatzId = 'ckv1example0einsatzid12345678';
+    const reconstitutionFixtureEinheitId = 'ckv1example0einheitid12345678';
+    const reconstitutionFixtureUserId = 'ckv1example0userid1234567890ab';
+
     const baseRow = (overrides: Partial<PrismaGefaehrdungsbeurteilungRow> = {}): PrismaGefaehrdungsbeurteilungRow =>
       ({
         id: 'ckv1example0aggregateid123456',
-        einsatzId: testEinsatzId,
-        einheitId: testEinheitId,
-        erstelltVonUserId: testUserId,
+        einsatzId: reconstitutionFixtureEinsatzId,
+        einheitId: reconstitutionFixtureEinheitId,
+        erstelltVonUserId: reconstitutionFixtureUserId,
         vorlageId: null,
         gefahrenzoneId: null,
         items: [],
         version: 1,
         erstelltAm: new Date('2026-04-24T10:00:00.000Z'),
         aktualisiertAm: new Date('2026-04-24T10:00:00.000Z'),
-        aktualisiertVonUserId: testUserId,
+        aktualisiertVonUserId: reconstitutionFixtureUserId,
         ...overrides,
       }) as PrismaGefaehrdungsbeurteilungRow;
 

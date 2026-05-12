@@ -10,15 +10,27 @@ vi.mock('@/features/einsatz/api', () => ({
   useEinsatzTeilnehmer: () => ({ data: null }),
 }));
 
+// Stabile Mock-Refs: `useEtbFormLogic` liefert in der echten Implementierung
+// memoisierte Callbacks (useCallback). Würden wir bei jedem Hook-Aufruf
+// frische `vi.fn()`-Instanzen zurückgeben, triggert der dadurch instabile
+// `resetSelection`-Ref den „Reset form when editingEntry changes"-Effect
+// nach jedem Re-Render erneut und überschreibt restaurierte Draft-Werte
+// (Story 3.5).
+const { stableSetSelectedTextbaustein, stableFilteredTextbausteine, stableResetSelection } = vi.hoisted(() => ({
+  stableSetSelectedTextbaustein: vi.fn(),
+  stableFilteredTextbausteine: () => [],
+  stableResetSelection: vi.fn(),
+}));
+
 // Mock non-validation UI Komponenten aus dem Barrel
 vi.mock('@/features/etb', () => ({
   useCreateEtbEntry: () => ({ mutateAsync: vi.fn().mockResolvedValue({}), isPending: false }),
   useTextbausteine: () => ({ data: null }),
   useEtbFormLogic: () => ({
     selectedTextbaustein: '',
-    setSelectedTextbaustein: vi.fn(),
-    filteredTextbausteine: () => [],
-    resetSelection: vi.fn(),
+    setSelectedTextbaustein: stableSetSelectedTextbaustein,
+    filteredTextbausteine: stableFilteredTextbausteine,
+    resetSelection: stableResetSelection,
   }),
   EtbFormActions: ({ canSubmit, isSubmitting, isPending }: { canSubmit: boolean; isSubmitting: boolean; isPending: boolean }) => (
     <button type="submit" disabled={!canSubmit || isPending || isSubmitting}>

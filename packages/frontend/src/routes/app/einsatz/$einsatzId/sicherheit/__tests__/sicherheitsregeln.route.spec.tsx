@@ -40,7 +40,10 @@ vi.mock('@/features/eigenschutz/ui/pages/SicherheitsregelnPage', () => ({
   ),
 }));
 
-import '../eigenschutz/sicherheitsregeln';
+// Explizit auf das Index-Modul zeigen: die Sibling-Datei `sicherheitsregeln.tsx`
+// ist nur noch ein Layout-Wrapper ohne `validateSearch`, die echte Route
+// liegt unter `sicherheitsregeln/index.tsx`.
+import '../eigenschutz/sicherheitsregeln/index';
 
 function renderRoute() {
   if (!captured.route?.component) {
