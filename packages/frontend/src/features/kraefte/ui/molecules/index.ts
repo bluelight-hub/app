@@ -9,4 +9,5 @@ export { DashboardErrorCard } from './DashboardErrorCard';
 export { EinheitStatusBadge } from './EinheitStatusBadge';
 export { EinheitTypBadge } from './EinheitTypBadge';
 export { EinheitCard } from './EinheitCard';
-export { EinheitZuweisungsDropdown } from './EinheitZuweisungsDropdown';
+export { EinheitCombobox, type EinheitComboboxProps } from './EinheitCombobox';
+export { EinheitMultiCombobox, type EinheitMultiComboboxProps } from './EinheitMultiCombobox';

@@ -9,7 +9,7 @@ import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FmsStatusDropdown } from '@/features/einsatz/ui/molecules/FmsStatusDropdown.molecule';
 import { isFmsStatus, type FmsStatus } from '@/features/einsatz/constants/fms-status.constants';
-import { EinheitZuweisungsDropdown } from '@/features/kraefte/ui/molecules/EinheitZuweisungsDropdown';
+import { EinheitCombobox } from '@/features/kraefte/ui/molecules';
 import { ZeichenPreview } from '@/features/taktische-zeichen/rendering/ZeichenPreview';
 import type { ZeichenDefinition } from '@/features/taktische-zeichen/rendering/renderer';
 import type { EinsatzFahrzeugDto } from '@/shared';
@@ -21,12 +21,12 @@ interface FahrzeugDetailPanelProps {
   isOpen: boolean;
   /** Callback zum Schließen */
   onClose: () => void;
+  /** Einsatz-ID, in dem das Fahrzeug bewegt wird */
+  einsatzId: string;
   /** Fahrzeug-Daten */
   fahrzeug: EinsatzFahrzeugDto;
   /** Verknüpftes taktisches Zeichen */
   zeichen?: TaktischesZeichenResponseDto | null;
-  /** Verfügbare Einheiten für das Dropdown */
-  einheiten: Array<{ id: string; name: string; typ: string }>;
   /** Callback bei FMS-Status-Änderung */
   onStatusChange: (fahrzeugId: string, newStatus: FmsStatus) => void;
   /** Callback bei Einheit-Zuweisung */
@@ -37,7 +37,7 @@ interface FahrzeugDetailPanelProps {
   isAssigning?: boolean;
 }
 
-export function FahrzeugDetailPanel({ isOpen, onClose, fahrzeug, zeichen, einheiten, onStatusChange, onEinheitAssign, onManageZeichen, isAssigning = false }: FahrzeugDetailPanelProps) {
+export function FahrzeugDetailPanel({ isOpen, onClose, einsatzId, fahrzeug, zeichen, onStatusChange, onEinheitAssign, onManageZeichen, isAssigning = false }: FahrzeugDetailPanelProps) {
   const validFmsStatus: FmsStatus = isFmsStatus(fahrzeug.fmsStatus) ? fahrzeug.fmsStatus : 0;
   const besatzung = fahrzeug.besatzung ?? [];
 
@@ -74,8 +74,15 @@ export function FahrzeugDetailPanel({ isOpen, onClose, fahrzeug, zeichen, einhei
 
         {/* Einheit-Zuweisung */}
         <div>
-          <label className="mb-1.5 block text-xs font-medium tracking-wide text-text-muted uppercase">Einheit</label>
-          <EinheitZuweisungsDropdown currentEinheitId={fahrzeug.einheitId} einheiten={einheiten} onAssign={(einheitId) => onEinheitAssign(fahrzeug.id, einheitId)} isLoading={isAssigning} />
+          <EinheitCombobox
+            einsatzId={einsatzId}
+            value={fahrzeug.einheitId ?? ''}
+            onChange={(einheitId) => onEinheitAssign(fahrzeug.id, einheitId.length > 0 ? einheitId : null)}
+            disabled={isAssigning}
+            label="Einheit"
+            placeholder="Einheit zuweisen…"
+            allowEmpty
+          />
         </div>
 
         {/* Besatzung */}

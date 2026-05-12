@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { useEinsatzEinheiten } from '@/features/kraefte/api/use-einsatz-einheiten';
+import { EinheitCombobox } from '@/features/kraefte/ui/molecules';
 import { useReportVorfall } from '../../api/use-report-vorfall';
 import type { ReportVorfallDto } from '@bluelight-hub/shared/client';
 import { reportVorfallFormSchema } from '../../schemas/vorfall.schema';
@@ -72,7 +72,6 @@ function nextBeteiligterRowKey(): string {
  */
 export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuccess }: VorfallMeldenDrawerProps) {
   const reportVorfall = useReportVorfall(einsatzId);
-  const einheitenQuery = useEinsatzEinheiten(einsatzId);
   const wasInputRef = useRef<HTMLInputElement | null>(null);
   // Submit-Re-Entry-Guard: schützt gegen Doppel-Klick / Cmd+Enter-Burst, bevor
   // der React-State `isPending` per Render durchgepropagiert wird.
@@ -113,7 +112,6 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
   // greift die im Drawer ad-hoc gewählte Einheit.
   const effectiveEinheitId = einheitId ?? (pickedEinheitId.length > 0 ? pickedEinheitId : null);
   const showEinheitPicker = einheitId === null;
-  const einheiten = einheitenQuery.data ?? [];
 
   const isPending = reportVorfall.isPending;
   const trimmedWas = was.trim();
@@ -285,40 +283,16 @@ export function VorfallMeldenDrawer({ einsatzId, einheitId, open, onClose, onSuc
 
           {showEinheitPicker && (
             <div data-testid="vorfall-einheit-picker" className="flex flex-col gap-1 rounded-md border border-border-subtle bg-surface-panel px-3 py-2">
-              <label htmlFor="vorfall-einheit-select" className="text-sm font-medium text-text-primary">
-                Einheit für diese Meldung{' '}
-                <span className="text-status-danger-text" aria-hidden="true">
-                  *
-                </span>
-              </label>
               <p className="text-xs text-text-muted">Keine aktive Einheit gewählt — bitte für diesen Vorfall eine Einheit auswählen.</p>
-              <select
-                id="vorfall-einheit-select"
-                data-testid="vorfall-einheit-picker-select"
+              <EinheitCombobox
+                einsatzId={einsatzId}
                 value={pickedEinheitId}
-                onChange={(e) => setPickedEinheitId(e.target.value)}
-                aria-required="true"
-                aria-invalid={!einheitValid ? true : undefined}
-                disabled={isPending || einheitenQuery.isLoading}
-                className="border-border-default bg-surface-base focus:border-border-focus mt-1 w-full rounded-md border px-3 py-2 text-sm text-text-primary focus:outline-none disabled:opacity-60"
-              >
-                <option value="">— Einheit auswählen —</option>
-                {einheiten.map((einheit) => (
-                  <option key={einheit.id} value={einheit.id}>
-                    {einheit.name}
-                  </option>
-                ))}
-              </select>
-              {einheitenQuery.isError && (
-                <span data-testid="vorfall-einheit-picker-error" role="alert" className="text-xs text-status-danger-text">
-                  Einheiten konnten nicht geladen werden — bitte erneut versuchen.
-                </span>
-              )}
-              {!einheitenQuery.isLoading && !einheitenQuery.isError && einheiten.length === 0 && (
-                <span data-testid="vorfall-einheit-picker-empty" role="alert" className="text-xs text-status-warning-text">
-                  Dieser Einsatz hat keine Einheiten — Vorfallmeldung nicht möglich.
-                </span>
-              )}
+                onChange={setPickedEinheitId}
+                disabled={isPending}
+                label="Einheit für diese Meldung *"
+                placeholder="Einheit suchen…"
+                allowEmpty
+              />
             </div>
           )}
 
