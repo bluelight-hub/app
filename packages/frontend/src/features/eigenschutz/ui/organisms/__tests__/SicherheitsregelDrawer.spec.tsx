@@ -74,6 +74,35 @@ vi.mock('@/features/kraefte/api', () => ({
   useEinsatzEinheiten: () => mocks.einheitenState,
 }));
 
+vi.mock('@/features/kraefte/ui/molecules', () => ({
+  EinheitMultiCombobox: ({ values, onChange, disabled, label, testId }: { values: string[]; onChange: (ids: string[]) => void; disabled?: boolean; label?: string; testId?: string }) => (
+    <div data-testid={testId}>
+      <span>{label}</span>
+      <ul>
+        {mocks.einheitenState.data.map((einheit) => {
+          const selected = values.includes(einheit.id);
+          return (
+            <li key={einheit.id}>
+              <button
+                type="button"
+                data-testid={`sicherheitsregel-einheit-${einheit.id}`}
+                aria-pressed={selected}
+                disabled={disabled}
+                onClick={() => {
+                  const next = selected ? values.filter((id) => id !== einheit.id) : [...values, einheit.id];
+                  onChange(next);
+                }}
+              >
+                {einheit.name}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  ),
+}));
+
 import { SicherheitsregelDrawer } from '../SicherheitsregelDrawer';
 
 beforeEach(() => {
@@ -161,18 +190,15 @@ describe('SicherheitsregelDrawer', () => {
     const einheitenRadio = screen.getByTestId('sicherheitsregel-zuordnung-einheiten');
     await user.click(einheitenRadio);
     await waitFor(() => {
-      expect(screen.getByTestId('sicherheitsregel-einheiten-listbox')).toBeInTheDocument();
+      expect(screen.getByTestId('sicherheitsregel-einheiten-combobox')).toBeInTheDocument();
     });
-    const listbox = screen.getByTestId('sicherheitsregel-einheiten-listbox');
-    expect(listbox).toHaveAttribute('role', 'listbox');
-    expect(listbox).toHaveAttribute('aria-multiselectable', 'true');
   });
 
-  it('bei leeren Einheiten: listbox ausgeblendet, Hinweis rendert, einsatzweit erzwungen', () => {
+  it('bei leeren Einheiten: Combobox ausgeblendet, Hinweis rendert, einsatzweit erzwungen', () => {
     mocks.einheitenState.data = [];
     setup();
     expect(screen.getByTestId('sicherheitsregel-keine-einheiten-hinweis')).toBeInTheDocument();
-    expect(screen.queryByTestId('sicherheitsregel-einheiten-listbox')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('sicherheitsregel-einheiten-combobox')).not.toBeInTheDocument();
   });
 
   it('Submit im Create-Modus ruft useCreateSicherheitsregel mit einsatzweit:true', async () => {

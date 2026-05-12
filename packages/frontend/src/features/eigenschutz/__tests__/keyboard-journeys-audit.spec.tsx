@@ -104,6 +104,22 @@ vi.mock('@/features/kraefte/api', () => ({
   useEinsatzEinheiten: () => gefMocks.einheitenState,
 }));
 
+vi.mock('@/features/kraefte/ui/molecules', () => ({
+  EinheitCombobox: ({ value, onChange, onBlur, disabled, label }: { value: string; onChange: (id: string) => void; onBlur?: () => void; disabled?: boolean; label?: string }) => (
+    <label>
+      <span>{label}</span>
+      <select aria-label={label} data-testid="gefaehrdungseditor-einheit" value={value} onChange={(event) => onChange(event.target.value)} onBlur={onBlur} disabled={disabled}>
+        <option value="">— bitte wählen —</option>
+        {gefMocks.einheitenState.data.map((einheit) => (
+          <option key={einheit.id} value={einheit.id}>
+            {einheit.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  ),
+}));
+
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>();
   return {

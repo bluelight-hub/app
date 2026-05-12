@@ -91,6 +91,22 @@ vi.mock('@/features/kraefte/api', () => ({
   useEinsatzEinheiten: () => mocks.einheitenState,
 }));
 
+vi.mock('@/features/kraefte/ui/molecules', () => ({
+  EinheitCombobox: ({ value, onChange, onBlur, disabled, label }: { value: string; onChange: (id: string) => void; onBlur?: () => void; disabled?: boolean; label?: string }) => (
+    <label>
+      <span>{label}</span>
+      <select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)} onBlur={onBlur} disabled={disabled}>
+        <option value="">— bitte wählen —</option>
+        {mocks.einheitenState.data.map((einheit) => (
+          <option key={einheit.id} value={einheit.id}>
+            {einheit.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  ),
+}));
+
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>();
   return {
@@ -171,7 +187,7 @@ describe('GefaehrdungseditorDrawer (Story 2.1 Task 8)', () => {
     renderWithProviders(<GefaehrdungseditorDrawer einsatzId="einsatz-1" open={true} onClose={onClose} onCreated={onCreated} />);
 
     await user.click(screen.getByTestId(`vorlage-card-${VORLAGE_MANV_ID}`));
-    await user.selectOptions(screen.getByTestId('gefaehrdungseditor-einheit'), EINHEIT_1_ID);
+    await user.selectOptions(screen.getByLabelText('Einheit *'), EINHEIT_1_ID);
     await user.click(screen.getByTestId('gefaehrdungseditor-submit'));
 
     await waitFor(() => {
@@ -192,7 +208,7 @@ describe('GefaehrdungseditorDrawer (Story 2.1 Task 8)', () => {
     renderWithProviders(<GefaehrdungseditorDrawer einsatzId="einsatz-1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />);
 
     await user.click(screen.getByTestId('vorlage-card-leer'));
-    await user.selectOptions(screen.getByTestId('gefaehrdungseditor-einheit'), EINHEIT_2_ID);
+    await user.selectOptions(screen.getByLabelText('Einheit *'), EINHEIT_2_ID);
     await user.click(screen.getByTestId('gefaehrdungseditor-submit'));
 
     await waitFor(() => {
@@ -211,7 +227,7 @@ describe('GefaehrdungseditorDrawer (Story 2.1 Task 8)', () => {
     renderWithProviders(<GefaehrdungseditorDrawer einsatzId="einsatz-1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />);
 
     await user.click(screen.getByTestId('vorlage-card-leer'));
-    await user.selectOptions(screen.getByTestId('gefaehrdungseditor-einheit'), EINHEIT_1_ID);
+    await user.selectOptions(screen.getByLabelText('Einheit *'), EINHEIT_1_ID);
     await user.click(screen.getByTestId('gefaehrdungseditor-submit'));
 
     const alert = await screen.findByTestId('gefaehrdungseditor-inline-error');
@@ -225,7 +241,7 @@ describe('GefaehrdungseditorDrawer (Story 2.1 Task 8)', () => {
     renderWithProviders(<GefaehrdungseditorDrawer einsatzId="einsatz-1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />);
 
     await user.click(screen.getByTestId('vorlage-card-leer'));
-    await user.selectOptions(screen.getByTestId('gefaehrdungseditor-einheit'), EINHEIT_1_ID);
+    await user.selectOptions(screen.getByLabelText('Einheit *'), EINHEIT_1_ID);
     await user.click(screen.getByTestId('gefaehrdungseditor-submit'));
 
     const alert = await screen.findByTestId('gefaehrdungseditor-inline-error');
@@ -258,7 +274,7 @@ describe('GefaehrdungseditorDrawer (Story 2.1 Task 8)', () => {
 
     renderWithProviders(<GefaehrdungseditorDrawer einsatzId="einsatz-1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />);
 
-    await user.selectOptions(screen.getByTestId('gefaehrdungseditor-einheit'), EINHEIT_1_ID);
+    await user.selectOptions(screen.getByLabelText('Einheit *'), EINHEIT_1_ID);
     await user.click(screen.getByTestId('gefaehrdungseditor-submit'));
 
     const alert = await screen.findByTestId('gefaehrdungseditor-inline-error');

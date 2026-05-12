@@ -38,15 +38,42 @@ vi.mock('@/shared', () => ({
 
 const mockEinheitenState = {
   data: [
-    { id: 'clw3h8x9y0000qwertyui05002', name: 'RTW 1' },
-    { id: 'clw3h8x9y0000qwertyui05003', name: 'SEG-Behandlung' },
-  ] as Array<{ id: string; name: string }>,
+    { id: 'clw3h8x9y0000qwertyui05002', einsatzId: 'einsatz-1', name: 'RTW 1', typ: 'TRUPP' },
+    { id: 'clw3h8x9y0000qwertyui05003', einsatzId: 'einsatz-1', name: 'SEG-Behandlung', typ: 'GRUPPE' },
+  ] as Array<{ id: string; einsatzId: string; name: string; typ: string }>,
   isLoading: false,
   isError: false,
 };
 
 vi.mock('@/features/kraefte/api/use-einsatz-einheiten', () => ({
   useEinsatzEinheiten: () => mockEinheitenState,
+}));
+
+vi.mock('@/features/kraefte/ui/molecules', () => ({
+  EinheitCombobox: ({ value, onChange, disabled, label }: { value: string; onChange: (id: string) => void; disabled?: boolean; label?: string }) => {
+    const data = mockEinheitenState.data;
+    if (data.length === 0) {
+      return (
+        <div>
+          <span>{label}</span>
+          <p>Dieser Einsatz hat keine Einheiten.</p>
+        </div>
+      );
+    }
+    return (
+      <div>
+        <span>{label}</span>
+        <select aria-label="Einheit" data-testid="vorfall-einheit-picker-select" value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled}>
+          <option value="">— bitte wählen —</option>
+          {data.map((einheit) => (
+            <option key={einheit.id} value={einheit.id}>
+              {einheit.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  },
 }));
 
 import { VorfallMeldenDrawer } from '../VorfallMeldenDrawer';
@@ -146,7 +173,8 @@ describe('VorfallMeldenDrawer (Story 5.1)', () => {
         </Wrapper>,
       );
 
-      expect(screen.getByTestId('vorfall-einheit-picker-empty')).toBeInTheDocument();
+      expect(screen.getByTestId('vorfall-einheit-picker')).toBeInTheDocument();
+      expect(screen.getByText(/keine Einheiten/i)).toBeInTheDocument();
       expect(screen.getByTestId('vorfall-submit')).toBeDisabled();
     } finally {
       mockEinheitenState.data = original;
