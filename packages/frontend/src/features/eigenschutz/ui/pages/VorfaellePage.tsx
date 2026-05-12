@@ -9,6 +9,7 @@ import { replaceFilterState, selectFilterIsActive, useVorfallFilterState, type V
 import { VorfallFilterBar } from '../organisms/VorfallFilterBar';
 import { VorfallList } from '../organisms/VorfallList';
 import { VorfallMeldenDrawer } from '../organisms/VorfallMeldenDrawer';
+import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { EigenschutzShortcutHelpPopover } from '../molecules/EigenschutzShortcutHelpPopover';
 import { resolveAbschnittToEinheitIds } from '../../utils/resolve-abschnitt-einheiten';
 
@@ -172,18 +173,18 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
 
   return (
     <div data-testid="vorfaelle-page" className="space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Vorfälle</h1>
-          <p className="mt-1 text-sm text-text-muted">Filter persistent über URL — als Deep-Link teilbar.</p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <EigenschutzShortcutHelpPopover context="vorfaelle" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} />
-          <Button data-testid="vorfaelle-add-button" intent="primary" onClick={() => setDrawerOpen(true)} kbd="v">
-            + Vorfall melden
-          </Button>
-        </div>
-      </header>
+      <EigenschutzPageHeader
+        title="Vorfälle"
+        description="Filter persistent über URL — als Deep-Link teilbar."
+        actions={
+          <>
+            <EigenschutzShortcutHelpPopover context="vorfaelle" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} />
+            <Button data-testid="vorfaelle-add-button" intent="primary" onClick={() => setDrawerOpen(true)} kbd="v">
+              + Vorfall melden
+            </Button>
+          </>
+        }
+      />
 
       <VorfallFilterBar einsatzId={einsatzId} ref={filterBarRef} truncatedHint={truncatedHint} />
 

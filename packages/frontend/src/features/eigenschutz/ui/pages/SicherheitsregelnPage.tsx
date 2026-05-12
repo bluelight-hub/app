@@ -20,10 +20,12 @@ import { SicherheitsregelEmpfangBanner } from '@/features/eigenschutz/ui/organis
 import { useEinsatzEinheiten } from '@/features/kraefte/api';
 import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PiPlus, PiShieldCheck } from 'react-icons/pi';
+import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 
 // consistency-allow: destructive-pattern - Retry-Button bei Ladefehler, keine destruktive Mutation.
 export interface SicherheitsregelnPageProps {
@@ -139,21 +141,21 @@ export function SicherheitsregelnPage({ einsatzId, initialAction, focusRegelId, 
 
   return (
     <div className="space-y-4">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Sicherheitsregeln</h1>
-          <p className="mt-1 text-sm text-text-muted">Spezifische Regeln für den gesamten Einsatz oder einzelne Einheiten dokumentieren und bekannt geben.</p>
-        </div>
-        <div className="flex flex-wrap items-start justify-end gap-2">
-          {detailUrl ? (
-            <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="sicherheitsregel-copy-status" />
-          ) : null}
-          <Button intent="primary" onClick={handleOpenCreate} data-testid="sicherheitsregeln-neue-regel">
-            <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-            Sicherheitsregel
-          </Button>
-        </div>
-      </header>
+      <EigenschutzPageHeader
+        title="Sicherheitsregeln"
+        description="Spezifische Regeln für den gesamten Einsatz oder einzelne Einheiten dokumentieren und bekannt geben."
+        actions={
+          <>
+            {detailUrl ? (
+              <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="sicherheitsregel-copy-status" />
+            ) : null}
+            <Button intent="primary" onClick={handleOpenCreate} data-testid="sicherheitsregeln-neue-regel">
+              <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+              Sicherheitsregel
+            </Button>
+          </>
+        }
+      />
 
       {/* Story 2.7: Empfangs-Bereich für die aktuell aktive Einheit. Rendert
           nur, wenn der User eine Einheit ausgewählt hat — die Auswahl-UI
@@ -233,7 +235,9 @@ export function SicherheitsregelnPage({ einsatzId, initialAction, focusRegelId, 
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h2 className="text-base font-semibold text-text-primary">{regel.titel}</h2>
+                      <Heading as="h2" size="md">
+                        {regel.titel}
+                      </Heading>
                       <p className="mt-1 text-sm text-text-muted">{truncate(regel.inhalt, 140)}</p>
                     </div>
                     <div className="shrink-0 text-right text-xs text-text-muted">

@@ -22,6 +22,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PiClipboardText, PiPlus } from 'react-icons/pi';
 import { GefaehrdungsbeurteilungListItem } from '../molecules/GefaehrdungsbeurteilungListItem';
+import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { EigenschutzShortcutHelpPopover } from '../molecules/EigenschutzShortcutHelpPopover';
 import { GefaehrdungseditorDrawer } from '../organisms/GefaehrdungseditorDrawer.organism';
 
@@ -103,19 +104,19 @@ export function GefaehrdungenPage({ einsatzId, initialAction }: GefaehrdungenPag
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Gefährdungsbeurteilungen</h1>
-          <p className="mt-1 text-sm text-text-muted">Pro Einheit eine Beurteilung anlegen, Gefährdungen erfassen und Schutzmaßnahmen dokumentieren.</p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <EigenschutzShortcutHelpPopover context="gefaehrdungen" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} />
-          <Button intent="primary" onClick={handleOpen} data-testid="gefaehrdungen-neue-beurteilung" kbd="n">
-            <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-            Neue Gefährdungsbeurteilung
-          </Button>
-        </div>
-      </header>
+      <EigenschutzPageHeader
+        title="Gefährdungsbeurteilungen"
+        description="Pro Einheit eine Beurteilung anlegen, Gefährdungen erfassen und Schutzmaßnahmen dokumentieren."
+        actions={
+          <>
+            <EigenschutzShortcutHelpPopover context="gefaehrdungen" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} />
+            <Button intent="primary" onClick={handleOpen} data-testid="gefaehrdungen-neue-beurteilung" kbd="n">
+              <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+              Neue Gefährdungsbeurteilung
+            </Button>
+          </>
+        }
+      />
 
       {beurteilungenQuery.isPending ? (
         <div className="rounded-panel border border-border-subtle bg-surface-panel p-4 text-sm text-text-muted" data-testid="gefaehrdungen-list-loading">

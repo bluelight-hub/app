@@ -68,14 +68,22 @@ function buildSnapshot(overrides: SnapshotOverrides = {}): Record<string, unknow
   return snapshot;
 }
 
-function buildAggregate(snapshot: Record<string, unknown>): EigenschutzVorfall {
-  const beteiligte = [
+function buildAggregate(snapshot: Record<string, unknown>, opts: { beteiligteCount?: number } = {}): EigenschutzVorfall {
+  const baseBeteiligte = [
     Beteiligter.create({ kind: 'user', userId: ERFASSER_ID, rolle: 'San' }).value!,
     Beteiligter.create({ kind: 'freitext', name: 'Hans Müller', rolle: 'Patient' }).value!,
     Beteiligter.create({ kind: 'user', userId: CALLER_ID }).value!,
     Beteiligter.create({ kind: 'freitext', name: 'Anna Schmidt' }).value!,
     Beteiligter.create({ kind: 'user', userId: 'clw3h8x9y0000qwertyui05009' }).value!,
   ];
+  const requested = opts.beteiligteCount ?? baseBeteiligte.length;
+  const beteiligte =
+    requested <= baseBeteiligte.length
+      ? baseBeteiligte.slice(0, requested)
+      : [
+          ...baseBeteiligte,
+          ...Array.from({ length: requested - baseBeteiligte.length }, (_, i) => Beteiligter.create({ kind: 'freitext', name: `Worst-Case Beteiligter ${baseBeteiligte.length + i + 1}` }).value!),
+        ];
   const wo = Wo.create({ kind: 'coordinate', longitude: 8.6789, latitude: 50.12345, addressHint: 'Hauptstraße 12' }).value!;
   const result = EigenschutzVorfall.reconstitute({
     id: VORFALL_ID,
@@ -235,5 +243,82 @@ describe('EigenschutzVorfallPdfRenderer (Story 5.4)', () => {
     expect(text).toContain('Permission');
     expect(text).toContain('eigenschutz:vorfall:export');
     expect(text).toMatch(/\d{2}\.\d{2}\.\d{4}/);
+  });
+
+  /**
+   * Story 7.10 AC6 — NFR-P5 Performance-Audit.
+   *
+   * **Begründung der deterministischen Backend-Wallclock-Messung statt Prometheus:**
+   * Story-7.9-Deferred dokumentiert, dass `MetricsInterceptor` bei 404-Pfaden auf
+   * `request.url` zurückfällt und das Grafana-Panel 5 (Vorfall-Export-Dauer) mit
+   * 404-Datapoints kontaminieren würde. Diese Spec umgeht die Kontamination
+   * komplett durch direkte Wallclock-Messung im Test.
+   *
+   * **Worst-Case-Snapshot:** 100 Gefährdungs-Items, 5 PSA-Profile, 10 Sicherheitsregeln,
+   * 10 Beteiligte (begrenzt durch Aggregate-Konstruktion), 4000-Zeichen-Maßnahmen-Text.
+   *
+   * **Gate:** p95 (30 Iterationen) < 5000 ms (NFR-P5 Hard-Limit).
+   */
+  describe('NFR-P5 Performance-Audit (Story 7.10 AC6)', () => {
+    function buildWorstCaseAggregate(): EigenschutzVorfall {
+      const snapshot = buildSnapshot({ gefaehrdungItems: 100, psaProfile: 5, sicherheitsregeln: 10 });
+      const aggregate = buildAggregate(snapshot, { beteiligteCount: 10 });
+      // 4000-Zeichen-Maßnahmen-Text — mutiert nach Reconstitute, da der Worst-Case-Text
+      // die Aggregate-Validierung sprengt (max-length-Constraint im VO). Renderer muss
+      // mit Defense-Pfad das tolerieren.
+      const worstCaseMassnahmen = 'Maßnahmenausführung Worst-Case: '.repeat(125).slice(0, 4000);
+      const mutated = aggregate as unknown as { _massnahmen: string };
+      const before = mutated._massnahmen;
+      mutated._massnahmen = worstCaseMassnahmen;
+      // Defensive Verifikation: bei zukünftigem Refactor auf `#massnahmen` (private-class-field)
+      // wäre die Mutation ein silent no-op und die Spec würde nur die 47-Zeichen-Baseline messen.
+      // Diese Assertion bricht laut statt leise.
+      if (mutated._massnahmen !== worstCaseMassnahmen || before === worstCaseMassnahmen) {
+        throw new Error('buildWorstCaseAggregate: _massnahmen-Override hat nicht gegriffen — vermutlich private-class-field-Refactor. Test ist nicht mehr Worst-Case-aussagefähig.');
+      }
+      return aggregate;
+    }
+
+    function percentile(sortedValues: number[], p: number): number {
+      if (sortedValues.length === 0) return 0;
+      const index = Math.min(sortedValues.length - 1, Math.floor(p * sortedValues.length));
+      return sortedValues[index];
+    }
+
+    it(
+      'p95 der Renderer-Wallclock liegt unter 5 s bei Worst-Case-Snapshot (NFR-P5)',
+      async () => {
+        const renderer = new EigenschutzVorfallPdfRenderer({ compress: false });
+        const samples: number[] = [];
+        const iterations = 30;
+
+        for (let i = 0; i < iterations; i++) {
+          const aggregate = buildWorstCaseAggregate();
+          const start = Date.now();
+          await renderer.generate({
+            vorfall: aggregate,
+            erzeugtAm: NOW,
+            erzeugtVonUserId: CALLER_ID,
+          });
+          samples.push(Date.now() - start);
+        }
+
+        const sorted = [...samples].sort((a, b) => a - b);
+        const min = sorted[0];
+        const p50 = percentile(sorted, 0.5);
+        const p95 = percentile(sorted, 0.95);
+        const p99 = percentile(sorted, 0.99);
+        const max = sorted[sorted.length - 1];
+
+        // eslint-disable-next-line no-console
+        console.info(`[Story 7.10 AC6] PDF-Renderer Wallclock: n=${iterations} min=${min}ms p50=${p50}ms p95=${p95}ms p99=${p99}ms max=${max}ms`);
+
+        if (p95 >= 5000) {
+          throw new Error(`NFR-P5 verletzt: p95=${p95}ms ≥ 5000ms. Verteilung: min=${min} p50=${p50} p95=${p95} p99=${p99} max=${max}`);
+        }
+        expect(p95).toBeLessThan(5000);
+      },
+      5 * 60 * 1000,
+    );
   });
 });

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { SicherungspostenDto } from '@bluelight-hub/shared/client';
+import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { AufloeseSicherungspostenDialog } from '../organisms/AufloeseSicherungspostenDialog';
 import { SicherungspostenDrawer } from '../organisms/SicherungspostenDrawer';
 import { SicherungspostenList } from '../organisms/SicherungspostenList';
@@ -37,10 +38,7 @@ export function SicherungspostenPage({ einsatzId, initialAction, onActionConsume
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold text-text-primary">Sicherungsposten</h1>
-        <p className="text-sm text-text-muted">Sicherungsposten anlegen, bearbeiten und auflösen — Versionierung und Auflöse-Begründung sind Pflicht.</p>
-      </header>
+      <EigenschutzPageHeader title="Sicherungsposten" description="Sicherungsposten anlegen, bearbeiten und auflösen — Versionierung und Auflöse-Begründung sind Pflicht." />
 
       <SicherungspostenList
         einsatzId={einsatzId}

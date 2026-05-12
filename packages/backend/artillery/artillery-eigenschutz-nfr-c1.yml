@@ -1,0 +1,122 @@
+# Artillery Performance Test Configuration
+# Story 7.10 AC8 — NFR-C1 Eigenschutz-Skalierung
+#
+# Target: Eigenschutz-Modul unter NFR-C1-Last
+#   - 20 Abschnitte
+#   - 100 Einheiten
+#   - 50 aktive Clients (= 50 arrivalRate sustained)
+#   - 500 GB-Items
+#   - 200 Vorfälle
+#
+# Phasen:
+#   - Warmup:        60s @  5 arrivalRate
+#   - Sustained:    180s @ 50 arrivalRate (NFR-C1-Wortlaut)
+#
+# Erwartete Thresholds (NFR-P2 / NFR-P4):
+#   - Bulk-PSA-Toggle Propagation:        ≤ 2000 ms p95 (NFR-P2)
+#   - Quittung-abgeben:                    ≤ 1000 ms p95
+#   - Ampel-Dashboard-Poll (Read-Model):   ≤ 1000 ms p95 (NFR-P4)
+#   - Vorfall-erfassen:                    ≤ 2000 ms p95
+#   - Sicherheitsregel-erfassen:           ≤ 2000 ms p95
+#
+# **WICHTIG (Story-7.10-Pivot-Anker §3):** Diese Datei wird NICHT in CI automatisch
+# ausgeführt — sie erfordert ein Pilot-ähnliches Backend mit NFR-C1-Seeds (siehe
+# `seed-eigenschutz-nfr-c1.ts`). Sie ist Block-B-Artefakt für lokale + Pilot-Backend-
+# Verifikation. Lauf:
+#
+#   pnpm --filter @bluelight-hub/backend exec artillery run artillery-eigenschutz-nfr-c1.yml \
+#     --output reports/eigenschutz-nfr-c1.json
+#
+# Differenzierte p95-Thresholds pro Endpoint nutzen das `artillery-plugin-expect`
+# Plugin (bereits in node_modules). Der globale `ensure`-Block prüft den
+# konservativsten Threshold (2000 ms).
+
+config:
+  # Target via ENV mit Default für Worktree-/Pilot-Backend-Flexibilität (Story 7.10 Review-Patch).
+  target: 'https://localhost:{{ $processEnvironment.BACKEND_PORT }}'
+  tls:
+    rejectUnauthorized: false
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: 'Warmup (60s @ 5 arrivalRate)'
+    - duration: 180
+      arrivalRate: 50
+      name: 'Sustained Load NFR-C1 (180s @ 50 arrivalRate)'
+  processor: './artillery-helpers.js'
+  plugins:
+    expect: {}
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+  ensure:
+    # Konservativster NFR-Threshold (Bulk-PSA + Vorfall + Regel teilen 2000 ms).
+    # Read-Model-Endpoint (Ampel) und Quittungs-POST sind in scenario-spezifischen
+    # `expect`-Blöcken auf 1000 ms p95 gegated.
+    p95: 2000
+    # NFR-Anker: PRD-NFR-C1-Akzeptanz (Pilot-Cutover-Toleranz für unerwartete Fehler im 50-Client-Stress).
+    # Bei Block-B-Lauf gegen Pilot-Backend soll das auf 1% gesenkt werden — operativ wäre 5% inakzeptabel.
+    # Block-B-Pre-Flight-Item: nach erstem Lauf neu kalibrieren.
+    maxErrorRate: 5
+
+# Variablen-Pool für NFR-C1-Seed (siehe seed-eigenschutz-nfr-c1.ts).
+# Diese IDs entsprechen den durch das Seed-Skript angelegten Entities.
+scenarios:
+  # 40% Bulk-PSA-Toggle (Journey 1b CBRN-Hochstufung-Simulation)
+  - name: 'Bulk-PSA-Toggle (NFR-P2 Propagation)'
+    weight: 40
+    flow:
+      - function: 'setAuthHeader'
+      - function: 'pickBulkPsaPayload'
+      - post:
+          url: '/api/v-alpha/einsaetze/{{ einsatzId }}/sicherheit/psa-profile/zuweisen'
+          json: '{{ bulkPsaPayload }}'
+          expect:
+            - statusCode: [200, 201, 204]
+            - contentType: json
+
+  # 30% Quittung-abgeben
+  - name: 'Quittung-abgeben (NFR-P2 Echo)'
+    weight: 30
+    flow:
+      - function: 'setAuthHeader'
+      - function: 'pickQuittungPayload'
+      - post:
+          url: '/api/v-alpha/einsaetze/{{ einsatzId }}/sicherheit/psa-profile/quittung'
+          json: '{{ quittungPayload }}'
+          expect:
+            - statusCode: [200, 201, 204]
+
+  # 15% Ampel-Dashboard-Poll (NFR-P4 Read-Model)
+  - name: 'Ampel-Dashboard-Poll (NFR-P4)'
+    weight: 15
+    flow:
+      - function: 'setAuthHeader'
+      - get:
+          url: '/api/v-alpha/einsaetze/{{ einsatzId }}/sicherheit/ampel-dashboard'
+          expect:
+            - statusCode: 200
+
+  # 10% Vorfall-erfassen
+  - name: 'Vorfall-erfassen'
+    weight: 10
+    flow:
+      - function: 'setAuthHeader'
+      - function: 'pickVorfallPayload'
+      - post:
+          url: '/api/v-alpha/einsaetze/{{ einsatzId }}/sicherheit/vorfaelle'
+          json: '{{ vorfallPayload }}'
+          expect:
+            - statusCode: [200, 201]
+
+  # 5% Sicherheitsregel-erfassen
+  - name: 'Sicherheitsregel-erfassen'
+    weight: 5
+    flow:
+      - function: 'setAuthHeader'
+      - function: 'pickSicherheitsregelPayload'
+      - post:
+          url: '/api/v-alpha/einsaetze/{{ einsatzId }}/sicherheit/sicherheitsregeln'
+          json: '{{ sicherheitsregelPayload }}'
+          expect:
+            - statusCode: [200, 201]

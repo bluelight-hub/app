@@ -255,15 +255,33 @@ export function GefaehrdungseditorDrawer({ einsatzId, open, onClose, onCreated }
   const isSubmitDisabled = mutation.isPending || vorlagenQuery.isPending || einheitenQuery.isPending;
 
   return (
-    <Dialog.SlideIn isOpen={open} onClose={handleClose} title="Neue Gefährdungsbeurteilung" description="Wähle eine Seed-Vorlage oder starte mit einem leeren Formular." size="lg" position="right">
+    <Dialog.SlideIn
+      isOpen={open}
+      onClose={handleClose}
+      title="Neue Gefährdungsbeurteilung"
+      description="Wähle eine Seed-Vorlage oder starte mit einem leeren Formular."
+      size="lg"
+      position="right"
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={mutation.isPending}>
+            Abbrechen
+          </Button>
+          <Button intent="primary" type="submit" form="gefaehrdungseditor-form" disabled={isSubmitDisabled} loading={mutation.isPending} data-testid="gefaehrdungseditor-submit">
+            Anlegen
+          </Button>
+        </div>
+      }
+    >
       <form
+        id="gefaehrdungseditor-form"
         aria-describedby={inlineError ? 'gefaehrdungseditor-inline-error' : undefined}
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
           void form.handleSubmit();
         }}
-        className="flex h-full flex-col gap-5"
+        className="flex flex-col gap-5"
       >
         <section aria-labelledby="gefaehrdungseditor-vorlage-heading" className="space-y-3">
           <h2 id="gefaehrdungseditor-vorlage-heading" className="text-sm font-semibold text-text-primary">
@@ -374,15 +392,6 @@ export function GefaehrdungseditorDrawer({ einsatzId, open, onClose, onCreated }
             {inlineError}
           </p>
         ) : null}
-
-        <footer className="mt-auto flex items-center justify-end gap-2 border-t border-border-subtle pt-4">
-          <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={mutation.isPending}>
-            Abbrechen
-          </Button>
-          <Button intent="primary" type="submit" disabled={isSubmitDisabled} loading={mutation.isPending} data-testid="gefaehrdungseditor-submit">
-            Anlegen
-          </Button>
-        </footer>
       </form>
     </Dialog.SlideIn>
   );

@@ -201,6 +201,41 @@ Touch-Targets bleiben ausreichend groß; keine Orientierung über Hover-Only-Zus
 - Audio-Alerts über Tauri-Native-API bei Reminder-Eskalation
 - Self-signed HTTPS im Dev-Modus (mkcert): Frontend `https://localhost:3090`, Backend `https://127.0.0.1:3091`
 
+## Story 7.7 — Responsive-Verifikation (Stand 2026-05-10)
+
+- **Viewport-Meta-Lock entsperrt (WCAG 1.4.4):** `packages/frontend/index.html` setzt nur noch `width=device-width, initial-scale=1.0`. Pinch-Zoom ist auf allen Touch-Geräten möglich. Regression-Sicherung: `src/__tests__/viewport-meta.spec.ts`.
+- **Responsive Single-Source-of-Truth:** Verbindliche Breakpoint-Tabelle, Audit-Scope und Marker-Konventionen sind in [`responsive-device-test-report.md`](./responsive-device-test-report.md) gepflegt. Re-Runs nach Layout-Refactor ergänzen dort die Geräte-Sektionen.
+- **Block-A-Audits (automatisiert):** Vitest-Heuristiken decken Touch-Target (`src/features/eigenschutz/__tests__/touch-target-audit.spec.tsx`), Breakpoint-Switch (`src/features/eigenschutz/ui/organisms/__tests__/AmpelDashboard.responsive.spec.tsx` 320/768/1024/1280/1440 px) und Reflow auf 320 px (`src/features/eigenschutz/__tests__/reflow-audit.spec.tsx`) ab.
+- **Block-B-Handoff (Human-QA):** Pinch-Zoom auf MapGL, Long-Press-Multi-Select, 200-%-Zoom-Walkthrough, Route-TTI-Stichprobe und Senior-Operator-Tablet-Modus sind im Bericht mit Reproduktionsschritten als `human-handoff-pending` dokumentiert. Vor dem Pilot-Release abzuarbeiten.
+
+## Story 7.8 — A11y-Audit + axe-core + Screenreader-Walk
+
+- **axe-core als Vitest-Gate:** Story 7.8 verdrahtet `axe-core` direkt (ohne `vitest-axe`/`jest-axe`/`@axe-core/react`). Helper liegt unter `src/test/a11y.ts` (`expectNoAxeViolations` + Vitest-Matcher `toHaveNoAxeViolations`), Default-Tags `wcag2a`/`wcag2aa`/`wcag21a`/`wcag21aa`/`best-practice`.
+- **Vier neue Audit-Specs (Block A automatisiert):** `__tests__/a11y-audit.spec.tsx` (Hero-Routen + State-Matrix für 16+ Komponenten), `__tests__/aria-structure-audit.spec.tsx` (Live-Regions, Alarm-Budget, Drawer-Fokus, PSA-Chip-Group, Risk-Matrix, Form-Errors), `__tests__/contrast-audit.spec.ts` (token-basierte WCAG-Kontrast-Verifikation Light + Dark) und `__tests__/keyboard-journeys-audit.spec.tsx` (mausfreie Pfade für Journeys 1a, 1b, 2, 4).
+- **Block-B-Handoff (Human-QA):** NVDA, VoiceOver, JAWS, TalkBack, BITV-2.0-Selbstbewertung, Senior-Operator-Probe, Switch-Control und Farbenfehlsichtigkeits-Walkthrough sind im Audit-Bericht als Human-QA-Handoff dokumentiert. Single-Source-of-Truth bleibt [`docs/audits/eigenschutz-a11y-audit-2026-05-10.md`](../audits/eigenschutz-a11y-audit-2026-05-10.md).
+- **jsdom-Limit ehrlich vermerkt:** `color-contrast` und `color-contrast-enhanced` sind in den axe-Default-Optionen deaktiviert, weil jsdom keine echten Compute-Style-Werte für CSS-Custom-Properties liefert. Kompensation läuft über die Token-basierte Kontrast-Spec (Light + Dark) und den Browser-Smoke in Block B.
+
+## Story 7.10 — Performance-Audit + Bundle-Size-Gate (Stand 2026-05-11)
+
+- **Versionierter Audit-Bericht als Single-Source-of-Truth:** [`docs/audits/eigenschutz-performance-audit-2026-05-11.md`](../audits/eigenschutz-performance-audit-2026-05-11.md) deckt NFR-P1–P7, NFR-C1 und NFR-S5 ab. 13 Pflicht-Sektionen, YAML-Frontmatter mit `version: 1.0.0` (Semver für Re-Runs), DoD-Banner für Block-A/Block-B-Trennung.
+- **Vier neue Block-A-Specs:** Bundle-Size-Gate (`src/test/bundle-size/eigenschutz-bundle.spec.ts`, ≤ 150 kB gzip via `node:zlib.gzipSync()`), Route-TTI Render-Smoke (`src/routes/app/einsatz/$einsatzId/sicherheit/__tests__/eigenschutz.route.tti.spec.tsx`, < 500 ms jsdom), NFR-P6 Offline-Sync (`src/features/eigenschutz/lib/__tests__/pending-command-queue.nfr-p6.spec.ts`, < 5 s mit scripted Mock-Latenzen), NFR-C1-Fixtures (`src/test/performance/eigenschutz-nfr-c1.fixtures.ts`).
+- **Backend-Block-A-Specs:** AmpelProjection-Konsistenz (3 Invarianten + Mikrobenchmark), Cascade-Coverage-Discovery (Schema-Parser über `prisma/schema.prisma`), PDF-Renderer-Wallclock (30 Iterationen Worst-Case, p95 < 5 s), Artillery-NFR-C1-Szenario (`packages/backend/artillery/artillery-eigenschutz-nfr-c1.yml` + Seed-Skript).
+- **Architektur-Hotspot-Entscheidung (AC4):** PrismaService-Direktnutzung im `list-offene-rueckmeldungen.handler.ts` → Pfad γ (Architektur-Follow-up) gewählt, dokumentiert in `_bmad-output/implementation-artifacts/deferred-work.md#story-7.10`.
+- **Audit-Findings (P1-Defer-Einträge):** (1) NFR-S5 Cascade-Cover fehlt für 5 Eigenschutz-Models (`PsaProfilQuittung`, `EigenschutzVorfall`, `EigenschutzTelemetryEvent`, `AmpelProjection`, `SyncConflict`), (2) `AmpelProjection.letzteAenderungAm` regressiert bei Out-of-Order-Replay, (3) MetricsInterceptor 404-Fallback bleibt offen. Alle drei in `deferred-work.md` mit Owner + Mitigation-Pfad.
+- **Block-B-Handoff (Human-QA-Pflicht vor Pilot-Cutover):** B1 Lighthouse-Walk auf Stabs-Tablet (NFR-P1 ≤ 2 s), B2 50-Client-Artillery gegen Pilot-Backend (NFR-P2/P4), B3 3-Client-Multi-Geräte-Sync (NFR-P6 ≤ 5 s), B4 Senior-Operator-Smoke, B5 Real-DB-Cascade-Discovery.
+- **Pivot-Anker bewusst eingehalten:** Frontend-Code-Splitting bleibt TanStack-Router-Auto-Splitting (keine `manualChunks`), kein `rollup-plugin-visualizer`/`lighthouse-ci`/`webpack-bundle-analyzer` als Dep, Artillery-`.yml` additiv neben Story-5-3a-Baseline, NFR-P5 deterministisch im Backend statt aus Prometheus.
+
+## Story 7.11 — E2E-Tests für Journeys 1b CBRN + 4 Export (Stand 2026-05-12)
+
+- **Erste Browser-getriebene E2E-Coverage:** Story 7.11 verdrahtet Playwright (`@playwright/test` ≥ 1.50) als neue Frontend-DevDep und etabliert das `packages/frontend/e2e/`-Verzeichnis-Layout (Specs, Setup, Fixtures, `.auth`-Storage). Der versionierte Validierungsbericht unter [`docs/audits/eigenschutz-e2e-validierung-2026-05-12.md`](../audits/eigenschutz-e2e-validierung-2026-05-12.md) ist die Pflicht-Single-Source-of-Truth.
+- **Zwei Block-A-Specs gegen echtes Pilot-ähnliches Backend:** `e2e/specs/cbrn-journey.spec.ts` (Journey 1b — Multi-`BrowserContext` × 4 für Markus + 3× Steffi-Abschnittsleiter, Outbox-Event-Verifikation via direktem Postgres-`pg`-Pool, WS-Banner-Match, Mix Grün/Amber) und `e2e/specs/vorfall-export-journey.spec.ts` (Journey 4 — Vorfall über `VorfallMeldenDrawer` aus `VorfaellePage`, Snapshot-Verifikation, PDF-Magic-Bytes `%PDF-`, JSON-Validation gegen `EigenschutzVorfallExportV1`).
+- **Out-of-Process-Backend-Bootstrap (Pivot-Anker §2):** Backend läuft als separater Node-Prozess via `child_process.spawn('pnpm', ['--filter', '@bluelight-hub/backend', 'exec', 'node', 'dist/main.js'])`. In-Process `AppModule`-Import scheitert an der TS-References-Topologie (`packages/frontend/tsconfig.json` kennt nur `../shared`). Frontend wird per `vite preview` aus dem Production-Bundle ausgeliefert.
+- **Soft-Gate ≤ 90 s für Journey 1b:** Operationalisiert als `test.info().annotations`-Annotation mit `console.warn` bei Überschreitung — kein Hard-Fail (Epic-7-AC11 „Sanity-Check, kein Hard-Gate").
+- **CI-Wiring `linux-e2e`-Job:** Neuer Job in `.github/workflows/ci.yml` mit Postgres-17-Service analog `linux-backend-db`, `playwright install --with-deps chromium`, Artifact-Upload (`playwright-report/`, `test-results/`, Traces bei Failure), in `summary`-Job verdrahtet.
+- **Boyscout-Cleanup:** `packages/frontend/cypress/` + `packages/frontend/cypress.d.ts` gelöscht, `tsconfig.app.json` bereinigt — Cypress-Stub war seit Story-1-Skeleton toter Code (Pivot-Anker §1 entscheidet sich gegen Cypress).
+- **Block-B-Handoff (Human-QA-Pflicht vor Pilot-Cutover):** B1 3-Geräte-Multi-Client-Walk gegen Pilot-Backend (NFR-P6), B2 Senior-Operator-Smoke mit PDF-Title-Match im System-Viewer, B3 GitHub-Branch-Protection-Aktivierung für `linux-e2e`-Gate, B4 Pilot-Cutover-Smoke gegen Production-DB-Snapshot.
+- **Sandbox-Disclaimer (ehrlich):** Lokaler Dev-Agent-Sandbox kann den E2E-Run nicht reproduzieren (kein Docker-Postgres, kein Chromium-Asset). Verifikation läuft beim ersten CI-Run + im Pilot-Cutover-Smoke (Block B4).
+
 ## Offene Kanten (Stand 2026-04-17)
 
 - **Gefahrenzonen × Lagekarte (Issue #627 / ADR-010):** Matrix-Sync auf der Karte, Warnstufen-Darstellung mit Akut-Glow — in aktiver Entwicklung auf Branch `627-lagekarte-integration-der-gefahrenmatrix-mit-raeumlicher`

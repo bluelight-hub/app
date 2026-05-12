@@ -134,91 +134,14 @@ export function KanalEditDrawer({ isOpen, onClose, einsatzId, kanal }: KanalEdit
 
   return (
     <>
-      <Dialog.SlideIn isOpen={isOpen} onClose={handleClose} title={isEditMode ? 'Kanal bearbeiten' : 'Neuen Kanal anlegen'} size="lg" position="right">
-        <form
-          className="flex h-full flex-col gap-6"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            void form.handleSubmit();
-          }}
-        >
-          <div className="flex-1 space-y-5 overflow-y-auto pr-1">
-            <form.Field name="name">
-              {(field) => {
-                const error = firstError(field.state.meta.errors);
-                return (
-                  <label htmlFor="kanal-name" className="block text-sm">
-                    <span className="block font-medium text-slate-700 dark:text-slate-200">
-                      Name <span className="text-red-500">*</span>
-                    </span>
-                    <Input
-                      id="kanal-name"
-                      type="text"
-                      value={field.state.value}
-                      onChange={(event) => field.handleChange(event.target.value)}
-                      onBlur={field.handleBlur}
-                      aria-invalid={Boolean(error)}
-                      aria-describedby={error ? 'kanal-name-error' : undefined}
-                      placeholder="z. B. TMO SG Feuer 1"
-                      disabled={isPending}
-                      variant={error ? 'error' : 'default'}
-                      fullWidth
-                      className="mt-1"
-                    />
-                    {error && (
-                      <span id="kanal-name-error" className="mt-1 block text-xs text-red-600">
-                        {error}
-                      </span>
-                    )}
-                  </label>
-                );
-              }}
-            </form.Field>
-
-            <form.Field name="details">
-              {(field) => {
-                const err = firstError(field.state.meta.errors);
-                const errorRecord: Partial<Record<string, string>> = err ? { _global: err } : {};
-                return (
-                  <div>
-                    <KanalDetailsForm value={field.state.value} onChange={field.handleChange} errors={errorRecord} disabled={isPending} />
-                    {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
-                  </div>
-                );
-              }}
-            </form.Field>
-
-            <form.Field name="zweck">
-              {(field) => (
-                <label htmlFor="kanal-zweck" className="block text-sm">
-                  <span className="block font-medium text-slate-700 dark:text-slate-200">Zweck (optional)</span>
-                  <Textarea
-                    id="kanal-zweck"
-                    rows={2}
-                    value={field.state.value ?? ''}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    onBlur={field.handleBlur}
-                    placeholder="z. B. Einsatzabschnitt Nord — Löschangriff"
-                    disabled={isPending}
-                    fullWidth
-                    className="mt-1 min-h-0"
-                  />
-                </label>
-              )}
-            </form.Field>
-
-            {isEditMode && kanal && (
-              <section aria-labelledby="zuordnungen-heading" className="space-y-3 border-t border-slate-200 pt-4 dark:border-slate-800">
-                <h3 id="zuordnungen-heading" className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                  Zuordnungen
-                </h3>
-                <ZuordnungsManager einsatzId={einsatzId} kanalId={kanal.id} zuordnungen={kanal.zuordnungen} />
-              </section>
-            )}
-          </div>
-
-          <footer className="flex items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
+      <Dialog.SlideIn
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={isEditMode ? 'Kanal bearbeiten' : 'Neuen Kanal anlegen'}
+        size="lg"
+        position="right"
+        footer={
+          <div className="flex items-center justify-between gap-3">
             <div>
               {isEditMode && (
                 <Button intent="danger" appearance="ghost" onClick={() => setConfirmDeleteOpen(true)} disabled={archiveMutation.isPending || isPending} type="button">
@@ -233,13 +156,96 @@ export function KanalEditDrawer({ isOpen, onClose, einsatzId, kanal }: KanalEdit
               </Button>
               <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
                 {([canSubmit, isSubmitting]) => (
-                  <Button intent="primary" type="submit" disabled={!canSubmit || isPending} loading={isSubmitting || isPending}>
+                  <Button intent="primary" type="submit" form="kanal-edit-form" disabled={!canSubmit || isPending} loading={isSubmitting || isPending}>
                     {isEditMode ? 'Speichern' : 'Kanal anlegen'}
                   </Button>
                 )}
               </form.Subscribe>
             </div>
-          </footer>
+          </div>
+        }
+      >
+        <form
+          id="kanal-edit-form"
+          className="space-y-5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void form.handleSubmit();
+          }}
+        >
+          <form.Field name="name">
+            {(field) => {
+              const error = firstError(field.state.meta.errors);
+              return (
+                <label htmlFor="kanal-name" className="block text-sm">
+                  <span className="block font-medium text-slate-700 dark:text-slate-200">
+                    Name <span className="text-red-500">*</span>
+                  </span>
+                  <Input
+                    id="kanal-name"
+                    type="text"
+                    value={field.state.value}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    onBlur={field.handleBlur}
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? 'kanal-name-error' : undefined}
+                    placeholder="z. B. TMO SG Feuer 1"
+                    disabled={isPending}
+                    variant={error ? 'error' : 'default'}
+                    fullWidth
+                    className="mt-1"
+                  />
+                  {error && (
+                    <span id="kanal-name-error" className="mt-1 block text-xs text-red-600">
+                      {error}
+                    </span>
+                  )}
+                </label>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="details">
+            {(field) => {
+              const err = firstError(field.state.meta.errors);
+              const errorRecord: Partial<Record<string, string>> = err ? { _global: err } : {};
+              return (
+                <div>
+                  <KanalDetailsForm value={field.state.value} onChange={field.handleChange} errors={errorRecord} disabled={isPending} />
+                  {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="zweck">
+            {(field) => (
+              <label htmlFor="kanal-zweck" className="block text-sm">
+                <span className="block font-medium text-slate-700 dark:text-slate-200">Zweck (optional)</span>
+                <Textarea
+                  id="kanal-zweck"
+                  rows={2}
+                  value={field.state.value ?? ''}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="z. B. Einsatzabschnitt Nord — Löschangriff"
+                  disabled={isPending}
+                  fullWidth
+                  className="mt-1 min-h-0"
+                />
+              </label>
+            )}
+          </form.Field>
+
+          {isEditMode && kanal && (
+            <section aria-labelledby="zuordnungen-heading" className="space-y-3 border-t border-slate-200 pt-4 dark:border-slate-800">
+              <h3 id="zuordnungen-heading" className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                Zuordnungen
+              </h3>
+              <ZuordnungsManager einsatzId={einsatzId} kanalId={kanal.id} zuordnungen={kanal.zuordnungen} />
+            </section>
+          )}
         </form>
       </Dialog.SlideIn>
 

@@ -154,6 +154,13 @@ export function setViewportSize(size: Partial<ViewportSize> | number): void {
 
 export function resetViewportSize(): void {
   applyViewportSize(DEFAULT_VIEWPORT, false);
+  // Cleanup von test-uebergreifenden Listener-Leaks: jede Spec, die einen Hook
+  // mountet ohne sauberes unmount, wuerde sonst Listener zurueck lassen, die in
+  // der naechsten Spec stale matches feuern. `cleanup()` aus testing-library
+  // entfernt React-Komponenten (und damit deren useEffect-Cleanups), aber wir
+  // halten die Map zusaetzlich proaktiv leer, falls Komponenten ausserhalb von
+  // testing-library gemountet wurden.
+  mediaQueryListeners.clear();
 }
 
 export const createMatchMediaList = createMatchMedia;

@@ -18,7 +18,10 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:performance": "vitest run src/features/befehl/ui/organisms/__tests__/BefehlsListeMitEingabe.performance.spec.tsx src/features/einsatz/ui/organisms/__tests__/SingleEinsatzDashboard.performance.spec.tsx src/features/etb/ui/organisms/__tests__/EtbEntryList.performance.spec.tsx"
+    "test:performance": "vitest run src/features/befehl/ui/organisms/__tests__/BefehlsListeMitEingabe.performance.spec.tsx src/features/einsatz/ui/organisms/__tests__/SingleEinsatzDashboard.performance.spec.tsx src/features/etb/ui/organisms/__tests__/EtbEntryList.performance.spec.tsx",
+    "test:e2e": "playwright test",
+    "test:e2e:ci": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",
@@ -82,23 +85,29 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.0",
     "@tanstack/devtools-vite": "^0.6.0",
     "@tanstack/router-plugin": "^1.167.22",
     "@tauri-apps/cli": "^2.10.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/bcryptjs": "^2.4.6",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "@types/node": "^25.6.0",
+    "@types/pg": "^8.15.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/zxcvbn": "^4.4.5",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/ui": "^4.1.4",
+    "axe-core": "^4.11.4",
     "baseline-browser-mapping": "^2.10.20",
+    "bcryptjs": "^3.0.2",
     "globals": "^17.5.0",
     "jsdom": "^29.0.2",
+    "pg": "^8.20.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.9",
     "vitest": "^4.1.4"

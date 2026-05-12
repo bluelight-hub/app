@@ -295,15 +295,34 @@ export function SicherheitsregelDrawer({ einsatzId, open, onClose, onSaved, rege
       description={isEditMode ? 'Titel, Inhalt oder Zuordnung anpassen und speichern.' : 'Regel für den gesamten Einsatz oder einzelne Einheiten anlegen.'}
       size="lg"
       position="right"
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={createMutation.isPending || updateMutation.isPending}>
+            Abbrechen
+          </Button>
+          <Button
+            intent="primary"
+            type="submit"
+            form="sicherheitsregel-form"
+            ref={saveButtonRef}
+            disabled={isSubmitDisabled}
+            loading={createMutation.isPending || updateMutation.isPending}
+            data-testid="sicherheitsregel-submit"
+          >
+            {isEditMode ? 'Speichern' : 'Anlegen'}
+          </Button>
+        </div>
+      }
     >
       <form
+        id="sicherheitsregel-form"
         aria-describedby={inlineError ? 'sicherheitsregel-inline-error' : undefined}
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
           void form.handleSubmit();
         }}
-        className="flex h-full flex-col gap-5"
+        className="flex flex-col gap-5"
       >
         <section className="space-y-3">
           <form.Field name="titel">
@@ -532,15 +551,6 @@ export function SicherheitsregelDrawer({ einsatzId, open, onClose, onSaved, rege
             {inlineError}
           </p>
         ) : null}
-
-        <footer className="mt-auto flex items-center justify-end gap-2 border-t border-border-subtle pt-4">
-          <Button intent="secondary" appearance="ghost" type="button" onClick={handleClose} disabled={createMutation.isPending || updateMutation.isPending}>
-            Abbrechen
-          </Button>
-          <Button intent="primary" type="submit" ref={saveButtonRef} disabled={isSubmitDisabled} loading={createMutation.isPending || updateMutation.isPending} data-testid="sicherheitsregel-submit">
-            {isEditMode ? 'Speichern' : 'Anlegen'}
-          </Button>
-        </footer>
       </form>
     </Dialog.SlideIn>
   );

@@ -26,6 +26,40 @@ pnpm --filter @bluelight-hub/backend perf:report
 | `test:perf:quick` | ~30s  | Lokale Entwicklung | Schneller Smoke-Test (10s Warmup + 20s Load @ 5 RPS)              |
 | `test:perf:ci`    | ~180s | CI/CD Pipeline     | Volltest mit `--quiet` Flag, Exit-Code 1 bei Threshold-Verletzung |
 
+## Eigenschutz NFR-C1 Performance-Audit (Story 7.10)
+
+Dediziertes Artillery-Szenario für die Eigenschutz-Skalierungs-Last (NFR-C1: 20 Abschnitte,
+100 Einheiten, 50 aktive Clients, 500 GB-Items, 200 Vorfälle).
+
+**Wichtig:** Dieses Szenario läuft **nicht** in CI automatisch (Pilot-ähnliches Backend nötig).
+Es ist Block-B-Artefakt für lokale + Pilot-Backend-Verifikation, siehe Audit-Bericht
+`docs/audits/eigenschutz-performance-audit-2026-05-11.md`.
+
+```bash
+# 1. NFR-C1-Seed gegen lokales / Pilot-Backend laufen lassen
+pnpm --filter @bluelight-hub/backend exec tsx artillery/seed-eigenschutz-nfr-c1.ts
+
+# 2. Artillery-Szenario starten
+pnpm --filter @bluelight-hub/backend exec artillery run artillery-eigenschutz-nfr-c1.yml \
+  --output reports/eigenschutz-nfr-c1.json
+
+# 3. Optional: HTML-Report (Artillery 2.x bietet das nicht out-of-the-box —
+#    JSON-Report kann via artillery report konvertiert werden, wenn das Plugin
+#    `artillery-plugin-publish-metrics` aktiviert ist)
+```
+
+**Phasen:** 60 s Warmup @ 5 arrivalRate → 180 s Sustained @ 50 arrivalRate.
+
+**Szenarien (gewichtet):**
+
+| Gewicht | Szenario                  | Threshold (p95)           |
+| ------- | ------------------------- | ------------------------- |
+| 40 %    | Bulk-PSA-Toggle           | ≤ 2 s (NFR-P2)            |
+| 30 %    | Quittung-abgeben          | ≤ 1 s                     |
+| 15 %    | Ampel-Dashboard-Poll      | ≤ 1 s (NFR-P4 Read-Model) |
+| 10 %    | Vorfall-erfassen          | ≤ 2 s                     |
+| 5 %     | Sicherheitsregel-erfassen | ≤ 2 s                     |
+
 ### CI/CD Integration
 
 Der `test:perf:ci` Script gibt Exit-Code 1 zurück, wenn:

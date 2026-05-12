@@ -1,0 +1,423 @@
+{
+  "__inputs": [
+    {
+      "description": "",
+      "label": "Prometheus",
+      "name": "DS_PROMETHEUS",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus",
+      "type": "datasource"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "CBRN-Propagations-Dauer `assess_started → all_banners_delivered` als p50/p95/p99 plus Event-Rate. Threshold-Linie bei 90 s entspricht NFR-P1 (Journey-1b-Zielfenster). Daten: `eigenschutz_psa_propagation_duration_seconds` aus Story 3.11 / Architektur §B9. Drill-Down nach Lage-Größe (`abschnitt_count_bucket`: '1' | '2-3' | '4-8' | '9+') ist als deaktiviertes Target (refId E, `hide: true`) angelegt — Aktivieren per Edit für Block-B-Polish, siehe `docs/audits/eigenschutz-prometheus-grafana-2026-05-11.md`. DSGVO: kein `userId`, kein `einsatzId` (Pivot-Anker Story 3.11). Pro-Einsatz-Drill-Down via Ad-hoc SQL gegen `eigenschutz_telemetry_event` (Architektur §B9-Z. 665).",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Rate (Events/s)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ops"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(eigenschutz_psa_propagation_duration_seconds_bucket[5m])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(eigenschutz_psa_propagation_duration_seconds_bucket[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(eigenschutz_psa_propagation_duration_seconds_bucket[5m])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "rate(eigenschutz_psa_propagation_duration_seconds_count[5m])",
+          "legendFormat": "Rate (Events/s)",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "sum by (abschnitt_count_bucket) (rate(eigenschutz_psa_propagation_duration_seconds_count[5m]))",
+          "hide": true,
+          "legendFormat": "{{abschnitt_count_bucket}}",
+          "refId": "E"
+        }
+      ],
+      "title": "CBRN-Propagation: assess_started → all_banners_delivered Latenz",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Quittungs-Latenz `all_banners_delivered → psa_quittung_abgegeben` als p50/p95/p99. Datenquelle: `eigenschutz_quittung_latency_seconds` (Story 3.11). Hinweis: misst **pro Empfänger**, nicht pro Bekanntgabe — eine Bekanntgabe an N Einheiten produziert N Observations. Label `einheit_id_bucket` ist auf `'present' | 'absent'` reduziert (DSGVO-Pivot-Anker Story 3.11), keine Personen-IDs. Keine Threshold-Linie: Story-3.11-implizites Zielfenster ≤ 30 s pro Quittung ist NFR-Soft, kein Hard-Limit.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(eigenschutz_quittung_latency_seconds_bucket[5m])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(eigenschutz_quittung_latency_seconds_bucket[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(eigenschutz_quittung_latency_seconds_bucket[5m])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "title": "Quittungs-Latenz: all_banners_delivered → psa_quittung_abgegeben",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Blind-Acknowledgments (Quittung < 2 s nach Banner-Öffnen) als Coaching-Signal (Journey-1b-UX-DR29, Story 3.11). Hohe kontinuierliche Rate ⇒ Schulungsbedarf ≠ Sicherheitsvorfall. Top-3 Einheiten-Aufschlüsselung verwendet das Label `einheit_id` (pseudonyme CUID2, auf 32 Zeichen gecappt, Fallback `'unknown'` bei fehlender Metadata — Pivot-Anker Story 3.11, Architektur §B9-Z. 663). `topk` nutzt bewusst ein 15-Min-Fenster zur Stabilisierung des Ranking gegenüber kurzfristigen Spikes; das primäre Summen-Target nutzt `[5m]` wie alle anderen Panels. DSGVO: keine Klartext-Namen, kein `userId`, kein `sessionId`. Pseudonymität, nicht Anonymität — eine BOS-Einheit ist üblicherweise eine Gruppe.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "sum(rate(eigenschutz_blind_ack_total[5m]))",
+          "legendFormat": "Blind-Acks/s (Summe)",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "topk(3, sum by (einheit_id) (rate(eigenschutz_blind_ack_total[15m])))",
+          "legendFormat": "{{einheit_id}} (Top-3 @ 15m)",
+          "refId": "B"
+        }
+      ],
+      "title": "Blind-Acknowledgments (Quittung < 2 s nach Banner-Öffnen) — Coaching-Signal",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Telemetrie-Event-Volumen pro 5-Min-Fenster, Stacked. Aggregiert über **alle Einsätze**, weil Prometheus-Metriken bewusst kein `einsatzId`-Label tragen (Pivot-Anker Story 3.11 / Architektur §B9-Z. 665: Pro-Einsatz-Drill-Down erfolgt über Ad-hoc SQL gegen `eigenschutz_telemetry_event`). Drei Counts: abgeschlossene Propagationen, Quittungen, Blind-Acks. Epic-AC „Anzahl Events pro Einsatz-Tag\" wird hier als 5-Min-Fenster über alle Einsätze umgesetzt, Pro-Einsatz-Tag-Aufschlüsselung als Block-B-/Ad-hoc-SQL-Pfad dokumentiert (siehe `docs/audits/eigenschutz-prometheus-grafana-2026-05-11.md`).",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 50,
+            "lineWidth": 1,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "sum(rate(eigenschutz_psa_propagation_duration_seconds_count[5m]))",
+          "legendFormat": "Propagationen abgeschlossen",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "sum(rate(eigenschutz_quittung_latency_seconds_count[5m]))",
+          "legendFormat": "Quittungen",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "sum(rate(eigenschutz_blind_ack_total[5m]))",
+          "legendFormat": "Blind-Acks",
+          "refId": "C"
+        }
+      ],
+      "title": "Telemetrie-Event-Volumen pro 5-Min-Fenster (Summe über alle Einsätze)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Vorfall-Export-Dauer p50/p95/p99 für PDF + JSON, gefiltert auf Export-Route via `http_request_duration_seconds_bucket{route=~\".*vorfaelle.*export.*\"}` (Story 5.6 `MetricsInterceptor`). Threshold-Linie bei 5 s entspricht NFR-P5. **Trade-off:** Das Panel conflated PDF und JSON, weil der `format`-Query-Parameter kein Prometheus-Label ist und `MetricsInterceptor` (`metrics.interceptor.ts:35-37`) `request.route?.path` exponiert — eine Route-Pattern-Quelle für beide Formate. JSON-Exports sind typischerweise ≥ Faktor 10 schneller als PDF und beeinflussen das p95 daher nicht spürbar. Eine dedizierte `eigenschutz_pdf_export_duration_seconds`-Histogram wäre Phase-2-Polish.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{route=~\".*vorfaelle.*export.*\"}[5m])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{route=~\".*vorfaelle.*export.*\"}[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{route=~\".*vorfaelle.*export.*\"}[5m])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "title": "Vorfall-Export-Dauer (PDF + JSON conflated, NFR-P5 ≤ 5 s)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["eigenschutz", "pilot"],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timezone": "",
+  "title": "Eigenschutz Pilot — KPI-Dashboard",
+  "uid": "eigenschutz-pilot",
+  "version": 1
+}

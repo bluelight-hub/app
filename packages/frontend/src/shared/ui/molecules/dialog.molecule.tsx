@@ -68,6 +68,12 @@ interface SlideInDialogProps {
   showCloseButton?: boolean;
   closeOnBackdropClick?: boolean;
   className?: string;
+  /**
+   * Optionaler sticky Footer am unteren Panel-Rand (für Action-Buttons).
+   * Wenn gesetzt, klebt der Footer wie der Header fest am Panel-Rand,
+   * während nur der mittlere Content-Bereich scrollt.
+   */
+  footer?: React.ReactNode;
 }
 
 /**
@@ -343,7 +349,7 @@ Dialog.Alert = ({ isOpen, onClose, title, message, variant = 'info', icon }: Ale
  *
  * Vordefinierte Dialog-Variante für Slide-In-Panels von der Seite
  */
-Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', position = 'right', showCloseButton = true, closeOnBackdropClick = true, className }: SlideInDialogProps) => {
+Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', position = 'right', showCloseButton = true, closeOnBackdropClick = true, className, footer }: SlideInDialogProps) => {
   const sizeClasses = {
     sm: 'max-w-md',
     md: 'max-w-2xl',
@@ -367,8 +373,8 @@ Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', 
           <div className={cn('pointer-events-none fixed inset-y-0 flex', positionClasses, sizeClasses[size])}>
             <DialogPanel transition className={cn('pointer-events-auto relative w-screen transform', 'duration-300 ease-in-out', slideClosedClass, sizeClasses[size], className)}>
               <div className="flex h-full flex-col bg-surface-panel shadow-2xl">
-                {/* Header */}
-                <div className="border-b border-border-subtle px-5 py-3">
+                {/* Header (sticky am Panel-Top via flex-shrink-0) */}
+                <div className="flex-shrink-0 border-b border-border-subtle px-5 py-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <DialogTitle className="text-base leading-6 font-semibold text-text-primary">{title}</DialogTitle>
@@ -388,6 +394,9 @@ Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', 
                     (siehe `shared/ui/headless/combobox.tsx` als Referenz).
                 */}
                 <div className="relative flex-1 overflow-y-auto px-5 py-4">{children}</div>
+
+                {/* Footer (sticky am Panel-Bottom via flex-shrink-0) — optional */}
+                {footer && <div className="flex-shrink-0 border-t border-border-subtle px-5 py-3">{footer}</div>}
               </div>
             </DialogPanel>
           </div>

@@ -6,6 +6,7 @@ interface HeadingProps {
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   children: ReactNode;
   className?: string;
+  id?: string;
 }
 
 /**
@@ -13,7 +14,7 @@ interface HeadingProps {
  *
  * Bietet verschiedene Größen und semantische HTML-Elemente.
  */
-export function Heading({ size = 'md', as: Component = 'h2', children, className }: HeadingProps) {
+export function Heading({ size = 'md', as: Component = 'h2', children, className, id }: HeadingProps) {
   const sizeClasses = {
     xs: 'text-body-xs font-semibold uppercase tracking-[0.16em]',
     sm: 'text-title-sm font-semibold',
@@ -24,5 +25,9 @@ export function Heading({ size = 'md', as: Component = 'h2', children, className
     '3xl': 'text-title-lg font-bold tracking-tight',
   };
 
-  return <Component className={clsx('font-sans text-text-primary', sizeClasses[size], className)}>{children}</Component>;
+  return (
+    <Component className={clsx('font-sans text-text-primary', sizeClasses[size], className)} id={id}>
+      {children}
+    </Component>
+  );
 }
