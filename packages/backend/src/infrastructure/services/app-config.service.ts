@@ -275,7 +275,7 @@ export class AppConfigService implements OnModuleInit {
   /**
    * Speichert Runtime-Konfiguration (non-sensitive oder secret) und lädt Cache neu.
    */
-  async upsertRuntimeConfig(input: { key: string; value: string; updatedBy?: string; sensitive?: boolean; sourceHint?: string }): Promise<void> {
+  async upsertRuntimeConfig(input: { key: string; value: string; updatedBy?: string; sensitive?: boolean; sourceHint?: string; deferReload?: boolean }): Promise<void> {
     const key = input.key.trim();
     const catalogEntry = this.getCatalogEntry(key);
     const isSensitive = catalogEntry ? catalogEntry.sensitive : (input.sensitive ?? SENSITIVE_RUNTIME_KEYS.has(key));
@@ -336,7 +336,9 @@ export class AppConfigService implements OnModuleInit {
       await this.prisma.appConfigSecret.deleteMany({ where: { key } });
     }
 
-    await this.reload();
+    if (!input.deferReload) {
+      await this.reload();
+    }
   }
 
   async deleteRuntimeConfig(input: { key: string; updatedBy?: string; sourceHint?: string }): Promise<void> {
@@ -429,6 +431,7 @@ export class AppConfigService implements OnModuleInit {
           updatedBy: input.updatedBy,
           sensitive: catalogEntry.sensitive,
           sourceHint: 'legacy_env_migration',
+          deferReload: true,
         });
         result.migratedKeys.push(key);
       } catch (error) {
@@ -717,6 +720,7 @@ export class AppConfigService implements OnModuleInit {
         updatedBy: input.updatedBy,
         sourceHint: 'system_generated',
         sensitive: true,
+        deferReload: true,
       });
     }
   }

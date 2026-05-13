@@ -72,6 +72,7 @@ describe('AppConfigService', () => {
       updatedBy: 'admin-user',
       sensitive: true,
       sourceHint: 'legacy_env_migration',
+      deferReload: true,
     });
     expect(upsertSpy).toHaveBeenCalledWith({
       key: 'FRONTEND_URL',
@@ -79,6 +80,7 @@ describe('AppConfigService', () => {
       updatedBy: 'admin-user',
       sensitive: false,
       sourceHint: 'legacy_env_migration',
+      deferReload: true,
     });
     expect(upsertSpy).toHaveBeenCalledTimes(2);
   });

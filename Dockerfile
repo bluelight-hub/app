@@ -71,8 +71,8 @@ EXPOSE 3091
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3091/api/health || exit 1
 
-# Start NestJS backend (dist/src/main wird von nest build erzeugt)
-CMD ["node", "dist/src/main"]
+# Start NestJS backend (dist/main wird von nest build mit SWC erzeugt)
+CMD ["node", "dist/main"]
 
 ## Migrations image: Prisma CLI + schema + migrations only
 FROM base AS migrations

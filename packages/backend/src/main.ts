@@ -154,7 +154,11 @@ X-Server-Access-Token: <plaintext_token>
   SwaggerModule.setup('api/alpha', app, alphaDocument);
   SwaggerModule.setup('api', app, alphaDocument); // Backward-Compat: /api zeigt weiterhin Alpha-Spec
 
-  // --- v1 Swagger (nur stabile Module) ---
+  // --- v1 Swagger (nur stabile Module) — LAZY INITIALIZATION ---
+  // Die Konfig wird eager gebaut (billig), aber das eigentliche Dokument
+  // (createDocument scannt erneut alle inkludierten Controller/DTOs) wird
+  // erst beim ersten HTTP-Request auf /api/v1 erzeugt. Reduziert die
+  // Bootstrap-Zeit, weil die teure Operation aus dem Hot-Path entfernt wird.
   const v1Config = new DocumentBuilder()
     .setTitle('BlueLight Hub API v1 (Stable)')
     .setDescription(`Stabile API-Verträge für externe Integrationen.\n\nBreaking Changes werden mit 6 Monaten Vorlauf angekündigt.\n\n${tokenDescription}`)
@@ -163,20 +167,37 @@ X-Server-Access-Token: <plaintext_token>
     .addBearerAuth(bearerAuthSchema, 'admin-jwt')
     .build();
 
-  const v1Document = SwaggerModule.createDocument(app, v1Config, {
-    include: [BefehlModule, EinsatzModule, HealthModule],
-  });
-
-  // Post-Processing: v1 Spec zeigt nur v-1 und versionsneutrale Pfade
-  // (SwaggerModule include filtert nur Module, nicht Versionen)
-  for (const path of Object.keys(v1Document.paths)) {
-    if (path.includes('/v-alpha/')) {
-      delete v1Document.paths[path];
+  // Memo: createDocument ist teuer (scannt alle Controller/DTOs erneut),
+  // wird daher nur einmal beim ersten Request ausgeführt und dann gecached.
+  let v1Document: ReturnType<typeof SwaggerModule.createDocument> | null = null;
+  const v1DocumentFactory = (): ReturnType<typeof SwaggerModule.createDocument> => {
+    if (v1Document) {
+      return v1Document;
     }
-  }
+    const doc = SwaggerModule.createDocument(app, v1Config, {
+      include: [BefehlModule, EinsatzModule, HealthModule],
+    });
 
-  v1Document.servers = [serverEntry];
-  SwaggerModule.setup('api/v1', app, v1Document);
+    // Post-Processing: v1 Spec zeigt nur v-1 und versionsneutrale Pfade
+    // (SwaggerModule include filtert nur Module, nicht Versionen)
+    for (const path of Object.keys(doc.paths)) {
+      if (path.includes('/v-alpha/')) {
+        delete doc.paths[path];
+      }
+    }
+
+    doc.servers = [serverEntry];
+    v1Document = doc;
+    logger.log('v1 Swagger lazy-initialized on first request');
+    return doc;
+  };
+
+  // SwaggerModule.setup akzeptiert eine Factory als drittes Argument; das Dokument
+  // wird dann beim ersten HTTP-Request auf /api/v1 erzeugt, nicht beim Bootstrap.
+  // Routen sind eager registriert (zum Boot-Zeitpunkt), das teure createDocument
+  // läuft lazy.
+  SwaggerModule.setup('api/v1', app, v1DocumentFactory);
+  logger.log('v1 Swagger registered as lazy route (/api/v1) — Dokument wird beim ersten Request erzeugt');
 
   // Apply Helmet middleware for security headers
   app.use(helmet(helmetConfig));
@@ -195,8 +216,8 @@ X-Server-Access-Token: <plaintext_token>
   app.enableCors(corsOptions);
 
   // Serve static files (for uploaded screenshots)
-  // Use ENV-configured path or default (relative to dist/src/main.js)
-  const uploadsBase = appConfig.get<string>('UPLOADS_PATH', '../../uploads');
+  // Use ENV-configured path or default (relative to dist/main.js bzw. dist/src/main.js)
+  const uploadsBase = appConfig.get<string>('UPLOADS_PATH', '../uploads');
   const uploadsPath = require('node:path').resolve(__dirname, uploadsBase);
   logger.log(`Serving static files from: ${uploadsPath}`);
   app.useStaticAssets(uploadsPath, { prefix: '/uploads' });

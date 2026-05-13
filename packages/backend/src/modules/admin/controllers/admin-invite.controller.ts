@@ -206,7 +206,7 @@ export class AdminInviteController {
   })
   @ApiBadRequestResponse({ description: 'Ungueltige Filter-, Sort- oder Pagination-Parameter' })
   async listInvites(
-    @Query('status') status?: InviteCodeStatus,
+    @Query('status') status?: string,
     @Query('createdBy') createdById?: string,
     @Query('sort') sortParam?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
@@ -235,7 +235,7 @@ export class AdminInviteController {
     // 2. Query erstellen mit Validierung
     // ════════════════════════════════════════════════════════════════════════
     const queryResult = ListInvitesQuery.create({
-      filters: status || createdById ? { status, createdById } : undefined,
+      filters: status || createdById ? { status: status as InviteCodeStatus | undefined, createdById } : undefined,
       sort,
       pagination: { page: page ?? 1, pageSize: pageSize ?? 20 },
       requestedById: user?.userId ?? 'unknown',
