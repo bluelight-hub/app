@@ -42,6 +42,10 @@ import {
   GefaehrdungsbeurteilungAktualisiertEtbHandler,
   SicherheitsregelAusgerufenEtbHandler,
   SicherheitsregelQuittiertEtbHandler,
+  PsaProfilGeaendertEtbHandler,
+  QuittungAbgegebenEtbHandler,
+  LueckeGemeldetEtbHandler,
+  QuittungUeberfaelligEtbHandler,
 } from './event-handlers';
 import {
   EinheitErstelltEtbHandler,
@@ -330,6 +334,22 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.EIGENSCHUTZ_SICHERHEITSREGEL_QUITTIERT_ETB,
       useClass: SicherheitsregelQuittiertEtbHandler,
     },
+    {
+      provide: EVENT_HANDLER.EIGENSCHUTZ_PSA_PROFIL_GEAENDERT_ETB,
+      useClass: PsaProfilGeaendertEtbHandler,
+    },
+    {
+      provide: EVENT_HANDLER.EIGENSCHUTZ_QUITTUNG_ABGEGEBEN_ETB,
+      useClass: QuittungAbgegebenEtbHandler,
+    },
+    {
+      provide: EVENT_HANDLER.EIGENSCHUTZ_LUECKE_GEMELDET_ETB,
+      useClass: LueckeGemeldetEtbHandler,
+    },
+    {
+      provide: EVENT_HANDLER.EIGENSCHUTZ_QUITTUNG_UEBERFAELLIG_ETB,
+      useClass: QuittungUeberfaelligEtbHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -391,6 +411,10 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT_ETB, // Issue 415
     EVENT_HANDLER.EIGENSCHUTZ_SICHERHEITSREGEL_AUSGERUFEN_ETB, // Issue 415
     EVENT_HANDLER.EIGENSCHUTZ_SICHERHEITSREGEL_QUITTIERT_ETB, // Issue 415
+    EVENT_HANDLER.EIGENSCHUTZ_PSA_PROFIL_GEAENDERT_ETB, // Issue 415
+    EVENT_HANDLER.EIGENSCHUTZ_QUITTUNG_ABGEGEBEN_ETB, // Issue 415
+    EVENT_HANDLER.EIGENSCHUTZ_LUECKE_GEMELDET_ETB, // Issue 415
+    EVENT_HANDLER.EIGENSCHUTZ_QUITTUNG_UEBERFAELLIG_ETB, // Issue 415
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

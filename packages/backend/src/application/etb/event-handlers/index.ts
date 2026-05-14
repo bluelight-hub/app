@@ -43,6 +43,10 @@ export { GefaehrdungsbeurteilungErstelltEtbHandler } from './gefaehrdungsbeurtei
 export { GefaehrdungsbeurteilungAktualisiertEtbHandler } from './gefaehrdungsbeurteilung-aktualisiert-etb.handler';
 export { SicherheitsregelAusgerufenEtbHandler } from './sicherheitsregel-ausgerufen-etb.handler';
 export { SicherheitsregelQuittiertEtbHandler } from './sicherheitsregel-quittiert-etb.handler';
+export { PsaProfilGeaendertEtbHandler } from './psa-profil-geaendert-etb.handler';
+export { QuittungAbgegebenEtbHandler } from './quittung-abgegeben-etb.handler';
+export { LueckeGemeldetEtbHandler } from './luecke-gemeldet-etb.handler';
+export { QuittungUeberfaelligEtbHandler } from './quittung-ueberfaellig-etb.handler';
 
 // Issue #411: Taktische Einheiten ETB Handler (externe Handler-Dateien)
 export { EinheitErstelltEtbHandler } from '@application/kraefte/einsatz-einheiten/event-handlers/einheit-erstellt-etb.handler';

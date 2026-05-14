@@ -389,6 +389,14 @@ export const EVENT_HANDLER = {
   EIGENSCHUTZ_SICHERHEITSREGEL_AUSGERUFEN_ETB: Symbol('IEventHandler<SicherheitsregelAusgerufenEvent>:EtbEintrag'),
   /** SicherheitsregelQuittiert → ETB-Eintrag */
   EIGENSCHUTZ_SICHERHEITSREGEL_QUITTIERT_ETB: Symbol('IEventHandler<SicherheitsregelQuittiertEvent>:EtbEintrag'),
+  /** PsaProfilGeaendert → ETB-Eintrag (2 Branches: AKTIVIERT/DEAKTIVIERT) */
+  EIGENSCHUTZ_PSA_PROFIL_GEAENDERT_ETB: Symbol('IEventHandler<PsaProfilGeaendertEvent>:EtbEintrag'),
+  /** QuittungAbgegeben → ETB-Eintrag */
+  EIGENSCHUTZ_QUITTUNG_ABGEGEBEN_ETB: Symbol('IEventHandler<QuittungAbgegebenEvent>:EtbEintrag'),
+  /** LueckeGemeldet → ETB-Eintrag */
+  EIGENSCHUTZ_LUECKE_GEMELDET_ETB: Symbol('IEventHandler<LueckeGemeldetEvent>:EtbEintrag'),
+  /** QuittungUeberfaellig → ETB-Eintrag (System-Event mit userId === 'SYSTEM') */
+  EIGENSCHUTZ_QUITTUNG_UEBERFAELLIG_ETB: Symbol('IEventHandler<QuittungUeberfaelligEvent>:EtbEintrag'),
 } as const;
 
 /**

@@ -91,3 +91,7 @@ export * from './eigenschutz-gefaehrdungsbeurteilung-erstellt-etb-event.adapter'
 export * from './eigenschutz-gefaehrdungsbeurteilung-aktualisiert-etb-event.adapter';
 export * from './eigenschutz-sicherheitsregel-ausgerufen-etb-event.adapter';
 export * from './eigenschutz-sicherheitsregel-quittiert-etb-event.adapter';
+export * from './eigenschutz-psa-profil-geaendert-etb-event.adapter';
+export * from './eigenschutz-quittung-abgegeben-etb-event.adapter';
+export * from './eigenschutz-luecke-gemeldet-etb-event.adapter';
+export * from './eigenschutz-quittung-ueberfaellig-etb-event.adapter';

@@ -71,6 +71,10 @@ import {
   EigenschutzGefaehrdungsbeurteilungAktualisiertEtbEventAdapter,
   EigenschutzSicherheitsregelAusgerufenEtbEventAdapter,
   EigenschutzSicherheitsregelQuittiertEtbEventAdapter,
+  EigenschutzPsaProfilGeaendertEtbEventAdapter,
+  EigenschutzQuittungAbgegebenEtbEventAdapter,
+  EigenschutzLueckeGemeldetEtbEventAdapter,
+  EigenschutzQuittungUeberfaelligEtbEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -236,6 +240,10 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     EigenschutzGefaehrdungsbeurteilungAktualisiertEtbEventAdapter, // Issue 415: GefaehrdungsbeurteilungAktualisiert → ETB
     EigenschutzSicherheitsregelAusgerufenEtbEventAdapter, // Issue 415: SicherheitsregelAusgerufen → ETB
     EigenschutzSicherheitsregelQuittiertEtbEventAdapter, // Issue 415: SicherheitsregelQuittiert → ETB
+    EigenschutzPsaProfilGeaendertEtbEventAdapter, // Issue 415: PsaProfilGeaendert → ETB
+    EigenschutzQuittungAbgegebenEtbEventAdapter, // Issue 415: QuittungAbgegeben → ETB
+    EigenschutzLueckeGemeldetEtbEventAdapter, // Issue 415: LueckeGemeldet → ETB
+    EigenschutzQuittungUeberfaelligEtbEventAdapter, // Issue 415: QuittungUeberfaellig → ETB
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag
