@@ -90,3 +90,4 @@ export * from './eigenschutz-vorfall-exportiert-event.adapter';
 export * from './eigenschutz-gefaehrdungsbeurteilung-erstellt-etb-event.adapter';
 export * from './eigenschutz-gefaehrdungsbeurteilung-aktualisiert-etb-event.adapter';
 export * from './eigenschutz-sicherheitsregel-ausgerufen-etb-event.adapter';
+export * from './eigenschutz-sicherheitsregel-quittiert-etb-event.adapter';

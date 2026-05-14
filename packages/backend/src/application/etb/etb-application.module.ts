@@ -41,6 +41,7 @@ import {
   GefaehrdungsbeurteilungErstelltEtbHandler,
   GefaehrdungsbeurteilungAktualisiertEtbHandler,
   SicherheitsregelAusgerufenEtbHandler,
+  SicherheitsregelQuittiertEtbHandler,
 } from './event-handlers';
 import {
   EinheitErstelltEtbHandler,
@@ -325,6 +326,10 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.EIGENSCHUTZ_SICHERHEITSREGEL_AUSGERUFEN_ETB,
       useClass: SicherheitsregelAusgerufenEtbHandler,
     },
+    {
+      provide: EVENT_HANDLER.EIGENSCHUTZ_SICHERHEITSREGEL_QUITTIERT_ETB,
+      useClass: SicherheitsregelQuittiertEtbHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -385,6 +390,7 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_ERSTELLT_ETB, // Issue 415
     EVENT_HANDLER.EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT_ETB, // Issue 415
     EVENT_HANDLER.EIGENSCHUTZ_SICHERHEITSREGEL_AUSGERUFEN_ETB, // Issue 415
+    EVENT_HANDLER.EIGENSCHUTZ_SICHERHEITSREGEL_QUITTIERT_ETB, // Issue 415
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

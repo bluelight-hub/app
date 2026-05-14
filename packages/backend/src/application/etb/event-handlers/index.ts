@@ -42,6 +42,7 @@ export { GefahrenmatrixAktualisiertEtbHandler } from './gefahrenmatrix-aktualisi
 export { GefaehrdungsbeurteilungErstelltEtbHandler } from './gefaehrdungsbeurteilung-erstellt-etb.handler';
 export { GefaehrdungsbeurteilungAktualisiertEtbHandler } from './gefaehrdungsbeurteilung-aktualisiert-etb.handler';
 export { SicherheitsregelAusgerufenEtbHandler } from './sicherheitsregel-ausgerufen-etb.handler';
+export { SicherheitsregelQuittiertEtbHandler } from './sicherheitsregel-quittiert-etb.handler';
 
 // Issue #411: Taktische Einheiten ETB Handler (externe Handler-Dateien)
 export { EinheitErstelltEtbHandler } from '@application/kraefte/einsatz-einheiten/event-handlers/einheit-erstellt-etb.handler';
