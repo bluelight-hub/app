@@ -403,6 +403,8 @@ export const EVENT_HANDLER = {
   EIGENSCHUTZ_SICHERUNGSPOSTEN_AKTUALISIERT_ETB: Symbol('IEventHandler<SicherungspostenAktualisiertEvent>:EtbEintrag'),
   /** VorfallGemeldet → ETB-Eintrag */
   EIGENSCHUTZ_VORFALL_GEMELDET_ETB: Symbol('IEventHandler<VorfallGemeldetEvent>:EtbEintrag'),
+  /** VorfallExportiert → ETB-Eintrag (Audit-Spur Story 5.6) */
+  EIGENSCHUTZ_VORFALL_EXPORTIERT_ETB: Symbol('IEventHandler<VorfallExportiertEvent>:EtbEintrag'),
 } as const;
 
 /**

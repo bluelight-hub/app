@@ -50,6 +50,7 @@ export { QuittungUeberfaelligEtbHandler } from './quittung-ueberfaellig-etb.hand
 export { SicherungspostenEingerichtetEtbHandler } from './sicherungsposten-eingerichtet-etb.handler';
 export { SicherungspostenAktualisiertEtbHandler } from './sicherungsposten-aktualisiert-etb.handler';
 export { VorfallGemeldetEtbHandler } from './vorfall-gemeldet-etb.handler';
+export { VorfallExportiertEtbHandler } from './vorfall-exportiert-etb.handler';
 
 // Issue #411: Taktische Einheiten ETB Handler (externe Handler-Dateien)
 export { EinheitErstelltEtbHandler } from '@application/kraefte/einsatz-einheiten/event-handlers/einheit-erstellt-etb.handler';
