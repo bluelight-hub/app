@@ -50,6 +50,7 @@ import {
   SicherungspostenAktualisiertEtbHandler,
   VorfallGemeldetEtbHandler,
   VorfallExportiertEtbHandler,
+  KonfliktErkanntEtbHandler,
 } from './event-handlers';
 import {
   EinheitErstelltEtbHandler,
@@ -370,6 +371,10 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.EIGENSCHUTZ_VORFALL_EXPORTIERT_ETB,
       useClass: VorfallExportiertEtbHandler,
     },
+    {
+      provide: EVENT_HANDLER.EIGENSCHUTZ_KONFLIKT_ERKANNT_ETB,
+      useClass: KonfliktErkanntEtbHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -439,6 +444,7 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.EIGENSCHUTZ_SICHERUNGSPOSTEN_AKTUALISIERT_ETB, // Issue 415
     EVENT_HANDLER.EIGENSCHUTZ_VORFALL_GEMELDET_ETB, // Issue 415
     EVENT_HANDLER.EIGENSCHUTZ_VORFALL_EXPORTIERT_ETB, // Issue 415
+    EVENT_HANDLER.EIGENSCHUTZ_KONFLIKT_ERKANNT_ETB, // Issue 415
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

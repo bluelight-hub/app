@@ -405,6 +405,10 @@ export const EVENT_HANDLER = {
   EIGENSCHUTZ_VORFALL_GEMELDET_ETB: Symbol('IEventHandler<VorfallGemeldetEvent>:EtbEintrag'),
   /** VorfallExportiert → ETB-Eintrag (Audit-Spur Story 5.6) */
   EIGENSCHUTZ_VORFALL_EXPORTIERT_ETB: Symbol('IEventHandler<VorfallExportiertEvent>:EtbEintrag'),
+  /** KonfliktErkannt → ETB-Eintrag (System-Event, Story 3.9) */
+  EIGENSCHUTZ_KONFLIKT_ERKANNT_ETB: Symbol('IEventHandler<KonfliktErkanntEvent>:EtbEintrag'),
+  /** KonfliktAufgeloest → ETB-Eintrag (Dokumentation, Story 3.10) */
+  EIGENSCHUTZ_KONFLIKT_AUFGELOEST_ETB: Symbol('IEventHandler<KonfliktAufgeloestEvent>:EtbEintrag'),
 } as const;
 
 /**

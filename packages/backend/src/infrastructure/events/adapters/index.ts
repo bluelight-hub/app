@@ -84,6 +84,7 @@ export * from './eigenschutz-konflikt-aufgeloest-event.adapter';
 export * from './eigenschutz-sicherungsposten-eingerichtet-event.adapter';
 export * from './eigenschutz-sicherungsposten-aktualisiert-event.adapter';
 export * from './eigenschutz-vorfall-gemeldet-event.adapter';
+export * from './eigenschutz-vorfall-geschlossen-event.adapter';
 export * from './eigenschutz-vorfall-exportiert-event.adapter';
 
 // Eigenschutz → ETB Adapters (Issue 415)
@@ -99,3 +100,4 @@ export * from './eigenschutz-sicherungsposten-eingerichtet-etb-event.adapter';
 export * from './eigenschutz-sicherungsposten-aktualisiert-etb-event.adapter';
 export * from './eigenschutz-vorfall-gemeldet-etb-event.adapter';
 export * from './eigenschutz-vorfall-exportiert-etb-event.adapter';
+export * from './eigenschutz-konflikt-erkannt-etb-event.adapter';
