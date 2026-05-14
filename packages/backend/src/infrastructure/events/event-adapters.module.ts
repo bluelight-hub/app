@@ -81,6 +81,7 @@ import {
   EigenschutzVorfallGemeldetEtbEventAdapter,
   EigenschutzVorfallExportiertEtbEventAdapter,
   EigenschutzKonfliktErkanntEtbEventAdapter,
+  EigenschutzKonfliktAufgeloestEtbEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -256,6 +257,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     EigenschutzVorfallGemeldetEtbEventAdapter, // Issue 415: VorfallGemeldet → ETB
     EigenschutzVorfallExportiertEtbEventAdapter, // Issue 415: VorfallExportiert → ETB
     EigenschutzKonfliktErkanntEtbEventAdapter, // Issue 415: KonfliktErkannt → ETB
+    EigenschutzKonfliktAufgeloestEtbEventAdapter, // Issue 415: KonfliktAufgeloest → ETB
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

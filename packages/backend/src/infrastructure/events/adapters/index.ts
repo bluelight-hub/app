@@ -101,3 +101,4 @@ export * from './eigenschutz-sicherungsposten-aktualisiert-etb-event.adapter';
 export * from './eigenschutz-vorfall-gemeldet-etb-event.adapter';
 export * from './eigenschutz-vorfall-exportiert-etb-event.adapter';
 export * from './eigenschutz-konflikt-erkannt-etb-event.adapter';
+export * from './eigenschutz-konflikt-aufgeloest-etb-event.adapter';
