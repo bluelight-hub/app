@@ -76,6 +76,7 @@ import {
   EigenschutzLueckeGemeldetEtbEventAdapter,
   EigenschutzQuittungUeberfaelligEtbEventAdapter,
   EigenschutzSicherungspostenEingerichtetEtbEventAdapter,
+  EigenschutzSicherungspostenAktualisiertEtbEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -246,6 +247,7 @@ import { WebsocketModule } from '@infrastructure/websocket/websocket.module';
     EigenschutzLueckeGemeldetEtbEventAdapter, // Issue 415: LueckeGemeldet → ETB
     EigenschutzQuittungUeberfaelligEtbEventAdapter, // Issue 415: QuittungUeberfaellig → ETB
     EigenschutzSicherungspostenEingerichtetEtbEventAdapter, // Issue 415: SicherungspostenEingerichtet → ETB
+    EigenschutzSicherungspostenAktualisiertEtbEventAdapter, // Issue 415: SicherungspostenAktualisiert → ETB
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

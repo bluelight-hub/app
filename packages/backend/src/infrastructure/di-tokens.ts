@@ -399,6 +399,8 @@ export const EVENT_HANDLER = {
   EIGENSCHUTZ_QUITTUNG_UEBERFAELLIG_ETB: Symbol('IEventHandler<QuittungUeberfaelligEvent>:EtbEintrag'),
   /** SicherungspostenEingerichtet → ETB-Eintrag */
   EIGENSCHUTZ_SICHERUNGSPOSTEN_EINGERICHTET_ETB: Symbol('IEventHandler<SicherungspostenEingerichtetEvent>:EtbEintrag'),
+  /** SicherungspostenAktualisiert → ETB-Eintrag (2 Branches: aktualisiert/aufgelöst) */
+  EIGENSCHUTZ_SICHERUNGSPOSTEN_AKTUALISIERT_ETB: Symbol('IEventHandler<SicherungspostenAktualisiertEvent>:EtbEintrag'),
 } as const;
 
 /**
