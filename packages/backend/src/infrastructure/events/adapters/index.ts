@@ -97,3 +97,4 @@ export * from './eigenschutz-luecke-gemeldet-etb-event.adapter';
 export * from './eigenschutz-quittung-ueberfaellig-etb-event.adapter';
 export * from './eigenschutz-sicherungsposten-eingerichtet-etb-event.adapter';
 export * from './eigenschutz-sicherungsposten-aktualisiert-etb-event.adapter';
+export * from './eigenschutz-vorfall-gemeldet-etb-event.adapter';

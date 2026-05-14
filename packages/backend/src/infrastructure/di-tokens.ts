@@ -401,6 +401,8 @@ export const EVENT_HANDLER = {
   EIGENSCHUTZ_SICHERUNGSPOSTEN_EINGERICHTET_ETB: Symbol('IEventHandler<SicherungspostenEingerichtetEvent>:EtbEintrag'),
   /** SicherungspostenAktualisiert → ETB-Eintrag (2 Branches: aktualisiert/aufgelöst) */
   EIGENSCHUTZ_SICHERUNGSPOSTEN_AKTUALISIERT_ETB: Symbol('IEventHandler<SicherungspostenAktualisiertEvent>:EtbEintrag'),
+  /** VorfallGemeldet → ETB-Eintrag */
+  EIGENSCHUTZ_VORFALL_GEMELDET_ETB: Symbol('IEventHandler<VorfallGemeldetEvent>:EtbEintrag'),
 } as const;
 
 /**

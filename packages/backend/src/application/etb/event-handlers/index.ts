@@ -49,6 +49,7 @@ export { LueckeGemeldetEtbHandler } from './luecke-gemeldet-etb.handler';
 export { QuittungUeberfaelligEtbHandler } from './quittung-ueberfaellig-etb.handler';
 export { SicherungspostenEingerichtetEtbHandler } from './sicherungsposten-eingerichtet-etb.handler';
 export { SicherungspostenAktualisiertEtbHandler } from './sicherungsposten-aktualisiert-etb.handler';
+export { VorfallGemeldetEtbHandler } from './vorfall-gemeldet-etb.handler';
 
 // Issue #411: Taktische Einheiten ETB Handler (externe Handler-Dateien)
 export { EinheitErstelltEtbHandler } from '@application/kraefte/einsatz-einheiten/event-handlers/einheit-erstellt-etb.handler';
