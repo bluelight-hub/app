@@ -47,6 +47,7 @@ export { PsaProfilGeaendertEtbHandler } from './psa-profil-geaendert-etb.handler
 export { QuittungAbgegebenEtbHandler } from './quittung-abgegeben-etb.handler';
 export { LueckeGemeldetEtbHandler } from './luecke-gemeldet-etb.handler';
 export { QuittungUeberfaelligEtbHandler } from './quittung-ueberfaellig-etb.handler';
+export { SicherungspostenEingerichtetEtbHandler } from './sicherungsposten-eingerichtet-etb.handler';
 
 // Issue #411: Taktische Einheiten ETB Handler (externe Handler-Dateien)
 export { EinheitErstelltEtbHandler } from '@application/kraefte/einsatz-einheiten/event-handlers/einheit-erstellt-etb.handler';

@@ -397,6 +397,8 @@ export const EVENT_HANDLER = {
   EIGENSCHUTZ_LUECKE_GEMELDET_ETB: Symbol('IEventHandler<LueckeGemeldetEvent>:EtbEintrag'),
   /** QuittungUeberfaellig → ETB-Eintrag (System-Event mit userId === 'SYSTEM') */
   EIGENSCHUTZ_QUITTUNG_UEBERFAELLIG_ETB: Symbol('IEventHandler<QuittungUeberfaelligEvent>:EtbEintrag'),
+  /** SicherungspostenEingerichtet → ETB-Eintrag */
+  EIGENSCHUTZ_SICHERUNGSPOSTEN_EINGERICHTET_ETB: Symbol('IEventHandler<SicherungspostenEingerichtetEvent>:EtbEintrag'),
 } as const;
 
 /**

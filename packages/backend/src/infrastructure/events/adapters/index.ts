@@ -95,3 +95,4 @@ export * from './eigenschutz-psa-profil-geaendert-etb-event.adapter';
 export * from './eigenschutz-quittung-abgegeben-etb-event.adapter';
 export * from './eigenschutz-luecke-gemeldet-etb-event.adapter';
 export * from './eigenschutz-quittung-ueberfaellig-etb-event.adapter';
+export * from './eigenschutz-sicherungsposten-eingerichtet-etb-event.adapter';
