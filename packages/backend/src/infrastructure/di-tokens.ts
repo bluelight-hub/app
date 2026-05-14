@@ -385,6 +385,10 @@ export const EVENT_HANDLER = {
   EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_ERSTELLT_ETB: Symbol('IEventHandler<GefaehrdungsbeurteilungErstelltEvent>:EtbEintrag'),
   /** GefaehrdungsbeurteilungAktualisiert → ETB-Eintrag */
   EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT_ETB: Symbol('IEventHandler<GefaehrdungsbeurteilungAktualisiertEvent>:EtbEintrag'),
+  /** SicherheitsregelAusgerufen → ETB-Eintrag (3 Branches: created/updated/deprecated) */
+  EIGENSCHUTZ_SICHERHEITSREGEL_AUSGERUFEN_ETB: Symbol('IEventHandler<SicherheitsregelAusgerufenEvent>:EtbEintrag'),
+  /** SicherheitsregelQuittiert → ETB-Eintrag */
+  EIGENSCHUTZ_SICHERHEITSREGEL_QUITTIERT_ETB: Symbol('IEventHandler<SicherheitsregelQuittiertEvent>:EtbEintrag'),
 } as const;
 
 /**
