@@ -379,6 +379,12 @@ export const EVENT_HANDLER = {
    * `EVENT_NAMES.EIGENSCHUTZ` + "_{Aspect}"-Suffix (PROJECTION, WEBSOCKET,
    * ETB, TELEMETRY, PUSH).
    */
+
+  /* ===== EIGENSCHUTZ → ETB EVENT HANDLER TOKENS (Story 415) ===== */
+  /** GefaehrdungsbeurteilungErstellt → ETB-Eintrag */
+  EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_ERSTELLT_ETB: Symbol('IEventHandler<GefaehrdungsbeurteilungErstelltEvent>:EtbEintrag'),
+  /** GefaehrdungsbeurteilungAktualisiert → ETB-Eintrag */
+  EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT_ETB: Symbol('IEventHandler<GefaehrdungsbeurteilungAktualisiertEvent>:EtbEintrag'),
 } as const;
 
 /**

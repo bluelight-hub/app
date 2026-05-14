@@ -85,3 +85,6 @@ export * from './eigenschutz-sicherungsposten-eingerichtet-event.adapter';
 export * from './eigenschutz-sicherungsposten-aktualisiert-event.adapter';
 export * from './eigenschutz-vorfall-gemeldet-event.adapter';
 export * from './eigenschutz-vorfall-exportiert-event.adapter';
+
+// Eigenschutz → ETB Adapters (Issue 415)
+export * from './eigenschutz-gefaehrdungsbeurteilung-erstellt-etb-event.adapter';

@@ -38,6 +38,7 @@ import {
   BefehlGeloeschtEtbHandler,
   EtbEinsatzCompletedHandler,
   GefahrenmatrixAktualisiertEtbHandler,
+  GefaehrdungsbeurteilungErstelltEtbHandler,
 } from './event-handlers';
 import {
   EinheitErstelltEtbHandler,
@@ -309,6 +310,12 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       useClass: FahrzeugEinheitZugewiesenEtbHandler,
     },
 
+    // EIGENSCHUTZ → ETB Handlers (Issue 415)
+    {
+      provide: EVENT_HANDLER.EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_ERSTELLT_ETB,
+      useClass: GefaehrdungsbeurteilungErstelltEtbHandler,
+    },
+
     // Mappers (Story 3.3)
     EtbQueryMapper,
   ],
@@ -365,6 +372,7 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.PERSON_ZU_EINHEIT_ZUGEWIESEN_ETB, // Issue #411
     EVENT_HANDLER.PERSON_VON_EINHEIT_ENTFERNT_ETB, // Issue #411
     EVENT_HANDLER.FAHRZEUG_EINHEIT_ZUGEWIESEN_ETB, // Issue #411
+    EVENT_HANDLER.EIGENSCHUTZ_GEFAEHRDUNGSBEURTEILUNG_ERSTELLT_ETB, // Issue 415
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
