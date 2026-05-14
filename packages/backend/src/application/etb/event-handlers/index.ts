@@ -40,6 +40,7 @@ export { GefahrenmatrixAktualisiertEtbHandler } from './gefahrenmatrix-aktualisi
 
 // Eigenschutz ETB Handlers (Issue 415)
 export { GefaehrdungsbeurteilungErstelltEtbHandler } from './gefaehrdungsbeurteilung-erstellt-etb.handler';
+export { GefaehrdungsbeurteilungAktualisiertEtbHandler } from './gefaehrdungsbeurteilung-aktualisiert-etb.handler';
 
 // Issue #411: Taktische Einheiten ETB Handler (externe Handler-Dateien)
 export { EinheitErstelltEtbHandler } from '@application/kraefte/einsatz-einheiten/event-handlers/einheit-erstellt-etb.handler';
