@@ -47,7 +47,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
 import { EigenschutzSubNav } from '../EigenschutzSubNav';
 
 describe('EigenschutzSubNav', () => {
-  it('rendert sechs Tabs in stabiler Reihenfolge (Goal G6: kein „Konflikte"-Tab)', () => {
+  it('rendert sechs Tabs in stabiler Reihenfolge', () => {
     render(<EigenschutzSubNav einsatzId="einsatz-1" />);
 
     const nav = screen.getByTestId('eigenschutz-subnav');
@@ -65,11 +65,19 @@ describe('EigenschutzSubNav', () => {
     ]);
   });
 
-  it('rendert keinen „Konflikte"-Tab mehr (Goal G6: Drawer statt Sub-Tab)', () => {
+  it('rendert keinen „Konflikte"-Tab (Goal G6: Drawer statt Sub-Tab)', () => {
     render(<EigenschutzSubNav einsatzId="einsatz-1" />);
 
     expect(screen.queryByTestId('eigenschutz-subnav-link-konflikte')).toBeNull();
     expect(screen.queryByTestId('eigenschutz-subnav-konflikte-badge')).toBeNull();
+  });
+
+  it('verlinkt den Sicherungsposten-Tab auf die /sicherungsposten-Route', () => {
+    render(<EigenschutzSubNav einsatzId="einsatz-7" />);
+
+    const link = screen.getByTestId('eigenschutz-subnav-link-sicherungsposten');
+    expect(link.getAttribute('href')).toBe('/app/einsatz/$einsatzId/sicherheit/eigenschutz/sicherungsposten');
+    expect(link.getAttribute('data-params')).toBe(JSON.stringify({ einsatzId: 'einsatz-7' }));
   });
 
   it('propagiert die einsatzId an jeden Tab-Link', () => {

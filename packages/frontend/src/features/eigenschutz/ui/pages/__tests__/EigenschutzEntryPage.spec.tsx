@@ -43,6 +43,12 @@ describe('EigenschutzEntryPage', () => {
     expect(screen.queryByTestId('eigenschutz-shortcut-help-trigger')).toBeNull();
   });
 
+  it('rendert keine inline Sicherungsposten-Übersichts-Section mehr (eigener Tab in EigenschutzSubNav)', () => {
+    renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-1" />);
+
+    expect(screen.queryByTestId('sicherungsposten-overview-section')).toBeNull();
+  });
+
   it('rendert keinen eigenen Sub-Bereich-Nav-Block mehr (Wayfinding lebt in der Layout-Route)', () => {
     renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-1" />);
 

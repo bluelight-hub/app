@@ -155,10 +155,17 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded, focus }:
 
     let cancelled = false;
 
+    // `map.hasImage`/`addImage`/`removeImage` greifen intern auf `this.style.getImage`
+    // zu — nach `map.remove()` ist `style` null/undefined und der Aufruf crasht
+    // ("undefined is not an object (evaluating 'this.style.getImage')"). MapLibre
+    // setzt `_removed = true` in `remove()`; das Flag schützt vor Use-after-destroy.
+    const isMapAlive = () => !(map as unknown as { _removed?: boolean })._removed;
+
     const register = async () => {
       if (cancelled) return;
       if (registeredRef.current) return;
       if (registeringRef.current) return;
+      if (!isMapAlive()) return;
       if (map.hasImage(SICHERUNGSPOSTEN_MARKER_IMAGE)) {
         registeredRef.current = true;
         return;
@@ -167,6 +174,7 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded, focus }:
       try {
         const img = await loadSvgImage(SICHERUNGSPOSTEN_SVG, 40, 40);
         if (cancelled) return;
+        if (!isMapAlive()) return;
         if (!map.hasImage(SICHERUNGSPOSTEN_MARKER_IMAGE)) {
           map.addImage(SICHERUNGSPOSTEN_MARKER_IMAGE, img);
         }
@@ -191,7 +199,7 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded, focus }:
     return () => {
       cancelled = true;
       map.off('style.load', handleStyleLoad);
-      if (map.hasImage(SICHERUNGSPOSTEN_MARKER_IMAGE)) {
+      if (isMapAlive() && map.hasImage(SICHERUNGSPOSTEN_MARKER_IMAGE)) {
         map.removeImage(SICHERUNGSPOSTEN_MARKER_IMAGE);
       }
       registeredRef.current = false;
@@ -224,14 +232,18 @@ export function SecurityPostMapMarker({ einsatzId, mapRef, isMapLoaded, focus }:
       });
     };
 
-    const handleClick = (event: { features?: GeoJSON.Feature[] }) => {
+    const handleClick = (event: { preventDefault?: () => void; features?: GeoJSON.Feature[] }) => {
+      // MapLibre dispatcht dieselbe MapMouseEvent an alle Click-Handler. Der
+      // Outer-Tap weiter unten würde sonst direkt nach dem Layer-Handler
+      // feuern und `setPopup(null)` aufrufen — beide State-Updates landen im
+      // selben React-Batch, last-write-wins → Popover öffnet nie sichtbar.
+      // `preventDefault()` markiert das Event, sodass der Outer-Handler über
+      // `event.defaultPrevented` rausspringt.
+      event.preventDefault?.();
       openPopupFromFeature(event.features?.[0]);
     };
-    const handleOuterTap = (event: { defaultPrevented?: boolean; features?: GeoJSON.Feature[] }) => {
+    const handleOuterTap = (event: { defaultPrevented?: boolean }) => {
       if (event.defaultPrevented) return;
-      // Layer-Click setzt `event.features.length > 0` — den eigenen Layer-Handler
-      // nicht doppelt behandeln; nur tatsächliche Outer-Taps schließen den Popover.
-      if (event.features && event.features.length > 0) return;
       setPopup(null);
     };
     const handleMouseEnter = () => {

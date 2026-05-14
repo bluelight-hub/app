@@ -332,6 +332,51 @@ describe('SecurityPostMapMarker', () => {
     expect(paragraphs).toHaveLength(2);
   });
 
+  it('Layer-Click + direkt folgender Outer-Tap aus demselben Event: Popover bleibt offen (Race-Fix via preventDefault)', () => {
+    // Regression: MapLibre dispatcht dasselbe MapMouseEvent an Layer- und
+    // Outer-Handler. Ohne `event.preventDefault()` im Layer-Handler würde
+    // `setPopup({...})` und `setPopup(null)` im selben React-Batch landen
+    // und last-write-wins → Popover wäre für den User nie sichtbar.
+    listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
+    setup();
+    const layerClick = getLayerListener('click');
+    const outerClick = getOuterListener('click');
+    expect(layerClick).toBeDefined();
+    expect(outerClick).toBeDefined();
+
+    // Geteiltes Event-Objekt wie MapLibre es zwischen Handlern reicht.
+    const sharedEvent: {
+      defaultPrevented: boolean;
+      preventDefault: () => void;
+      features: GeoJSON.Feature[];
+    } = {
+      defaultPrevented: false,
+      preventDefault() {
+        this.defaultPrevented = true;
+      },
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [10.5, 50.3] },
+          properties: {
+            postenId: POSTEN_COORDINATE_A.id,
+            bezeichnung: POSTEN_COORDINATE_A.bezeichnung,
+            abloesezeitenTooltip: '',
+            personalCount: 0,
+          },
+        },
+      ],
+    };
+
+    act(() => {
+      layerClick!.handler(sharedEvent);
+      outerClick!.handler(sharedEvent);
+    });
+
+    expect(sharedEvent.defaultPrevented).toBe(true);
+    expect(screen.getByTestId('map-popup')).toBeInTheDocument();
+  });
+
   it('Story 4.4: Outer-Click schließt das Popover, Layer-Click bleibt offen', () => {
     listMock.current = vi.fn(() => ({ data: [POSTEN_COORDINATE_A], isPending: false, isError: false }));
     setup();
