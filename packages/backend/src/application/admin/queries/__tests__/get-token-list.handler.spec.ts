@@ -458,41 +458,51 @@ describe('GetTokenListHandler', () => {
     });
 
     it('should return expired status for token that expired 1ms ago (boundary case)', async () => {
-      // Given (Arrange): Token expired just 1ms ago
-      const query = createValidQuery();
-      const justExpired = new Date(Date.now() - 1);
+      // Fake-Timer fixiert die Wall-Clock: ohne das kann zwischen `Date.now() - 1`
+      // und `getStatus()` mehr als 1ms vergehen, was den Test im CI flaky macht.
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+      try {
+        const query = createValidQuery();
+        const justExpired = new Date(Date.now() - 1);
 
-      const mockToken = createMockToken({
-        isRevoked: false,
-        expiresAt: justExpired,
-      });
-      mockTokenRepository.findAllPaginated.mockResolvedValue(Result.ok(createPaginatedResult([mockToken])));
+        const mockToken = createMockToken({
+          isRevoked: false,
+          expiresAt: justExpired,
+        });
+        mockTokenRepository.findAllPaginated.mockResolvedValue(Result.ok(createPaginatedResult([mockToken])));
 
-      // When (Act)
-      const result = await handler.execute(query);
+        const result = await handler.execute(query);
 
-      // Then (Assert): Token should be expired
-      expect(result.isSuccess).toBe(true);
-      expect(getFirstTokenDto(result).status).toBe('expired');
+        expect(result.isSuccess).toBe(true);
+        expect(getFirstTokenDto(result).status).toBe('expired');
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('should return active status for token expiring 1ms from now (boundary case)', async () => {
-      // Given (Arrange): Token expires in 1ms
-      const query = createValidQuery();
-      const expiresInFuture = new Date(Date.now() + 1);
+      // Fake-Timer fixiert die Wall-Clock: ohne das kann zwischen `Date.now() + 1`
+      // und `getStatus()` mehr als 1ms vergehen, was den Test im CI flaky macht.
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+      try {
+        const query = createValidQuery();
+        const expiresInFuture = new Date(Date.now() + 1);
 
-      const mockToken = createMockToken({
-        isRevoked: false,
-        expiresAt: expiresInFuture,
-      });
-      mockTokenRepository.findAllPaginated.mockResolvedValue(Result.ok(createPaginatedResult([mockToken])));
+        const mockToken = createMockToken({
+          isRevoked: false,
+          expiresAt: expiresInFuture,
+        });
+        mockTokenRepository.findAllPaginated.mockResolvedValue(Result.ok(createPaginatedResult([mockToken])));
 
-      // When (Act)
-      const result = await handler.execute(query);
+        const result = await handler.execute(query);
 
-      // Then (Assert): Token should still be active
-      expect(result.isSuccess).toBe(true);
-      expect(getFirstTokenDto(result).status).toBe('active');
+        expect(result.isSuccess).toBe(true);
+        expect(getFirstTokenDto(result).status).toBe('active');
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 
