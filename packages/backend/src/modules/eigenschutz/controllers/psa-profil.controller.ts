@@ -21,7 +21,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
-  ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
@@ -37,10 +36,7 @@ import type { PsaProfilZuweisungReadRow } from '@domain/eigenschutz/repositories
 import { PSA_PROFIL_CONFLICT_DETECTED } from '@domain/eigenschutz/aggregates/psa-profil-zuweisung.aggregate';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
-import { RequiresPermission } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { AckPsaQuittungCommand } from '@/application/eigenschutz/commands/ack-psa-quittung/ack-psa-quittung.command';
@@ -67,17 +63,12 @@ import { ListPsaQuittungenQuery } from '@/application/eigenschutz/queries/list-p
  * `/einsaetze/:einsatzId/sicherheit/eigenschutz/psa-profile/...` (Memory-Regel
  * „Einsatz-Routen-Nesting").
  *
- * ### Drei-Schicht-Guard-Kette (AC6 — Referenz-Implementierung)
+ * ### Guard-Kette
  * ```
- * JwtAuthGuard → EinsatzScopeGuard → PermissionsGuard
+ * JwtAuthGuard
  * ```
- * Reihenfolge ist verbindlich: `PermissionsGuard` liest `request.einsatzContext`,
- * das von `EinsatzScopeGuard` gefüllt wird. Auf Klassen-Ebene gesetzt; einzelne
- * Endpoints kommentieren über `@RequiresPermission(...)` ihre konkreten
- * Anforderungen — der Guard ignoriert Endpoints ohne Decorators (siehe
- * `requires-permission.decorator.ts`). Die Eigenschutz-spezifische Rollen-
- * Schicht entfällt — Schreibrechte werden ausschließlich über
- * `eigenschutz:psa:write` etc. gesteuert.
+ * Eigenschutz hat kein eigenes Rollen-/Permission-Gating; Cross-Einsatz-
+ * Schutz erfolgt in den Query-/Command-Handlern.
  *
  * ### Error-Mapping
  * - `ConflictDetected:PsaProfilZuweisung[:current=<n>]` → 409 mit
@@ -91,9 +82,8 @@ import { ListPsaQuittungenQuery } from '@/application/eigenschutz/queries/list-p
 @ApiTags('eigenschutz')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ungültig' })
-@ApiForbiddenResponse({ description: 'Keine ausreichende Rolle/Permission für diesen Eigenschutz-Endpoint' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz/psa-profile', version: 'alpha' })
-@UseGuards(JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 export class PsaProfilController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -105,7 +95,6 @@ export class PsaProfilController {
    * Liefert die aktuell aktiven PSA-Profile einer Einheit (AC9 Pre-Fill).
    */
   @Get('einheiten/:einheitId')
-  @RequiresPermission('eigenschutz:psa:read')
   @ApiOperation({ summary: 'Aktive PSA-Profile einer Einheit laden' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'einheitId', type: String, description: 'CUID der Einsatzeinheit' })
@@ -122,7 +111,6 @@ export class PsaProfilController {
    * Aktiviert/Deaktiviert PSA-Profile einer Einheit (AC1/AC2/AC3).
    */
   @Post('einheiten/:einheitId/change')
-  @RequiresPermission('eigenschutz:psa:write')
   @ApiOperation({ summary: 'PSA-Profil-Toggle einer Einheit ausführen' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'einheitId', type: String, description: 'CUID der Einsatzeinheit' })
@@ -166,7 +154,6 @@ export class PsaProfilController {
    * `profil=<p>` als Kontext für den UI-Banner.
    */
   @Post('bulk-aendern')
-  @RequiresPermission('eigenschutz:psa:write')
   @ApiOperation({ summary: 'PSA-Profil-Toggle gleichzeitig auf mehrere Einheiten anwenden (Bulk)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiBody({ type: BulkChangePsaProfilDto })
@@ -205,7 +192,6 @@ export class PsaProfilController {
    * interpretiert.
    */
   @Get('rueckmeldungen/offen')
-  @RequiresPermission('eigenschutz:psa:read')
   @ApiOperation({ summary: 'Offene Ausrüstungs-Lücken-Rückmeldungen eines Einsatzes auflisten' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiWrappedResponse(OffeneRueckmeldungDto, {
@@ -246,7 +232,6 @@ export class PsaProfilController {
    */
   @Post('propagation-groups/:propagationGroupId/luecke-melden')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequiresPermission('eigenschutz:psa:acknowledge')
   @ApiOperation({ summary: 'Ausrüstungs-Lücke zu einer PSA-Bekanntgabe melden — Story 3.6 AC6' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'propagationGroupId', type: String, description: 'CUID der Bekanntgabe-Gruppe' })
@@ -255,7 +240,6 @@ export class PsaProfilController {
   @ApiBadRequestResponse({ description: 'DTO-Validation (cuid2-Regex / Length-Constraints)' })
   @ApiNotFoundResponse({ description: 'Keine offene PsaProfilGeaendert-Outbox-Row für (propagationGroupId, einheitId)' })
   @ApiUnprocessableEntityResponse({ description: 'Caller-Authorization (UnzulaessigeEinheitenZuordnung) oder LueckeNotizLeer (Whitespace-only)' })
-  @ApiForbiddenResponse({ description: 'Permission `eigenschutz:psa:acknowledge` fehlt' })
   async meldeLuecke(@Param('einsatzId') einsatzId: string, @Param('propagationGroupId') propagationGroupId: string, @Body() body: MeldeLueckeDto, @CurrentUser() user: ValidatedUser): Promise<void> {
     const command = new MeldeLueckeCommand(einsatzId, propagationGroupId, body.einheitId, body.meldung, user.userId);
     const result = (await this.commandBus.execute(command)) as Result<MeldeLueckeResult>;
@@ -268,7 +252,6 @@ export class PsaProfilController {
 
   @Post('propagation-groups/:propagationGroupId/quittieren')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequiresPermission('eigenschutz:psa:acknowledge')
   @ApiOperation({ summary: 'PSA-Profil-Änderung durch eine konkrete Einheit quittieren — AC1/AC2/AC3' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'propagationGroupId', type: String, description: 'CUID der Bekanntgabe-Gruppe' })
@@ -276,7 +259,6 @@ export class PsaProfilController {
   @ApiNoContentResponse({ description: 'Quittung erfolgreich (Erst-Insert oder idempotenter Re-Ack — kein Body).' })
   @ApiNotFoundResponse({ description: 'Keine offene PsaProfilGeaendert-Outbox-Row für (propagationGroupId, einheitId)' })
   @ApiUnprocessableEntityResponse({ description: 'Caller-Authorization (UnzulaessigeEinheitenZuordnung)' })
-  @ApiForbiddenResponse({ description: 'Permission `eigenschutz:psa:acknowledge` fehlt' })
   async quittieren(@Param('einsatzId') einsatzId: string, @Param('propagationGroupId') propagationGroupId: string, @Body() body: AckPsaQuittungDto, @CurrentUser() user: ValidatedUser): Promise<void> {
     const command = new AckPsaQuittungCommand(einsatzId, propagationGroupId, body.einheitId, user.userId);
     const result = (await this.commandBus.execute(command)) as Result<AckPsaQuittungResult>;
@@ -301,7 +283,6 @@ export class PsaProfilController {
    * Literal `offene-bekanntgaben` matchen und der falsche Handler greifen.
    */
   @Get('propagation-groups/offene-bekanntgaben')
-  @RequiresPermission('eigenschutz:psa:read')
   @ApiOperation({ summary: 'Offene PSA-Bekanntgaben des Einsatzes auflisten (pending/partial) — AC15' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiQuery({
@@ -343,7 +324,6 @@ export class PsaProfilController {
    * `AUSSTEHEND` oder `QUITTIERT`. Sender-View / Stab-Sicht.
    */
   @Get('propagation-groups/:propagationGroupId/quittungen')
-  @RequiresPermission('eigenschutz:psa:read')
   @ApiOperation({ summary: 'Quittungs-Stand einer PSA-Bekanntgabe-Gruppe auflisten (Sender-View) — AC8' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'propagationGroupId', type: String, description: 'CUID der Bekanntgabe-Gruppe' })

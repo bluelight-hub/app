@@ -16,6 +16,24 @@ import {
 import { UserRole as PrismaUserRole } from '@/generated/prisma/client';
 
 /**
+ * Erzeugt einen Anzeigenamen aus der zugeordneten Stammperson.
+ *
+ * Trimmt Vor- und Nachname und kombiniert sie mit einem Leerzeichen. Gibt
+ * `null` zurück, wenn keine Stammperson hinterlegt ist oder beide Namens-
+ * felder leer sind, damit der Aufrufer auf den `username`-Fallback wechseln
+ * kann.
+ */
+function buildDisplayName(stammperson: AppUserDto['stammperson']): string | null {
+  if (!stammperson) {
+    return null;
+  }
+  const vorname = stammperson.vorname?.trim() ?? '';
+  const nachname = stammperson.nachname?.trim() ?? '';
+  const combined = [vorname, nachname].filter((part) => part.length > 0).join(' ');
+  return combined.length > 0 ? combined : null;
+}
+
+/**
  * Mappt Application Layer UserDto auf API ManagedUserResponseDto.
  */
 function mapToApiUserDto(appDto: AppUserDto): ManagedUserResponseDto {
@@ -100,10 +118,13 @@ export class UserController {
       return [];
     }
 
-    // Map UserDto zu UserBasicDto (nur id + username)
+    // Map UserDto zu UserBasicDto. displayName wird aus der verknüpften
+    // Stammperson aufgelöst, damit Listen-UIs den Personalnamen anzeigen
+    // können statt nur den technischen Benutzernamen.
     return users.map((user) => ({
       id: user.id,
       username: user.username,
+      displayName: buildDisplayName(user.stammperson),
     }));
   }
 

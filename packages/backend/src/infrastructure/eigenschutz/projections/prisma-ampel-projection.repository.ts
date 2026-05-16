@@ -71,7 +71,9 @@ export class PrismaAmpelProjectionRepository implements IAmpelProjectionReposito
         this.countOffeneGefaehrdungenHoch(client, params.einsatzId, params.einheitId),
         this.countAusstehendePsaQuittungen(client, params.einsatzId, params.einheitId),
         this.countAusstehendeRegelQuittungen(client, params.einsatzId, params.einheitId),
-        client.eigenschutzVorfall.count({ where: { einsatzId: params.einsatzId, einheitId: params.einheitId } }),
+        // Issue #415: nur OFFENE Vorfälle zählen — geschlossene fließen
+        // nicht mehr in den Ampel-Status ein.
+        client.eigenschutzVorfall.count({ where: { einsatzId: params.einsatzId, einheitId: params.einheitId, geschlossenAm: null } }),
         client.psaProfilQuittung.count({ where: { einsatzId: params.einsatzId, einheitId: params.einheitId, lueckeGemeldet: true } }),
       ]);
 

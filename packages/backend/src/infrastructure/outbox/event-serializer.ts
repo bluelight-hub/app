@@ -118,6 +118,7 @@ import type { KonfliktAufgeloestEvent, SyncConflictResolution } from '@domain/ei
 import type { SicherungspostenEingerichtetEvent } from '@domain/eigenschutz/events/sicherungsposten-eingerichtet.event';
 import type { SicherungspostenAktualisiertEvent, SicherungspostenFieldKey } from '@domain/eigenschutz/events/sicherungsposten-aktualisiert.event';
 import type { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
+import type { VorfallGeschlossenEvent } from '@domain/eigenschutz/events/vorfall-geschlossen.event';
 import type { VorfallExportiertEvent, VorfallExportFormat } from '@domain/eigenschutz/events/vorfall-exportiert.event';
 
 // Story 3.9 — Modul-Konstante (statt Funktionsrumpf-Allokation pro
@@ -550,6 +551,8 @@ export class EventSerializer {
         return this.serializeSicherungspostenAktualisiert(event as unknown as SicherungspostenAktualisiertEvent);
       case 'eigenschutz.vorfall_gemeldet':
         return this.serializeVorfallGemeldet(event as unknown as VorfallGemeldetEvent);
+      case 'eigenschutz.vorfall_geschlossen':
+        return this.serializeVorfallGeschlossen(event as unknown as VorfallGeschlossenEvent);
       case 'eigenschutz.vorfall_exportiert':
         return this.serializeVorfallExportiert(event as unknown as VorfallExportiertEvent);
 
@@ -2259,6 +2262,32 @@ export class EventSerializer {
       vorfallId: event.vorfallId,
       vorfallZeit: event.vorfallZeit.toISOString(),
       unfallkasseRelevant: event.unfallkasseRelevant,
+    };
+  }
+
+  /**
+   * Serialisiert `VorfallGeschlossenEvent` (Issue #415).
+   *
+   * **Payload-Diät:** Begründung wird NICHT mitgespiegelt (PII-Schutz analog
+   * `VorfallGemeldetEvent`); Konsumenten lesen sie aus dem Aggregate.
+   */
+  private serializeVorfallGeschlossen(event: VorfallGeschlossenEvent): Record<string, unknown> {
+    if (
+      typeof event.einsatzId !== 'string' ||
+      typeof event.userId !== 'string' ||
+      typeof event.einheitId !== 'string' ||
+      typeof event.vorfallId !== 'string' ||
+      !(event.geschlossenAm instanceof Date) ||
+      Number.isNaN(event.geschlossenAm.getTime())
+    ) {
+      throw new Error('Invalid VorfallGeschlossen event payload');
+    }
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      einheitId: event.einheitId,
+      vorfallId: event.vorfallId,
+      geschlossenAm: event.geschlossenAm.toISOString(),
     };
   }
 

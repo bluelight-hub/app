@@ -2,7 +2,14 @@
 import { Result } from '@domain/common/result';
 import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abgegeben.event';
 import type { AddEintragHandler } from '@application/etb/commands';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import { QuittungAbgegebenEtbHandler } from '../quittung-abgegeben-etb.handler';
+
+function buildEinheitRepo(name = 'Rotkreuz 71/1'): jest.Mocked<IEinsatzEinheitRepository> {
+  return {
+    findById: jest.fn().mockResolvedValue(Result.ok({ name } as any)),
+  } as unknown as jest.Mocked<IEinsatzEinheitRepository>;
+}
 
 function buildEvent(
   overrides: {
@@ -27,18 +34,21 @@ describe('QuittungAbgegebenEtbHandler', () => {
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
   let mockLogger: { log: jest.Mock; warn: jest.Mock; error: jest.Mock; debug: jest.Mock };
 
+  let mockEinheitRepo: jest.Mocked<IEinsatzEinheitRepository>;
+
   beforeEach(() => {
     mockAddEintragHandler = { execute: jest.fn() } as unknown as jest.Mocked<AddEintragHandler>;
     mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
-    handler = new QuittungAbgegebenEtbHandler(mockAddEintragHandler, mockLogger);
+    mockEinheitRepo = buildEinheitRepo('Rotkreuz 71/1');
+    handler = new QuittungAbgegebenEtbHandler(mockAddEintragHandler, mockLogger, mockEinheitRepo);
   });
 
-  it('erstellt ETB-Eintrag mit Einheit-Referenz im Text', async () => {
+  it('erstellt ETB-Eintrag mit Einheit-Name im Text', async () => {
     mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
     await handler.handle(buildEvent({ einheitId: 'einheit-7' }));
     expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
     const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
-    expect(cmd.text).toBe('PSA-Quittung abgegeben durch Einheit einheit-7');
+    expect(cmd.text).toBe('PSA-Quittung abgegeben durch Einheit Rotkreuz 71/1');
     expect(cmd.kategorie).toBe('DOKUMENTATION');
     expect(cmd.userId).toBe('user-1');
     expect(cmd.einsatzId).toBe('einsatz-1');

@@ -12,13 +12,7 @@ import { describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('../../organisms/SicherungspostenList', () => ({
-  SicherungspostenList: (props: { einsatzId: string; onCreate: () => void }) => (
-    <div data-testid="sicherungsposten-list-stub" data-einsatz-id={props.einsatzId}>
-      <button type="button" onClick={props.onCreate} data-testid="sicherungsposten-create-stub">
-        anlegen
-      </button>
-    </div>
-  ),
+  SicherungspostenList: (props: { einsatzId: string }) => <div data-testid="sicherungsposten-list-stub" data-einsatz-id={props.einsatzId} />,
 }));
 
 vi.mock('../../organisms/SicherungspostenDrawer', () => ({
@@ -74,11 +68,11 @@ describe('SicherungspostenPage', () => {
     expect(drawer.dataset.open).toBe('true');
   });
 
-  it('öffnet den bestehenden Create-Flow weiterhin über die Liste', async () => {
+  it('öffnet den Create-Drawer über den Add-Button im Page-Header', async () => {
     const user = userEvent.setup();
     renderWithProviders(<SicherungspostenPage einsatzId="einsatz-42" />);
 
-    await user.click(screen.getByTestId('sicherungsposten-create-stub'));
+    await user.click(screen.getByTestId('sicherungsposten-create-button'));
 
     expect(screen.getByTestId('sicherungsposten-drawer-stub').dataset.open).toBe('true');
   });

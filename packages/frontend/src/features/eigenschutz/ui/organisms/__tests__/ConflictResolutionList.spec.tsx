@@ -179,7 +179,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('rendert role="table" mit den erwarteten Spalten-Headern', () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const table = screen.getByRole('table');
     expect(table).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /Entität/ })).toBeInTheDocument();
@@ -195,7 +195,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: false,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
 
     const header = screen.getByTestId('conflict-sort-serverVersion');
     expect(header).toHaveAttribute('aria-sort', 'none');
@@ -206,7 +206,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Filter-Bar entityType triggert useSyncConflicts mit Filter-Argument', () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const select = screen.getByLabelText('Entitätstyp') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'GEFAEHRDUNGSBEURTEILUNG_ITEM' } });
     const lastCall = useSyncConflictsMock.mock.calls.at(-1);
@@ -214,14 +214,14 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Reset-Button setzt den Filter zurück (entityType + einheitId undefined)', () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} initialFilter={{ entityType: 'PSA_PROFIL_ZUWEISUNG', einheitId: VALID_CUID2 }} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" initialFilter={{ entityType: 'PSA_PROFIL_ZUWEISUNG', einheitId: VALID_CUID2 }} />);
     fireEvent.click(screen.getByTestId('conflict-filter-reset'));
     const lastCall = useSyncConflictsMock.mock.calls.at(-1);
     expect(lastCall?.[1]).toEqual({});
   });
 
   it('Filter-Änderung schreibt URL-Search via navigate(replace: true) zurück (F8)', () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const select = screen.getByLabelText('Entitätstyp') as HTMLSelectElement;
     act(() => {
       fireEvent.change(select, { target: { value: 'PSA_PROFIL_ZUWEISUNG' } });
@@ -236,7 +236,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Resolve-Klick triggert useResolveKonflikt.mutate mit korrekten Argumenten', async () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const btn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     fireEvent.click(btn);
     expect(mutateMock).toHaveBeenCalledTimes(1);
@@ -247,25 +247,13 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
     mutateMock.mockImplementation((_vars, opts: { onSuccess?: () => void } | undefined) => {
       opts?.onSuccess?.();
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const btn = await screen.findByTestId('conflict-resolve-LOCAL_WINS-conflict-1');
     fireEvent.click(btn);
     await waitFor(() => {
       expect(screen.getByTestId('conflict-sr-announcer').textContent).toMatch(/Konflikt aufgelöst/);
       expect(screen.getByTestId('conflict-sr-announcer').textContent).toMatch(/Lokal behalten/);
     });
-  });
-
-  it('Read-Only-Mode (canResolve=false) deaktiviert alle drei Action-Buttons', async () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={false} />);
-    const serverBtn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
-    const localBtn = screen.getByTestId('conflict-resolve-LOCAL_WINS-conflict-1');
-    const mergeBtn = screen.getByTestId('conflict-resolve-MERGED-conflict-1');
-    expect(serverBtn).toBeDisabled();
-    expect(localBtn).toBeDisabled();
-    expect(mergeBtn).toBeDisabled();
-    expect(serverBtn).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText(/nur vom Sicherheitsbeauftragten/)).toBeInTheDocument();
   });
 
   it('Empty-State rendert bei conflicts=[]', () => {
@@ -275,7 +263,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: false,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     expect(screen.getByText('Keine offenen Sync-Konflikte')).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
@@ -287,7 +275,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: false,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     expect(screen.getByTestId('conflict-loading-skeleton')).toBeInTheDocument();
   });
 
@@ -298,7 +286,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: true,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     expect(screen.getByTestId('conflict-error-alert')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Erneut versuchen/ })).toBeInTheDocument();
   });
@@ -311,7 +299,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
       isError: false,
       refetch: vi.fn(),
     } as unknown as UseQueryResult<SyncConflictListItemDto[]>;
-    const { container } = render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const { container } = render(<ConflictResolutionList einsatzId="einsatz-1" />);
     await waitFor(() => {
       const dataRows = container.querySelectorAll('[data-testid^="conflict-row-"]');
       expect(dataRows.length).toBeGreaterThan(0);
@@ -321,7 +309,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('a11y-Strukturinvarianten: aria-sort auf Sort-Headern, aria-label auf Buttons, keine doppelten IDs', async () => {
-    const { container } = render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    const { container } = render(<ConflictResolutionList einsatzId="einsatz-1" />);
     // 1. Sort-Header haben aria-sort.
     for (const headerId of ['conflict-sort-entityType', 'conflict-sort-serverVersion', 'conflict-sort-localExpectedVersion', 'conflict-sort-reportedAt']) {
       expect(screen.getByTestId(headerId)).toHaveAttribute('aria-sort');
@@ -338,7 +326,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Touch-Target: alle Action-Buttons haben minHeight ≥ 48px (style)', async () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     for (const tid of ['conflict-resolve-SERVER_WINS-conflict-1', 'conflict-resolve-LOCAL_WINS-conflict-1', 'conflict-resolve-MERGED-conflict-1']) {
       const btn = screen.getByTestId(tid);
@@ -347,7 +335,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('LocalPayload-Popover: Klick auf Summary öffnet das <details>-Element mit JSON-Vorschau', async () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const details = (await screen.findByTestId('conflict-snapshot-conflict-1')) as HTMLDetailsElement;
     expect(details.open).toBe(false);
     const summary = details.querySelector('summary')!;
@@ -365,7 +353,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
     mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
       opts?.onError?.(new Error('ConflictDetected:SyncConflict:RaceLost'));
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const btn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     fireEvent.click(btn);
     await waitFor(() => {
@@ -379,7 +367,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
     mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
       opts?.onError?.(new Error('NotFound:SyncConflict'));
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const btn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     fireEvent.click(btn);
     await waitFor(() => {
@@ -391,7 +379,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
     mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
       opts?.onError?.(new Error('BusinessRule:LocalWinsNichtMoeglich:AggregateNichtGefunden'));
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const btn = await screen.findByTestId('conflict-resolve-LOCAL_WINS-conflict-1');
     fireEvent.click(btn);
     await waitFor(() => {
@@ -405,7 +393,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
     mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
       opts?.onError?.(new Error('ValidationFailed:LocalWinsPayloadInvalid'));
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const btn = await screen.findByTestId('conflict-resolve-LOCAL_WINS-conflict-1');
     fireEvent.click(btn);
     await waitFor(() => {
@@ -424,7 +412,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
     mutateMock.mockImplementation((_vars, opts: { onError?: (e: unknown) => void } | undefined) => {
       opts?.onError?.(responseError);
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const btn = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     fireEvent.click(btn);
     await waitFor(() => {
@@ -444,7 +432,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
     mutateMock.mockImplementation(() => {
       /* hängt */
     });
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     const btn1 = await screen.findByTestId('conflict-resolve-SERVER_WINS-conflict-1');
     fireEvent.click(btn1);
     // Row 1 ist disabled, Row 2 bleibt aktiv.
@@ -454,7 +442,7 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Einheit-Auswahl per Combobox übergibt die zugehörige Einheit-ID an den Filter (G7)', async () => {
-    render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} />);
+    render(<ConflictResolutionList einsatzId="einsatz-1" />);
     // Combobox im Filter-Bereich isolieren (testId-Wrapper).
     const filterCombobox = screen.getByTestId('conflict-filter-einheit-id');
     const input = filterCombobox.querySelector('input[role="combobox"]') as HTMLInputElement;
@@ -472,9 +460,9 @@ describe('ConflictResolutionList (Story 3.10 AC8)', () => {
   });
 
   it('Externe initialFilter-Änderung (Browser-Back) wird in den State übernommen (F8 URL→State)', () => {
-    const { rerender } = render(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} initialFilter={{ einheitId: VALID_CUID2 }} />);
+    const { rerender } = render(<ConflictResolutionList einsatzId="einsatz-1" initialFilter={{ einheitId: VALID_CUID2 }} />);
     act(() => {
-      rerender(<ConflictResolutionList einsatzId="einsatz-1" canResolve={true} initialFilter={{ einheitId: ANOTHER_CUID2 }} />);
+      rerender(<ConflictResolutionList einsatzId="einsatz-1" initialFilter={{ einheitId: ANOTHER_CUID2 }} />);
     });
     const lastCall = useSyncConflictsMock.mock.calls.at(-1);
     expect(lastCall?.[1]).toEqual({ einheitId: ANOTHER_CUID2 });

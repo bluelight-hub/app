@@ -13,10 +13,12 @@
 import type { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
+import { resolveEinheitName } from './_shared/resolve-einheit-name';
 
 const KATEGORIE: EtbKategorieValue = 'SYSTEM';
 
@@ -29,6 +31,7 @@ export class QuittungUeberfaelligEtbHandler implements IEventHandler<QuittungUeb
   constructor(
     private readonly addEintragHandler: AddEintragHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
+    @Inject(KRAEFTE_REPOSITORIES.EINSATZ_EINHEIT) private readonly einheitRepo: IEinsatzEinheitRepository,
   ) {}
 
   async handle(event: QuittungUeberfaelligEvent): Promise<void> {
@@ -38,7 +41,8 @@ export class QuittungUeberfaelligEtbHandler implements IEventHandler<QuittungUeb
         return;
       }
 
-      const text = `PSA-Quittung überfällig (${event.ueberfaelligSeitMin} min) — Einheit ${event.einheitId}`;
+      const einheitName = await resolveEinheitName(this.einheitRepo, event.einheitId);
+      const text = `PSA-Quittung überfällig (${event.ueberfaelligSeitMin} min) — Einheit ${einheitName}`;
 
       const cmd = AddEintragCommand.create(
         event.einsatzId,

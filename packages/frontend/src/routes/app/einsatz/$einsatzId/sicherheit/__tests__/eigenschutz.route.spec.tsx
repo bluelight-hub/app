@@ -55,10 +55,6 @@ vi.mock('@/features/eigenschutz/ui/organisms/EinsatzleiterReprompEskalationBanne
   EinsatzleiterReprompEskalationBanner: ({ einsatzId }: { einsatzId: string }) => <div data-testid="einsatzleiter-reprompt-mock">EinsatzleiterReprompt:{einsatzId}</div>,
 }));
 
-vi.mock('@/features/eigenschutz/ui/molecules/EigenschutzSyncStatusPopover', () => ({
-  EigenschutzSyncStatusPopover: ({ einsatzId }: { einsatzId: string }) => <div data-testid="eigenschutz-sync-status-popover-mock">SyncStatus:{einsatzId}</div>,
-}));
-
 vi.mock('@/features/eigenschutz/ui/organisms/EigenschutzSubNav', () => ({
   EigenschutzSubNav: ({ einsatzId }: { einsatzId: string }) => <div data-testid="eigenschutz-subnav-mock">SubNav:{einsatzId}</div>,
 }));
@@ -232,14 +228,11 @@ describe('Eigenschutz Route (Story 1.6)', () => {
     expect(screen.getByTestId('einsatzleiter-reprompt-mock')).toHaveTextContent('EinsatzleiterReprompt:einsatz-1');
   });
 
-  it('mountet den zentralen SyncStatusBadge oberhalb der Eigenschutz-Inhalte (Story 7.5 AC1)', () => {
-    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz/gefaehrdungen' });
+  it('rendert keinen Synchronisiert-Status-Popover im Dashboard-Header (User-Feedback 2026-05-14)', () => {
+    mockUseLocation.mockReturnValue({ pathname: '/app/einsatz/einsatz-1/sicherheit/eigenschutz' });
     renderRoute();
 
-    const syncStatus = screen.getByTestId('eigenschutz-sync-status-popover-mock');
-    const outlet = screen.getByTestId('outlet');
-    expect(syncStatus).toHaveTextContent('SyncStatus:einsatz-1');
-    expect(syncStatus.compareDocumentPosition(outlet) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByTestId('eigenschutz-sync-status-row')).toBeNull();
   });
 
   it('rendert einen Konflikt-Summary-Banner, wenn offene Konflikte ohne Live-Notice existieren (Story 7.5 AC6)', () => {

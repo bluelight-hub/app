@@ -29,6 +29,8 @@ export interface VorfallListBackendFilter {
   readonly vorfallZeitVon?: string;
   readonly vorfallZeitBis?: string;
   readonly unfallkasseRelevant?: boolean;
+  /** Issue #415: Status-Filter. `undefined` → beide Stati. */
+  readonly status?: 'OFFEN' | 'GESCHLOSSEN';
 }
 
 /**
@@ -42,6 +44,7 @@ export function stableFilterHash(filter: VorfallListBackendFilter): string {
     vorfallZeitVon: filter.vorfallZeitVon ?? null,
     vorfallZeitBis: filter.vorfallZeitBis ?? null,
     unfallkasseRelevant: filter.unfallkasseRelevant ?? null,
+    status: filter.status ?? null,
   });
 }
 
@@ -72,6 +75,7 @@ export function useListVorfaelle(einsatzId: string | undefined, filter: VorfallL
         vorfallZeitVon: filter.vorfallZeitVon,
         vorfallZeitBis: filter.vorfallZeitBis,
         unfallkasseRelevant: filter.unfallkasseRelevant,
+        status: filter.status,
       });
       return (response.data ?? []) as EigenschutzVorfallListItemDto[];
     },

@@ -5,7 +5,6 @@
  * - Tab-Switch lädt die Liste mit korrektem Status-Filter.
  * - Empty-State pro Tab.
  * - Edit-/Auflösen-Aktionen werden nur im AKTIV-Tab gerendert.
- * - „+ Sicherungsposten" nur im AKTIV-Tab sichtbar.
  */
 
 import { renderWithProviders } from '@/test/utils';
@@ -63,9 +62,8 @@ beforeEach(() => {
 function setup() {
   const onEdit = vi.fn();
   const onAufloesen = vi.fn();
-  const onCreate = vi.fn();
-  renderWithProviders(<SicherungspostenList einsatzId="einsatz-1" onEdit={onEdit} onAufloesen={onAufloesen} onCreate={onCreate} />);
-  return { onEdit, onAufloesen, onCreate };
+  renderWithProviders(<SicherungspostenList einsatzId="einsatz-1" onEdit={onEdit} onAufloesen={onAufloesen} />);
+  return { onEdit, onAufloesen };
 }
 
 describe('SicherungspostenList', () => {
@@ -95,17 +93,6 @@ describe('SicherungspostenList', () => {
     const { onAufloesen } = setup();
     await user.click(screen.getByTestId(`sicherungsposten-aufloesen-${POSTEN_AKTIV.id}`));
     expect(onAufloesen).toHaveBeenCalledWith(expect.objectContaining({ id: POSTEN_AKTIV.id }));
-  });
-
-  it('Create-Button ist nur im AKTIV-Tab sichtbar, nicht im AUFGELOEST-Tab', async () => {
-    const user = userEvent.setup();
-    setup();
-    expect(screen.getByTestId('sicherungsposten-create-button')).toBeInTheDocument();
-
-    await user.click(screen.getByTestId('sicherungsposten-tab-aufgeloest'));
-    await waitFor(() => {
-      expect(screen.queryByTestId('sicherungsposten-create-button')).not.toBeInTheDocument();
-    });
   });
 
   it('zeigt im AUFGELOEST-Tab keine Edit-Buttons', async () => {
@@ -141,17 +128,21 @@ describe('SicherungspostenList', () => {
       expect(arg.search({ existing: 'value' })).toEqual({ existing: 'value', focus: `sicherungsposten:${POSTEN_COORD.id}` });
     });
 
-    it('ist disabled für Address-only-Posten und triggert keine Navigation (AC9)', async () => {
-      // POSTEN_AKTIV hat standort.kind === 'address' — disabled erwartet.
+    it('rendert für Address-only-Posten den „Auf Karte platzieren"-Button und navigiert beim Klick', async () => {
+      // POSTEN_AKTIV hat standort.kind === 'address' — platzieren-Action erwartet.
       const user = userEvent.setup();
       setup();
-      const button = screen.getByTestId(`sicherungsposten-show-on-map-${POSTEN_AKTIV.id}`);
-      expect(button).toBeDisabled();
-      expect(button).toHaveAttribute('aria-disabled', 'true');
-      expect(button).toHaveAttribute('title', expect.stringContaining('Kein Standort hinterlegt'));
+      // Der "Auf Karte zeigen"-Button gibt es für diesen Posten NICHT (nur für coordinate).
+      expect(screen.queryByTestId(`sicherungsposten-show-on-map-${POSTEN_AKTIV.id}`)).not.toBeInTheDocument();
+      const placeButton = screen.getByTestId(`sicherungsposten-place-on-map-${POSTEN_AKTIV.id}`);
+      expect(placeButton).toBeInTheDocument();
+      expect(placeButton).not.toBeDisabled();
 
-      await user.click(button);
-      expect(navigateMock.current).not.toHaveBeenCalled();
+      await user.click(placeButton);
+      expect(navigateMock.current).toHaveBeenCalledTimes(1);
+      const arg = navigateMock.current.mock.calls[0][0];
+      expect(arg.to).toBe('/app/einsatz/$einsatzId/übersicht/karte');
+      expect(arg.params).toEqual({ einsatzId: 'einsatz-1' });
     });
 
     it('rendert NICHT im AUFGELOEST-Tab — Action-Cluster fehlt für aufgelöste Posten (AC6)', async () => {
@@ -160,6 +151,7 @@ describe('SicherungspostenList', () => {
       await user.click(screen.getByTestId('sicherungsposten-tab-aufgeloest'));
       await waitFor(() => {
         expect(screen.queryByTestId(`sicherungsposten-show-on-map-${POSTEN_AUFGELOEST.id}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId(`sicherungsposten-place-on-map-${POSTEN_AUFGELOEST.id}`)).not.toBeInTheDocument();
       });
     });
   });

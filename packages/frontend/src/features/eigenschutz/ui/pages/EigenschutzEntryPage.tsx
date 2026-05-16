@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { useEigenschutzShortcuts } from '../../hooks/useEigenschutzShortcuts';
 import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
-import { EigenschutzShortcutHelpPopover } from '../molecules/EigenschutzShortcutHelpPopover';
 import { AmpelDashboard } from '../organisms/AmpelDashboard';
+import { EigenschutzModulStatus } from '../organisms/EigenschutzModulStatus';
 
 export interface EigenschutzEntryPageProps {
   /**
@@ -14,23 +12,10 @@ export interface EigenschutzEntryPageProps {
 }
 
 export function EigenschutzEntryPage({ einsatzId }: EigenschutzEntryPageProps = {}) {
-  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
-  useEigenschutzShortcuts({
-    context: 'dashboard',
-    enabled: Boolean(einsatzId),
-    isOverlayBlocking: shortcutHelpOpen,
-    isHelpOpen: shortcutHelpOpen,
-    onOpenHelp: () => setShortcutHelpOpen(true),
-    onCloseHelp: () => setShortcutHelpOpen(false),
-  });
-
   return (
     <div className="space-y-4">
-      <EigenschutzPageHeader
-        title="Eigenschutz"
-        description="Arbeitsschutz und Sicherheitsmaßnahmen"
-        actions={einsatzId ? <EigenschutzShortcutHelpPopover context="dashboard" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} /> : null}
-      />
+      <EigenschutzPageHeader title="Eigenschutz" description="Arbeitsschutz und Sicherheitsmaßnahmen" />
+      {einsatzId ? <EigenschutzModulStatus einsatzId={einsatzId} /> : null}
       {einsatzId ? <AmpelDashboard einsatzId={einsatzId} /> : null}
     </div>
   );

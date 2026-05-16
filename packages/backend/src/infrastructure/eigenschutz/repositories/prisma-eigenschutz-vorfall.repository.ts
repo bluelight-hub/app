@@ -29,6 +29,8 @@ interface VorfallListPrismaRow {
   unfallkasseRelevant: boolean;
   erfasstAm: Date;
   erfasstVonUserId: string;
+  geschlossenAm: Date | null;
+  geschlossenVonUserId: string | null;
 }
 
 function toListReadRow(row: VorfallListPrismaRow): VorfallListReadRow {
@@ -47,6 +49,9 @@ function toListReadRow(row: VorfallListPrismaRow): VorfallListReadRow {
     unfallkasseRelevant: row.unfallkasseRelevant,
     erfasstAm: row.erfasstAm,
     erfasstVonUserId: row.erfasstVonUserId,
+    status: row.geschlossenAm === null ? 'OFFEN' : 'GESCHLOSSEN',
+    geschlossenAm: row.geschlossenAm,
+    geschlossenVonUserId: row.geschlossenVonUserId,
   };
 }
 
@@ -116,6 +121,42 @@ export class PrismaEigenschutzVorfallRepository implements IEigenschutzVorfallRe
     }
   }
 
+  async updateClosure(aggregate: EigenschutzVorfall, tx: TransactionContext): Promise<Result<void>> {
+    const client = tx as PrismaTransactionClient;
+    const geschlossenAm = aggregate.geschlossenAm;
+    const geschlossenVonUserId = aggregate.geschlossenVonUserId;
+    if (geschlossenAm === null || geschlossenVonUserId === null) {
+      return Result.fail<void>('InfrastructureError:UpdateVorfallClosure:AggregateNotClosed');
+    }
+    try {
+      const result = await client.eigenschutzVorfall.updateMany({
+        // Defense-in-Depth: Race-Condition-Doppelklick wird durch das
+        // `geschlossenAm IS NULL`-Filter idempotent abgefangen — kein
+        // Überschreiben fremder Closure-Werte.
+        where: { id: aggregate.id.value, geschlossenAm: null },
+        data: {
+          geschlossenAm,
+          geschlossenVonUserId,
+          schliessungsBegruendung: aggregate.schliessungsBegruendung,
+        },
+      });
+      if (result.count === 0) {
+        // Entweder existiert die Row nicht mehr ODER sie ist bereits
+        // geschlossen — der Handler hat das Aggregate aber gerade vorher
+        // erfolgreich geladen und transitiert, also ist „bereits geschlossen"
+        // der erwartete Pfad.
+        return Result.fail<void>('BusinessRule:VorfallBereitsGeschlossen');
+      }
+      return Result.ok<void>(undefined);
+    } catch (error) {
+      this.logger.error('Fehler beim Schließen des Eigenschutz-Vorfalls', {
+        vorfallId: aggregate.id.value,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return Result.fail<void>('InfrastructureError:UpdateVorfallClosure');
+    }
+  }
+
   async findByEinsatzWithFilters(einsatzId: string, filter: VorfallListFilter, tx?: TransactionContext): Promise<Result<VorfallListReadRow[]>> {
     if (filter.einheitIds !== undefined && filter.einheitIds.length === 0) {
       // Edge: Caller hat aktiv „leere" Einheiten-Liste übergeben. Statt
@@ -138,6 +179,12 @@ export class PrismaEigenschutzVorfallRepository implements IEigenschutzVorfallRe
     if (filter.unfallkasseRelevant !== undefined) {
       where.unfallkasseRelevant = filter.unfallkasseRelevant;
     }
+    // Issue #415: Status-Filter über `geschlossenAm IS NULL/NOT NULL`.
+    if (filter.status === 'OFFEN') {
+      where.geschlossenAm = null;
+    } else if (filter.status === 'GESCHLOSSEN') {
+      where.geschlossenAm = { not: null };
+    }
 
     try {
       const rows = await client.eigenschutzVorfall.findMany({
@@ -151,6 +198,8 @@ export class PrismaEigenschutzVorfallRepository implements IEigenschutzVorfallRe
           unfallkasseRelevant: true,
           erfasstAm: true,
           erfasstVonUserId: true,
+          geschlossenAm: true,
+          geschlossenVonUserId: true,
         },
         orderBy: [{ vorfallZeit: 'desc' }, { id: 'desc' }],
         take: VORFALL_LIST_HARD_LIMIT,

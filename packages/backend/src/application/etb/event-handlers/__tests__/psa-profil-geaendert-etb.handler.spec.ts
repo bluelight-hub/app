@@ -2,7 +2,14 @@
 import { Result } from '@domain/common/result';
 import { PsaProfilGeaendertEvent } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
 import type { AddEintragHandler } from '@application/etb/commands';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import { PsaProfilGeaendertEtbHandler } from '../psa-profil-geaendert-etb.handler';
+
+function buildEinheitRepo(name = 'Rotkreuz 83/1'): jest.Mocked<IEinsatzEinheitRepository> {
+  return {
+    findById: jest.fn().mockResolvedValue(Result.ok({ name } as any)),
+  } as unknown as jest.Mocked<IEinsatzEinheitRepository>;
+}
 
 function buildEvent(
   overrides: {
@@ -32,19 +39,21 @@ describe('PsaProfilGeaendertEtbHandler', () => {
   let handler: PsaProfilGeaendertEtbHandler;
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
   let mockLogger: { log: jest.Mock; warn: jest.Mock; error: jest.Mock; debug: jest.Mock };
+  let mockEinheitRepo: jest.Mocked<IEinsatzEinheitRepository>;
 
   beforeEach(() => {
     mockAddEintragHandler = { execute: jest.fn() } as unknown as jest.Mocked<AddEintragHandler>;
     mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
-    handler = new PsaProfilGeaendertEtbHandler(mockAddEintragHandler, mockLogger);
+    mockEinheitRepo = buildEinheitRepo('Rotkreuz 83/1');
+    handler = new PsaProfilGeaendertEtbHandler(mockAddEintragHandler, mockLogger, mockEinheitRepo);
   });
 
-  it('Branch AKTIVIERT → "PSA-Profil BASIS aktiviert"', async () => {
+  it('Branch AKTIVIERT → nutzt Einheit-Name und Profil-Label', async () => {
     mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
     await handler.handle(buildEvent({ aktion: 'AKTIVIERT', profil: 'BASIS' }));
     expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
     const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
-    expect(cmd.text).toBe('PSA-Profil BASIS aktiviert für Einheit einheit-1: Begründung-Text');
+    expect(cmd.text).toBe('PSA-Profil Basis aktiviert für Einheit Rotkreuz 83/1: Begründung-Text');
     expect(cmd.kategorie).toBe('MASSNAHME');
     expect(cmd.userId).toBe('user-1');
     expect(cmd.einsatzId).toBe('einsatz-1');
@@ -58,16 +67,33 @@ describe('PsaProfilGeaendertEtbHandler', () => {
     });
   });
 
-  it('Branch DEAKTIVIERT → "PSA-Profil INFEKTION deaktiviert"', async () => {
+  it('Branch DEAKTIVIERT → "PSA-Profil Infektion deaktiviert"', async () => {
     mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
     await handler.handle(buildEvent({ aktion: 'DEAKTIVIERT', profil: 'INFEKTION' }));
     const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
-    expect(cmd.text).toBe('PSA-Profil INFEKTION deaktiviert für Einheit einheit-1: Begründung-Text');
+    expect(cmd.text).toBe('PSA-Profil Infektion deaktiviert für Einheit Rotkreuz 83/1: Begründung-Text');
     expect(cmd.metadata).toMatchObject({
       eventType: 'PsaProfilGeaendert',
       aktion: 'DEAKTIVIERT',
       profil: 'INFEKTION',
     });
+  });
+
+  it('Profil CBRN_PATIENT → "CBRN-Patient" Label (User-Bug-Reproduktion)', async () => {
+    mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
+    await handler.handle(buildEvent({ profil: 'CBRN_PATIENT', begruendung: 'CBRN' }));
+    const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
+    expect(cmd.text).toBe('PSA-Profil CBRN-Patient aktiviert für Einheit Rotkreuz 83/1: CBRN');
+    expect(cmd.text).not.toContain('CBRN_PATIENT');
+    expect(cmd.text).not.toContain('einheit-1');
+  });
+
+  it('Fallback auf ID, wenn Einheit nicht auflösbar', async () => {
+    mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
+    mockEinheitRepo.findById.mockResolvedValue(Result.ok(null));
+    await handler.handle(buildEvent({ einheitId: 'einheit-missing' }));
+    const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
+    expect(cmd.text).toContain('Einheit einheit-missing');
   });
 
   it('truncated Begründung > 200 Zeichen mit Ellipsis', async () => {
@@ -76,8 +102,7 @@ describe('PsaProfilGeaendertEtbHandler', () => {
     await handler.handle(buildEvent({ begruendung: long }));
     const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
     expect(cmd.text.endsWith('...')).toBe(true);
-    // Format: "PSA-Profil BASIS aktiviert für Einheit einheit-1: " + truncated(197) + "..."
-    expect(cmd.text).toContain('PSA-Profil BASIS aktiviert für Einheit einheit-1: ');
+    expect(cmd.text).toContain('PSA-Profil Basis aktiviert für Einheit Rotkreuz 83/1: ');
     const begruendungPart = cmd.text.split(': ').slice(1).join(': ');
     expect(begruendungPart.length).toBe(200);
   });
@@ -86,6 +111,14 @@ describe('PsaProfilGeaendertEtbHandler', () => {
     mockAddEintragHandler.execute.mockResolvedValue(Result.fail('DB Error'));
     await expect(handler.handle(buildEvent())).resolves.toBeUndefined();
     expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Failed to add ETB entry'), 'PsaProfilGeaendertEtbHandler');
+  });
+
+  it('schluckt Fehler aus Einheit-Lookup (Fire-and-Forget, ID-Fallback)', async () => {
+    mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
+    mockEinheitRepo.findById.mockRejectedValue(new Error('DB down'));
+    await expect(handler.handle(buildEvent({ einheitId: 'einheit-x' }))).resolves.toBeUndefined();
+    const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
+    expect(cmd.text).toContain('Einheit einheit-x');
   });
 
   it('schluckt unerwartete Exceptions', async () => {

@@ -31,6 +31,12 @@ export interface UserBasicDto {
      * @memberof UserBasicDto
      */
     username: string;
+    /**
+     * Anzeigename aus der zugeordneten Stammperson (Vorname Nachname). Null, wenn keine Stammperson verknüpft ist.
+     * @type {string}
+     * @memberof UserBasicDto
+     */
+    displayName?: string | null;
 }
 
 /**
@@ -54,6 +60,7 @@ export function UserBasicDtoFromJSONTyped(json: any, ignoreDiscriminator: boolea
         
         'id': json['id'],
         'username': json['username'],
+        'displayName': json['displayName'] == null ? undefined : json['displayName'],
     };
 }
 
@@ -70,6 +77,7 @@ export function UserBasicDtoToJSONTyped(value?: UserBasicDto | null, ignoreDiscr
         
         'id': value['id'],
         'username': value['username'],
+        'displayName': value['displayName'],
     };
 }
 

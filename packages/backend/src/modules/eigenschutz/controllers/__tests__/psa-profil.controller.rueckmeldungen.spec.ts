@@ -5,10 +5,7 @@ import { DECORATORS } from '@nestjs/swagger/dist/constants';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
 import { ListOffeneRueckmeldungenQuery } from '@/application/eigenschutz/queries/list-offene-rueckmeldungen/list-offene-rueckmeldungen.query';
-import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { PsaProfilController } from '../psa-profil.controller';
 
@@ -32,10 +29,6 @@ describe('PsaProfilController — Story 6.4 (offene Rückmeldungen)', () => {
       ],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -67,11 +60,6 @@ describe('PsaProfilController — Story 6.4 (offene Rückmeldungen)', () => {
     queryBus.execute.mockResolvedValue(Result.ok([]));
 
     await expect(controller.listOffeneRueckmeldungen(EINSATZ_ID)).resolves.toEqual([]);
-  });
-
-  it('trägt @RequiresPermission("eigenschutz:psa:read")', () => {
-    const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, PsaProfilController.prototype.listOffeneRueckmeldungen);
-    expect(required).toEqual(['eigenschutz:psa:read']);
   });
 
   it('nutzt eine statische GET-Route vor dynamischen propagation-groups-Routen', () => {

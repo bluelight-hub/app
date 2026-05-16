@@ -49,7 +49,7 @@ describe('vorfallFilterStore (Story 5.3 AC5)', () => {
 
   it('(S5) replaceFilterState ersetzt atomar', () => {
     setAbschnittIds(['old']);
-    replaceFilterState({ abschnittIds: ['new1', 'new2'], vorfallZeitVon: '2026-05-01', vorfallZeitBis: undefined, unfallkasseRelevant: false });
+    replaceFilterState({ abschnittIds: ['new1', 'new2'], vorfallZeitVon: '2026-05-01', vorfallZeitBis: undefined, unfallkasseRelevant: false, status: 'OFFEN' });
 
     const state = vorfallFilterStore.state;
     expect(state.abschnittIds).toEqual(['new1', 'new2']);

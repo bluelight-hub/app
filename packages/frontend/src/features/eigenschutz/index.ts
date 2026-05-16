@@ -32,6 +32,8 @@ export { GefaehrdungenEditorOrganism } from './ui/organisms/GefaehrdungenEditorO
 export { GefaehrdungseditorDrawer } from './ui/organisms/GefaehrdungseditorDrawer.organism';
 export { RiskMatrix5x5 } from './ui/organisms/RiskMatrix5x5';
 export { SecurityPostMapMarker } from './ui/organisms/SecurityPostMapMarker';
+export { SicherungspostenDrawer } from './ui/organisms/SicherungspostenDrawer';
+export { useUpdateSicherungsposten } from './api/use-sicherungsposten';
 export { EigenschutzEntryPage } from './ui/pages/EigenschutzEntryPage';
 export { GefaehrdungenDetailPage } from './ui/pages/GefaehrdungenDetailPage';
 export { GefaehrdungenPage } from './ui/pages/GefaehrdungenPage';

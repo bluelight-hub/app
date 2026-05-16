@@ -61,7 +61,36 @@ export interface EigenschutzVorfallListItemDto {
      * @memberof EigenschutzVorfallListItemDto
      */
     erfasstVonUserId: string;
+    /**
+     * Status des Vorfalls (Issue #415)
+     * @type {string}
+     * @memberof EigenschutzVorfallListItemDto
+     */
+    status: EigenschutzVorfallListItemDtoStatusEnum;
+    /**
+     * Zeitpunkt der Schließung (ISO-8601) — `null` für offene Vorfälle
+     * @type {string}
+     * @memberof EigenschutzVorfallListItemDto
+     */
+    geschlossenAm?: string | null;
+    /**
+     * CUID des Akteurs der Schließung — `null` für offene Vorfälle
+     * @type {string}
+     * @memberof EigenschutzVorfallListItemDto
+     */
+    geschlossenVonUserId?: string | null;
 }
+
+
+/**
+ * @export
+ */
+export const EigenschutzVorfallListItemDtoStatusEnum = {
+    Offen: 'OFFEN',
+    Geschlossen: 'GESCHLOSSEN'
+} as const;
+export type EigenschutzVorfallListItemDtoStatusEnum = typeof EigenschutzVorfallListItemDtoStatusEnum[keyof typeof EigenschutzVorfallListItemDtoStatusEnum];
+
 
 /**
  * Check if a given object implements the EigenschutzVorfallListItemDto interface.
@@ -74,6 +103,7 @@ export function instanceOfEigenschutzVorfallListItemDto(value: object): value is
     if (!('unfallkasseRelevant' in value) || value['unfallkasseRelevant'] === undefined) return false;
     if (!('erfasstAm' in value) || value['erfasstAm'] === undefined) return false;
     if (!('erfasstVonUserId' in value) || value['erfasstVonUserId'] === undefined) return false;
+    if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
 
@@ -94,6 +124,9 @@ export function EigenschutzVorfallListItemDtoFromJSONTyped(json: any, ignoreDisc
         'unfallkasseRelevant': json['unfallkasseRelevant'],
         'erfasstAm': json['erfasstAm'],
         'erfasstVonUserId': json['erfasstVonUserId'],
+        'status': json['status'],
+        'geschlossenAm': json['geschlossenAm'] == null ? undefined : json['geschlossenAm'],
+        'geschlossenVonUserId': json['geschlossenVonUserId'] == null ? undefined : json['geschlossenVonUserId'],
     };
 }
 
@@ -115,6 +148,9 @@ export function EigenschutzVorfallListItemDtoToJSONTyped(value?: EigenschutzVorf
         'unfallkasseRelevant': value['unfallkasseRelevant'],
         'erfasstAm': value['erfasstAm'],
         'erfasstVonUserId': value['erfasstVonUserId'],
+        'status': value['status'],
+        'geschlossenAm': value['geschlossenAm'],
+        'geschlossenVonUserId': value['geschlossenVonUserId'],
     };
 }
 

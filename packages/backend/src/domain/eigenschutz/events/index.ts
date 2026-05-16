@@ -23,5 +23,6 @@ export { SicherungspostenEingerichtetEvent } from './sicherungsposten-eingericht
 export { SicherungspostenAktualisiertEvent } from './sicherungsposten-aktualisiert.event';
 export type { SicherungspostenAktualisiertChangedFields, SicherungspostenFieldKey } from './sicherungsposten-aktualisiert.event';
 export { VorfallGemeldetEvent } from './vorfall-gemeldet.event';
+export { VorfallGeschlossenEvent } from './vorfall-geschlossen.event';
 export { VorfallExportiertEvent } from './vorfall-exportiert.event';
 export type { VorfallExportFormat } from './vorfall-exportiert.event';

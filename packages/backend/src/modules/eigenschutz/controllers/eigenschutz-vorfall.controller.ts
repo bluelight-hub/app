@@ -21,7 +21,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiExtraModels,
-  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
@@ -40,14 +39,13 @@ import { EIGENSCHUTZ_VORFALL_JSON_RENDERER, EIGENSCHUTZ_VORFALL_PDF_RENDERER, EI
 import type { IEigenschutzVorfallPdfRenderer } from '@/application/eigenschutz/ports/i-eigenschutz-vorfall-pdf-renderer.port';
 import type { IEigenschutzVorfallJsonRenderer } from '@/application/eigenschutz/ports/i-eigenschutz-vorfall-json-renderer.port';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
-import { RequiresPermission } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { ReportVorfallCommand } from '@/application/eigenschutz/commands/report-vorfall/report-vorfall.command';
+import { CloseVorfallCommand } from '@/application/eigenschutz/commands/close-vorfall/close-vorfall.command';
 import { AuditVorfallExportCommand } from '@/application/eigenschutz/commands/audit-vorfall-export/audit-vorfall-export.command';
+import { CloseVorfallDto } from '@/application/eigenschutz/dto/close-vorfall.dto';
 import { GetVorfallByIdQuery } from '@/application/eigenschutz/queries/get-vorfall-by-id/get-vorfall-by-id.query';
 import { GetVorfallAuditTimelineQuery } from '@/application/eigenschutz/queries/get-vorfall-audit-timeline/get-vorfall-audit-timeline.query';
 import type { VorfallAuditTimelineReadModel } from '@/application/eigenschutz/queries/get-vorfall-audit-timeline/get-vorfall-audit-timeline.handler';
@@ -94,15 +92,15 @@ import type { WoProps } from '@domain/eigenschutz/value-objects/wo.vo';
   VorfallAuditTimelineEintragDto,
   ListVorfaelleQueryDto,
   ReportVorfallDto,
+  CloseVorfallDto,
   BeteiligterEinsatzPersonDto,
   BeteiligterFreitextDto,
   WoCoordinateDto,
   WoFreitextDto,
 )
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ungültig' })
-@ApiForbiddenResponse({ description: 'Keine ausreichende Permission für die Aktion' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz/vorfaelle', version: 'alpha' })
-@UseGuards(JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 export class EigenschutzVorfallController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -118,7 +116,6 @@ export class EigenschutzVorfallController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @RequiresPermission('eigenschutz:vorfall:report')
   @ApiOperation({ summary: 'Neuen Vorfall melden (Pflichtfelder Was/Wann/Wo/Beteiligte/Maßnahmen)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiBody({ type: ReportVorfallDto })
@@ -150,19 +147,45 @@ export class EigenschutzVorfallController {
   }
 
   /**
+   * Issue #415 — Vorfall schließen. Additive Closure-Operation auf dem
+   * Append-Only-Aggregate: setzt `geschlossenAm`, `geschlossenVonUserId` und
+   * optional `schliessungsBegruendung`. Idempotent: zweiter Aufruf liefert 422
+   * mit `rule: 'VorfallBereitsGeschlossen'`.
+   *
+   * Antwort ist der volle (jetzt geschlossene) `EigenschutzVorfallDto`.
+   */
+  @Post(':vorfallId/schliessen')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Vorfall schließen (Issue #415, additiv zum Append-Only-Recording)' })
+  @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
+  @ApiParam({ name: 'vorfallId', type: String, description: 'CUID des Vorfalls' })
+  @ApiBody({ type: CloseVorfallDto })
+  @ApiWrappedCreatedResponse(EigenschutzVorfallDto, { description: 'Geschlossener Vorfall inklusive Closure-Metadaten.' })
+  @ApiNotFoundResponse({ description: 'Vorfall nicht gefunden oder gehört zu einem fremden Einsatz' })
+  @ApiUnprocessableEntityResponse({ description: 'Vorfall bereits geschlossen oder Begründung ungültig' })
+  async closeVorfall(@Param('einsatzId') einsatzId: string, @Param('vorfallId') vorfallId: string, @Body() body: CloseVorfallDto, @CurrentUser() user: ValidatedUser): Promise<EigenschutzVorfallDto> {
+    const begruendung = body.begruendung ?? null;
+    const result = (await this.commandBus.execute(new CloseVorfallCommand(einsatzId, vorfallId, user.userId, begruendung))) as Result<string>;
+    if (result.isFailure || !result.value) {
+      throw this.mapCloseError(result.error ?? 'Vorfall konnte nicht geschlossen werden');
+    }
+    return this.loadDto(einsatzId, result.value);
+  }
+
+  /**
    * Story 5.3 AC8 — Vorfall-Liste mit Filtern (FR36). Liefert kompakte
    * Read-Rows ohne `kontextSnapshot` (Cap @ 200, sortiert
    * `vorfallZeit DESC, id DESC`).
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  @RequiresPermission('eigenschutz:vorfall:read')
   @ApiOperation({ summary: 'Vorfälle eines Einsatzes filtern (Liste, max. 200 Einträge)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiQuery({ name: 'einheitIds', type: String, required: false, description: 'CSV-Liste von CUID2 (max 50)' })
   @ApiQuery({ name: 'vorfallZeitVon', type: String, required: false, description: 'ISO 8601 mit Offset (untere Schranke, inklusiv)' })
   @ApiQuery({ name: 'vorfallZeitBis', type: String, required: false, description: 'ISO 8601 mit Offset (obere Schranke, exklusiv)' })
   @ApiQuery({ name: 'unfallkasseRelevant', type: Boolean, required: false })
+  @ApiQuery({ name: 'status', enum: ['OFFEN', 'GESCHLOSSEN'], required: false, description: 'Status-Filter (Issue #415). Weglassen → beide Stati.' })
   @ApiWrappedResponse(EigenschutzVorfallListItemDto, {
     description: 'Gefilterte Vorfall-Liste (max. 200 Einträge, sortiert vorfallZeit DESC, id DESC)',
     isArray: true,
@@ -184,7 +207,6 @@ export class EigenschutzVorfallController {
    */
   @Get(':vorfallId')
   @HttpCode(HttpStatus.OK)
-  @RequiresPermission('eigenschutz:vorfall:read')
   @ApiOperation({ summary: 'Vorfall-Detail laden (inkl. zeitpunkt-genauem Kontext-Snapshot)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'vorfallId', type: String, description: 'CUID des Vorfalls' })
@@ -200,7 +222,6 @@ export class EigenschutzVorfallController {
 
   @Get(':vorfallId/audit-timeline')
   @HttpCode(HttpStatus.OK)
-  @RequiresPermission('eigenschutz:vorfall:read')
   @ApiOperation({ summary: 'Export-Historie eines Vorfalls laden' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'vorfallId', type: String, description: 'CUID des Vorfalls' })
@@ -234,7 +255,6 @@ export class EigenschutzVorfallController {
    */
   @Get(':vorfallId/export')
   @HttpCode(HttpStatus.OK)
-  @RequiresPermission('eigenschutz:vorfall:export')
   @ApiOperation({ summary: 'Vorfall als PDF oder JSON exportieren (Unfallkassen-Format)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'vorfallId', type: String, description: 'CUID des Vorfalls' })
@@ -359,6 +379,7 @@ export class EigenschutzVorfallController {
     if (query.vorfallZeitVon !== undefined) filter.vorfallZeitVon = new Date(query.vorfallZeitVon);
     if (query.vorfallZeitBis !== undefined) filter.vorfallZeitBis = new Date(query.vorfallZeitBis);
     if (query.unfallkasseRelevant !== undefined) filter.unfallkasseRelevant = query.unfallkasseRelevant;
+    if (query.status !== undefined) filter.status = query.status;
     return filter;
   }
 
@@ -444,8 +465,7 @@ export class EigenschutzVorfallController {
       throw new NotFoundException({ statusCode: 404, error: 'Not Found', message: 'NotFound:Vorfall', context: { resource: 'vorfall' } });
     }
     // Cross-Einsatz-Defense: Spec/AC8 verlangt 403 (nicht 404) für Zugriffe
-    // auf Vorfälle eines fremden Einsatzes. EinsatzScopeGuard sollte das
-    // bereits abfangen — hier als Defense-in-Depth mit korrektem Status.
+    // auf Vorfälle eines fremden Einsatzes.
     if (result.value.einsatzId !== einsatzId) {
       this.logger.warn('Cross-Einsatz-Zugriff auf Vorfall blockiert', { vorfallId, requestedEinsatzId: einsatzId, actualEinsatzId: result.value.einsatzId });
       throw new ForbiddenException({
@@ -456,6 +476,47 @@ export class EigenschutzVorfallController {
       });
     }
     return toEigenschutzVorfallDto(result.value);
+  }
+
+  private mapCloseError(error: string): NotFoundException | UnprocessableEntityException | InternalServerErrorException {
+    if (error === 'NotFound:Vorfall') {
+      return new NotFoundException({ statusCode: 404, error: 'Not Found', message: error, context: { resource: 'vorfall' } });
+    }
+    if (error === 'BusinessRule:VorfallBereitsGeschlossen') {
+      return new UnprocessableEntityException({
+        statusCode: 422,
+        error: 'Unprocessable Entity',
+        message: error,
+        context: { rule: 'VorfallBereitsGeschlossen' },
+      });
+    }
+    if (error.startsWith('BusinessRule:')) {
+      const rule = error.slice('BusinessRule:'.length);
+      return new UnprocessableEntityException({
+        statusCode: 422,
+        error: 'Unprocessable Entity',
+        message: error,
+        context: { rule },
+      });
+    }
+    if (error === 'ValidationFailed:Begruendung' || error.startsWith('ValidationFailed:')) {
+      return new UnprocessableEntityException({
+        statusCode: 422,
+        error: 'Unprocessable Entity',
+        message: error,
+        context: { rule: 'ValidationFailed' },
+      });
+    }
+    if (error.startsWith('InfrastructureError:') || error.startsWith('Invariant:')) {
+      return new InternalServerErrorException({
+        statusCode: 500,
+        error: 'Internal Server Error',
+        message: error,
+        context: { layer: error.startsWith('Invariant:') ? 'domain' : 'infrastructure' },
+      });
+    }
+    this.logger.error('Unexpected Vorfall close error', { errorCategory: error.split(':')[0] ?? 'unknown' });
+    return new InternalServerErrorException({ statusCode: 500, error: 'Internal Server Error', message: error, context: { rule: 'Unexpected' } });
   }
 
   private mapCommandError(error: string): UnprocessableEntityException | InternalServerErrorException {

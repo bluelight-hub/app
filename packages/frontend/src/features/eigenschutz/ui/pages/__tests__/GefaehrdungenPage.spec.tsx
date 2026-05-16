@@ -162,16 +162,12 @@ describe('GefaehrdungenPage', () => {
     });
   });
 
-  it('öffnet den bestehenden Drawer per N-Shortcut und zeigt die Shortcut-Hilfe per ?', async () => {
+  it('öffnet den bestehenden Drawer per N-Shortcut', async () => {
     const user = userEvent.setup();
     renderWithProviders(<GefaehrdungenPage einsatzId="ceinsatz000000000000001" />);
 
     await user.keyboard('n');
     expect(screen.getByTestId('drawer-stub')).toBeInTheDocument();
-
-    await user.click(screen.getByTestId('drawer-stub-close'));
-    await user.keyboard('?');
-    expect(screen.getByTestId('eigenschutz-shortcut-help')).toHaveTextContent('Neue Gefährdungsbeurteilung');
   });
 
   it('blockiert N-Shortcut, wenn die Workspace-Shell ein Overlay offen hat', async () => {

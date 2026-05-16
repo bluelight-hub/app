@@ -4,15 +4,13 @@
  *
  * Pattern: `psa-profil.controller.ack.spec.ts` (Story 3.4).
  */
-import { ForbiddenException, InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
 import { MeldeLueckeCommand } from '@/application/eigenschutz/commands/melde-luecke/melde-luecke.command';
 import { MELDE_LUECKE_ERROR_CODES } from '@/application/eigenschutz/commands/melde-luecke/melde-luecke.handler';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { PsaProfilController } from '../psa-profil.controller';
 
@@ -40,10 +38,6 @@ describe('PsaProfilController — Story 3.6 (Lücken-Meldung)', () => {
       ],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -114,40 +108,5 @@ describe('PsaProfilController — Story 3.6 (Lücken-Meldung)', () => {
     commandBus.execute.mockResolvedValue(Result.fail('InfrastructureError:PsaProfilQuittung:Luecke:db-down'));
 
     await expect(callMelde()).rejects.toBeInstanceOf(InternalServerErrorException);
-  });
-
-  // Permission-Smoke-Test: blockiert PermissionsGuard den Zugriff, kommt der
-  // Caller gar nicht erst an die Handler-Logik. Wir simulieren das durch
-  // einen Override des Guards für genau diesen Test.
-  it('Permission-Smoke: 403 ForbiddenException, wenn PermissionsGuard ablehnt', async () => {
-    const blocked: TestingModule = await Test.createTestingModule({
-      controllers: [PsaProfilController],
-      providers: [
-        { provide: CommandBus, useValue: commandBus },
-        { provide: QueryBus, useValue: queryBus },
-        { provide: LOGGER, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() } },
-      ],
-    })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
-      .useValue({
-        canActivate: () => {
-          throw new ForbiddenException({ statusCode: 403, error: 'Forbidden', message: 'Permission `eigenschutz:psa:acknowledge` fehlt' });
-        },
-      })
-      .compile();
-
-    const blockedController = blocked.get(PsaProfilController);
-    // PermissionsGuard wirft im Test direkt — Nest würde ihn vor der
-    // Methode ausführen. Hier simulieren wir den Aufruf und erwarten
-    // ForbiddenException, wenn der Guard wirft. Da NestJS Guards in Unit-
-    // Tests nicht automatisch ausführt, dokumentiert dieser Test die
-    // Decorator-Konfiguration: `@RequiresPermission('eigenschutz:psa:acknowledge')`
-    // auf der `meldeLuecke`-Methode. Das eigentliche Guard-Verhalten ist
-    // in `permissions.guard.spec.ts` getestet.
-    expect(blockedController).toBeDefined();
   });
 });

@@ -326,4 +326,38 @@ describe('VorfallDetailPage (Story 5.2 AC12)', () => {
       expect(screen.getByTestId('vorfall-export-json-button')).not.toBeDisabled();
     });
   });
+
+  describe('Issue #415 — Vorfall schließen', () => {
+    it('rendert „Vorfall schließen"-Button für OFFENE Vorfälle', () => {
+      mocks.query.data = { ...VORFALL_DTO, status: 'OFFEN', geschlossenAm: null, geschlossenVonUserId: null, schliessungsBegruendung: null };
+      renderWithProviders(<VorfallDetailPage einsatzId="cl9einsatz12345678901234" vorfallId="vorfall-1" />);
+      expect(screen.getByTestId('vorfall-close-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('vorfall-detail-section-status-closed')).not.toBeInTheDocument();
+    });
+
+    it('blendet Button aus + zeigt Statuszeile bei GESCHLOSSENEM Vorfall', () => {
+      mocks.query.data = {
+        ...VORFALL_DTO,
+        status: 'GESCHLOSSEN',
+        geschlossenAm: '2026-05-07T15:30:00.000Z',
+        geschlossenVonUserId: 'user-99',
+        schliessungsBegruendung: 'Abgearbeitet',
+      };
+      renderWithProviders(<VorfallDetailPage einsatzId="cl9einsatz12345678901234" vorfallId="vorfall-1" />);
+      expect(screen.queryByTestId('vorfall-close-button')).not.toBeInTheDocument();
+      const section = screen.getByTestId('vorfall-detail-section-status-closed');
+      expect(section).toHaveTextContent('Geschlossen');
+      expect(section).toHaveTextContent('07.05.2026 17:30');
+      expect(screen.getByTestId('vorfall-detail-schliessungs-begruendung')).toHaveTextContent('Abgearbeitet');
+    });
+
+    it('Klick auf „Vorfall schließen" öffnet den CloseVorfallDialog', async () => {
+      mocks.query.data = { ...VORFALL_DTO, status: 'OFFEN', geschlossenAm: null, geschlossenVonUserId: null, schliessungsBegruendung: null };
+      const { default: userEvent } = await import('@testing-library/user-event');
+      const user = userEvent.setup();
+      renderWithProviders(<VorfallDetailPage einsatzId="cl9einsatz12345678901234" vorfallId="vorfall-1" />);
+      await user.click(screen.getByTestId('vorfall-close-button'));
+      expect(screen.getByTestId('close-vorfall-dialog')).toBeInTheDocument();
+    });
+  });
 });

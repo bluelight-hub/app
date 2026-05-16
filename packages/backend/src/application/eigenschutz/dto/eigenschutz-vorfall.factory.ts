@@ -6,6 +6,7 @@ import type { BeteiligterFreitextDto, BeteiligterEinsatzPersonDto, WoCoordinateD
  * Factory `EigenschutzVorfall → EigenschutzVorfallDto` (Story 5.1, AC6).
  */
 export function toEigenschutzVorfallDto(aggregate: EigenschutzVorfall): EigenschutzVorfallDto {
+  const geschlossenAm = aggregate.geschlossenAm;
   return {
     id: aggregate.id.value,
     einsatzId: aggregate.einsatzId,
@@ -21,6 +22,10 @@ export function toEigenschutzVorfallDto(aggregate: EigenschutzVorfall): Eigensch
     erfasstVonUserId: aggregate.erfasstVonUserId,
     kontextSnapshot: aggregate.kontextSnapshot,
     gefBeurteilungVersionId: aggregate.gefBeurteilungVersionId,
+    status: aggregate.isGeschlossen ? 'GESCHLOSSEN' : 'OFFEN',
+    geschlossenAm: geschlossenAm === null ? null : geschlossenAm.toISOString(),
+    geschlossenVonUserId: aggregate.geschlossenVonUserId,
+    schliessungsBegruendung: aggregate.schliessungsBegruendung,
   };
 }
 

@@ -49,7 +49,8 @@ import { GefahrenToolsSidebar } from '../../molecules/GefahrenToolsSidebar.molec
 import { ZeichenDetailPanel } from '../../molecules/ZeichenDetailPanel.molecule';
 import { useEinsatzZeichen, useCreateZeichen, usePlaceZeichen } from '@/features/taktische-zeichen';
 import { GefahrenzoneHost } from '@/features/gefahrenzone';
-import { SecurityPostMapMarker } from '@/features/eigenschutz';
+import { SecurityPostMapMarker, useUpdateSicherungsposten } from '@/features/eigenschutz';
+import { clearPendingSicherungspostenPlacement } from '../../../stores/draw.store';
 import { useZeichenDrag } from '@/features/lagekarte/hooks/use-zeichen-drag';
 import { toast } from 'sonner';
 import '@/features/lagekarte/detail-providers';
@@ -110,7 +111,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const isZeichenSidebarVisible = useStore(drawStore, (s) => s.isZeichenSidebarVisible);
   const isGefahrenSidebarVisible = useStore(drawStore, (s) => s.isGefahrenSidebarVisible);
   const pendingZeichenPlacement = useStore(drawStore, (s) => s.pendingZeichenPlacement);
+  const pendingSicherungspostenPlacement = useStore(drawStore, (s) => s.pendingSicherungspostenPlacement);
   const selectedZeichenId = useStore(drawStore, (s) => s.selectedZeichenId);
+
+  // Update-Hook für die Sicherungsposten-Karten-Platzierung. Der Hook ist
+  // unabhängig vom CRUD-Pfad in der Eigenschutz-UI; hier wird nur der Standort
+  // auf eine Coordinate aktualisiert.
+  const { mutate: placeSicherungsposten } = useUpdateSicherungsposten(einsatzId);
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
@@ -398,7 +405,36 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
    */
   const handleCombinedClick = useCallback(
     (event: MapLayerMouseEvent) => {
-      // 0. Taktisches Zeichen platzieren (Klick nach Sidebar-Auswahl)
+      // 0a. Sicherungsposten-Platzierung (Klick nach Eigenschutz-„Platzieren"):
+      // Bestehenden Posten per Update an die geklickte Koordinate schreiben.
+      // Anlegen ist nicht möglich — kommt ausschließlich aus dem Eigenschutz-
+      // Pfad. Pending wird sofort gecleared, damit ein zweiter Klick nicht
+      // dieselbe Mutation re-triggert (OCC-Schutz im Backend würde sonst 409).
+      if (pendingSicherungspostenPlacement) {
+        const { lng, lat } = event.lngLat;
+        const { postenId, expectedVersion, bezeichnung } = pendingSicherungspostenPlacement;
+        clearPendingSicherungspostenPlacement();
+        placeSicherungsposten(
+          {
+            postenId,
+            body: {
+              expectedVersion,
+              standort: { kind: 'coordinate', longitude: lng, latitude: lat },
+            },
+          },
+          {
+            onSuccess: () => {
+              toast.success(bezeichnung ? `„${bezeichnung}" auf der Karte platziert` : 'Sicherungsposten platziert');
+            },
+            onError: () => {
+              toast.error('Sicherungsposten konnte nicht platziert werden — bitte erneut versuchen');
+            },
+          },
+        );
+        return;
+      }
+
+      // 0b. Taktisches Zeichen platzieren (Klick nach Sidebar-Auswahl)
       if (pendingZeichenPlacement && !lagekarteData?.id) {
         toast.error('Lagekarte noch nicht geladen — bitte einen Moment warten');
         return;
@@ -468,13 +504,14 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       // 3. Idle/Select: Bestehender Detail-Provider-Flow
       handleMapClick(event);
     },
-    [drawMode, handleOsmClick, handleMapClick, pendingZeichenPlacement, lagekarteData?.id, createZeichen, placeZeichen],
+    [drawMode, handleOsmClick, handleMapClick, pendingZeichenPlacement, pendingSicherungspostenPlacement, lagekarteData?.id, createZeichen, placeZeichen, placeSicherungsposten],
   );
 
   /** Cursor je nach Modus bestimmen */
   const getCursor = () => {
     if (isDetailLoading) return 'wait';
     if (pendingZeichenPlacement) return 'crosshair';
+    if (pendingSicherungspostenPlacement) return 'crosshair';
     if (drawMode === 'osm_mark') return 'crosshair';
     if (drawMode !== 'idle' && drawMode !== 'select') return 'crosshair';
     return undefined;

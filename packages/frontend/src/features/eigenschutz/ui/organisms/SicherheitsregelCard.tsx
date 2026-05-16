@@ -52,7 +52,7 @@ function truncate(value: string, max = 220): string {
 export interface SicherheitsregelCardProps {
   readonly einsatzId: string;
   readonly regel: SicherheitsregelDto;
-  /** Anzeige-Name der zugeordneten Einheit (bei `einheitId === null` ignoriert). */
+  /** Anzeige-Name der zugeordneten Einheit (bei einsatzweiter Regel ignoriert). */
   readonly einheitName?: string;
   /**
    * Erwartete Empfänger-Anzahl als optionaler Hint für das Quittungs-Badge.
@@ -74,8 +74,11 @@ export interface SicherheitsregelCardProps {
 export function SicherheitsregelCard({ einsatzId, regel, einheitName, quittungenHintTotal, onEdit, onShowQuittungen }: SicherheitsregelCardProps) {
   const status = deriveSicherheitsregelStatus(regel);
   const stripeClassName = getStatusStripeClassName(status);
-  const isEinsatzweit = regel.einheitId === null;
-  const zuordnungLabel = isEinsatzweit ? 'Gesamter Einsatz' : einheitName ? `Einheit: ${einheitName}` : `Einheit: ${regel.einheitId}`;
+  // `einsatzweit` ist das DTO-eigene Diskriminator-Flag (Backend-derived).
+  // Direkt `regel.einheitId === null` würde fehlschlagen, weil der generierte
+  // Client `null` ↔ `undefined` mappt.
+  const isEinsatzweit = regel.einsatzweit;
+  const zuordnungLabel = isEinsatzweit ? 'Gesamter Einsatz' : einheitName ? `Einheit: ${einheitName}` : regel.einheitId ? `Einheit: ${regel.einheitId}` : 'Einheit unbekannt';
 
   const handleCardClick = useCallback(() => {
     onEdit(regel);

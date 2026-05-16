@@ -166,6 +166,7 @@ describe('SicherungspostenDetailPage', () => {
     expect(screen.queryByTestId('sicherungsposten-detail-edit')).not.toBeInTheDocument();
     expect(screen.queryByTestId('sicherungsposten-detail-aufloesen')).not.toBeInTheDocument();
     expect(screen.queryByTestId('sicherungsposten-detail-show-on-map')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('sicherungsposten-detail-place-on-map')).not.toBeInTheDocument();
   });
 
   it('404-Path: Banner mit „existiert nicht" + Link zur Liste', () => {
@@ -258,15 +259,21 @@ describe('SicherungspostenDetailPage', () => {
     expect(arg.search({ vorhanden: true })).toEqual({ vorhanden: true, focus: `sicherungsposten:${POSTEN_BASIS.id}` });
   });
 
-  it('„Auf Karte zeigen" ist disabled, wenn standort.kind === "address"', () => {
+  it('rendert „Auf Karte platzieren" statt „Auf Karte zeigen" bei standort.kind === "address" und navigiert zur Lagekarte', async () => {
     mocks.detailQuery.isPending = false;
     mocks.detailQuery.data = POSTEN_BASIS; // address-Variante
 
+    const user = userEvent.setup();
     renderWithProviders(<SicherungspostenDetailPage einsatzId="einsatz-1" id="posten-1" />);
 
-    const button = screen.getByTestId('sicherungsposten-detail-show-on-map');
-    expect(button).toBeDisabled();
-    expect(button).toHaveAttribute('aria-disabled', 'true');
-    expect(button).toHaveAttribute('title', expect.stringContaining('Kein Standort hinterlegt'));
+    expect(screen.queryByTestId('sicherungsposten-detail-show-on-map')).not.toBeInTheDocument();
+    const placeButton = screen.getByTestId('sicherungsposten-detail-place-on-map');
+    expect(placeButton).not.toBeDisabled();
+
+    await user.click(placeButton);
+    expect(mocks.navigate).toHaveBeenCalledTimes(1);
+    const arg = mocks.navigate.mock.calls[0][0];
+    expect(arg.to).toBe('/app/einsatz/$einsatzId/übersicht/karte');
+    expect(arg.params).toEqual({ einsatzId: 'einsatz-1' });
   });
 });

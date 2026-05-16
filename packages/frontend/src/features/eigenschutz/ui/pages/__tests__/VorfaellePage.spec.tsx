@@ -172,7 +172,7 @@ describe('VorfaellePage (Story 5.1 + 5.3)', () => {
     expect(document.activeElement).toBe(dateInput);
   });
 
-  it('(P3c) öffnet den bestehenden Melde-Drawer per V-Shortcut und die Hilfe per ?', async () => {
+  it('(P3c) öffnet den bestehenden Melde-Drawer per V-Shortcut', async () => {
     const Wrapper = makeWrapper();
     render(
       <Wrapper>
@@ -186,14 +186,6 @@ describe('VorfaellePage (Story 5.1 + 5.3)', () => {
 
     await user.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByTestId('vorfall-melden-drawer')).not.toBeInTheDocument());
-    await user.keyboard('?');
-    expect(screen.getByTestId('eigenschutz-shortcut-help')).toHaveTextContent('Filter fokussieren');
-    expect(screen.getByTestId('eigenschutz-shortcut-help')).toHaveTextContent('Vorfall melden');
-    await waitFor(() => expect(screen.getByTestId('eigenschutz-shortcut-help-close')).toHaveFocus());
-
-    await user.keyboard('{Escape}');
-    await waitFor(() => expect(screen.queryByTestId('eigenschutz-shortcut-help')).not.toBeInTheDocument());
-    await waitFor(() => expect(screen.getByTestId('eigenschutz-shortcut-help-trigger')).toHaveFocus());
   });
 
   it('(P3d) blockiert V-Shortcut, wenn die Workspace-Shell ein Overlay offen hat', async () => {
@@ -210,6 +202,58 @@ describe('VorfaellePage (Story 5.1 + 5.3)', () => {
     await user.keyboard('v');
 
     expect(screen.queryByTestId('vorfall-melden-drawer')).not.toBeInTheDocument();
+  });
+
+  it('(P5 / Issue #415) rendert Status-Tabs „Offen" und „Geschlossen", Default OFFEN', async () => {
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfaellePage einsatzId="einsatz-1" einheitId={null} />
+      </Wrapper>,
+    );
+
+    const tabsContainer = screen.getByTestId('vorfaelle-status-tabs');
+    expect(tabsContainer).toBeInTheDocument();
+    expect(screen.getByTestId('vorfaelle-tab-offen')).toBeInTheDocument();
+    expect(screen.getByTestId('vorfaelle-tab-geschlossen')).toBeInTheDocument();
+    expect(screen.getByTestId('vorfaelle-tab-offen')).toHaveAttribute('aria-selected', 'true');
+
+    await waitFor(() => expect(mockList).toHaveBeenCalled());
+    const args = mockList.mock.calls.at(-1)![0];
+    expect(args.status).toBe('OFFEN');
+  });
+
+  it('(P6 / Issue #415) Initial-Search status=geschlossen schaltet auf den Tab GESCHLOSSEN', async () => {
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfaellePage einsatzId="einsatz-1" einheitId={null} initialSearch={{ status: 'geschlossen' }} />
+      </Wrapper>,
+    );
+
+    expect(screen.getByTestId('vorfaelle-tab-geschlossen')).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => expect(mockList).toHaveBeenCalled());
+    const args = mockList.mock.calls.at(-1)![0];
+    expect(args.status).toBe('GESCHLOSSEN');
+  });
+
+  it('(P7 / Issue #415) Tab-Switch schreibt status=geschlossen in die URL', async () => {
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfaellePage einsatzId="einsatz-1" einheitId={null} />
+      </Wrapper>,
+    );
+
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId('vorfaelle-tab-geschlossen'));
+    await waitFor(() => {
+      const call = mockNavigate.mock.calls.find((c) => {
+        const search = (c[0] as { search?: unknown })?.search;
+        return search && typeof search === 'object' && (search as Record<string, unknown>).status === 'geschlossen';
+      });
+      expect(call).toBeDefined();
+    });
   });
 
   it('(P4) Initial-Search aus URL füllt den Filter-Store', async () => {

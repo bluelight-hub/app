@@ -11,14 +11,17 @@
 
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { useState } from 'react';
 import type { EigenschutzVorfallDto, EigenschutzVorfallDtoBeteiligteInner, EigenschutzVorfallDtoWo } from '@bluelight-hub/shared/client';
 import { buildEigenschutzBrowserUrl } from '@/features/eigenschutz/utils/build-eigenschutz-deep-link';
+import { useUserNames } from '@/features/auth/api/use-users';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { CopyButton } from '@/shared/ui/molecules/copy-button.molecule';
 import { useExportVorfallAlsJson } from '../../api/use-export-vorfall-as-json';
 import { useExportVorfallAlsPdf } from '../../api/use-export-vorfall-as-pdf';
 import { useGetVorfall } from '../../api/use-get-vorfall';
 import { useVorfallAuditTimeline, type VorfallAuditTimelineEntry } from '../../api/use-vorfall-audit-timeline';
+import { CloseVorfallDialog } from '../organisms/CloseVorfallDialog';
 import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { IncidentContextSnapshot } from '../organisms/IncidentContextSnapshot';
 
@@ -102,12 +105,28 @@ function formatExportFormat(exportFormat: string | null | undefined): string {
   return exportFormat.toUpperCase();
 }
 
-function formatAuditActor(entry: VorfallAuditTimelineEntry): string {
+function formatAuditActor(entry: VorfallAuditTimelineEntry, userMap: ReadonlyMap<string, string>): string {
+  // Bevorzugt den über `useUserNames()` aufgelösten Anzeigenamen (Personalname
+  // aus Stammperson, sonst Benutzername). Fällt auf den Server-aufgelösten
+  // `userName` zurück, falls die User-Liste noch nicht geladen ist, und am
+  // Ende auf die ID, falls beides fehlt.
+  const resolved = entry.userId ? userMap.get(entry.userId) : undefined;
+  if (resolved) return `Nutzer: ${resolved}`;
   if (entry.userName) return `Nutzer: ${entry.userName}`;
   return entry.userId ? `Nutzer-ID: ${entry.userId.slice(0, 8)}` : 'Nutzer unbekannt';
 }
 
-function ExportHistorySection({ entries, isLoading, isError }: { readonly entries: readonly VorfallAuditTimelineEntry[] | undefined; readonly isLoading: boolean; readonly isError: boolean }) {
+function ExportHistorySection({
+  entries,
+  isLoading,
+  isError,
+  userMap,
+}: {
+  readonly entries: readonly VorfallAuditTimelineEntry[] | undefined;
+  readonly isLoading: boolean;
+  readonly isError: boolean;
+  readonly userMap: ReadonlyMap<string, string>;
+}) {
   return (
     <section data-testid="vorfall-export-history-section" className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4">
       <Heading as="h2" size="sm">
@@ -136,7 +155,7 @@ function ExportHistorySection({ entries, isLoading, isError }: { readonly entrie
                 <p className="font-medium text-text-primary">
                   {formatExportFormat(entry.format)} exportiert · {formatDateTime(entry.occurredAt)}
                 </p>
-                <p className="text-xs text-text-muted">{formatAuditActor(entry)}</p>
+                <p className="text-xs text-text-muted">{formatAuditActor(entry, userMap)}</p>
               </div>
               <p className="text-xs text-text-muted">{entry.label}</p>
             </li>
@@ -199,6 +218,8 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
   const auditTimeline = useVorfallAuditTimeline(einsatzId, vorfallId);
   const exportPdf = useExportVorfallAlsPdf();
   const exportJson = useExportVorfallAlsJson();
+  const { getUserName, userMap } = useUserNames();
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
 
   if (query.isLoading) return <VorfallDetailSkeleton />;
 
@@ -230,6 +251,8 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
   const vorfall = query.data as EigenschutzVorfallDto | undefined;
   if (!vorfall) return <VorfallDetailSkeleton />;
   const detailUrl = buildEigenschutzBrowserUrl({ type: 'vorfall', einsatzId, vorfallId });
+  const isGeschlossen = vorfall.status === 'GESCHLOSSEN';
+  const closerName = vorfall.geschlossenVonUserId ? getUserName(vorfall.geschlossenVonUserId) || vorfall.geschlossenVonUserId.slice(0, 8) : null;
 
   return (
     <div className="space-y-4" data-testid="vorfall-detail-page">
@@ -239,6 +262,16 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
         actions={
           <div className="flex flex-col items-end gap-2">
             <div className="flex flex-wrap items-center justify-end gap-2">
+              {!isGeschlossen ? (
+                <button
+                  type="button"
+                  className="text-action-primary-foreground rounded-control bg-action-primary px-3 py-1.5 text-sm font-medium hover:bg-action-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+                  data-testid="vorfall-close-button"
+                  onClick={() => setCloseDialogOpen(true)}
+                >
+                  Vorfall schließen
+                </button>
+              ) : null}
               <CopyButton text={detailUrl} idleLabel="Link kopieren" copiedLabel="Link kopiert" errorLabel="Link konnte nicht kopiert werden" size="sm" statusTestId="vorfall-detail-copy-status" />
               <button
                 type="button"
@@ -286,6 +319,21 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
         }
       />
 
+      {isGeschlossen && vorfall.geschlossenAm ? (
+        <section data-testid="vorfall-detail-section-status-closed" className="space-y-1 rounded-panel border border-border-subtle bg-surface-panel-elevated px-4 py-3 text-sm text-text-secondary">
+          <p>
+            <span className="font-medium text-text-primary">Geschlossen</span> am {formatDateTime(vorfall.geschlossenAm)}
+            {closerName ? <> von {closerName}</> : null}
+          </p>
+          {vorfall.schliessungsBegruendung ? (
+            <p data-testid="vorfall-detail-schliessungs-begruendung" className="whitespace-pre-line text-text-primary">
+              <span className="font-medium text-text-muted">Begründung: </span>
+              {vorfall.schliessungsBegruendung}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
       <section data-testid="vorfall-detail-section-fakten" className="space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-4">
         <Heading as="h2" size="sm">
           Was, Wann, Wo
@@ -330,7 +378,9 @@ export function VorfallDetailPage({ einsatzId, vorfallId }: VorfallDetailPagePro
 
       <IncidentContextSnapshot einsatzId={einsatzId} rawSnapshot={vorfall.kontextSnapshot} />
 
-      <ExportHistorySection entries={auditTimeline.data} isLoading={auditTimeline.isLoading} isError={auditTimeline.isError} />
+      <ExportHistorySection entries={auditTimeline.data} isLoading={auditTimeline.isLoading} isError={auditTimeline.isError} userMap={userMap} />
+
+      <CloseVorfallDialog einsatzId={einsatzId} vorfallId={closeDialogOpen ? vorfallId : null} onClose={() => setCloseDialogOpen(false)} />
     </div>
   );
 }

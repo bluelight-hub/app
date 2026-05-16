@@ -119,9 +119,9 @@ export function SicherheitsregelnPage({ einsatzId, initialAction, focusRegelId, 
       result = result.filter((regel) => deriveSicherheitsregelStatus(regel) === statusFilter);
     }
     if (scopeFilter === 'einsatzweit') {
-      result = result.filter((regel) => regel.einheitId === null);
+      result = result.filter((regel) => regel.einsatzweit);
     } else if (scopeFilter === 'einheit') {
-      result = result.filter((regel) => regel.einheitId !== null);
+      result = result.filter((regel) => !regel.einsatzweit);
     }
     // Stable sort via copy.
     const sorted = [...result];
@@ -320,7 +320,7 @@ export function SicherheitsregelnPage({ einsatzId, initialAction, focusRegelId, 
       {!regelnQuery.isPending && !regelnQuery.isError && filteredAndSorted.length > 0 ? (
         <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2" data-testid="sicherheitsregeln-list" aria-label="Sicherheitsregeln">
           {filteredAndSorted.map((regel) => {
-            const einheitName = regel.einheitId === null ? undefined : einheitNameById.get(regel.einheitId);
+            const einheitName = regel.einsatzweit ? undefined : regel.einheitId ? einheitNameById.get(regel.einheitId) : undefined;
             // Hint für den Quittungs-Counter: einheit-scoped → 1 Empfänger,
             // einsatzweit → alle aktuell bekannten Einheiten als UI-seitige
             // Obergrenze. Achtung: Diese Zahl ist nicht zwingend identisch
@@ -329,7 +329,7 @@ export function SicherheitsregelnPage({ einsatzId, initialAction, focusRegelId, 
             // den Total-Counter geringfügig. Sobald das Popover geöffnet
             // wird, ersetzt der echte Fetch (`useSicherheitsregelQuittungen`)
             // diesen Hint mit dem Quittungs-Bestand vom Server.
-            const quittungenHintTotal = regel.einheitId === null ? (einheitenAnzahl > 0 ? einheitenAnzahl : undefined) : 1;
+            const quittungenHintTotal = regel.einsatzweit ? (einheitenAnzahl > 0 ? einheitenAnzahl : undefined) : 1;
             return (
               <li key={regel.id}>
                 <SicherheitsregelCard einsatzId={einsatzId} regel={regel} einheitName={einheitName} quittungenHintTotal={quittungenHintTotal} onEdit={handleOpenEdit} />

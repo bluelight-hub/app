@@ -5,9 +5,7 @@ import { Result } from '@domain/common/result';
 import { CHANGE_PSA_PROFIL_ERROR_CODES } from '@/application/eigenschutz/commands/change-psa-profil/change-psa-profil.handler';
 import { ChangePsaProfilCommand } from '@/application/eigenschutz/commands/change-psa-profil/change-psa-profil.command';
 import { GetPsaProfileByEinheitQuery } from '@/application/eigenschutz/queries/get-psa-profile-by-einheit/get-psa-profile-by-einheit.query';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { PsaProfilController } from '../psa-profil.controller';
 
@@ -35,23 +33,17 @@ describe('PsaProfilController (Story 3.1)', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
-      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get(PsaProfilController);
   });
 
-  describe('Drei-Schicht-Guard-Kette (AC6)', () => {
-    it('trägt JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard auf Klassen-Ebene', () => {
+  describe('Guard-Kette + Routing', () => {
+    it('trägt nur JwtAuthGuard auf Klassen-Ebene', () => {
       const guards = Reflect.getMetadata('__guards__', PsaProfilController) as unknown[];
       expect(guards).toBeDefined();
-      expect(guards).toHaveLength(3);
+      expect(guards).toHaveLength(1);
       expect(guards[0]).toBe(JwtAuthGuard);
-      expect(guards[1]).toBe(EinsatzScopeGuard);
-      expect(guards[2]).toBe(PermissionsGuard);
     });
 
     // Code-Review P-31: OpenAPI-Generator-Backstop. Wenn jemand das `version`
@@ -438,16 +430,10 @@ describe('PsaProfilController (Story 3.1)', () => {
     });
   });
 
-  // P-32: HTTP-Integration-Test mit echten Guards + 401/403/200-Pfad wartet
-  // auf den Test-Harness aus Story 3.9 (Action Item B3, Epic-2-Retro). Bis
-  // dahin als `.skip`-Skelett, damit der Stub im Test-File bleibt und nach
-  // Harness-Boot sofort verkabelbar ist (Code-Review Task 6.7).
-  describe.skip('(Story 3.1 AC4/AC6) HTTP-Integration mit Vier-Schicht-Guard-Kette — harness blocked, siehe deferred-work.md', () => {
+  // HTTP-Integration-Test mit echtem JwtAuthGuard ist deferred (Test-Harness).
+  describe.skip('HTTP-Integration mit JwtAuthGuard — harness blocked, siehe deferred-work.md', () => {
     it.skip('401 ohne JWT', () => {});
-    it.skip('403 wenn Membership fehlt (EinsatzScopeGuard)', () => {});
-    it.skip('403 wenn Eigenschutz-Rolle fehlt', () => {});
-    it.skip('403 wenn Permission fehlt', () => {});
-    it.skip('201 + Wrapper-Envelope bei vollständig erfüllter Guard-Kette', () => {});
+    it.skip('201 + Wrapper-Envelope mit gültigem JWT', () => {});
     it.skip('409 mit context.currentVersion bei Lost-Update', () => {});
   });
 });

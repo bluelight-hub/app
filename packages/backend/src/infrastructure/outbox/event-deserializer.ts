@@ -170,6 +170,7 @@ import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-u
 import { SicherungspostenEingerichtetEvent } from '@domain/eigenschutz/events/sicherungsposten-eingerichtet.event';
 import { SicherungspostenAktualisiertEvent, type SicherungspostenAktualisiertChangedFields, type SicherungspostenFieldKey } from '@domain/eigenschutz/events/sicherungsposten-aktualisiert.event';
 import { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
+import { VorfallGeschlossenEvent } from '@domain/eigenschutz/events/vorfall-geschlossen.event';
 import { VorfallExportiertEvent, type VorfallExportFormat } from '@domain/eigenschutz/events/vorfall-exportiert.event';
 import { KonfliktErkanntEvent, type SyncConflictEntityType } from '@domain/eigenschutz/events/konflikt-erkannt.event';
 import { KonfliktAufgeloestEvent, type SyncConflictResolution } from '@domain/eigenschutz/events/konflikt-aufgeloest.event';
@@ -460,6 +461,7 @@ export class EventDeserializer {
       ['eigenschutz.sicherungsposten_eingerichtet', deserializeSicherungspostenEingerichtet],
       ['eigenschutz.sicherungsposten_aktualisiert', deserializeSicherungspostenAktualisiert],
       ['eigenschutz.vorfall_gemeldet', deserializeVorfallGemeldet],
+      ['eigenschutz.vorfall_geschlossen', deserializeVorfallGeschlossen],
       ['eigenschutz.vorfall_exportiert', deserializeVorfallExportiert],
     ]);
   }
@@ -3246,6 +3248,29 @@ function deserializeVorfallGemeldet(payload: Record<string, unknown>, aggregateI
   }
 
   const event = new VorfallGemeldetEvent(einsatzId, userId, einheitId, vorfallId, vorfallZeit, unfallkasseRelevant, aggregateId, occurredOn);
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert VorfallGeschlossenEvent (Issue #415).
+ */
+function deserializeVorfallGeschlossen(payload: Record<string, unknown>, aggregateId?: string, occurredOn?: Date): Result<DomainEvent> {
+  const einsatzId = payload.einsatzId;
+  const userId = payload.userId;
+  const einheitId = payload.einheitId;
+  const vorfallId = payload.vorfallId;
+  const geschlossenAmRaw = payload.geschlossenAm;
+
+  if (typeof einsatzId !== 'string' || typeof userId !== 'string' || typeof einheitId !== 'string' || typeof vorfallId !== 'string' || typeof geschlossenAmRaw !== 'string') {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.vorfall_geschlossen');
+  }
+
+  const geschlossenAm = new Date(geschlossenAmRaw);
+  if (Number.isNaN(geschlossenAm.getTime())) {
+    return Result.fail<DomainEvent>('Invalid payload for eigenschutz.vorfall_geschlossen');
+  }
+
+  const event = new VorfallGeschlossenEvent(einsatzId, userId, einheitId, vorfallId, geschlossenAm, aggregateId, occurredOn);
   return Result.ok<DomainEvent>(event);
 }
 

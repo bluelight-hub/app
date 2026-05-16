@@ -15,26 +15,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiBody,
-  ApiForbiddenResponse,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiTags,
-  ApiUnauthorizedResponse,
-  ApiUnprocessableEntityResponse,
-} from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags, ApiUnauthorizedResponse, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
 import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
-import { RequiresPermission } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { ReportSyncConflictCommand, type ReportSyncConflictResult } from '@/application/eigenschutz/commands/report-sync-conflict/report-sync-conflict.command';
@@ -60,16 +46,13 @@ import { SyncConflictResolveResultDto } from '@/application/eigenschutz/dto/sync
  * **Endpoints:**
  * - `POST /` (Story 3.9, 202 Accepted): Sync-Konflikt aus 409-Mutation melden.
  * - `GET /` (Story 3.10, 200 OK): Liste offener Konflikte für die UI.
- *   Permission `eigenschutz:psa:read` — Nachbereitung darf lesen, nicht resolven.
  * - `PATCH /:syncConflictId/resolve` (Story 3.10, 200 OK): Konflikt auflösen.
- *   Permission `eigenschutz:psa:write` — nur Sicherheitsbeauftragte.
  */
 @ApiTags('eigenschutz')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ungültig' })
-@ApiForbiddenResponse({ description: 'Keine ausreichende Permission für die Aktion' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz/sync-conflicts', version: 'alpha' })
-@UseGuards(JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 export class SyncConflictController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -79,7 +62,6 @@ export class SyncConflictController {
 
   @Post()
   @HttpCode(202)
-  @RequiresPermission('eigenschutz:psa:write')
   @ApiOperation({ summary: 'Sync-Konflikt aus 409-Mutation melden — Story 3.9 (FR50)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiBody({ type: ReportSyncConflictDto })
@@ -100,7 +82,6 @@ export class SyncConflictController {
   }
 
   @Get()
-  @RequiresPermission('eigenschutz:psa:read')
   @ApiOperation({ summary: 'Liste offener Sync-Konflikte für den Einsatz — Story 3.10 (FR50, UX-DR6)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiQuery({ name: 'entityType', required: false, enum: ['PSA_PROFIL_ZUWEISUNG', 'GEFAEHRDUNGSBEURTEILUNG_ITEM'] })
@@ -126,7 +107,6 @@ export class SyncConflictController {
 
   @Patch(':syncConflictId/resolve')
   @HttpCode(200)
-  @RequiresPermission('eigenschutz:psa:write')
   @ApiOperation({ summary: 'Sync-Konflikt auflösen — Story 3.10 (FR50, UX-DR6)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'syncConflictId', type: String, description: 'CUID der `sync_conflicts`-Row' })

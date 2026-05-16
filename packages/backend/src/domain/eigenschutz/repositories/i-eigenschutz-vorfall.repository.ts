@@ -3,6 +3,13 @@ import type { Result } from '@domain/common/result';
 import type { EigenschutzVorfall } from '../aggregates/eigenschutz-vorfall.aggregate';
 
 /**
+ * Status-Achse für die Vorfall-Liste (Issue #415). `OFFEN` = `geschlossenAm IS NULL`,
+ * `GESCHLOSSEN` = `geschlossenAm IS NOT NULL`. Wird zusätzlich zu den anderen
+ * Filtern angewendet.
+ */
+export type VorfallStatusFilter = 'OFFEN' | 'GESCHLOSSEN';
+
+/**
  * Filter-Eingabe für `findByEinsatzWithFilters` (Story 5.3, AC1).
  *
  * Halb-offenes Zeitintervall: `vorfallZeit >= vorfallZeitVon` und
@@ -15,6 +22,12 @@ export interface VorfallListFilter {
   readonly vorfallZeitVon?: Date;
   readonly vorfallZeitBis?: Date;
   readonly unfallkasseRelevant?: boolean;
+  /**
+   * Status-Filter (Issue #415). `undefined` → beide Stati werden geliefert
+   * (Backward-Compat zu Story 5.3-Callern, die den Filter noch nicht setzen).
+   * Frontend setzt default auf `'OFFEN'`.
+   */
+  readonly status?: VorfallStatusFilter;
 }
 
 /**
@@ -31,6 +44,12 @@ export interface VorfallListReadRow {
   readonly unfallkasseRelevant: boolean;
   readonly erfasstAm: Date;
   readonly erfasstVonUserId: string;
+  /** Status-Anzeige in der Liste (Issue #415). */
+  readonly status: VorfallStatusFilter;
+  /** Zeitpunkt der Schließung; `null` für offene Vorfälle. */
+  readonly geschlossenAm: Date | null;
+  /** Akteur der Schließung; `null` für offene Vorfälle. */
+  readonly geschlossenVonUserId: string | null;
 }
 
 /**
@@ -46,8 +65,11 @@ export const VORFALL_LIST_HARD_LIMIT = 200 as const;
  * Aggregate (Story 5.1, FR31/FR32). Implementierungen liegen in
  * `infrastructure/eigenschutz/repositories/`.
  *
- * **Append-only:** Vorfälle werden im MVP nie aktualisiert oder gelöscht;
- * dieser Port stellt nur einen `save`-Pfad (Insert) und Lese-Pfade bereit.
+ * **Append-only (Original-Recording):** Die ursprünglichen Vorfall-Felder
+ * werden NIE aktualisiert oder gelöscht. `save` ist ein reiner Insert. Für
+ * additive Closure-Metadaten (Issue #415) gibt es einen separaten
+ * `updateClosure`-Pfad — ein gezielter UPDATE der drei Closure-Spalten ohne
+ * Mutation des Original-Recordings.
  */
 export interface IEigenschutzVorfallRepository {
   /**
@@ -75,4 +97,16 @@ export interface IEigenschutzVorfallRepository {
    * Cap: `VORFALL_LIST_HARD_LIMIT` Einträge.
    */
   findByEinsatzWithFilters(einsatzId: string, filter: VorfallListFilter, tx?: TransactionContext): Promise<Result<VorfallListReadRow[]>>;
+
+  /**
+   * Issue #415 — gezielter UPDATE der drei Closure-Spalten. Wird vom
+   * `CloseVorfallHandler` aufgerufen, nachdem das Aggregate `close()`
+   * akzeptiert hat. Erwartet, dass das Aggregate bereits in den geschlossenen
+   * Zustand transitiert wurde (alle drei Felder sind dann gemeinsam gesetzt).
+   *
+   * Defense-in-Depth: die WHERE-Klausel filtert zusätzlich auf
+   * `geschlossen_am IS NULL`, sodass ein Race-Condition-Doppelklick auf der
+   * DB-Ebene zur Idempotenz wird (kein Überschreiben fremder Closure-Werte).
+   */
+  updateClosure(aggregate: EigenschutzVorfall, tx: TransactionContext): Promise<Result<void>>;
 }

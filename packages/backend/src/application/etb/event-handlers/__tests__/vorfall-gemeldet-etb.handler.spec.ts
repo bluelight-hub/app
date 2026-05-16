@@ -2,7 +2,14 @@
 import { Result } from '@domain/common/result';
 import { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
 import type { AddEintragHandler } from '@application/etb/commands';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import { VorfallGemeldetEtbHandler } from '../vorfall-gemeldet-etb.handler';
+
+function buildEinheitRepo(name = 'Rotkreuz 71/3'): jest.Mocked<IEinsatzEinheitRepository> {
+  return {
+    findById: jest.fn().mockResolvedValue(Result.ok({ name } as any)),
+  } as unknown as jest.Mocked<IEinsatzEinheitRepository>;
+}
 
 function buildEvent(
   overrides: {
@@ -29,19 +36,22 @@ describe('VorfallGemeldetEtbHandler', () => {
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
   let mockLogger: { log: jest.Mock; warn: jest.Mock; error: jest.Mock; debug: jest.Mock };
 
+  let mockEinheitRepo: jest.Mocked<IEinsatzEinheitRepository>;
+
   beforeEach(() => {
     mockAddEintragHandler = { execute: jest.fn() } as unknown as jest.Mocked<AddEintragHandler>;
     mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
-    handler = new VorfallGemeldetEtbHandler(mockAddEintragHandler, mockLogger);
+    mockEinheitRepo = buildEinheitRepo('Rotkreuz 71/3');
+    handler = new VorfallGemeldetEtbHandler(mockAddEintragHandler, mockLogger, mockEinheitRepo);
   });
 
-  it('erstellt ETB-Eintrag mit Einheit und Vorfall-Zeitpunkt (ohne Unfallkasse-Hinweis)', async () => {
+  it('erstellt ETB-Eintrag mit Einheit-Name und Vorfall-Zeitpunkt (ohne Unfallkasse-Hinweis)', async () => {
     mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
     const vorfallZeit = new Date('2026-01-15T10:30:00.000Z');
     await handler.handle(buildEvent({ vorfallZeit, unfallkasseRelevant: false }));
     expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
     const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
-    expect(cmd.text).toBe(`Vorfall gemeldet von Einheit einheit-1 — Zeitpunkt: ${vorfallZeit.toISOString()}`);
+    expect(cmd.text).toBe(`Vorfall gemeldet von Einheit Rotkreuz 71/3 — Zeitpunkt: ${vorfallZeit.toISOString()}`);
     expect(cmd.kategorie).toBe('SONSTIGES');
     expect(cmd.userId).toBe('user-1');
     expect(cmd.einsatzId).toBe('einsatz-1');
@@ -59,7 +69,7 @@ describe('VorfallGemeldetEtbHandler', () => {
     const vorfallZeit = new Date('2026-02-01T08:00:00.000Z');
     await handler.handle(buildEvent({ vorfallZeit, unfallkasseRelevant: true }));
     const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
-    expect(cmd.text).toBe(`Vorfall gemeldet von Einheit einheit-1 (unfallkasse-relevant) — Zeitpunkt: ${vorfallZeit.toISOString()}`);
+    expect(cmd.text).toBe(`Vorfall gemeldet von Einheit Rotkreuz 71/3 (unfallkasse-relevant) — Zeitpunkt: ${vorfallZeit.toISOString()}`);
     expect(cmd.metadata).toMatchObject({ unfallkasseRelevant: true });
   });
 

@@ -7,7 +7,20 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { drawStore, openGefahrenSidebar, openZeichenSidebar, resetDrawStore, setDrawContext, setDrawMode, toggleGefahrenSidebar, toggleLock, toggleZeichenSidebar } from '../draw.store';
+import {
+  clearPendingSicherungspostenPlacement,
+  drawStore,
+  openGefahrenSidebar,
+  openZeichenSidebar,
+  resetDrawStore,
+  setDrawContext,
+  setDrawMode,
+  setPendingSicherungspostenPlacement,
+  setPendingZeichenPlacement,
+  toggleGefahrenSidebar,
+  toggleLock,
+  toggleZeichenSidebar,
+} from '../draw.store';
 
 describe('draw.store — Gefahren-Sidebar', () => {
   beforeEach(() => {
@@ -105,6 +118,49 @@ describe('draw.store — Gefahren-Sidebar', () => {
       toggleLock();
       expect(drawStore.state.isLocked).toBe(false);
       expect(drawStore.state.drawContext).toBeNull();
+    });
+  });
+
+  describe('Sicherungsposten-Placement — Mutex', () => {
+    it('setPendingSicherungspostenPlacement setzt den Posten-Pending-State und löscht pendingZeichenPlacement', () => {
+      setPendingZeichenPlacement({} as never);
+      setPendingSicherungspostenPlacement('posten-1', 3, 'Eingang Süd');
+      expect(drawStore.state.pendingSicherungspostenPlacement).toEqual({ postenId: 'posten-1', expectedVersion: 3, bezeichnung: 'Eingang Süd' });
+      expect(drawStore.state.pendingZeichenPlacement).toBeNull();
+    });
+
+    it('setPendingZeichenPlacement löscht ein laufendes Sicherungsposten-Placement', () => {
+      setPendingSicherungspostenPlacement('posten-1', 3);
+      setPendingZeichenPlacement({} as never);
+      expect(drawStore.state.pendingSicherungspostenPlacement).toBeNull();
+      expect(drawStore.state.pendingZeichenPlacement).not.toBeNull();
+    });
+
+    it('clearPendingSicherungspostenPlacement setzt den Pending-State auf null', () => {
+      setPendingSicherungspostenPlacement('posten-1', 3);
+      clearPendingSicherungspostenPlacement();
+      expect(drawStore.state.pendingSicherungspostenPlacement).toBeNull();
+    });
+
+    it('toggleZeichenSidebar (öffnen) bricht ein Sicherungsposten-Placement ab', () => {
+      setPendingSicherungspostenPlacement('posten-1', 3);
+      toggleZeichenSidebar();
+      expect(drawStore.state.isZeichenSidebarVisible).toBe(true);
+      expect(drawStore.state.pendingSicherungspostenPlacement).toBeNull();
+    });
+
+    it('toggleGefahrenSidebar (öffnen) bricht ein Sicherungsposten-Placement ab', () => {
+      setPendingSicherungspostenPlacement('posten-1', 3);
+      toggleGefahrenSidebar();
+      expect(drawStore.state.isGefahrenSidebarVisible).toBe(true);
+      expect(drawStore.state.pendingSicherungspostenPlacement).toBeNull();
+    });
+
+    it('toggleLock bricht ein laufendes Sicherungsposten-Placement ab', () => {
+      setPendingSicherungspostenPlacement('posten-1', 3);
+      toggleLock();
+      expect(drawStore.state.isLocked).toBe(true);
+      expect(drawStore.state.pendingSicherungspostenPlacement).toBeNull();
     });
   });
 });

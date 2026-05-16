@@ -55,6 +55,7 @@ import { EigenschutzQuittungAbgegebenEventAdapter } from './event-adapters/psa-q
 import { EigenschutzSicherungspostenEingerichtetEventAdapter } from './event-adapters/sicherungsposten-eingerichtet.adapter';
 import { EigenschutzSicherungspostenAktualisiertEventAdapter } from './event-adapters/sicherungsposten-aktualisiert.adapter';
 import { EigenschutzVorfallGemeldetEventAdapter } from './event-adapters/vorfall-gemeldet.adapter';
+import { EigenschutzVorfallGeschlossenEventAdapter } from './event-adapters/vorfall-geschlossen.adapter';
 import { EigenschutzVorfallExportiertEventAdapter } from './event-adapters/vorfall-exportiert.adapter';
 
 /**
@@ -104,6 +105,7 @@ import { EigenschutzVorfallExportiertEventAdapter } from './event-adapters/vorfa
     EigenschutzSicherungspostenEingerichtetEventAdapter,
     EigenschutzSicherungspostenAktualisiertEventAdapter,
     EigenschutzVorfallGemeldetEventAdapter,
+    EigenschutzVorfallGeschlossenEventAdapter,
     EigenschutzVorfallExportiertEventAdapter,
   ],
   exports: [
@@ -137,6 +139,7 @@ import { EigenschutzVorfallExportiertEventAdapter } from './event-adapters/vorfa
     EigenschutzSicherungspostenEingerichtetEventAdapter,
     EigenschutzSicherungspostenAktualisiertEventAdapter,
     EigenschutzVorfallGemeldetEventAdapter,
+    EigenschutzVorfallGeschlossenEventAdapter,
     EigenschutzVorfallExportiertEventAdapter,
   ],
 })

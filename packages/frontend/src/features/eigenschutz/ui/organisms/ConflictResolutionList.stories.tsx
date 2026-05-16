@@ -4,7 +4,6 @@
  * Pflichtige States gemäß UX-Spec:
  * - idle (0 / 5 / 50 Konflikte)
  * - hover, focus (visual states — werden durch Tailwind-Hover/Focus abgedeckt)
- * - disabled (Read-Only-Modus)
  * - error (Backend-Fehler)
  * - loading (Initial-Fetch)
  * - empty (0 Konflikte)
@@ -92,7 +91,7 @@ export default meta;
 type Story = StoryObj<typeof ConflictResolutionList>;
 
 export const Empty: Story = {
-  args: { einsatzId: EINSATZ_ID, canResolve: true },
+  args: { einsatzId: EINSATZ_ID },
   decorators: [
     withSeededClient((qc) => {
       qc.setQueryData(EIGENSCHUTZ_QUERY_KEYS.syncConflicts(EINSATZ_ID), []);
@@ -101,7 +100,7 @@ export const Empty: Story = {
 };
 
 export const FiveConflicts: Story = {
-  args: { einsatzId: EINSATZ_ID, canResolve: true },
+  args: { einsatzId: EINSATZ_ID },
   decorators: [
     withSeededClient((qc) => {
       qc.setQueryData(
@@ -113,7 +112,7 @@ export const FiveConflicts: Story = {
 };
 
 export const FiftyConflicts: Story = {
-  args: { einsatzId: EINSATZ_ID, canResolve: true },
+  args: { einsatzId: EINSATZ_ID },
   decorators: [
     withSeededClient((qc) => {
       qc.setQueryData(
@@ -124,25 +123,13 @@ export const FiftyConflicts: Story = {
   ],
 };
 
-export const ReadOnlyDisabled: Story = {
-  args: { einsatzId: EINSATZ_ID, canResolve: false },
-  decorators: [
-    withSeededClient((qc) => {
-      qc.setQueryData(
-        EIGENSCHUTZ_QUERY_KEYS.syncConflicts(EINSATZ_ID),
-        Array.from({ length: 3 }, (_, i) => makeConflict(i)),
-      );
-    }),
-  ],
-};
-
 export const Loading: Story = {
-  args: { einsatzId: EINSATZ_ID, canResolve: true },
+  args: { einsatzId: EINSATZ_ID },
   // Kein vorgelagertes setQueryData → Initial-Fetch läuft (Skeleton).
 };
 
 export const ErrorState: Story = {
-  args: { einsatzId: EINSATZ_ID, canResolve: true },
+  args: { einsatzId: EINSATZ_ID },
   decorators: [
     (Story) => (
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>

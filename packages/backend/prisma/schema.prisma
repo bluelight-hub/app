@@ -2820,6 +2820,12 @@ model EigenschutzVorfall {
   erfasstAm               DateTime @default(now()) @map("erfasst_am")
   erfasstVonUserId        String   @map("erfasst_von_user_id")
 
+  // Schließung (Issue #415 — additiv zum Append-Only-Original-Recording).
+  // Alle drei Felder sind nullable und bleiben für offene Vorfälle `null`.
+  geschlossenAm           DateTime? @map("geschlossen_am")
+  geschlossenVonUserId    String?   @map("geschlossen_von_user_id")
+  schliessungsBegruendung String?   @map("schliessungs_begruendung") @db.VarChar(500)
+
   // Policy (Story 1.4 Review): Einsätze sollen NICHT hart löschbar sein. Falls doch (Maintenance, GDPR-Forget),
   // kaskadiert der Delete konsistent bis zum Vorfall — NICHT RESTRICT, da sonst der Einsatz-Delete am Vorfall-FK bricht.
   // Der `kontextSnapshot Json` bleibt erhalten, solange der Vorfall selbst nicht gelöscht wird.
@@ -2828,6 +2834,9 @@ model EigenschutzVorfall {
   @@index([einsatzId, einheitId])
   @@index([einsatzId, unfallkasseRelevant])
   @@index([vorfallZeit])
+  // Issue #415: Ampel-Projection zählt offene Vorfälle pro (einsatzId, einheitId)
+  // mit `geschlossenAm IS NULL`. Composite-Index unterstützt die Recompute-Query.
+  @@index([einsatzId, einheitId, geschlossenAm])
   @@map("eigenschutz_vorfaelle")
 }
 

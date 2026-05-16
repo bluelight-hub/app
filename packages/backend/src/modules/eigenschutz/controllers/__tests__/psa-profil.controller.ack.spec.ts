@@ -16,9 +16,7 @@ import { AckPsaQuittungCommand } from '@/application/eigenschutz/commands/ack-ps
 import { ACK_PSA_QUITTUNG_ERROR_CODES } from '@/application/eigenschutz/commands/ack-psa-quittung/ack-psa-quittung.handler';
 import { ListOffenePsaBekanntgabenQuery } from '@/application/eigenschutz/queries/list-offene-psa-bekanntgaben/list-offene-psa-bekanntgaben.query';
 import { ListPsaQuittungenQuery } from '@/application/eigenschutz/queries/list-psa-quittungen/list-psa-quittungen.query';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { PsaProfilController } from '../psa-profil.controller';
 
@@ -45,10 +43,6 @@ describe('PsaProfilController — Story 3.4 (Quittung + Sender-View)', () => {
       ],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

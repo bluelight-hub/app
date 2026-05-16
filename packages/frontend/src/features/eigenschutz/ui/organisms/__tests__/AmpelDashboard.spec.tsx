@@ -6,6 +6,7 @@ import {
   EinsatzEinheitDtoStatusEnum,
   EinsatzEinheitDtoTypEnum,
   type AmpelProjectionDto,
+  type EigenschutzVorfallListItemDto,
   type EinsatzEinheitDto,
 } from '@bluelight-hub/shared/client';
 import { AmpelDashboard } from '../AmpelDashboard';
@@ -25,7 +26,7 @@ const { mocks } = vi.hoisted(() => ({
     psa: { data: [], isLoading: false, isError: false },
     gefahren: { data: [], isLoading: false, isError: false },
     regeln: { data: [], isLoading: false, isError: false },
-    vorfaelle: { data: [], isLoading: false, isError: false },
+    vorfaelle: { data: [] as EigenschutzVorfallListItemDto[], isLoading: false, isError: false } as QueryState<EigenschutzVorfallListItemDto[]>,
     rueckmeldungen: { data: [], isLoading: false, isError: false },
   },
 }));
@@ -223,6 +224,9 @@ describe('AmpelDashboard', () => {
           unfallkasseRelevant: false,
           erfasstAm: '2026-05-08T09:01:00.000Z',
           erfasstVonUserId: 'user-1',
+          status: 'OFFEN',
+          geschlossenAm: null,
+          geschlossenVonUserId: null,
         },
       ],
       isLoading: false,
@@ -249,6 +253,9 @@ describe('AmpelDashboard', () => {
           unfallkasseRelevant: false,
           erfasstAm: '2026-05-08T09:01:00.000Z',
           erfasstVonUserId: 'user-1',
+          status: 'OFFEN',
+          geschlossenAm: null,
+          geschlossenVonUserId: null,
         },
       ],
       isLoading: false,

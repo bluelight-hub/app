@@ -10,10 +10,12 @@
 import type { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
+import { resolveEinheitName } from './_shared/resolve-einheit-name';
 
 const KATEGORIE: EtbKategorieValue = 'MATERIAL';
 const MELDUNG_MAX_LENGTH = 200;
@@ -27,6 +29,7 @@ export class LueckeGemeldetEtbHandler implements IEventHandler<LueckeGemeldetEve
   constructor(
     private readonly addEintragHandler: AddEintragHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
+    @Inject(KRAEFTE_REPOSITORIES.EINSATZ_EINHEIT) private readonly einheitRepo: IEinsatzEinheitRepository,
   ) {}
 
   async handle(event: LueckeGemeldetEvent): Promise<void> {
@@ -37,7 +40,8 @@ export class LueckeGemeldetEtbHandler implements IEventHandler<LueckeGemeldetEve
       }
 
       const meldung = event.meldung.length > MELDUNG_MAX_LENGTH ? event.meldung.slice(0, MELDUNG_MAX_LENGTH - 3) + '...' : event.meldung;
-      const text = `PSA-Lücke gemeldet von Einheit ${event.einheitId}: ${meldung}`;
+      const einheitName = await resolveEinheitName(this.einheitRepo, event.einheitId);
+      const text = `PSA-Lücke gemeldet von Einheit ${einheitName}: ${meldung}`;
 
       const cmd = AddEintragCommand.create(
         event.einsatzId,

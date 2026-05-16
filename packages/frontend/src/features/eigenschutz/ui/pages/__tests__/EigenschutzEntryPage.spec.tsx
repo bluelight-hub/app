@@ -2,18 +2,21 @@
  * Spec für die `EigenschutzEntryPage`.
  *
  * Die EntryPage ist seit der Wayfinding-Überarbeitung schlank: sie rendert
- * Header + Shortcut-Help-Popover + `AmpelDashboard`. Die bisherige
- * Sub-Bereich-Nav-Liste lebt nun als `EigenschutzSubNav` in der Layout-
- * Route und wird hier nicht mehr erwartet.
+ * Header + `AmpelDashboard`. Die bisherige Sub-Bereich-Nav-Liste lebt nun
+ * als `EigenschutzSubNav` in der Layout-Route und wird hier nicht mehr
+ * erwartet.
  */
 
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
 
 vi.mock('../../organisms/AmpelDashboard', () => ({
   AmpelDashboard: ({ einsatzId }: { readonly einsatzId: string }) => <section data-testid="ampel-dashboard">Dashboard {einsatzId}</section>,
+}));
+
+vi.mock('../../organisms/EigenschutzModulStatus', () => ({
+  EigenschutzModulStatus: ({ einsatzId }: { readonly einsatzId: string }) => <section data-testid="eigenschutz-modul-status">Modul-Status {einsatzId}</section>,
 }));
 
 import { EigenschutzEntryPage } from '../EigenschutzEntryPage';
@@ -36,11 +39,10 @@ describe('EigenschutzEntryPage', () => {
     expect(screen.getByTestId('ampel-dashboard')).toHaveTextContent('Dashboard einsatz-1');
   });
 
-  it('blendet Dashboard und Shortcut-Help-Popover ohne einsatzId aus', () => {
+  it('blendet Dashboard ohne einsatzId aus', () => {
     renderWithProviders(<EigenschutzEntryPage />);
 
     expect(screen.queryByTestId('ampel-dashboard')).toBeNull();
-    expect(screen.queryByTestId('eigenschutz-shortcut-help-trigger')).toBeNull();
   });
 
   it('rendert keine inline Sicherungsposten-Übersichts-Section mehr (eigener Tab in EigenschutzSubNav)', () => {
@@ -58,17 +60,5 @@ describe('EigenschutzEntryPage', () => {
     expect(screen.queryByTestId('eigenschutz-sicherungsposten-link')).toBeNull();
     expect(screen.queryByTestId('eigenschutz-vorfaelle-link')).toBeNull();
     expect(screen.queryByTestId('eigenschutz-sync-konflikte-link')).toBeNull();
-  });
-
-  it('zeigt im Dashboard nur tatsächlich aktive Shortcut-Hilfe-Einträge', async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<EigenschutzEntryPage einsatzId="einsatz-1" />);
-
-    await user.click(screen.getByTestId('eigenschutz-shortcut-help-trigger'));
-
-    const help = screen.getByTestId('eigenschutz-shortcut-help');
-    expect(help).toHaveTextContent('Tastaturhilfe');
-    expect(help).not.toHaveTextContent('Neue Gefährdungsbeurteilung');
-    expect(help).not.toHaveTextContent('Vorfall melden');
   });
 });

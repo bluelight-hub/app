@@ -18,11 +18,21 @@ import { createStore, useStore } from '@tanstack/react-store';
  *   Nachbereitungs-Persona.
  * - `unfallkasseRelevant: undefined` = beide Werte (kein Filter).
  */
+/**
+ * Status-Achse für die Vorfall-Liste (Issue #415). Default in der UI ist
+ * `'OFFEN'` (User-Feedback: „Vorfälle kann ich nicht schließen, sie sind immer
+ * als offen sichtbar" — die Liste rendert per Default nur offene Vorfälle und
+ * der Tab GESCHLOSSEN zeigt die geschlossenen).
+ */
+export type VorfallStatusFilter = 'OFFEN' | 'GESCHLOSSEN';
+
 export interface VorfallFilterState {
   readonly abschnittIds: ReadonlyArray<string>;
   readonly vorfallZeitVon: string | undefined;
   readonly vorfallZeitBis: string | undefined;
   readonly unfallkasseRelevant: boolean | undefined;
+  /** Issue #415: Status-Filter. Default `'OFFEN'`. */
+  readonly status: VorfallStatusFilter;
 }
 
 const INITIAL_STATE: VorfallFilterState = {
@@ -30,6 +40,7 @@ const INITIAL_STATE: VorfallFilterState = {
   vorfallZeitVon: undefined,
   vorfallZeitBis: undefined,
   unfallkasseRelevant: undefined,
+  status: 'OFFEN',
 };
 
 export const vorfallFilterStore = createStore<VorfallFilterState>(INITIAL_STATE);
@@ -53,6 +64,10 @@ export function setUnfallkasseRelevant(value: boolean | undefined): void {
   vorfallFilterStore.setState((state) => ({ ...state, unfallkasseRelevant: value }));
 }
 
+export function setStatus(value: VorfallStatusFilter): void {
+  vorfallFilterStore.setState((state) => (state.status === value ? state : { ...state, status: value }));
+}
+
 export function resetFilter(): void {
   vorfallFilterStore.setState(() => INITIAL_STATE);
 }
@@ -68,9 +83,16 @@ export function replaceFilterState(next: VorfallFilterState): void {
     vorfallZeitVon: next.vorfallZeitVon,
     vorfallZeitBis: next.vorfallZeitBis,
     unfallkasseRelevant: next.unfallkasseRelevant,
+    status: next.status,
   }));
 }
 
+/**
+ * Filter-Aktiv-Heuristik. Issue #415: der Status-Filter zählt **nicht** als
+ * „aktiv", weil er immer einen Wert hat (Default `'OFFEN'`). Damit zeigt die
+ * Empty-State-Logik weiter „Noch keine Vorfälle erfasst" statt „Keine Vorfälle
+ * für diese Filter" für die Default-Sicht.
+ */
 export function selectFilterIsActive(state: VorfallFilterState): boolean {
   return state.abschnittIds.length > 0 || state.vorfallZeitVon !== undefined || state.vorfallZeitBis !== undefined || state.unfallkasseRelevant !== undefined;
 }

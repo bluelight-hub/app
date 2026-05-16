@@ -7,6 +7,21 @@ import type { GetErinnerungTimelineQuery } from '@application/etb/queries';
 import type { ErinnerungTimelineDto, ErinnerungTimelineEventDto, TimelineUserDto } from '@application/etb/dto/erinnerung-timeline.dto';
 
 /**
+ * Erzeugt einen Anzeigenamen aus den Stammperson-Feldern. Liefert `null`,
+ * wenn keine Stammperson hinterlegt ist oder beide Namensfelder leer sind,
+ * damit Aufrufer transparent auf `username` zurückfallen können.
+ */
+function buildDisplayNameFromStammperson(stammperson: { vorname: string | null; nachname: string | null } | null | undefined): string | null {
+  if (!stammperson) {
+    return null;
+  }
+  const vorname = stammperson.vorname?.trim() ?? '';
+  const nachname = stammperson.nachname?.trim() ?? '';
+  const combined = [vorname, nachname].filter((part) => part.length > 0).join(' ');
+  return combined.length > 0 ? combined : null;
+}
+
+/**
  * Handler fuer GetErinnerungTimelineQuery.
  *
  * Laedt alle ETB-Eintraege, die zu einer bestimmten Erinnerung gehoeren,
@@ -139,6 +154,12 @@ export class GetErinnerungTimelineQueryHandler {
             select: {
               id: true,
               username: true,
+              stammperson: {
+                select: {
+                  vorname: true,
+                  nachname: true,
+                },
+              },
             },
           },
         },
@@ -166,7 +187,7 @@ export class GetErinnerungTimelineQueryHandler {
         const createdBy: TimelineUserDto = {
           id: entry.creator.id,
           username: entry.creator.username,
-          displayName: null, // User model does not have displayName
+          displayName: buildDisplayNameFromStammperson(entry.creator.stammperson),
         };
 
         return {

@@ -208,6 +208,16 @@ describe('PrismaAmpelProjectionRepository.recalculateForEinheit()', () => {
     expect(result.value).toMatchObject({ status: 'ROT', offeneVorfaelle: 2 });
   });
 
+  it('Issue #415: Vorfall-Count filtert `geschlossenAm: null` (geschlossene zählen nicht)', async () => {
+    const count = jest.fn().mockResolvedValue(0);
+    const prisma = buildPrisma({ eigenschutzVorfall: { count } });
+    const repo = new PrismaAmpelProjectionRepository(prisma, createLogger());
+
+    await repo.recalculateForEinheit({ einsatzId: EINSATZ_ID, einheitId: EINHEIT_ID, letzteAenderungAm: CHANGED_AT, letzteAenderungVonUserId: USER_ID });
+
+    expect(count).toHaveBeenCalledWith({ where: { einsatzId: EINSATZ_ID, einheitId: EINHEIT_ID, geschlossenAm: null } });
+  });
+
   it('ist idempotent und schreibt bei identischen Quellen dieselbe Projection', async () => {
     const prisma = buildPrisma();
     const repo = new PrismaAmpelProjectionRepository(prisma, createLogger());

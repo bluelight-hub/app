@@ -39,6 +39,7 @@ import { AufloeseSicherungspostenHandler } from './commands/aufloese-sicherungsp
 import { GetSicherungspostenHandler } from './queries/get-sicherungsposten/get-sicherungsposten.handler';
 import { ListSicherungspostenHandler } from './queries/list-sicherungsposten/list-sicherungsposten.handler';
 import { ReportVorfallHandler } from './commands/report-vorfall/report-vorfall.handler';
+import { CloseVorfallHandler } from './commands/close-vorfall/close-vorfall.handler';
 import { AuditVorfallExportHandler } from './commands/audit-vorfall-export/audit-vorfall-export.handler';
 import { KontextSnapshotBuilder } from './services/kontext-snapshot-builder';
 import { GetVorfallByIdHandler } from './queries/get-vorfall-by-id/get-vorfall-by-id.handler';
@@ -98,6 +99,7 @@ import { AmpelWarnBadgeService } from '@domain/eigenschutz/services/ampel-warn-b
     GetSicherungspostenHandler,
     ListSicherungspostenHandler,
     ReportVorfallHandler,
+    CloseVorfallHandler,
     AuditVorfallExportHandler,
     KontextSnapshotBuilder,
     GetVorfallByIdHandler,
@@ -140,6 +142,7 @@ import { AmpelWarnBadgeService } from '@domain/eigenschutz/services/ampel-warn-b
     GetSicherungspostenHandler,
     ListSicherungspostenHandler,
     ReportVorfallHandler,
+    CloseVorfallHandler,
     AuditVorfallExportHandler,
     GetVorfallByIdHandler,
     ListVorfaelleHandler,

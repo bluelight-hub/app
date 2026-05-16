@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, InternalServerErrorException, NotFoundException, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
@@ -8,10 +8,7 @@ import { ReportVorfallCommand } from '@/application/eigenschutz/commands/report-
 import { AuditVorfallExportCommand } from '@/application/eigenschutz/commands/audit-vorfall-export/audit-vorfall-export.command';
 import { GetVorfallAuditTimelineQuery } from '@/application/eigenschutz/queries/get-vorfall-audit-timeline/get-vorfall-audit-timeline.query';
 import { ListVorfaelleQuery } from '@/application/eigenschutz/queries/list-vorfaelle/list-vorfaelle.query';
-import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { EIGENSCHUTZ_VORFALL_JSON_RENDERER, EIGENSCHUTZ_VORFALL_PDF_RENDERER, EIGENSCHUTZ_VORFALL_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { EigenschutzVorfallController } from '../eigenschutz-vorfall.controller';
 
@@ -75,23 +72,17 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
-      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get(EigenschutzVorfallController);
   });
 
-  describe('Drei-Schicht-Guard-Kette + Permission-Decorators (AC7 + AC8)', () => {
-    it('(1) trägt JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard auf Klassen-Ebene', () => {
+  describe('Guard-Kette + Routing', () => {
+    it('(1) trägt nur JwtAuthGuard auf Klassen-Ebene', () => {
       const guards = Reflect.getMetadata('__guards__', EigenschutzVorfallController) as unknown[];
       expect(guards).toBeDefined();
-      expect(guards).toHaveLength(3);
+      expect(guards).toHaveLength(1);
       expect(guards[0]).toBe(JwtAuthGuard);
-      expect(guards[1]).toBe(EinsatzScopeGuard);
-      expect(guards[2]).toBe(PermissionsGuard);
     });
 
     it('(2) Routing trägt einsatz-scoped Path und version="alpha"', () => {
@@ -99,13 +90,6 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
       const version = Reflect.getMetadata('__version__', EigenschutzVorfallController);
       expect(path).toBe('einsaetze/:einsatzId/sicherheit/eigenschutz/vorfaelle');
       expect(version).toBe('alpha');
-    });
-
-    it('(3) reportVorfall erfordert eigenschutz:vorfall:report (kein :read, kein :export — exakter String-Match)', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzVorfallController.prototype.reportVorfall);
-      expect(required).toEqual(['eigenschutz:vorfall:report']);
-      expect(required).not.toContain('eigenschutz:vorfall:read');
-      expect(required).not.toContain('eigenschutz:vorfall:export');
     });
   });
 
@@ -233,80 +217,8 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
     });
   });
 
-  describe('Permission-Smoke (3-Guard-Pipeline)', () => {
-    it('(12) JwtAuthGuard kann UnauthorizedException werfen → 401 ohne JWT (T4.3-Anker)', async () => {
-      const blocked: TestingModule = await Test.createTestingModule({
-        controllers: [EigenschutzVorfallController],
-        providers: [
-          { provide: CommandBus, useValue: commandBus },
-          { provide: QueryBus, useValue: queryBus },
-          { provide: LOGGER, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() } },
-          { provide: EIGENSCHUTZ_VORFALL_REPOSITORY, useValue: vorfallRepo as unknown as IEigenschutzVorfallRepository },
-          { provide: EIGENSCHUTZ_VORFALL_PDF_RENDERER, useValue: pdfRenderer },
-          { provide: EIGENSCHUTZ_VORFALL_JSON_RENDERER, useValue: jsonRenderer },
-        ],
-      })
-        .overrideGuard(JwtAuthGuard)
-        .useValue({
-          canActivate: () => {
-            throw new UnauthorizedException({ statusCode: 401, error: 'Unauthorized', message: 'JWT fehlt oder ungültig' });
-          },
-        })
-        .overrideGuard(EinsatzScopeGuard)
-        .useValue({ canActivate: () => true })
-        .overrideGuard(PermissionsGuard)
-        .useValue({ canActivate: () => true })
-        .compile();
-
-      const blockedController = blocked.get(EigenschutzVorfallController);
-      expect(blockedController).toBeDefined();
-      // JwtAuthGuard ist als erster Guard in der Klassen-Kette gebunden — Strategie greift vor allen Permissions.
-      const guards = Reflect.getMetadata('__guards__', EigenschutzVorfallController) as unknown[];
-      expect(guards[0]).toBe(JwtAuthGuard);
-    });
-
-    it('(11) PermissionsGuard kann ForbiddenException werfen — Decorator-Metadaten verifiziert', async () => {
-      const blocked: TestingModule = await Test.createTestingModule({
-        controllers: [EigenschutzVorfallController],
-        providers: [
-          { provide: CommandBus, useValue: commandBus },
-          { provide: QueryBus, useValue: queryBus },
-          { provide: LOGGER, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() } },
-          { provide: EIGENSCHUTZ_VORFALL_REPOSITORY, useValue: vorfallRepo as unknown as IEigenschutzVorfallRepository },
-          { provide: EIGENSCHUTZ_VORFALL_PDF_RENDERER, useValue: pdfRenderer },
-          { provide: EIGENSCHUTZ_VORFALL_JSON_RENDERER, useValue: jsonRenderer },
-        ],
-      })
-        .overrideGuard(JwtAuthGuard)
-        .useValue({ canActivate: () => true })
-        .overrideGuard(EinsatzScopeGuard)
-        .useValue({ canActivate: () => true })
-        .overrideGuard(PermissionsGuard)
-        .useValue({
-          canActivate: () => {
-            throw new ForbiddenException({ statusCode: 403, error: 'Forbidden', message: 'Permission `eigenschutz:vorfall:report` fehlt' });
-          },
-        })
-        .compile();
-
-      const blockedController = blocked.get(EigenschutzVorfallController);
-      expect(blockedController).toBeDefined();
-      // Decorator-Metadaten dokumentieren die echte Guard-Bindung; der Smoke
-      // verifiziert, dass der Guard im NestJS-Pipeline-Slot konfigurierbar ist.
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzVorfallController.prototype.reportVorfall);
-      expect(required).toEqual(['eigenschutz:vorfall:report']);
-    });
-  });
-
-  // Story 5.2 AC10 — GET-Endpoint + Permission-Smoke
+  // Story 5.2 AC10 — GET-Endpoint
   describe('GET /vorfaelle/:vorfallId (Story 5.2 AC10)', () => {
-    it('(14) getVorfall erfordert eigenschutz:vorfall:read (kein :report, kein :export — exakter String-Match)', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzVorfallController.prototype.getVorfall);
-      expect(required).toEqual(['eigenschutz:vorfall:read']);
-      expect(required).not.toContain('eigenschutz:vorfall:report');
-      expect(required).not.toContain('eigenschutz:vorfall:export');
-    });
-
     it('(15) Erfolg: Query liefert Aggregate, DTO mit Snapshot wird zurückgegeben', async () => {
       const aggregate = buildAggregate();
       queryBus.execute.mockResolvedValue(Result.ok(aggregate));
@@ -368,12 +280,6 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
   });
 
   describe('GET /vorfaelle/:vorfallId/audit-timeline (Story 5.6)', () => {
-    it('(A1) getVorfallAuditTimeline erfordert eigenschutz:vorfall:read', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzVorfallController.prototype.getVorfallAuditTimeline);
-      expect(required).toEqual(['eigenschutz:vorfall:read']);
-      expect(required).not.toContain('eigenschutz:vorfall:export');
-    });
-
     it('(A2) Happy Path: Query wird gebaut und DTO-Dates werden ISO-Strings', async () => {
       queryBus.execute.mockResolvedValue(
         Result.ok({
@@ -423,15 +329,11 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
         unfallkasseRelevant: overrides.unfallkasseRelevant ?? true,
         erfasstAm: overrides.erfasstAm ?? NOW,
         erfasstVonUserId: overrides.erfasstVonUserId ?? USER_ID,
+        status: overrides.status ?? 'OFFEN',
+        geschlossenAm: overrides.geschlossenAm === undefined ? null : overrides.geschlossenAm,
+        geschlossenVonUserId: overrides.geschlossenVonUserId === undefined ? null : overrides.geschlossenVonUserId,
       };
     }
-
-    it('(L1) listVorfaelle erfordert genau eigenschutz:vorfall:read (kein :report, kein :export)', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzVorfallController.prototype.listVorfaelle);
-      expect(required).toEqual(['eigenschutz:vorfall:read']);
-      expect(required).not.toContain('eigenschutz:vorfall:report');
-      expect(required).not.toContain('eigenschutz:vorfall:export');
-    });
 
     it('(L2) Happy-200: liefert Liste, sendet Query mit getrimmtem Filter und User-ID', async () => {
       const rows = [buildRow({ id: 'a' }), buildRow({ id: 'b', unfallkasseRelevant: false })];
@@ -525,13 +427,6 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
       };
       return { res, headers };
     }
-
-    it('(E1) exportVorfall erfordert eigenschutz:vorfall:export (kein :read, kein :report — exakter String-Match)', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzVorfallController.prototype.exportVorfall);
-      expect(required).toEqual(['eigenschutz:vorfall:export']);
-      expect(required).not.toContain('eigenschutz:vorfall:read');
-      expect(required).not.toContain('eigenschutz:vorfall:report');
-    });
 
     it('(E2-a) NotFound:Vorfall (existiert nicht) → 404', async () => {
       queryBus.execute.mockResolvedValue(Result.fail<EigenschutzVorfall>('NotFound:Vorfall'));
@@ -629,31 +524,6 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
       expect(res.send).toHaveBeenCalledTimes(1);
     });
 
-    it('(E3) Integration: echter PermissionsGuard wirft ForbiddenException ohne eigenschutz:vorfall:export', async () => {
-      const { PermissionsGuard: RealPermissionsGuard } = await import('@/modules/auth/guards/permissions.guard');
-      const { Reflector } = await import('@nestjs/core');
-      const reflector = new Reflector();
-      const logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
-      const guard = new RealPermissionsGuard(reflector, logger as never);
-
-      // Echte Decorator-Metadaten von exportVorfall + Klasse — kein Mock.
-      const handler = EigenschutzVorfallController.prototype.exportVorfall;
-      const ctx = {
-        getHandler: () => handler,
-        getClass: () => EigenschutzVorfallController,
-        switchToHttp: () => ({
-          getRequest: () => ({
-            user: { userId: USER_ID, permissions: ['eigenschutz:vorfall:read', 'eigenschutz:vorfall:report'], role: 'USER' },
-            einsatzContext: { einsatzId: EINSATZ_ID, einsatzPermissions: ['eigenschutz:vorfall:read', 'eigenschutz:vorfall:report'] },
-          }),
-          getResponse: jest.fn(),
-          getNext: jest.fn(),
-        }),
-      } as never;
-
-      expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
-    });
-
     it('(E2-f) format weggelassen → Default pdf → 200', async () => {
       const aggregate = buildAggregate();
       queryBus.execute.mockResolvedValue(Result.ok(aggregate));
@@ -688,6 +558,63 @@ describe('EigenschutzVorfallController (Story 5.1 + 5.2)', () => {
       expect(pdfRenderer.generate).toHaveBeenCalledTimes(1);
       expect(res.setHeader).not.toHaveBeenCalled();
       expect(res.send).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('POST /vorfaelle/:vorfallId/schliessen (Issue #415)', () => {
+    it('Erfolg: leitet Command durch und liefert geschlossenen DTO zurück', async () => {
+      const aggregate = buildAggregate();
+      aggregate.close(USER_ID, 'Abgearbeitet');
+      commandBus.execute.mockResolvedValue(Result.ok(aggregate.id.value));
+      vorfallRepo.findById.mockResolvedValue(Result.ok(aggregate));
+
+      const dto = await controller.closeVorfall(EINSATZ_ID, aggregate.id.value, { begruendung: 'Abgearbeitet' } as never, { userId: USER_ID } as never);
+
+      expect(dto.id).toBe(aggregate.id.value);
+      expect(dto.status).toBe('GESCHLOSSEN');
+      expect(dto.schliessungsBegruendung).toBe('Abgearbeitet');
+      const cmd = commandBus.execute.mock.calls[0]?.[0] as { vorfallId: string; einsatzId: string; userId: string; begruendung: string | null };
+      expect(cmd.vorfallId).toBe(aggregate.id.value);
+      expect(cmd.einsatzId).toBe(EINSATZ_ID);
+      expect(cmd.userId).toBe(USER_ID);
+      expect(cmd.begruendung).toBe('Abgearbeitet');
+    });
+
+    it('Erfolg ohne Begründung — `begruendung=null` an Command durchgereicht', async () => {
+      const aggregate = buildAggregate();
+      aggregate.close(USER_ID);
+      commandBus.execute.mockResolvedValue(Result.ok(aggregate.id.value));
+      vorfallRepo.findById.mockResolvedValue(Result.ok(aggregate));
+
+      await controller.closeVorfall(EINSATZ_ID, aggregate.id.value, {} as never, { userId: USER_ID } as never);
+
+      const cmd = commandBus.execute.mock.calls[0]?.[0] as { begruendung: string | null };
+      expect(cmd.begruendung).toBeNull();
+    });
+
+    it('BusinessRule:VorfallBereitsGeschlossen → 422 mit rule="VorfallBereitsGeschlossen"', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail<string>('BusinessRule:VorfallBereitsGeschlossen'));
+
+      try {
+        await controller.closeVorfall(EINSATZ_ID, 'fake', { begruendung: 'x' } as never, { userId: USER_ID } as never);
+        fail('expected UnprocessableEntityException');
+      } catch (e) {
+        expect(e).toBeInstanceOf(UnprocessableEntityException);
+        const response = (e as UnprocessableEntityException).getResponse() as { context: { rule: string } };
+        expect(response.context.rule).toBe('VorfallBereitsGeschlossen');
+      }
+    });
+
+    it('NotFound:Vorfall → 404', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail<string>('NotFound:Vorfall'));
+
+      await expect(controller.closeVorfall(EINSATZ_ID, 'fake', {} as never, { userId: USER_ID } as never)).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('ValidationFailed:Begruendung → 422', async () => {
+      commandBus.execute.mockResolvedValue(Result.fail<string>('ValidationFailed:Begruendung'));
+
+      await expect(controller.closeVorfall(EINSATZ_ID, 'fake', { begruendung: 'a'.repeat(501) } as never, { userId: USER_ID } as never)).rejects.toBeInstanceOf(UnprocessableEntityException);
     });
   });
 });

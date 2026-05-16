@@ -2289,8 +2289,8 @@ describe('EventDeserializer', () => {
       //                LueckeGemeldet (Story 3.6), QuittungUeberfaellig (Story 3.7),
       //                KonfliktErkannt (Story 3.9), KonfliktAufgeloest (Story 3.10),
       //                SicherungspostenEingerichtet (Story 4.1), SicherungspostenAktualisiert (Story 4.1),
-      //                VorfallGemeldet (Story 5.1), VorfallExportiert (Story 5.6)
-      expect(supportedTypes).toHaveLength(126);
+      //                VorfallGemeldet (Story 5.1), VorfallGeschlossen (Issue #415), VorfallExportiert (Story 5.6)
+      expect(supportedTypes).toHaveLength(127);
       expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_erstellt');
       expect(supportedTypes).toContain('eigenschutz.gefaehrdungsbeurteilung_aktualisiert');
       expect(supportedTypes).toContain('eigenschutz.sicherheitsregel_ausgerufen');
@@ -2304,6 +2304,7 @@ describe('EventDeserializer', () => {
       expect(supportedTypes).toContain('eigenschutz.sicherungsposten_eingerichtet');
       expect(supportedTypes).toContain('eigenschutz.sicherungsposten_aktualisiert');
       expect(supportedTypes).toContain('eigenschutz.vorfall_gemeldet');
+      expect(supportedTypes).toContain('eigenschutz.vorfall_geschlossen');
       expect(supportedTypes).toContain('eigenschutz.vorfall_exportiert');
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');

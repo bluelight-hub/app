@@ -12,9 +12,8 @@ import { EigenschutzModule } from '../eigenschutz.module';
  * dass:
  *
  * 1. Der Controller im HTTP-Modul registriert ist (sonst kein Routing).
- * 2. `AuthModule` ist importiert — der `EinsatzScopeGuard` (samt seiner
- *    `KRAEFTE_REPOSITORIES.ROLLEN_BESETZUNG`-Dependency) wird transitiv
- *    via Re-Export aus `AuthModule` aufgelöst (ADR-014).
+ * 2. `AuthModule` ist importiert — die `JwtAuthGuard`-Strategie wird transitiv
+ *    via Re-Export aus `AuthModule` aufgelöst.
  * 3. Das Modul **keine** eigenen Provider registriert — Story 1.6 lebt
  *    bewusst ohne Application-Handler.
  */
@@ -36,7 +35,7 @@ describe('EigenschutzModule', () => {
     expect(exports).toContain(EIGENSCHUTZ_VORFALL_REPOSITORY);
   });
 
-  it('importiert AuthModule (re-exportiert KraefteInfrastructureModule transitiv, ADR-014)', () => {
+  it('importiert AuthModule (stellt JwtAuthGuard-Strategie bereit)', () => {
     const imports = Reflect.getMetadata('imports', EigenschutzModule) as unknown[];
     expect(imports).toEqual(expect.arrayContaining([AuthModule]));
   });

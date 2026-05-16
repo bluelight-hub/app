@@ -50,6 +50,9 @@ function vorfall(id: string, overrides: Partial<EigenschutzVorfallListItemDto> =
     unfallkasseRelevant: true,
     erfasstAm: '2026-05-08T09:45:00.000Z',
     erfasstVonUserId: 'user-1',
+    status: 'OFFEN',
+    geschlossenAm: null,
+    geschlossenVonUserId: null,
     ...overrides,
   };
 }

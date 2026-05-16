@@ -2,11 +2,8 @@
  * Tests für den Story-3.9-Endpoint im neuen `SyncConflictController`:
  * - `POST /einsaetze/:einsatzId/sicherheit/eigenschutz/sync-conflicts` (AC5).
  *
- * Permission-Smoke-Test (Code-Review P1): Der HTTP-Level-Race-Test ist
- * deferred (Test-Infrastructure-Story); zur Tautologie-Vermeidung prüfen
- * wir hier strukturell, dass der Controller den `PermissionsGuard` und
- * den `@RequiresPermission('eigenschutz:psa:write')`-Decorator trägt.
- * Pattern Story 3.6 Code-Review-Patches.
+ * Guard-Override (JwtAuthGuard) + Routing-Strukturcheck. Permission- oder
+ * Rollen-Gating ist nicht mehr Bestandteil der Eigenschutz-Controller.
  */
 import { ConflictException, InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -16,10 +13,7 @@ import { ReportSyncConflictCommand } from '@/application/eigenschutz/commands/re
 import { REPORT_SYNC_CONFLICT_ERROR_CODES } from '@/application/eigenschutz/commands/report-sync-conflict/report-sync-conflict.handler';
 import { ResolveKonfliktCommand } from '@/application/eigenschutz/commands/resolve-konflikt/resolve-konflikt.command';
 import { ListSyncConflictsQuery } from '@/application/eigenschutz/queries/list-sync-conflicts/list-sync-conflicts.query';
-import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { SyncConflictController } from '../sync-conflict.controller';
 
@@ -47,30 +41,17 @@ describe('SyncConflictController — Story 3.9 (Sync-Konflikt-Folgecall)', () =>
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
-      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get(SyncConflictController);
   });
 
-  // Code-Review P1 — Permission-Strukturtest (kein Mock-Override-Tautologie):
-  // verifiziert per Reflect-Metadata, dass die Drei-Schicht-Guard-Kette
-  // (JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard) und der
-  // `@RequiresPermission('eigenschutz:psa:write')`-Decorator wirklich am
-  // Controller hängen. Echter HTTP-403-Test ist im Test-Infrastructure-
-  // Story (deferred) — bis dahin schützt diese strukturelle Assertion
-  // gegen versehentliches Entfernen der Guard-Kette.
-  describe('Drei-Schicht-Guard-Kette + Permission-Decorator (AC5 P1)', () => {
-    it('trägt JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard auf Klassen-Ebene', () => {
+  describe('Guard-Kette + Routing', () => {
+    it('trägt nur JwtAuthGuard auf Klassen-Ebene', () => {
       const guards = Reflect.getMetadata('__guards__', SyncConflictController) as unknown[];
       expect(guards).toBeDefined();
-      expect(guards).toHaveLength(3);
+      expect(guards).toHaveLength(1);
       expect(guards[0]).toBe(JwtAuthGuard);
-      expect(guards[1]).toBe(EinsatzScopeGuard);
-      expect(guards[2]).toBe(PermissionsGuard);
     });
 
     it('Routing trägt einsatz-scoped Path und version="alpha"', () => {
@@ -78,11 +59,6 @@ describe('SyncConflictController — Story 3.9 (Sync-Konflikt-Folgecall)', () =>
       const version = Reflect.getMetadata('__version__', SyncConflictController);
       expect(path).toBe('einsaetze/:einsatzId/sicherheit/eigenschutz/sync-conflicts');
       expect(version).toBe('alpha');
-    });
-
-    it('reportSyncConflict-Handler trägt @RequiresPermission("eigenschutz:psa:write")', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SyncConflictController.prototype.reportSyncConflict);
-      expect(required).toEqual(['eigenschutz:psa:write']);
     });
   });
 
@@ -176,11 +152,6 @@ describe('SyncConflictController — Story 3.9 (Sync-Konflikt-Folgecall)', () =>
 
   // Story 3.10 — neue Endpoints im selben Controller.
   describe('GET /sync-conflicts (Story 3.10 AC5)', () => {
-    it('listSyncConflicts-Handler trägt @RequiresPermission("eigenschutz:psa:read")', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SyncConflictController.prototype.listSyncConflicts);
-      expect(required).toEqual(['eigenschutz:psa:read']);
-    });
-
     function callList(filter: { entityType?: string; einheitId?: string } = {}) {
       return controller.listSyncConflicts(EINSATZ_ID, filter as never, { userId: USER_ID } as never);
     }
@@ -243,11 +214,6 @@ describe('SyncConflictController — Story 3.9 (Sync-Konflikt-Folgecall)', () =>
   });
 
   describe('PATCH /sync-conflicts/:syncConflictId/resolve (Story 3.10 AC5)', () => {
-    it('resolveSyncConflict-Handler trägt @RequiresPermission("eigenschutz:psa:write")', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SyncConflictController.prototype.resolveSyncConflict);
-      expect(required).toEqual(['eigenschutz:psa:write']);
-    });
-
     function callResolve(syncConflictId = 'sc-1', resolution: 'SERVER_WINS' | 'LOCAL_WINS' | 'MERGED' = 'SERVER_WINS') {
       return controller.resolveSyncConflict(EINSATZ_ID, syncConflictId, { resolution } as never, { userId: USER_ID } as never);
     }

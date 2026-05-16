@@ -21,7 +21,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
-  ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
@@ -57,7 +56,6 @@ import type { SicherheitsregelReadModel } from '@domain/eigenschutz/repositories
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
@@ -71,12 +69,11 @@ import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/
  *
  * ### Guard-Kette
  * ```
- * JwtAuthGuard → EinsatzScopeGuard
+ * JwtAuthGuard
  * ```
- * Die Einsatz-Mitgliedschaft wird plattform-seitig geprüft; ein eigenes
- * Rollen-/Permission-Gating ist laut Story 2.5 Correct Course **nicht** Teil
- * dieses Schnitts (keine `useEigenschutzPermissions`-Wiedereinführung).
- * 403-Antworten bei fehlender Mitgliedschaft reicht der Guard direkt aus.
+ * Eigenschutz-spezifisches Rollen-/Permission-Gating ist bewusst nicht Teil
+ * dieses Schnitts — Cross-Einsatz-Checks erfolgen in den Query-/Command-
+ * Handlern und schützen vor Existenz-Leaks über Einsatz-Grenzen hinweg.
  *
  * ### Error-Mapping (AC2/AC3)
  * Die Handler liefern präfixierte Sentinel-Codes, die hier strukturiert auf
@@ -103,9 +100,8 @@ import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/
 @ApiTags('eigenschutz')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ungültig' })
-@ApiForbiddenResponse({ description: 'Kein Zugriff auf diesen Einsatz (keine aktive Rollenbesetzung)' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz', version: 'alpha' })
-@UseGuards(JwtAuthGuard, EinsatzScopeGuard)
+@UseGuards(JwtAuthGuard)
 export class SicherheitsregelController {
   constructor(
     private readonly commandBus: CommandBus,

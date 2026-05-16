@@ -20,6 +20,7 @@ import type {
   AufloeseSicherungspostenDto,
   BulkChangePsaProfilDto,
   ChangePsaProfilDto,
+  CloseVorfallDto,
   CreateGefaehrdungsbeurteilungDto,
   CreateSicherheitsregelDto,
   CreateSicherungspostenDto,
@@ -67,6 +68,8 @@ import {
     BulkChangePsaProfilDtoToJSON,
     ChangePsaProfilDtoFromJSON,
     ChangePsaProfilDtoToJSON,
+    CloseVorfallDtoFromJSON,
+    CloseVorfallDtoToJSON,
     CreateGefaehrdungsbeurteilungDtoFromJSON,
     CreateGefaehrdungsbeurteilungDtoToJSON,
     CreateSicherheitsregelDtoFromJSON,
@@ -156,6 +159,12 @@ export interface EigenschutzTelemetryControllerIngestVAlphaRequest {
     telemetryEventBatchDto: TelemetryEventBatchDto;
 }
 
+export interface EigenschutzVorfallControllerCloseVorfallVAlphaRequest {
+    einsatzId: string;
+    vorfallId: string;
+    closeVorfallDto: CloseVorfallDto;
+}
+
 export interface EigenschutzVorfallControllerExportVorfallVAlphaRequest {
     einsatzId: string;
     vorfallId: string;
@@ -178,6 +187,7 @@ export interface EigenschutzVorfallControllerListVorfaelleVAlphaRequest {
     vorfallZeitVon?: string;
     vorfallZeitBis?: string;
     unfallkasseRelevant?: boolean;
+    status?: EigenschutzVorfallControllerListVorfaelleVAlphaStatusEnum;
 }
 
 export interface EigenschutzVorfallControllerReportVorfallVAlphaRequest {
@@ -480,6 +490,56 @@ export class EigenschutzApi extends runtime.BaseAPI {
     }
 
     /**
+     * Vorfall schließen (Issue #415, additiv zum Append-Only-Recording)
+     */
+    async eigenschutzVorfallControllerCloseVorfallVAlphaRaw(requestParameters: EigenschutzVorfallControllerCloseVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EigenschutzVorfallControllerReportVorfallVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling eigenschutzVorfallControllerCloseVorfallVAlpha().'
+            );
+        }
+
+        if (requestParameters['vorfallId'] == null) {
+            throw new runtime.RequiredError(
+                'vorfallId',
+                'Required parameter "vorfallId" was null or undefined when calling eigenschutzVorfallControllerCloseVorfallVAlpha().'
+            );
+        }
+
+        if (requestParameters['closeVorfallDto'] == null) {
+            throw new runtime.RequiredError(
+                'closeVorfallDto',
+                'Required parameter "closeVorfallDto" was null or undefined when calling eigenschutzVorfallControllerCloseVorfallVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsaetze/{einsatzId}/sicherheit/eigenschutz/vorfaelle/{vorfallId}/schliessen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"vorfallId"}}`, encodeURIComponent(String(requestParameters['vorfallId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CloseVorfallDtoToJSON(requestParameters['closeVorfallDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EigenschutzVorfallControllerReportVorfallVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Vorfall schließen (Issue #415, additiv zum Append-Only-Recording)
+     */
+    async eigenschutzVorfallControllerCloseVorfallVAlpha(requestParameters: EigenschutzVorfallControllerCloseVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EigenschutzVorfallControllerReportVorfallVAlpha201Response> {
+        const response = await this.eigenschutzVorfallControllerCloseVorfallVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Vorfall als PDF oder JSON exportieren (Unfallkassen-Format)
      */
     async eigenschutzVorfallControllerExportVorfallVAlphaRaw(requestParameters: EigenschutzVorfallControllerExportVorfallVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
@@ -629,6 +689,10 @@ export class EigenschutzApi extends runtime.BaseAPI {
 
         if (requestParameters['unfallkasseRelevant'] != null) {
             queryParameters['unfallkasseRelevant'] = requestParameters['unfallkasseRelevant'];
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['status'] = requestParameters['status'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -1906,6 +1970,14 @@ export const EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum = {
     Json: 'json'
 } as const;
 export type EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum = typeof EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum[keyof typeof EigenschutzVorfallControllerExportVorfallVAlphaFormatEnum];
+/**
+ * @export
+ */
+export const EigenschutzVorfallControllerListVorfaelleVAlphaStatusEnum = {
+    Offen: 'OFFEN',
+    Geschlossen: 'GESCHLOSSEN'
+} as const;
+export type EigenschutzVorfallControllerListVorfaelleVAlphaStatusEnum = typeof EigenschutzVorfallControllerListVorfaelleVAlphaStatusEnum[keyof typeof EigenschutzVorfallControllerListVorfaelleVAlphaStatusEnum];
 /**
  * @export
  */

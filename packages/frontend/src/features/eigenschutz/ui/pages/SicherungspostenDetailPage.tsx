@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { setPendingSicherungspostenPlacement } from '@/features/lagekarte/stores/draw.store';
 import type { SicherungspostenDto, SicherungspostenDtoPersonalInner, SicherungspostenDtoStandort } from '@bluelight-hub/shared/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
@@ -216,6 +217,14 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
     });
   };
 
+  const handlePlatzieren = () => {
+    setPendingSicherungspostenPlacement(posten.id, posten.version, posten.bezeichnung);
+    void navigate({
+      to: '/app/einsatz/$einsatzId/übersicht/karte',
+      params: { einsatzId },
+    });
+  };
+
   return (
     <div className="space-y-4 md:space-y-6" data-testid="sicherungsposten-detail-page">
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -321,18 +330,22 @@ export function SicherungspostenDetailPage({ einsatzId, id }: SicherungspostenDe
             <Button intent="danger" appearance="outline" type="button" onClick={() => setAufloesenOpen(true)} data-testid="sicherungsposten-detail-aufloesen">
               Auflösen
             </Button>
-            <Button
-              intent="secondary"
-              appearance="ghost"
-              type="button"
-              disabled={!isCoordinate}
-              aria-disabled={!isCoordinate}
-              title={!isCoordinate ? 'Kein Standort hinterlegt — Posten ist auf der Karte nicht sichtbar.' : 'Auf Karte zeigen'}
-              onClick={handleShowOnMap}
-              data-testid="sicherungsposten-detail-show-on-map"
-            >
-              Auf Karte zeigen
-            </Button>
+            {isCoordinate ? (
+              <Button intent="secondary" appearance="ghost" type="button" title="Auf Karte zeigen" onClick={handleShowOnMap} data-testid="sicherungsposten-detail-show-on-map">
+                Auf Karte zeigen
+              </Button>
+            ) : (
+              <Button
+                intent="secondary"
+                appearance="ghost"
+                type="button"
+                title="Auf Karte platzieren — anschließend per Klick auf die Karte die Position setzen"
+                onClick={handlePlatzieren}
+                data-testid="sicherungsposten-detail-place-on-map"
+              >
+                Auf Karte platzieren
+              </Button>
+            )}
           </>
         ) : null}
       </footer>

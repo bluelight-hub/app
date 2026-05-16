@@ -87,6 +87,8 @@ export const EVENT_NAMES = {
     SICHERUNGSPOSTEN_AKTUALISIERT: 'eigenschutz.sicherungsposten_aktualisiert',
     /** Event: Vorfall gemeldet (mit Kontext-Snapshot) */
     VORFALL_GEMELDET: 'eigenschutz.vorfall_gemeldet',
+    /** Event: Vorfall geschlossen (Issue #415 — additive Closure-Metadaten) */
+    VORFALL_GESCHLOSSEN: 'eigenschutz.vorfall_geschlossen',
     /** Event: Vorfall exportiert (Unfallkassen-Export) */
     VORFALL_EXPORTIERT: 'eigenschutz.vorfall_exportiert',
     /** Event: Abschnittsleiter bestätigt PSA-Änderung / Regel (Quittung) */

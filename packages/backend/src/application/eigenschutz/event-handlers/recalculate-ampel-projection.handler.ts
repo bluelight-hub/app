@@ -11,6 +11,7 @@ import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-u
 import { SicherheitsregelAusgerufenEvent } from '@domain/eigenschutz/events/sicherheitsregel-ausgerufen.event';
 import { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
 import { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
+import { VorfallGeschlossenEvent } from '@domain/eigenschutz/events/vorfall-geschlossen.event';
 import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import { AMPEL_PROJECTION_REPOSITORY, KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 
@@ -23,7 +24,8 @@ type AmpelProjectionEvent =
   | SicherheitsregelAusgerufenEvent
   | SicherheitsregelQuittiertEvent
   | QuittungUeberfaelligEvent
-  | VorfallGemeldetEvent;
+  | VorfallGemeldetEvent
+  | VorfallGeschlossenEvent;
 
 @Injectable()
 export class RecalculateAmpelProjectionOnEigenschutzEventHandler {
@@ -75,6 +77,11 @@ export class RecalculateAmpelProjectionOnEigenschutzEventHandler {
 
   @OnEvent(VorfallGemeldetEvent.eventName())
   async onVorfallGemeldet(event: VorfallGemeldetEvent): Promise<void> {
+    await this.handle(event);
+  }
+
+  @OnEvent(VorfallGeschlossenEvent.eventName())
+  async onVorfallGeschlossen(event: VorfallGeschlossenEvent): Promise<void> {
     await this.handle(event);
   }
 

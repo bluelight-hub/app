@@ -31,6 +31,26 @@ export default defineConfig({
     react(),
   ],
   clearScreen: false,
+  optimizeDeps: {
+    include: [
+      'maplibre-gl',
+      'recharts',
+      '@mapbox/mapbox-gl-draw',
+      '@turf/turf',
+      'react-datepicker',
+      'zxcvbn',
+      'taktische-zeichen-core',
+      'jsqr',
+      'socket.io-client',
+      'dompurify',
+      'date-fns',
+      'cmdk',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+      '@dnd-kit/utilities',
+      'react-map-gl/maplibre',
+    ],
+  },
   server: {
     strictPort: true,
     host: host || true,
@@ -42,6 +62,9 @@ export default defineConfig({
           cert: readFileSync(certPath),
         }
       : undefined,
+    warmup: {
+      clientFiles: ['./src/main.tsx', './src/routeTree.gen.ts'],
+    },
     proxy: {
       '/uploads': {
         target: process.env.VITE_API_URL || (useHttps ? 'https://localhost:3091' : 'http://localhost:3091'),

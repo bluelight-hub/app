@@ -54,6 +54,9 @@ const VorfaelleSearchSchema = z
       .optional()
       .catch(undefined),
     uk: z.literal('1').optional().catch(undefined),
+    // Issue #415: Status-Tab. Default OFFEN wird weggelassen, `geschlossen`
+    // schaltet auf den Tab GESCHLOSSEN. Andere Werte fallen via `.catch` weg.
+    status: z.literal('geschlossen').optional().catch(undefined),
     action: z.literal('new-vorfall').optional().catch(undefined),
   })
   .passthrough();

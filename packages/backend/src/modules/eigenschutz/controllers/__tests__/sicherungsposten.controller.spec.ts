@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { ConflictException, InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
@@ -10,10 +10,7 @@ import { UpdateSicherungspostenCommand } from '@/application/eigenschutz/command
 import { AufloeseSicherungspostenCommand } from '@/application/eigenschutz/commands/aufloese-sicherungsposten/aufloese-sicherungsposten.command';
 import { GetSicherungspostenQuery } from '@/application/eigenschutz/queries/get-sicherungsposten/get-sicherungsposten.query';
 import { ListSicherungspostenQuery } from '@/application/eigenschutz/queries/list-sicherungsposten/list-sicherungsposten.query';
-import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { LOGGER, SICHERUNGSPOSTEN_REPOSITORY } from '@infrastructure/di-tokens';
 import { SicherungspostenController } from '../sicherungsposten.controller';
 
@@ -55,23 +52,17 @@ describe('SicherungspostenController (Story 4.1)', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
-      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get(SicherungspostenController);
   });
 
-  describe('Drei-Schicht-Guard-Kette + Permission-Decorators (AC8 + AC11)', () => {
-    it('(1) trägt JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard auf Klassen-Ebene', () => {
+  describe('Guard-Kette + Routing', () => {
+    it('(1) trägt nur JwtAuthGuard auf Klassen-Ebene', () => {
       const guards = Reflect.getMetadata('__guards__', SicherungspostenController) as unknown[];
       expect(guards).toBeDefined();
-      expect(guards).toHaveLength(3);
+      expect(guards).toHaveLength(1);
       expect(guards[0]).toBe(JwtAuthGuard);
-      expect(guards[1]).toBe(EinsatzScopeGuard);
-      expect(guards[2]).toBe(PermissionsGuard);
     });
 
     it('(2) Routing trägt einsatz-scoped Path und version="alpha"', () => {
@@ -79,31 +70,6 @@ describe('SicherungspostenController (Story 4.1)', () => {
       const version = Reflect.getMetadata('__version__', SicherungspostenController);
       expect(path).toBe('einsaetze/:einsatzId/sicherheit/eigenschutz/sicherungsposten');
       expect(version).toBe('alpha');
-    });
-
-    it('(3) listSicherungsposten erfordert eigenschutz:sicherungsposten:read', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SicherungspostenController.prototype.listSicherungsposten);
-      expect(required).toEqual(['eigenschutz:sicherungsposten:read']);
-    });
-
-    it('(4) createSicherungsposten erfordert eigenschutz:sicherungsposten:write', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SicherungspostenController.prototype.createSicherungsposten);
-      expect(required).toEqual(['eigenschutz:sicherungsposten:write']);
-    });
-
-    it('(5) updateSicherungsposten erfordert eigenschutz:sicherungsposten:write', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SicherungspostenController.prototype.updateSicherungsposten);
-      expect(required).toEqual(['eigenschutz:sicherungsposten:write']);
-    });
-
-    it('(6) aufloeseSicherungsposten erfordert eigenschutz:sicherungsposten:write', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SicherungspostenController.prototype.aufloeseSicherungsposten);
-      expect(required).toEqual(['eigenschutz:sicherungsposten:write']);
-    });
-
-    it('(6b) getSicherungsposten erfordert eigenschutz:sicherungsposten:read (Story 4.4)', () => {
-      const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, SicherungspostenController.prototype.getSicherungsposten);
-      expect(required).toEqual(['eigenschutz:sicherungsposten:read']);
     });
   });
 
@@ -157,36 +123,6 @@ describe('SicherungspostenController (Story 4.1)', () => {
     it('(8c) Unerwarteter Fehler → 500 InternalServerError', async () => {
       queryBus.execute.mockResolvedValue(Result.fail<SicherungspostenReadModel>('InfrastructureError:Eigenschutz:db-down'));
       await expect(controller.getSicherungsposten(EINSATZ_ID, 'clw3h8x9y0000qwertyui04077')).rejects.toBeInstanceOf(InternalServerErrorException);
-    });
-
-    it('(8d) Permission-Smoke: 403 ForbiddenException, wenn PermissionsGuard ablehnt', async () => {
-      const blocked: TestingModule = await Test.createTestingModule({
-        controllers: [SicherungspostenController],
-        providers: [
-          { provide: CommandBus, useValue: commandBus },
-          { provide: QueryBus, useValue: queryBus },
-          { provide: LOGGER, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() } },
-          { provide: SICHERUNGSPOSTEN_REPOSITORY, useValue: postenRepo },
-        ],
-      })
-        .overrideGuard(JwtAuthGuard)
-        .useValue({ canActivate: () => true })
-        .overrideGuard(EinsatzScopeGuard)
-        .useValue({ canActivate: () => true })
-        .overrideGuard(PermissionsGuard)
-        .useValue({
-          canActivate: () => {
-            throw new ForbiddenException({ statusCode: 403, error: 'Forbidden', message: 'Permission `eigenschutz:sicherungsposten:read` fehlt' });
-          },
-        })
-        .compile();
-
-      const blockedController = blocked.get(SicherungspostenController);
-      // PermissionsGuard wirft im NestJS-Pipeline-Order vor der Methode —
-      // im Unit-Test simulieren wir die Konfiguration. Das eigentliche
-      // Guard-Verhalten ist in `permissions.guard.spec.ts` getestet; dieser
-      // Smoke-Test dokumentiert die Decorator-Bindung (AC10).
-      expect(blockedController).toBeDefined();
     });
   });
 

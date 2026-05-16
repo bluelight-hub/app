@@ -10,12 +10,6 @@
  * - Inline-Row-Error bei Resolve-Fehlern (UX-DR21 Zero-Toast).
  * - Polite Live-Region für SR-Ansage nach erfolgreichem Resolve.
  *
- * **Read-Only-Modus:**
- * Wird über das `canResolve`-Prop gesteuert (required). Die Page-Komponente
- * (Task 9) verkabelt das mit `useMyEinsatzRolle`-basierter BEFEHLSGEBER-
- * Permission. `canResolve === false` deaktiviert alle drei Action-Buttons via
- * `disabled` + `aria-disabled` und blendet den Read-Only-Hinweis ein.
- *
  * **Per-Row-Disabling:**
  * Während eine Resolve-Mutation für eine konkrete Konflikt-Id läuft, wird
  * NUR die betroffene Row deaktiviert (lokaler `resolvingIds`-Set). Andere
@@ -53,12 +47,6 @@ export interface ConflictResolutionListProps {
    * (`replace: true`), sodass URL und Filter-State synchron bleiben.
    */
   initialFilter?: SyncConflictsFilter;
-  /**
-   * Steuert den Read-Only-Modus. `false` deaktiviert alle Resolve-Buttons.
-   * **Required** — kein Default, damit der Sicherheits-Vertrag explizit ist
-   * (Fail-Safe statt Fail-Open, F7).
-   */
-  canResolve: boolean;
 }
 
 const ENTITY_TYPE_OPTIONS: ReadonlyArray<{ value: EntityType; label: string }> = [
@@ -92,7 +80,7 @@ const BUTTON_CLASSES: Record<ResolveButtonSpec['intent'], string> = {
   merge: 'border-border-subtle bg-surface-panel text-text-primary hover:border-border-strong hover:bg-action-secondary-hover',
 };
 
-export function ConflictResolutionList({ einsatzId, initialFilter, canResolve }: ConflictResolutionListProps) {
+export function ConflictResolutionList({ einsatzId, initialFilter }: ConflictResolutionListProps) {
   const navigate = useNavigate();
   const [filter, setFilterState] = useState<SyncConflictsFilter>(() => sanitizeFilter(initialFilter));
   const [sortColumn, setSortColumn] = useState<SortColumn>('reportedAt');
@@ -186,7 +174,6 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve }:
   };
 
   const handleResolve = (conflict: SyncConflictListItemDto, resolution: Resolution) => {
-    if (!canResolve) return;
     if (resolvingIds.has(conflict.id)) return;
     setResolvingIds((prev) => {
       const next = new Set(prev);
@@ -231,7 +218,7 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve }:
   const isError = conflictsQuery.isError;
 
   return (
-    <section aria-label={canResolve ? 'Sync-Konflikte' : 'Sync-Konflikte (Read-Only)'} className="flex flex-col gap-4" data-testid="conflict-resolution-list">
+    <section aria-label="Sync-Konflikte" className="flex flex-col gap-4" data-testid="conflict-resolution-list">
       {/* Polite Live-Region für SR-Ansagen (UX-DR6 §A11y) */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only" data-testid="conflict-sr-announcer">
         {announcement}
@@ -262,7 +249,7 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve }:
         <EmptyState icon={PiCheckCircle} title="Keine offenen Sync-Konflikte" description="Alle Multi-Device-Konflikte wurden aufgelöst." />
       ) : (
         <div ref={parentRef} className="relative isolate overflow-auto rounded-panel border border-border-subtle" style={{ height: 600, maxHeight: 600 }} data-testid="conflict-table-container">
-          <table role="table" aria-label={canResolve ? 'Konflikte' : 'Konflikte (Read-Only)'} aria-rowcount={sortedConflicts.length} className="w-full border-collapse">
+          <table role="table" aria-label="Konflikte" aria-rowcount={sortedConflicts.length} className="w-full border-collapse">
             <thead className="sticky top-0 z-10 bg-surface-panel">
               <tr role="row">
                 <SortHeader column="entityType" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} onKey={handleHeaderKey}>
@@ -296,7 +283,7 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve }:
                 const reporterName = getUserName(conflict.reportedByUserId);
                 const rowError = rowErrors.get(conflict.id);
                 const isRowResolving = resolvingIds.has(conflict.id);
-                const isRowDisabled = !canResolve || isRowResolving;
+                const isRowDisabled = isRowResolving;
                 return (
                   <tr
                     key={conflict.id}
@@ -381,8 +368,6 @@ export function ConflictResolutionList({ einsatzId, initialFilter, canResolve }:
           </table>
         </div>
       )}
-
-      {!canResolve ? <p className="text-xs text-text-muted">Konflikte können nur vom Sicherheitsbeauftragten aufgelöst werden.</p> : null}
     </section>
   );
 }

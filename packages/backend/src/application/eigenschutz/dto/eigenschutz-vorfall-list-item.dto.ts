@@ -1,4 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+/**
+ * Status-Anzeige in der Vorfall-Liste (Issue #415).
+ */
+export type EigenschutzVorfallStatusDto = 'OFFEN' | 'GESCHLOSSEN';
 
 /**
  * Response-Item für `GET /einsaetze/:einsatzId/sicherheit/eigenschutz/vorfaelle`
@@ -27,4 +32,13 @@ export class EigenschutzVorfallListItemDto {
 
   @ApiProperty({ description: 'CUID des erfassenden Users', example: 'clw3h8x9y0000qwertyui05003' })
   erfasstVonUserId!: string;
+
+  @ApiProperty({ description: 'Status des Vorfalls (Issue #415)', enum: ['OFFEN', 'GESCHLOSSEN'], example: 'OFFEN' })
+  status!: EigenschutzVorfallStatusDto;
+
+  @ApiPropertyOptional({ description: 'Zeitpunkt der Schließung (ISO-8601) — `null` für offene Vorfälle', type: String, nullable: true, example: '2026-05-07T15:30:00.000Z' })
+  geschlossenAm!: string | null;
+
+  @ApiPropertyOptional({ description: 'CUID des Akteurs der Schließung — `null` für offene Vorfälle', type: String, nullable: true })
+  geschlossenVonUserId!: string | null;
 }

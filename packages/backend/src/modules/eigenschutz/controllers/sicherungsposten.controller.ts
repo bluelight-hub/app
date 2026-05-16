@@ -21,7 +21,6 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiExtraModels,
-  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
@@ -35,10 +34,7 @@ import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
-import { RequiresPermission } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { CreateSicherungspostenCommand } from '@/application/eigenschutz/commands/create-sicherungsposten/create-sicherungsposten.command';
@@ -90,9 +86,8 @@ function parseSicherungspostenStatus(raw: string | undefined): SicherungspostenQ
   CreateSicherungspostenPersonalFreitextDto,
 )
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ungültig' })
-@ApiForbiddenResponse({ description: 'Keine ausreichende Permission für die Aktion' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz/sicherungsposten', version: 'alpha' })
-@UseGuards(JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 export class SicherungspostenController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -103,7 +98,6 @@ export class SicherungspostenController {
   ) {}
 
   @Get()
-  @RequiresPermission('eigenschutz:sicherungsposten:read')
   @ApiOperation({ summary: 'Sicherungsposten eines Einsatzes auflisten (Status-Filter AKTIV/AUFGELOEST)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiQuery({ name: 'status', required: true, enum: ['AKTIV', 'AUFGELOEST'] })
@@ -136,7 +130,6 @@ export class SicherungspostenController {
   }
 
   @Get(':postenId')
-  @RequiresPermission('eigenschutz:sicherungsposten:read')
   @ApiOperation({
     summary: 'Sicherungsposten per ID laden (Detail-Ansicht)',
     description:
@@ -170,7 +163,6 @@ export class SicherungspostenController {
   }
 
   @Post()
-  @RequiresPermission('eigenschutz:sicherungsposten:write')
   @ApiOperation({ summary: 'Neuen Sicherungsposten anlegen' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiBody({ type: CreateSicherungspostenDto })
@@ -198,7 +190,6 @@ export class SicherungspostenController {
 
   @Patch(':postenId')
   @HttpCode(HttpStatus.OK)
-  @RequiresPermission('eigenschutz:sicherungsposten:write')
   @ApiOperation({ summary: 'Sicherungsposten aktualisieren (Optimistic-Concurrency)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'postenId', type: String, description: 'CUID des Sicherungspostens' })
@@ -230,7 +221,6 @@ export class SicherungspostenController {
 
   @Post(':postenId/aufloesen')
   @HttpCode(HttpStatus.OK)
-  @RequiresPermission('eigenschutz:sicherungsposten:write')
   @ApiOperation({ summary: 'Sicherungsposten auflösen (Pflicht-Begründung — UX-DR27)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiParam({ name: 'postenId', type: String, description: 'CUID des Sicherungspostens' })

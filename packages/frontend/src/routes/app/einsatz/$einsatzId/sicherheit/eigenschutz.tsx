@@ -14,7 +14,6 @@ import { EinsatzleiterReprompEskalationBanner } from '@/features/eigenschutz/ui/
 import { EigenschutzSubNav } from '@/features/eigenschutz/ui/organisms/EigenschutzSubNav';
 import { SyncConflictsDrawer } from '@/features/eigenschutz/ui/organisms/SyncConflictsDrawer';
 import { KonfliktErkanntMikroBanner } from '@/features/eigenschutz/ui/molecules/KonfliktErkanntMikroBanner';
-import { EigenschutzSyncStatusPopover } from '@/features/eigenschutz/ui/molecules/EigenschutzSyncStatusPopover';
 import type { SyncConflictsFilter } from '@/features/eigenschutz/api/queries';
 import { logger } from '@/shared/lib/logger';
 import { Outlet, createFileRoute, useLocation, useNavigate } from '@tanstack/react-router';
@@ -41,12 +40,11 @@ import { Outlet, createFileRoute, useLocation, useNavigate } from '@tanstack/rea
  * `SyncConflictsPage`/`/sync-konflikte`-Sub-Tab-Route wurde zugunsten eines
  * Slide-in-`SyncConflictsDrawer` entfernt (Konflikt-Auflösung ist eine
  * kontextuelle BEFEHLSGEBER-Aktion, die den Workspace-Kontext sichtbar
- * lassen soll). Der Drawer wird hier zentral gemountet und über vier
+ * lassen soll). Der Drawer wird hier zentral gemountet und über drei
  * Trigger geöffnet:
- * 1. `EigenschutzSyncStatusPopover` → `onOpenConflicts`
- * 2. `KonfliktErkanntMikroBanner` → `onOpenConflict` (mit Einheits-Filter)
- * 3. `eigenschutz-sync-conflict-summary-banner` (Inline-Section unten)
- * 4. Legacy-Deep-Link `?openConflicts=1` (Redirect von `/sync-konflikte`)
+ * 1. `KonfliktErkanntMikroBanner` → `onOpenConflict` (mit Einheits-Filter)
+ * 2. `eigenschutz-sync-conflict-summary-banner` (Inline-Section unten)
+ * 3. Legacy-Deep-Link `?openConflicts=1` (Redirect von `/sync-konflikte`)
  */
 const EigenschutzSearchSchema = z
   .object({
@@ -171,9 +169,6 @@ function EigenschutzRouteComponent() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-end gap-2" data-testid="eigenschutz-sync-status-row">
-        <EigenschutzSyncStatusPopover einsatzId={einsatzId} syncStatus={syncStatus} onOpenConflicts={handleOpenSyncConflicts} />
-      </div>
       <PsaProfilEmpfangBanner einsatzId={einsatzId} onShowDetails={handleShowPsaDetails} repromptNotices={reprompt.notices} onRepromptDismiss={reprompt.dismiss} />
       <EinsatzleiterReprompEskalationBanner einsatzId={einsatzId} notices={reprompt.notices} onDismiss={reprompt.dismiss} />
       <KonfliktErkanntMikroBanner einsatzId={einsatzId} notices={konfliktLive.notices} onDismiss={konfliktLive.dismissNotice} onOpenConflict={handleOpenConflict} />

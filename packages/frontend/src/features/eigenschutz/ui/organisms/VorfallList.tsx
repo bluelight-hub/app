@@ -62,16 +62,26 @@ export function VorfallList({ einsatzId, rows, isLoading, isError, onRetry, onRo
   const list = rows ?? [];
 
   if (list.length === 0) {
-    return filterIsActive ? (
-      <div data-testid="vorfaelle-list-empty-filtered">
-        <EmptyState
-          icon={PiClipboardText}
-          title="Keine Vorfälle für diese Filter"
-          description="Filter zurücksetzen, um alle Vorfälle des Einsatzes anzuzeigen."
-          action={{ label: 'Alle Filter zurücksetzen', onClick: resetFilter }}
-        />
-      </div>
-    ) : (
+    if (filterIsActive) {
+      return (
+        <div data-testid="vorfaelle-list-empty-filtered">
+          <EmptyState
+            icon={PiClipboardText}
+            title="Keine Vorfälle für diese Filter"
+            description="Filter zurücksetzen, um alle Vorfälle des Einsatzes anzuzeigen."
+            action={{ label: 'Alle Filter zurücksetzen', onClick: resetFilter }}
+          />
+        </div>
+      );
+    }
+    if (filterState.status === 'GESCHLOSSEN') {
+      return (
+        <div data-testid="vorfaelle-list-empty-closed">
+          <EmptyState icon={PiClipboardText} title="Noch keine Vorfälle geschlossen" description="Geschlossene Vorfälle erscheinen hier, sobald sie als abgearbeitet markiert sind." />
+        </div>
+      );
+    }
+    return (
       <div data-testid="vorfaelle-list-empty">
         <EmptyState icon={PiClipboardText} title="Noch keine Vorfälle erfasst" description={'Über „+ Vorfall melden" einen neuen Eintrag anlegen.'} />
       </div>
@@ -95,6 +105,9 @@ export function VorfallList({ einsatzId, rows, isLoading, isError, onRetry, onRo
               </th>
               <th scope="col" className="px-3 py-2 font-medium">
                 UK-rel.
+              </th>
+              <th scope="col" className="px-3 py-2 font-medium">
+                Status
               </th>
               <th scope="col" className="px-3 py-2 font-medium">
                 Erfasser
@@ -121,6 +134,9 @@ export function VorfallList({ einsatzId, rows, isLoading, isError, onRetry, onRo
                 <td className="max-w-[80ch] truncate px-3 py-2 text-text-primary">{row.was}</td>
                 <td className="px-3 py-2 text-text-primary">{einheitenById.get(row.einheitId) ?? row.einheitId.slice(0, 8)}</td>
                 <td className="px-3 py-2">{row.unfallkasseRelevant ? <Badge variant="warning">UK-rel.</Badge> : null}</td>
+                <td className="px-3 py-2" data-testid={`vorfaelle-list-status-${row.id}`}>
+                  {row.status === 'GESCHLOSSEN' ? <span className="text-xs text-text-muted">Geschlossen</span> : <Badge variant="info">Offen</Badge>}
+                </td>
                 <td className="px-3 py-2 text-text-muted">{getUserName(row.erfasstVonUserId) || row.erfasstVonUserId.slice(0, 8)}</td>
               </tr>
             ))}

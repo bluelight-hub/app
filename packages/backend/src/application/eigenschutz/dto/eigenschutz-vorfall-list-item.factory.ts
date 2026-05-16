@@ -16,5 +16,8 @@ export function toEigenschutzVorfallListItemDto(row: VorfallListReadRow): Eigens
   dto.unfallkasseRelevant = row.unfallkasseRelevant;
   dto.erfasstAm = row.erfasstAm.toISOString();
   dto.erfasstVonUserId = row.erfasstVonUserId;
+  dto.status = row.status;
+  dto.geschlossenAm = row.geschlossenAm === null ? null : row.geschlossenAm.toISOString();
+  dto.geschlossenVonUserId = row.geschlossenVonUserId;
   return dto;
 }

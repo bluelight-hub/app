@@ -2,7 +2,14 @@
 import { Result } from '@domain/common/result';
 import { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
 import type { AddEintragHandler } from '@application/etb/commands';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import { SicherheitsregelQuittiertEtbHandler } from '../sicherheitsregel-quittiert-etb.handler';
+
+function buildEinheitRepo(name = 'Rotkreuz Mannheim 83/1'): jest.Mocked<IEinsatzEinheitRepository> {
+  return {
+    findById: jest.fn().mockResolvedValue(Result.ok({ name } as any)),
+  } as unknown as jest.Mocked<IEinsatzEinheitRepository>;
+}
 
 function buildEvent(
   overrides: {
@@ -30,18 +37,21 @@ describe('SicherheitsregelQuittiertEtbHandler', () => {
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
   let mockLogger: { log: jest.Mock; warn: jest.Mock; error: jest.Mock; debug: jest.Mock };
 
+  let mockEinheitRepo: jest.Mocked<IEinsatzEinheitRepository>;
+
   beforeEach(() => {
     mockAddEintragHandler = { execute: jest.fn() } as unknown as jest.Mocked<AddEintragHandler>;
     mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
-    handler = new SicherheitsregelQuittiertEtbHandler(mockAddEintragHandler, mockLogger);
+    mockEinheitRepo = buildEinheitRepo('Rotkreuz Mannheim 83/1');
+    handler = new SicherheitsregelQuittiertEtbHandler(mockAddEintragHandler, mockLogger, mockEinheitRepo);
   });
 
-  it('erstellt ETB-Eintrag mit Einheit-Referenz im Text', async () => {
+  it('erstellt ETB-Eintrag mit Einheit-Name im Text', async () => {
     mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
     await handler.handle(buildEvent({ einheitId: 'einheit-7' }));
     expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
     const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
-    expect(cmd.text).toBe('Sicherheitsregel quittiert durch Einheit einheit-7');
+    expect(cmd.text).toBe('Sicherheitsregel quittiert durch Einheit Rotkreuz Mannheim 83/1');
     expect(cmd.kategorie).toBe('DOKUMENTATION');
     expect(cmd.userId).toBe('user-1');
     expect(cmd.einsatzId).toBe('einsatz-1');

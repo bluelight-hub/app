@@ -30,6 +30,9 @@ function row(overrides: Partial<VorfallListReadRow> = {}): VorfallListReadRow {
     unfallkasseRelevant: overrides.unfallkasseRelevant ?? true,
     erfasstAm: overrides.erfasstAm ?? new Date('2026-05-06T10:01:00.000Z'),
     erfasstVonUserId: overrides.erfasstVonUserId ?? USER_ID,
+    status: overrides.status ?? 'OFFEN',
+    geschlossenAm: overrides.geschlossenAm === undefined ? null : overrides.geschlossenAm,
+    geschlossenVonUserId: overrides.geschlossenVonUserId === undefined ? null : overrides.geschlossenVonUserId,
   };
 }
 

@@ -360,4 +360,60 @@ describe('VorfallMeldenDrawer (Story 5.1)', () => {
 
     expect(screen.queryByTestId('vorfall-melden-drawer')).not.toBeInTheDocument();
   });
+
+  it('Abbrechen-Button ruft onClose ohne Dirty-Confirm-Prompt', async () => {
+    const onClose = vi.fn();
+    const confirmSpy = vi.spyOn(window, 'confirm');
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfallMeldenDrawer einsatzId="einsatz-1" einheitId={VALID_EINHEIT} open={true} onClose={onClose} />
+      </Wrapper>,
+    );
+
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId('vorfall-cancel'));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(confirmSpy).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it('Abbrechen-Button ruft window.confirm wenn dirty und schließt nach Bestätigung', async () => {
+    const onClose = vi.fn();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfallMeldenDrawer einsatzId="einsatz-1" einheitId={VALID_EINHEIT} open={true} onClose={onClose} />
+      </Wrapper>,
+    );
+
+    const user = userEvent.setup();
+    await user.type(screen.getByTestId('vorfall-was-input'), 'Sturz');
+    await user.click(screen.getByTestId('vorfall-cancel'));
+
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    confirmSpy.mockRestore();
+  });
+
+  it('Abbrechen-Button schließt NICHT, wenn Dirty-Confirm verneint wird', async () => {
+    const onClose = vi.fn();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <VorfallMeldenDrawer einsatzId="einsatz-1" einheitId={VALID_EINHEIT} open={true} onClose={onClose} />
+      </Wrapper>,
+    );
+
+    const user = userEvent.setup();
+    await user.type(screen.getByTestId('vorfall-was-input'), 'Sturz');
+    await user.click(screen.getByTestId('vorfall-cancel'));
+
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
 });

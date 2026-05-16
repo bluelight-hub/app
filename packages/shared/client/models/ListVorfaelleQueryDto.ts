@@ -43,7 +43,24 @@ export interface ListVorfaelleQueryDto {
      * @memberof ListVorfaelleQueryDto
      */
     unfallkasseRelevant?: boolean;
+    /**
+     * Status-Filter (Issue #415). `OFFEN` listet noch nicht geschlossene Vorfälle, `GESCHLOSSEN` nur geschlossene. Weglassen → beide.
+     * @type {string}
+     * @memberof ListVorfaelleQueryDto
+     */
+    status?: ListVorfaelleQueryDtoStatusEnum;
 }
+
+
+/**
+ * @export
+ */
+export const ListVorfaelleQueryDtoStatusEnum = {
+    Offen: 'OFFEN',
+    Geschlossen: 'GESCHLOSSEN'
+} as const;
+export type ListVorfaelleQueryDtoStatusEnum = typeof ListVorfaelleQueryDtoStatusEnum[keyof typeof ListVorfaelleQueryDtoStatusEnum];
+
 
 /**
  * Check if a given object implements the ListVorfaelleQueryDto interface.
@@ -66,6 +83,7 @@ export function ListVorfaelleQueryDtoFromJSONTyped(json: any, ignoreDiscriminato
         'vorfallZeitVon': json['vorfallZeitVon'] == null ? undefined : json['vorfallZeitVon'],
         'vorfallZeitBis': json['vorfallZeitBis'] == null ? undefined : json['vorfallZeitBis'],
         'unfallkasseRelevant': json['unfallkasseRelevant'] == null ? undefined : json['unfallkasseRelevant'],
+        'status': json['status'] == null ? undefined : json['status'],
     };
 }
 
@@ -84,6 +102,7 @@ export function ListVorfaelleQueryDtoToJSONTyped(value?: ListVorfaelleQueryDto |
         'vorfallZeitVon': value['vorfallZeitVon'],
         'vorfallZeitBis': value['vorfallZeitBis'],
         'unfallkasseRelevant': value['unfallkasseRelevant'],
+        'status': value['status'],
     };
 }
 

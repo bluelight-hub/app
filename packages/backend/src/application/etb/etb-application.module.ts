@@ -3,6 +3,7 @@ import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
+import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
 import { UserInfrastructureModule } from '@infrastructure/user/user-infrastructure.module';
 import { Module } from '@nestjs/common';
@@ -116,6 +117,9 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     LagekarteInfrastructureModule,
     // User Infrastructure (IUserRepository) - für Benutzernamen-Auflösung in Event-Handlers (Story 5.0)
     UserInfrastructureModule,
+    // Kräfte Infrastructure (IEinsatzEinheitRepository) - Einheit-Namen-Auflösung in
+    // Eigenschutz-ETB-Handlern (Issue 415: Einheit-Name statt CUID im ETB-Text).
+    KraefteInfrastructureModule,
   ],
   providers: [
     // Infrastructure Adapters (Cross-cutting concerns)

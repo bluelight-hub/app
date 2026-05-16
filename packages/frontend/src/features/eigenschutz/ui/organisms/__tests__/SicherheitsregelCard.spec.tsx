@@ -22,7 +22,7 @@ vi.mock('@/features/eigenschutz/api/queries', () => ({
   useSicherheitsregelQuittungen: () => ({ data: [], isPending: false, isError: false }),
 }));
 
-function makeRegel(overrides: Partial<{ version: number; einheitId: string | null }> = {}) {
+function makeRegel(overrides: Partial<{ version: number; einheitId: string | null; einsatzweit: boolean }> = {}) {
   return {
     id: REGEL_ID,
     einsatzId: EINSATZ_ID,
@@ -51,7 +51,7 @@ describe('SicherheitsregelCard', () => {
   });
 
   it('rendert Status „Aktualisiert" ab Version 2 und zeigt den Einheit-Namen', () => {
-    renderWithProviders(<SicherheitsregelCard einsatzId={EINSATZ_ID} regel={makeRegel({ version: 3, einheitId: EINHEIT_ID })} einheitName="Rettungstrupp 1" onEdit={vi.fn()} />);
+    renderWithProviders(<SicherheitsregelCard einsatzId={EINSATZ_ID} regel={makeRegel({ version: 3, einheitId: EINHEIT_ID, einsatzweit: false })} einheitName="Rettungstrupp 1" onEdit={vi.fn()} />);
 
     expect(screen.getByTestId('sicherheitsregel-status-badge')).toHaveAttribute('data-status', 'warning');
     expect(screen.getByTestId(`sicherheitsregel-version-${REGEL_ID}`)).toHaveTextContent('V3');

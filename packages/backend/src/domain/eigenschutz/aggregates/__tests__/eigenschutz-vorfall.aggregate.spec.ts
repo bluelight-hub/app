@@ -1,5 +1,6 @@
-import { EigenschutzVorfall, VORFALL_WALLCLOCK_DRIFT } from '../eigenschutz-vorfall.aggregate';
+import { EigenschutzVorfall, VORFALL_BEREITS_GESCHLOSSEN, VORFALL_WALLCLOCK_DRIFT } from '../eigenschutz-vorfall.aggregate';
 import { VorfallGemeldetEvent } from '../../events/vorfall-gemeldet.event';
+import { VorfallGeschlossenEvent } from '../../events/vorfall-geschlossen.event';
 import { Beteiligter } from '../../value-objects/beteiligter.vo';
 import { Wo } from '../../value-objects/wo.vo';
 import { makeValidKontextSnapshot } from './__fixtures__/make-valid-kontext-snapshot';
@@ -157,6 +158,127 @@ describe('EigenschutzVorfall Aggregate (Story 5.1 + 5.2)', () => {
     expect(typeof (aggregate as any).update).toBe('undefined');
     // eslint-disable-next-line typescript/no-explicit-any -- runtime contract verification
     expect(typeof (aggregate as any).delete).toBe('undefined');
+  });
+
+  describe('close() (Issue #415)', () => {
+    const CLOSER_USER_ID = 'clw3h8x9y0000qwertyui05099';
+    const CLOSED_AT = new Date('2026-05-07T15:30:00.000Z');
+
+    it('close() erfolgreich auf offenem Vorfall — Felder gesetzt, Event emittiert', () => {
+      const aggregate = EigenschutzVorfall.create(buildBaseProps()).value!;
+      // Vorab-Events aus create() leeren, damit close() isoliert geprüft werden kann.
+      aggregate.clearDomainEvents();
+      const result = aggregate.close(CLOSER_USER_ID, 'Vorfall ist abgearbeitet', CLOSED_AT);
+      expect(result.isSuccess).toBe(true);
+      expect(aggregate.isGeschlossen).toBe(true);
+      expect(aggregate.geschlossenAm).toEqual(CLOSED_AT);
+      expect(aggregate.geschlossenVonUserId).toBe(CLOSER_USER_ID);
+      expect(aggregate.schliessungsBegruendung).toBe('Vorfall ist abgearbeitet');
+      const events = aggregate.getDomainEvents();
+      expect(events).toHaveLength(1);
+      const event = events[0] as VorfallGeschlossenEvent;
+      expect(event).toBeInstanceOf(VorfallGeschlossenEvent);
+      expect(event.vorfallId).toBe(aggregate.id.value);
+      expect(event.geschlossenAm).toEqual(CLOSED_AT);
+      expect(event.userId).toBe(CLOSER_USER_ID);
+    });
+
+    it('close() ohne Begründung — `schliessungsBegruendung` bleibt null', () => {
+      const aggregate = EigenschutzVorfall.create(buildBaseProps()).value!;
+      aggregate.clearDomainEvents();
+      const result = aggregate.close(CLOSER_USER_ID, undefined, CLOSED_AT);
+      expect(result.isSuccess).toBe(true);
+      expect(aggregate.schliessungsBegruendung).toBeNull();
+    });
+
+    it('close() mit Empty-String-Begründung → null', () => {
+      const aggregate = EigenschutzVorfall.create(buildBaseProps()).value!;
+      aggregate.clearDomainEvents();
+      const result = aggregate.close(CLOSER_USER_ID, '   ', CLOSED_AT);
+      expect(result.isSuccess).toBe(true);
+      expect(aggregate.schliessungsBegruendung).toBeNull();
+    });
+
+    it('close() trimmt zu lange Begründung ab (>500) — Failure', () => {
+      const aggregate = EigenschutzVorfall.create(buildBaseProps()).value!;
+      aggregate.clearDomainEvents();
+      const result = aggregate.close(CLOSER_USER_ID, 'a'.repeat(501), CLOSED_AT);
+      expect(result.isFailure).toBe(true);
+      expect(aggregate.isGeschlossen).toBe(false);
+    });
+
+    it('close() Idempotenz — zweiter Aufruf liefert VorfallBereitsGeschlossen', () => {
+      const aggregate = EigenschutzVorfall.create(buildBaseProps()).value!;
+      aggregate.clearDomainEvents();
+      const first = aggregate.close(CLOSER_USER_ID, 'erste Begründung', CLOSED_AT);
+      expect(first.isSuccess).toBe(true);
+      const second = aggregate.close(CLOSER_USER_ID, 'zweite Begründung', new Date(CLOSED_AT.getTime() + 60_000));
+      expect(second.isFailure).toBe(true);
+      expect(second.error).toBe(VORFALL_BEREITS_GESCHLOSSEN);
+      // Original-Closure-Daten unverändert nach zweitem Versuch.
+      expect(aggregate.geschlossenAm).toEqual(CLOSED_AT);
+      expect(aggregate.schliessungsBegruendung).toBe('erste Begründung');
+    });
+
+    it('close() lehnt leere userId ab', () => {
+      const aggregate = EigenschutzVorfall.create(buildBaseProps()).value!;
+      aggregate.clearDomainEvents();
+      const result = aggregate.close('   ', 'Begründung', CLOSED_AT);
+      expect(result.isFailure).toBe(true);
+      expect(aggregate.isGeschlossen).toBe(false);
+    });
+
+    it('reconstitute() mit Closure-Feldern liefert geschlossenes Aggregate', () => {
+      const id = 'clw3h8x9y0000qwertyui05060';
+      const result = EigenschutzVorfall.reconstitute({
+        id,
+        einsatzId: EINSATZ_ID,
+        einheitId: EINHEIT_ID,
+        vorfallZeit: NOW,
+        wann: NOW,
+        was: 'Sturz',
+        wo: null,
+        beteiligte: [],
+        massnahmen: '',
+        unfallkasseRelevant: false,
+        erfasstVonUserId: USER_ID,
+        erfasstAm: NOW,
+        kontextSnapshot: {},
+        gefBeurteilungVersionId: null,
+        geschlossenAm: CLOSED_AT,
+        geschlossenVonUserId: CLOSER_USER_ID,
+        schliessungsBegruendung: 'Bereits geschlossen',
+      });
+      expect(result.isSuccess).toBe(true);
+      const aggregate = result.value!;
+      expect(aggregate.isGeschlossen).toBe(true);
+      expect(aggregate.geschlossenAm).toEqual(CLOSED_AT);
+      expect(aggregate.geschlossenVonUserId).toBe(CLOSER_USER_ID);
+      expect(aggregate.schliessungsBegruendung).toBe('Bereits geschlossen');
+    });
+
+    it('reconstitute() lehnt Inkonsistenz `geschlossenAm` ohne `geschlossenVonUserId` ab', () => {
+      const result = EigenschutzVorfall.reconstitute({
+        id: 'clw3h8x9y0000qwertyui05061',
+        einsatzId: EINSATZ_ID,
+        einheitId: EINHEIT_ID,
+        vorfallZeit: NOW,
+        wann: NOW,
+        was: 'Sturz',
+        wo: null,
+        beteiligte: [],
+        massnahmen: '',
+        unfallkasseRelevant: false,
+        erfasstVonUserId: USER_ID,
+        erfasstAm: NOW,
+        kontextSnapshot: {},
+        gefBeurteilungVersionId: null,
+        geschlossenAm: CLOSED_AT,
+        geschlossenVonUserId: null,
+        schliessungsBegruendung: null,
+      });
+      expect(result.isFailure).toBe(true);
+    });
   });
 
   it('(14) reconstitute() erzeugt Aggregate ohne Event-Emission', () => {

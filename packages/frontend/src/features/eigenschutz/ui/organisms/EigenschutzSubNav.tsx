@@ -20,8 +20,8 @@ import { cn } from '@/shared/ui/cn';
  * **Goal G6 — kein „Konflikte"-Tab mehr:** Konflikt-Auflösung läuft jetzt
  * über den `SyncConflictsDrawer` (kontextueller Slide-in). Die Konflikt-
  * Sichtbarkeit für den Sicherheitsbeauftragten erfolgt über den
- * `EigenschutzSyncStatusPopover`, den `KonfliktErkanntMikroBanner` und das
- * Summary-Banner in der Layout-Route — keine dedizierte Sub-Tab nötig.
+ * `KonfliktErkanntMikroBanner` und das Summary-Banner in der Layout-Route —
+ * keine dedizierte Sub-Tab nötig.
  */
 interface SubNavItem {
   readonly id: string;

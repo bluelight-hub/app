@@ -95,6 +95,12 @@ export function useZeichenLayer({ mapRef, isMapLoaded, zeichen }: UseZeichenLaye
     const map = mapRef.current?.getMap();
     if (!map) return;
 
+    // `map.hasImage`/`addImage` greifen intern auf `this.style.getImage` zu —
+    // nach `map.remove()` (Unmount) crasht das mit "undefined is not an object
+    // (evaluating 'this.style.getImage')". MapLibre setzt `_removed = true` in
+    // `remove()`; das Flag schützt vor Use-after-destroy nach jedem `await`.
+    const isMapAlive = () => !(map as unknown as { _removed?: boolean })._removed;
+
     // Nur neue Images registrieren (nicht bereits vorhandene)
     const neuaZeichen = uniqueZeichen.filter((z) => {
       const key = `tz-${[
@@ -111,14 +117,18 @@ export function useZeichenLayer({ mapRef, isMapLoaded, zeichen }: UseZeichenLaye
 
     if (neuaZeichen.length === 0) return;
 
+    let cancelled = false;
+
     const registerImages = async () => {
       if (registeringRef.current) return;
       registeringRef.current = true;
       setIsRegistering(true);
 
       for (const z of neuaZeichen) {
+        if (cancelled || !isMapAlive()) break;
         try {
           const { key, image } = await getOrCreateImage(z.zeichenDefinition);
+          if (cancelled || !isMapAlive()) break;
           if (!map.hasImage(key)) {
             map.addImage(key, image);
           }
@@ -129,10 +139,14 @@ export function useZeichenLayer({ mapRef, isMapLoaded, zeichen }: UseZeichenLaye
       }
 
       registeringRef.current = false;
-      setIsRegistering(false);
+      if (!cancelled) setIsRegistering(false);
     };
 
     registerImages();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isMapLoaded, uniqueZeichen, mapRef]);
 
   // Bei Style-Wechsel alle Images erneut registrieren

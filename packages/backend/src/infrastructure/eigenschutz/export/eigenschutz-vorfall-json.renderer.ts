@@ -42,7 +42,24 @@ export class EigenschutzVorfallJsonRenderer implements IEigenschutzVorfallJsonRe
   }
 
   private buildExport(input: EigenschutzVorfallJsonInput): EigenschutzVorfallExportV1Type {
-    const { kontextSnapshot: rawSnapshot, gefBeurteilungVersionId, wo, beteiligte, ...vorfallRest } = toEigenschutzVorfallDto(input.vorfall);
+    // Closure-Felder (Issue #415) sind im DTO neu, aber nicht im Export-Schema —
+    // explizit aus dem Spread herauslösen, damit `strict()` nicht meckert.
+    // Schema-Erweiterung des Export-Formats ist Phase-2 (eigene `schemaVersion`).
+    const {
+      kontextSnapshot: rawSnapshot,
+      gefBeurteilungVersionId,
+      wo,
+      beteiligte,
+      status: _status,
+      geschlossenAm: _geschlossenAm,
+      geschlossenVonUserId: _geschlossenVonUserId,
+      schliessungsBegruendung: _schliessungsBegruendung,
+      ...vorfallRest
+    } = toEigenschutzVorfallDto(input.vorfall);
+    void _status;
+    void _geschlossenAm;
+    void _geschlossenVonUserId;
+    void _schliessungsBegruendung;
 
     const isLegacyEmpty = Object.keys(rawSnapshot).length === 0;
     // Diskriminator vor Schema-Parse: bei V1-Pfad explizit gegen das

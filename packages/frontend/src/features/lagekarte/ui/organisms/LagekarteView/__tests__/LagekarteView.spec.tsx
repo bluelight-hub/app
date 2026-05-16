@@ -237,6 +237,11 @@ vi.mock('@/features/taktische-zeichen', () => ({
   ZeichenPreview: () => <div data-testid="zeichen-preview" />,
 }));
 
+vi.mock('@/features/eigenschutz', () => ({
+  SecurityPostMapMarker: () => null,
+  useUpdateSicherungsposten: () => ({ mutate: vi.fn() }),
+}));
+
 vi.mock('@/features/lagekarte/hooks/use-zeichen-drag', () => ({
   useZeichenDrag: vi.fn(() => ({ isDragging: false, selectedZeichenId: null, deselectZeichen: vi.fn() })),
 }));

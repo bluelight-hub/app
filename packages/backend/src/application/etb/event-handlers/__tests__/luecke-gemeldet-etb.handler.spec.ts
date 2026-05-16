@@ -2,7 +2,14 @@
 import { Result } from '@domain/common/result';
 import { LueckeGemeldetEvent } from '@domain/eigenschutz/events/luecke-gemeldet.event';
 import type { AddEintragHandler } from '@application/etb/commands';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
 import { LueckeGemeldetEtbHandler } from '../luecke-gemeldet-etb.handler';
+
+function buildEinheitRepo(name = 'Sanitätstrupp 12'): jest.Mocked<IEinsatzEinheitRepository> {
+  return {
+    findById: jest.fn().mockResolvedValue(Result.ok({ name } as any)),
+  } as unknown as jest.Mocked<IEinsatzEinheitRepository>;
+}
 
 function buildEvent(
   overrides: {
@@ -28,19 +35,21 @@ describe('LueckeGemeldetEtbHandler', () => {
   let handler: LueckeGemeldetEtbHandler;
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
   let mockLogger: { log: jest.Mock; warn: jest.Mock; error: jest.Mock; debug: jest.Mock };
+  let mockEinheitRepo: jest.Mocked<IEinsatzEinheitRepository>;
 
   beforeEach(() => {
     mockAddEintragHandler = { execute: jest.fn() } as unknown as jest.Mocked<AddEintragHandler>;
     mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
-    handler = new LueckeGemeldetEtbHandler(mockAddEintragHandler, mockLogger);
+    mockEinheitRepo = buildEinheitRepo('Sanitätstrupp 12');
+    handler = new LueckeGemeldetEtbHandler(mockAddEintragHandler, mockLogger, mockEinheitRepo);
   });
 
-  it('erstellt ETB-Eintrag mit Meldung im Text', async () => {
+  it('erstellt ETB-Eintrag mit Einheit-Name und Meldung', async () => {
     mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as any));
     await handler.handle(buildEvent({ meldung: 'Helme fehlen' }));
     expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
     const cmd = mockAddEintragHandler.execute.mock.calls[0][0];
-    expect(cmd.text).toBe('PSA-Lücke gemeldet von Einheit einheit-7: Helme fehlen');
+    expect(cmd.text).toBe('PSA-Lücke gemeldet von Einheit Sanitätstrupp 12: Helme fehlen');
     expect(cmd.kategorie).toBe('MATERIAL');
     expect(cmd.userId).toBe('user-1');
     expect(cmd.einsatzId).toBe('einsatz-1');

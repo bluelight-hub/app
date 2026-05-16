@@ -130,11 +130,12 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
     });
   });
 
-  describe('Eigenschutz-Iteration — alle 14 Namen aus EVENT_NAMES.EIGENSCHUTZ', () => {
+  describe('Eigenschutz-Iteration — alle 15 Namen aus EVENT_NAMES.EIGENSCHUTZ', () => {
     const EIGENSCHUTZ_NAMES = Object.values(EVENT_NAMES.EIGENSCHUTZ);
 
-    it('enthält exakt die 14 erwarteten Namen', () => {
-      expect(EIGENSCHUTZ_NAMES).toHaveLength(14);
+    it('enthält exakt die 15 erwarteten Namen', () => {
+      // Issue #415 erweitert auf 15 (VORFALL_GESCHLOSSEN dazu).
+      expect(EIGENSCHUTZ_NAMES).toHaveLength(15);
     });
 
     it.each(EIGENSCHUTZ_NAMES)('Event "%s" ist an 0 oder 4 Stellen registriert (niemals 1–3)', (eventName) => {
@@ -148,7 +149,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       }
     });
 
-    it('Story-5.6-Fortschritt: alle 14 Eigenschutz-Events vollständig an 4/4', () => {
+    it('Story-5.6-Fortschritt + Issue #415: alle 15 Eigenschutz-Events vollständig an 4/4', () => {
       const ERSTELLT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_ERSTELLT;
       const AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.GEFAEHRDUNGSBEURTEILUNG_AKTUALISIERT;
       const SICHERHEITSREGEL_AUSGERUFEN = EVENT_NAMES.EIGENSCHUTZ.SICHERHEITSREGEL_AUSGERUFEN;
@@ -162,6 +163,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       const SICHERUNGSPOSTEN_EINGERICHTET = EVENT_NAMES.EIGENSCHUTZ.SICHERUNGSPOSTEN_EINGERICHTET;
       const SICHERUNGSPOSTEN_AKTUALISIERT = EVENT_NAMES.EIGENSCHUTZ.SICHERUNGSPOSTEN_AKTUALISIERT;
       const VORFALL_GEMELDET = EVENT_NAMES.EIGENSCHUTZ.VORFALL_GEMELDET;
+      const VORFALL_GESCHLOSSEN = EVENT_NAMES.EIGENSCHUTZ.VORFALL_GESCHLOSSEN;
       const VORFALL_EXPORTIERT = EVENT_NAMES.EIGENSCHUTZ.VORFALL_EXPORTIERT;
       expect(sumTuple(countRegistrationSites(ERSTELLT))).toBe(4);
       expect(sumTuple(countRegistrationSites(AKTUALISIERT))).toBe(4);
@@ -176,6 +178,7 @@ describe('Eigenschutz Event Registry — Konsistenz "0 oder 4 Stellen" (Story 1.
       expect(sumTuple(countRegistrationSites(SICHERUNGSPOSTEN_EINGERICHTET))).toBe(4);
       expect(sumTuple(countRegistrationSites(SICHERUNGSPOSTEN_AKTUALISIERT))).toBe(4);
       expect(sumTuple(countRegistrationSites(VORFALL_GEMELDET))).toBe(4);
+      expect(sumTuple(countRegistrationSites(VORFALL_GESCHLOSSEN))).toBe(4);
       expect(sumTuple(countRegistrationSites(VORFALL_EXPORTIERT))).toBe(4);
     });
   });

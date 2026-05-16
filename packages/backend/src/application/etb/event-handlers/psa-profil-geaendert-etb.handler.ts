@@ -14,10 +14,13 @@
 import type { PsaProfilGeaendertEvent } from '@domain/eigenschutz/events/psa-profil-geaendert.event';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
+import { psaProfilLabel } from '@domain/eigenschutz/constants/psa-profil-labels.constants';
+import { resolveEinheitName } from './_shared/resolve-einheit-name';
 
 const KATEGORIE: EtbKategorieValue = 'MASSNAHME';
 const BEGRUENDUNG_MAX_LENGTH = 200;
@@ -31,6 +34,7 @@ export class PsaProfilGeaendertEtbHandler implements IEventHandler<PsaProfilGeae
   constructor(
     private readonly addEintragHandler: AddEintragHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
+    @Inject(KRAEFTE_REPOSITORIES.EINSATZ_EINHEIT) private readonly einheitRepo: IEinsatzEinheitRepository,
   ) {}
 
   async handle(event: PsaProfilGeaendertEvent): Promise<void> {
@@ -42,7 +46,9 @@ export class PsaProfilGeaendertEtbHandler implements IEventHandler<PsaProfilGeae
 
       const verb = event.aktion === 'AKTIVIERT' ? 'aktiviert' : 'deaktiviert';
       const begruendung = event.begruendung.length > BEGRUENDUNG_MAX_LENGTH ? event.begruendung.slice(0, BEGRUENDUNG_MAX_LENGTH - 3) + '...' : event.begruendung;
-      const text = `PSA-Profil ${event.profil} ${verb} für Einheit ${event.einheitId}: ${begruendung}`;
+      const einheitName = await resolveEinheitName(this.einheitRepo, event.einheitId);
+      const profilLabel = psaProfilLabel(event.profil);
+      const text = `PSA-Profil ${profilLabel} ${verb} für Einheit ${einheitName}: ${begruendung}`;
 
       const cmd = AddEintragCommand.create(
         event.einsatzId,

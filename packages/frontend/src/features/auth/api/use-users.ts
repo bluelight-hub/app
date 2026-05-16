@@ -88,14 +88,17 @@ export const useUserNames = () => {
   const { data: users } = useUsers();
 
   /**
-   * Map von User-ID zu Username
+   * Map von User-ID zu Anzeigename. Bevorzugt den aus der Stammperson
+   * aufgelösten `displayName` (z. B. "Max Mustermann") und fällt auf den
+   * technischen `username` zurück, wenn keine Stammperson verknüpft ist.
    */
   const userMap = useMemo(() => {
     const m = new Map<string, string>();
     if (users && Array.isArray(users)) {
       for (const user of users) {
         if (user.id && user.username) {
-          m.set(user.id, user.username);
+          const displayName = user.displayName?.trim();
+          m.set(user.id, displayName && displayName.length > 0 ? displayName : user.username);
         }
       }
     }
@@ -103,26 +106,27 @@ export const useUserNames = () => {
   }, [users]);
 
   /**
-   * Konvertiert eine User-ID zu einem Benutzernamen
+   * Konvertiert eine User-ID zu einem Anzeigenamen (Personalname bevorzugt,
+   * sonst Benutzername).
    *
    * Unterstützt auch partielle IDs (z.B. nur die ersten 8 Zeichen).
    *
    * @param userId - Die User-ID
-   * @returns Benutzername oder Fallback
+   * @returns Anzeigename oder Fallback `User #<prefix>`
    */
   const getUserName = useCallback(
     (userId: string) => {
       // Direkte Übereinstimmung
-      const username = userMap.get(userId);
-      if (username) {
-        return username;
+      const name = userMap.get(userId);
+      if (name) {
+        return name;
       }
 
       // Suche nach Benutzer, dessen ID mit der gegebenen userId beginnt
       // (für den Fall, dass nur ein Teil der ID übergeben wird)
-      for (const [id, name] of userMap.entries()) {
+      for (const [id, mappedName] of userMap.entries()) {
         if (id.startsWith(userId)) {
-          return name;
+          return mappedName;
         }
       }
 

@@ -1,20 +1,16 @@
 /**
  * Tests für `EigenschutzTelemetryController` (Story 3.11 AC7, FR21).
  *
- * Pattern-Spiegelung des `sync-conflict.controller.spec.ts` (Story 3.9):
- * Guard-Override, Service-Mock, Permission-Strukturtest via Reflect-Metadata
- * (kein tautologischer canActivate-Mock-Override für die `eigenschutz:telemetry:write`-
- * Verifikation — stattdessen ein direkter Decorator-Reflection-Check).
+ * Guard-Override (JwtAuthGuard) + Service-Mock; Status-Code via Reflect-
+ * Metadata. Permission- oder Rollen-Gating ist nicht mehr Bestandteil der
+ * Eigenschutz-Controller.
  */
 import { BadRequestException, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { TelemetryIngestService } from '@/infrastructure/eigenschutz/telemetry/telemetry-ingest.service';
-import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { TelemetryEventBatchDto } from '@/application/eigenschutz/dto/telemetry-event.dto';
 import { EigenschutzTelemetryController } from '../eigenschutz-telemetry.controller';
 
@@ -58,18 +54,9 @@ describe('EigenschutzTelemetryController — Story 3.11 (FR21)', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
-      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get(EigenschutzTelemetryController);
-  });
-
-  it('Permission-Strukturtest: ingest-Handler trägt @RequiresPermission("eigenschutz:telemetry:write")', () => {
-    const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzTelemetryController.prototype.ingest);
-    expect(required).toEqual(['eigenschutz:telemetry:write']);
   });
 
   it('HTTP-Status-Strukturtest: ingest-Handler liefert 202 Accepted (Best-Effort-Audit, kein 201)', () => {
@@ -135,9 +122,8 @@ describe('EigenschutzTelemetryController — Story 3.11 (FR21)', () => {
   });
 
   it('Bad-Request: malformed einsatzId → 400 BadRequestException, ingestService NICHT aufgerufen', async () => {
-    // Defense-in-Depth: EinsatzScopeGuard prüft Berechtigungen, aber nicht das
-    // ID-Format. Ein nicht-CUID2-Wert würde sonst direkt in die Persist-Schicht
-    // wandern und einen FK-Throw provozieren.
+    // Defense-in-Depth: Ein nicht-CUID2-Wert würde sonst direkt in die
+    // Persist-Schicht wandern und einen FK-Throw provozieren.
     await expect(controller.ingest('not-a-cuid', makeBatch(), { userId: USER_ID } as never)).rejects.toBeInstanceOf(BadRequestException);
     expect(ingestService.ingestBatch).not.toHaveBeenCalled();
   });

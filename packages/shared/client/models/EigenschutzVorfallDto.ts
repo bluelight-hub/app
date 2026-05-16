@@ -118,7 +118,42 @@ export interface EigenschutzVorfallDto {
      * @memberof EigenschutzVorfallDto
      */
     gefBeurteilungVersionId?: object;
+    /**
+     * Status des Vorfalls (Issue #415)
+     * @type {string}
+     * @memberof EigenschutzVorfallDto
+     */
+    status: EigenschutzVorfallDtoStatusEnum;
+    /**
+     * Zeitpunkt der Schließung (ISO-8601) — `null` für offene Vorfälle
+     * @type {string}
+     * @memberof EigenschutzVorfallDto
+     */
+    geschlossenAm?: string | null;
+    /**
+     * CUID des Akteurs der Schließung — `null` für offene Vorfälle
+     * @type {string}
+     * @memberof EigenschutzVorfallDto
+     */
+    geschlossenVonUserId?: string | null;
+    /**
+     * Optionale Begründung der Schließung (≤ 500 Zeichen) — `null` für offene Vorfälle oder weggelassen
+     * @type {string}
+     * @memberof EigenschutzVorfallDto
+     */
+    schliessungsBegruendung?: string | null;
 }
+
+
+/**
+ * @export
+ */
+export const EigenschutzVorfallDtoStatusEnum = {
+    Offen: 'OFFEN',
+    Geschlossen: 'GESCHLOSSEN'
+} as const;
+export type EigenschutzVorfallDtoStatusEnum = typeof EigenschutzVorfallDtoStatusEnum[keyof typeof EigenschutzVorfallDtoStatusEnum];
+
 
 /**
  * Check if a given object implements the EigenschutzVorfallDto interface.
@@ -136,6 +171,7 @@ export function instanceOfEigenschutzVorfallDto(value: object): value is Eigensc
     if (!('erfasstAm' in value) || value['erfasstAm'] === undefined) return false;
     if (!('erfasstVonUserId' in value) || value['erfasstVonUserId'] === undefined) return false;
     if (!('kontextSnapshot' in value) || value['kontextSnapshot'] === undefined) return false;
+    if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
 
@@ -163,6 +199,10 @@ export function EigenschutzVorfallDtoFromJSONTyped(json: any, ignoreDiscriminato
         'erfasstVonUserId': json['erfasstVonUserId'],
         'kontextSnapshot': json['kontextSnapshot'],
         'gefBeurteilungVersionId': json['gefBeurteilungVersionId'] == null ? undefined : json['gefBeurteilungVersionId'],
+        'status': json['status'],
+        'geschlossenAm': json['geschlossenAm'] == null ? undefined : json['geschlossenAm'],
+        'geschlossenVonUserId': json['geschlossenVonUserId'] == null ? undefined : json['geschlossenVonUserId'],
+        'schliessungsBegruendung': json['schliessungsBegruendung'] == null ? undefined : json['schliessungsBegruendung'],
     };
 }
 
@@ -191,6 +231,10 @@ export function EigenschutzVorfallDtoToJSONTyped(value?: EigenschutzVorfallDto |
         'erfasstVonUserId': value['erfasstVonUserId'],
         'kontextSnapshot': value['kontextSnapshot'],
         'gefBeurteilungVersionId': value['gefBeurteilungVersionId'],
+        'status': value['status'],
+        'geschlossenAm': value['geschlossenAm'],
+        'geschlossenVonUserId': value['geschlossenVonUserId'],
+        'schliessungsBegruendung': value['schliessungsBegruendung'],
     };
 }
 

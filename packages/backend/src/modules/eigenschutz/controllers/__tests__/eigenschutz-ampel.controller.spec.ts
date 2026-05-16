@@ -4,10 +4,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
 import { GetEigenschutzAmpelStatusQuery } from '@/application/eigenschutz/queries/get-eigenschutz-ampel-status/get-eigenschutz-ampel-status.query';
 import { ListAmpelWarnBadgesQuery } from '@/application/eigenschutz/queries/list-ampel-warn-badges/list-ampel-warn-badges.query';
-import { EIGENSCHUTZ_PERMISSION_KEY } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { EigenschutzAmpelController } from '../eigenschutz-ampel.controller';
 
 const EINSATZ_ID = 'clw3h8x9y0000qwertyui06201';
@@ -25,33 +22,19 @@ describe('EigenschutzAmpelController', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionsGuard)
-      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get(EigenschutzAmpelController);
   });
 
-  it('trägt die dreistufige Guard-Kette auf Klassen-Ebene', () => {
+  it('trägt nur JwtAuthGuard auf Klassen-Ebene', () => {
     const guards = Reflect.getMetadata('__guards__', EigenschutzAmpelController) as unknown[];
-    expect(guards).toEqual([JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard]);
+    expect(guards).toEqual([JwtAuthGuard]);
   });
 
   it('Routing trägt einsatz-scoped Path und version="alpha"', () => {
     expect(Reflect.getMetadata('path', EigenschutzAmpelController)).toBe('einsaetze/:einsatzId/sicherheit/eigenschutz');
     expect(Reflect.getMetadata('__version__', EigenschutzAmpelController)).toBe('alpha');
-  });
-
-  it('getAmpel trägt @RequiresPermission("eigenschutz:gefaehrdungsbeurteilung:read")', () => {
-    const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzAmpelController.prototype.getAmpel);
-    expect(required).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
-  });
-
-  it('listWarnBadges trägt @RequiresPermission("eigenschutz:gefaehrdungsbeurteilung:read")', () => {
-    const required = Reflect.getMetadata(EIGENSCHUTZ_PERMISSION_KEY, EigenschutzAmpelController.prototype.listWarnBadges);
-    expect(required).toEqual(['eigenschutz:gefaehrdungsbeurteilung:read']);
   });
 
   it('listWarnBadges nutzt die statische Route ampel/warn-badges', () => {

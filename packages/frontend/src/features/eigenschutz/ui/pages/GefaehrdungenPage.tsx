@@ -23,7 +23,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PiClipboardText, PiPlus } from 'react-icons/pi';
 import { GefaehrdungsbeurteilungListItem } from '../molecules/GefaehrdungsbeurteilungListItem';
 import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
-import { EigenschutzShortcutHelpPopover } from '../molecules/EigenschutzShortcutHelpPopover';
 import { GefaehrdungseditorDrawer } from '../organisms/GefaehrdungseditorDrawer.organism';
 
 // consistency-allow: destructive-pattern - Retry-Button bei Ladefehler, keine destruktive Mutation.
@@ -42,7 +41,6 @@ function withoutActionParam(prev: Record<string, unknown>): Record<string, unkno
 
 export function GefaehrdungenPage({ einsatzId, initialAction }: GefaehrdungenPageProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const { isBlocking: workspaceIsBlocking } = useWorkspaceBlockingOverlay();
   const navigate = useNavigate();
   const beurteilungenQuery = useGefaehrdungsbeurteilungen(einsatzId);
@@ -76,10 +74,7 @@ export function GefaehrdungenPage({ einsatzId, initialAction }: GefaehrdungenPag
   useEigenschutzShortcuts({
     context: 'gefaehrdungen',
     enabled: true,
-    isOverlayBlocking: workspaceIsBlocking || drawerOpen || shortcutHelpOpen,
-    isHelpOpen: shortcutHelpOpen,
-    onOpenHelp: () => setShortcutHelpOpen(true),
-    onCloseHelp: () => setShortcutHelpOpen(false),
+    isOverlayBlocking: workspaceIsBlocking || drawerOpen,
     onOpenGefaehrdungCreate: handleOpen,
   });
 
@@ -108,13 +103,10 @@ export function GefaehrdungenPage({ einsatzId, initialAction }: GefaehrdungenPag
         title="Gefährdungsbeurteilungen"
         description="Pro Einheit eine Beurteilung anlegen, Gefährdungen erfassen und Schutzmaßnahmen dokumentieren."
         actions={
-          <>
-            <EigenschutzShortcutHelpPopover context="gefaehrdungen" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} />
-            <Button intent="primary" onClick={handleOpen} data-testid="gefaehrdungen-neue-beurteilung" kbd="n">
-              <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-              Neue Gefährdungsbeurteilung
-            </Button>
-          </>
+          <Button intent="primary" onClick={handleOpen} data-testid="gefaehrdungen-neue-beurteilung" kbd="n">
+            <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+            Neue Gefährdungsbeurteilung
+          </Button>
         }
       />
 

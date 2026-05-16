@@ -24,5 +24,5 @@ export type { IPsaPropagationOverdueQueryPort, PsaPropagationOverdueRow } from '
 export type { IPushRecipientLookupPort } from './i-push-recipient-lookup.port';
 export type { ISicherungspostenRepository, SicherungspostenReadModel } from './i-sicherungsposten.repository';
 export type { ISicherungspostenVersionRepository, SicherungspostenVersionReadModel } from './i-sicherungsposten-version.repository';
-export type { IEigenschutzVorfallRepository, VorfallListFilter, VorfallListReadRow } from './i-eigenschutz-vorfall.repository';
+export type { IEigenschutzVorfallRepository, VorfallListFilter, VorfallListReadRow, VorfallStatusFilter } from './i-eigenschutz-vorfall.repository';
 export { VORFALL_LIST_HARD_LIMIT } from './i-eigenschutz-vorfall.repository';

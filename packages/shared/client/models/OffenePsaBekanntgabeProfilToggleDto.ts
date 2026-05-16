@@ -21,10 +21,10 @@ import { mapValues } from '../runtime';
 export interface OffenePsaBekanntgabeProfilToggleDto {
     /**
      * PSA-Profil-Stufe (Enum).
-     * @type {string}
+     * @type {object}
      * @memberof OffenePsaBekanntgabeProfilToggleDto
      */
-    profil: string;
+    profil: object;
     /**
      * Aktion auf das Profil — `AKTIVIERT` oder `DEAKTIVIERT`.
      * @type {string}

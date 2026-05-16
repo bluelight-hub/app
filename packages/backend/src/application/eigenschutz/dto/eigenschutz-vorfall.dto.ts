@@ -62,4 +62,16 @@ export class EigenschutzVorfallDto {
 
   @ApiPropertyOptional({ description: 'Optionale Verknüpfung zu einer Gefährdungsbeurteilungs-Version (Story 5.2)' })
   gefBeurteilungVersionId?: string | null;
+
+  @ApiProperty({ description: 'Status des Vorfalls (Issue #415)', enum: ['OFFEN', 'GESCHLOSSEN'], example: 'OFFEN' })
+  status!: 'OFFEN' | 'GESCHLOSSEN';
+
+  @ApiPropertyOptional({ description: 'Zeitpunkt der Schließung (ISO-8601) — `null` für offene Vorfälle', type: String, nullable: true })
+  geschlossenAm!: string | null;
+
+  @ApiPropertyOptional({ description: 'CUID des Akteurs der Schließung — `null` für offene Vorfälle', type: String, nullable: true })
+  geschlossenVonUserId!: string | null;
+
+  @ApiPropertyOptional({ description: 'Optionale Begründung der Schließung (≤ 500 Zeichen) — `null` für offene Vorfälle oder weggelassen', type: String, nullable: true })
+  schliessungsBegruendung!: string | null;
 }

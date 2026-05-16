@@ -14,10 +14,12 @@
 import type { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { AddEintragCommand, AddEintragHandler } from '@application/etb/commands';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import type { IEinsatzEinheitRepository } from '@domain/kraefte/repositories/i-einsatz-einheit.repository';
+import { resolveEinheitName } from './_shared/resolve-einheit-name';
 
 const KATEGORIE: EtbKategorieValue = 'SONSTIGES';
 
@@ -30,6 +32,7 @@ export class VorfallGemeldetEtbHandler implements IEventHandler<VorfallGemeldetE
   constructor(
     private readonly addEintragHandler: AddEintragHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
+    @Inject(KRAEFTE_REPOSITORIES.EINSATZ_EINHEIT) private readonly einheitRepo: IEinsatzEinheitRepository,
   ) {}
 
   async handle(event: VorfallGemeldetEvent): Promise<void> {
@@ -40,7 +43,8 @@ export class VorfallGemeldetEtbHandler implements IEventHandler<VorfallGemeldetE
       }
 
       const suffix = event.unfallkasseRelevant ? ' (unfallkasse-relevant)' : '';
-      const text = `Vorfall gemeldet von Einheit ${event.einheitId}${suffix} — Zeitpunkt: ${event.vorfallZeit.toISOString()}`;
+      const einheitName = await resolveEinheitName(this.einheitRepo, event.einheitId);
+      const text = `Vorfall gemeldet von Einheit ${einheitName}${suffix} — Zeitpunkt: ${event.vorfallZeit.toISOString()}`;
 
       const cmd = AddEintragCommand.create(
         event.einsatzId,

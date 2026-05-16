@@ -141,6 +141,7 @@ export * from './ChangeOperativeRoleDto';
 export * from './ChangePsaProfilDto';
 export * from './ChangePsaProfilResponseDto';
 export * from './CircuitBreakerStatusEntryDto';
+export * from './CloseVorfallDto';
 export * from './CompleteSetupDto';
 export * from './CompletenessResponseDto';
 export * from './ComplianceReportDto';

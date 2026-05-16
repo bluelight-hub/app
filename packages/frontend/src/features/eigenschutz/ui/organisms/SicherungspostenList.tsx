@@ -14,6 +14,7 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 import { useNavigate } from '@tanstack/react-router';
 import type { SicherungspostenDto } from '@bluelight-hub/shared/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { setPendingSicherungspostenPlacement } from '@/features/lagekarte/stores/draw.store';
 import { useListSicherungsposten } from '../../api/use-sicherungsposten';
 import type { SicherungspostenStatus } from '../../schemas/sicherungsposten.schema';
 
@@ -21,7 +22,6 @@ export interface SicherungspostenListProps {
   readonly einsatzId: string;
   readonly onEdit: (posten: SicherungspostenDto) => void;
   readonly onAufloesen: (posten: SicherungspostenDto) => void;
-  readonly onCreate: () => void;
 }
 
 const TAB_ORDER: ReadonlyArray<{ key: SicherungspostenStatus; label: string; testid: string }> = [
@@ -72,6 +72,14 @@ function SicherungspostenTable({ status, einsatzId, onEdit, onAufloesen }: Table
       to: '/app/einsatz/$einsatzId/übersicht/karte',
       params: { einsatzId },
       search: (prev: Record<string, unknown>) => ({ ...prev, focus: `sicherungsposten:${posten.id}` }),
+    });
+  };
+
+  const handlePlatzieren = (posten: SicherungspostenDto) => {
+    setPendingSicherungspostenPlacement(posten.id, posten.version, posten.bezeichnung);
+    void navigate({
+      to: '/app/einsatz/$einsatzId/übersicht/karte',
+      params: { einsatzId },
     });
   };
 
@@ -136,18 +144,33 @@ function SicherungspostenTable({ status, einsatzId, onEdit, onAufloesen }: Table
                     </Button>
                     {(() => {
                       const isCoordinate = (posten.standort as { kind?: unknown } | null | undefined)?.kind === 'coordinate';
+                      if (isCoordinate) {
+                        return (
+                          <Button
+                            intent="secondary"
+                            appearance="ghost"
+                            size="sm"
+                            title="Auf Karte zeigen"
+                            onClick={() => handleShowOnMap(posten)}
+                            data-testid={`sicherungsposten-show-on-map-${posten.id}`}
+                          >
+                            Auf Karte zeigen
+                          </Button>
+                        );
+                      }
+                      // Adress-Posten oder fehlende Coordinate → Platzierungsflow:
+                      // pending im Store setzen und auf die Lagekarte navigieren,
+                      // dort wird per Klick die Coordinate gesetzt.
                       return (
                         <Button
                           intent="secondary"
                           appearance="ghost"
                           size="sm"
-                          disabled={!isCoordinate}
-                          aria-disabled={!isCoordinate}
-                          title={isCoordinate ? 'Auf Karte zeigen' : 'Kein Standort hinterlegt — Posten ist auf der Karte nicht sichtbar.'}
-                          onClick={() => handleShowOnMap(posten)}
-                          data-testid={`sicherungsposten-show-on-map-${posten.id}`}
+                          title="Auf Karte platzieren — anschließend per Klick auf die Karte die Position setzen"
+                          onClick={() => handlePlatzieren(posten)}
+                          data-testid={`sicherungsposten-place-on-map-${posten.id}`}
                         >
-                          Auf Karte zeigen
+                          Auf Karte platzieren
                         </Button>
                       );
                     })()}
@@ -164,21 +187,11 @@ function SicherungspostenTable({ status, einsatzId, onEdit, onAufloesen }: Table
   );
 }
 
-export function SicherungspostenList({ einsatzId, onEdit, onAufloesen, onCreate }: SicherungspostenListProps) {
+export function SicherungspostenList({ einsatzId, onEdit, onAufloesen }: SicherungspostenListProps) {
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const activeStatus = TAB_ORDER[tabIndex]?.key ?? 'AKTIV';
 
   return (
     <section data-testid="sicherungsposten-list" className="flex flex-col gap-3">
-      <header className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-text-primary">Sicherungsposten</h2>
-        {activeStatus === 'AKTIV' ? (
-          <Button intent="primary" size="sm" onClick={onCreate} data-testid="sicherungsposten-create-button">
-            + Sicherungsposten
-          </Button>
-        ) : null}
-      </header>
-
       <TabGroup selectedIndex={tabIndex} onChange={setTabIndex}>
         <TabList className="flex border-b border-border-subtle">
           {TAB_ORDER.map(({ key, label, testid }) => (

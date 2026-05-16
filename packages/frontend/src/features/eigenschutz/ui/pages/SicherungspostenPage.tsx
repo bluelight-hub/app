@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { SicherungspostenDto } from '@bluelight-hub/shared/client';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
 import { AufloeseSicherungspostenDialog } from '../organisms/AufloeseSicherungspostenDialog';
 import { SicherungspostenDrawer } from '../organisms/SicherungspostenDrawer';
@@ -36,16 +37,25 @@ export function SicherungspostenPage({ einsatzId, initialAction, onActionConsume
     }
   }, [initialAction]);
 
+  const handleCreate = useCallback(() => {
+    setSelectedPosten(undefined);
+    setDrawerMode('create');
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
-      <EigenschutzPageHeader title="Sicherungsposten" description="Sicherungsposten anlegen, bearbeiten und auflösen — Versionierung und Auflöse-Begründung sind Pflicht." />
+      <EigenschutzPageHeader
+        title="Sicherungsposten"
+        description="Sicherungsposten anlegen, bearbeiten und auflösen — Versionierung und Auflöse-Begründung sind Pflicht."
+        actions={
+          <Button intent="primary" onClick={handleCreate} data-testid="sicherungsposten-create-button">
+            + Sicherungsposten
+          </Button>
+        }
+      />
 
       <SicherungspostenList
         einsatzId={einsatzId}
-        onCreate={() => {
-          setSelectedPosten(undefined);
-          setDrawerMode('create');
-        }}
         onEdit={(posten) => {
           setSelectedPosten(posten);
           setDrawerMode('edit');

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsBoolean, IsISO8601, IsOptional, IsString, Matches } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsISO8601, IsOptional, IsString, Matches } from 'class-validator';
 
 /**
  * cuid2-Pattern: 24–32 lowercase alphanumerische Zeichen (Pattern wie in
@@ -66,4 +66,18 @@ export class ListVorfaelleQueryDto {
   })
   @IsBoolean()
   unfallkasseRelevant?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Status-Filter (Issue #415). `OFFEN` listet noch nicht geschlossene Vorfälle, `GESCHLOSSEN` nur geschlossene. Weglassen → beide.',
+    enum: ['OFFEN', 'GESCHLOSSEN'],
+    example: 'OFFEN',
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value !== 'string') return value;
+    return value.trim().toUpperCase();
+  })
+  @IsIn(['OFFEN', 'GESCHLOSSEN'])
+  status?: 'OFFEN' | 'GESCHLOSSEN';
 }

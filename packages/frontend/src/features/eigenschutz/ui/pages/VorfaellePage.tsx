@@ -1,3 +1,4 @@
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -5,12 +6,11 @@ import { useEigenschutzShortcuts } from '@/features/eigenschutz/hooks/useEigensc
 import { useWorkspaceBlockingOverlay } from '@/features/workspace/hooks/use-workspace-blocking-overlay';
 import { useEinsatzEinheiten } from '@/features/kraefte/api/use-einsatz-einheiten';
 import { useListVorfaelle, type VorfallListBackendFilter } from '../../api/use-list-vorfaelle';
-import { replaceFilterState, selectFilterIsActive, useVorfallFilterState, type VorfallFilterState } from '../../stores/vorfall-filter.store';
+import { replaceFilterState, selectFilterIsActive, setStatus, useVorfallFilterState, type VorfallFilterState, type VorfallStatusFilter } from '../../stores/vorfall-filter.store';
 import { VorfallFilterBar } from '../organisms/VorfallFilterBar';
 import { VorfallList } from '../organisms/VorfallList';
 import { VorfallMeldenDrawer } from '../organisms/VorfallMeldenDrawer';
 import { EigenschutzPageHeader } from '../molecules/EigenschutzPageHeader';
-import { EigenschutzShortcutHelpPopover } from '../molecules/EigenschutzShortcutHelpPopover';
 import { resolveAbschnittToEinheitIds } from '../../utils/resolve-abschnitt-einheiten';
 
 export interface VorfaellePageProps {
@@ -18,8 +18,15 @@ export interface VorfaellePageProps {
   readonly einheitId: string | null;
   // AC10 verlangt 2-State-UK-Filter; URL-Schema kennt nur `'1'` (oder
   // weglassen). Tri-State (`'0'`) ist defer (siehe Story-Q-Liste).
-  readonly initialSearch?: { abschnittIds?: ReadonlyArray<string>; von?: string; bis?: string; uk?: '1'; action?: 'new-vorfall' };
+  // Issue #415: `status=geschlossen` schaltet auf den GESCHLOSSEN-Tab;
+  // weglassen → OFFEN (Default).
+  readonly initialSearch?: { abschnittIds?: ReadonlyArray<string>; von?: string; bis?: string; uk?: '1'; status?: 'geschlossen'; action?: 'new-vorfall' };
 }
+
+const STATUS_TABS: ReadonlyArray<{ readonly key: VorfallStatusFilter; readonly label: string; readonly testId: string }> = [
+  { key: 'OFFEN', label: 'Offen', testId: 'vorfaelle-tab-offen' },
+  { key: 'GESCHLOSSEN', label: 'Geschlossen', testId: 'vorfaelle-tab-geschlossen' },
+];
 
 /**
  * Konvertiert `yyyy-mm-dd` (User-lokaler Tag) zu ISO-8601 mit Offset für den
@@ -62,7 +69,6 @@ function withoutActionParam(prev: Record<string, unknown>): Record<string, unkno
  */
 export function VorfaellePage({ einsatzId, einheitId, initialSearch }: VorfaellePageProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const { isBlocking: workspaceIsBlocking } = useWorkspaceBlockingOverlay();
   const navigate = useNavigate();
   const filterState = useVorfallFilterState();
@@ -83,6 +89,7 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
       vorfallZeitVon: initialSearch?.von,
       vorfallZeitBis: initialSearch?.bis,
       unfallkasseRelevant: initialSearch?.uk === '1' ? true : undefined,
+      status: initialSearch?.status === 'geschlossen' ? 'GESCHLOSSEN' : 'OFFEN',
     };
     const nextKey = stateKey(nextState);
     if (lastSyncedKeyRef.current === nextKey) return;
@@ -144,10 +151,7 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
   useEigenschutzShortcuts({
     context: 'vorfaelle',
     enabled: true,
-    isOverlayBlocking: workspaceIsBlocking || drawerOpen || shortcutHelpOpen,
-    isHelpOpen: shortcutHelpOpen,
-    onOpenHelp: () => setShortcutHelpOpen(true),
-    onCloseHelp: () => setShortcutHelpOpen(false),
+    isOverlayBlocking: workspaceIsBlocking || drawerOpen,
     onFocusPrimaryFilter: focusPrimaryFilter,
     onOpenVorfallCreate: () => setDrawerOpen(true),
   });
@@ -162,6 +166,7 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
       vorfallZeitVon: localDayStartIso(filterState.vorfallZeitVon),
       vorfallZeitBis: localNextDayStartIso(filterState.vorfallZeitBis),
       unfallkasseRelevant: filterState.unfallkasseRelevant,
+      status: filterState.status,
     };
     return {
       backendFilter: filter,
@@ -171,40 +176,71 @@ export function VorfaellePage({ einsatzId, einheitId, initialSearch }: Vorfaelle
 
   const vorfaelleQuery = useListVorfaelle(einsatzId, backendFilter);
 
+  const activeTabIndex = STATUS_TABS.findIndex((tab) => tab.key === filterState.status);
+  const handleTabChange = useCallback((index: number) => {
+    const nextKey = STATUS_TABS[index]?.key;
+    if (nextKey) setStatus(nextKey);
+  }, []);
+
+  const onRowClick = useCallback(
+    (vorfallId: string) => {
+      // TanStack-Router-Type-Inference erkennt die Detail-Route trotz
+      // Eintrag in routeTree.gen.ts nicht — vermutlich Wechselwirkung mit
+      // dem strict Zod-`validateSearch` der Eltern-Route. Cast als
+      // pragmatischer Workaround; Route existiert real (Story 5.2).
+      void (navigate as unknown as (opts: { to: string; params: { einsatzId: string; vorfallId: string } }) => void)({
+        to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle/$vorfallId',
+        params: { einsatzId, vorfallId },
+      });
+    },
+    [einsatzId, navigate],
+  );
+
   return (
     <div data-testid="vorfaelle-page" className="space-y-4">
       <EigenschutzPageHeader
         title="Vorfälle"
-        description="Filter persistent über URL — als Deep-Link teilbar."
+        description="Filter und Tab-Auswahl persistent über URL — als Deep-Link teilbar."
         actions={
-          <>
-            <EigenschutzShortcutHelpPopover context="vorfaelle" open={shortcutHelpOpen} onOpenChange={setShortcutHelpOpen} />
-            <Button data-testid="vorfaelle-add-button" intent="primary" onClick={() => setDrawerOpen(true)} kbd="v">
-              + Vorfall melden
-            </Button>
-          </>
+          <Button data-testid="vorfaelle-add-button" intent="primary" onClick={() => setDrawerOpen(true)} kbd="v">
+            + Vorfall melden
+          </Button>
         }
       />
 
-      <VorfallFilterBar einsatzId={einsatzId} ref={filterBarRef} truncatedHint={truncatedHint} />
-
-      <VorfallList
-        einsatzId={einsatzId}
-        rows={vorfaelleQuery.data}
-        isLoading={vorfaelleQuery.isLoading}
-        isError={vorfaelleQuery.isError}
-        onRetry={() => void vorfaelleQuery.refetch()}
-        onRowClick={(vorfallId) => {
-          // TanStack-Router-Type-Inference erkennt die Detail-Route trotz
-          // Eintrag in routeTree.gen.ts nicht — vermutlich Wechselwirkung mit
-          // dem strict Zod-`validateSearch` der Eltern-Route. Cast als
-          // pragmatischer Workaround; Route existiert real (Story 5.2).
-          void (navigate as unknown as (opts: { to: string; params: { einsatzId: string; vorfallId: string } }) => void)({
-            to: '/app/einsatz/$einsatzId/sicherheit/eigenschutz/vorfaelle/$vorfallId',
-            params: { einsatzId, vorfallId },
-          });
-        }}
-      />
+      <TabGroup selectedIndex={activeTabIndex < 0 ? 0 : activeTabIndex} onChange={handleTabChange}>
+        <TabList className="flex border-b border-border-subtle" data-testid="vorfaelle-status-tabs">
+          {STATUS_TABS.map(({ key, label, testId }) => (
+            <Tab
+              key={key}
+              data-testid={testId}
+              className={({ selected }) =>
+                [
+                  'px-4 py-2 text-sm font-medium transition-colors motion-reduce:transition-none focus-visible:shadow-focus-ring focus-visible:outline-none',
+                  selected ? 'border-b-2 border-action-primary text-action-primary' : 'text-text-muted hover:text-text-secondary',
+                ].join(' ')
+              }
+            >
+              {label}
+            </Tab>
+          ))}
+        </TabList>
+        <TabPanels className="mt-3 space-y-4">
+          {STATUS_TABS.map(({ key }) => (
+            <TabPanel key={key} className="space-y-4">
+              <VorfallFilterBar einsatzId={einsatzId} ref={filterBarRef} truncatedHint={truncatedHint} />
+              <VorfallList
+                einsatzId={einsatzId}
+                rows={vorfaelleQuery.data}
+                isLoading={vorfaelleQuery.isLoading}
+                isError={vorfaelleQuery.isError}
+                onRetry={() => void vorfaelleQuery.refetch()}
+                onRowClick={onRowClick}
+              />
+            </TabPanel>
+          ))}
+        </TabPanels>
+      </TabGroup>
 
       <VorfallMeldenDrawer einsatzId={einsatzId} einheitId={einheitId} open={drawerOpen} onClose={closeDrawer} />
     </div>
@@ -217,11 +253,15 @@ interface VorfaelleSearchOutput {
   bis?: string;
   // Nur `'1'` — AC10 schreibt 2-State-UK-Filter vor (kein Tri-State).
   uk?: '1';
+  // Issue #415: nur `'geschlossen'` — Default OFFEN wird ausgelassen.
+  status?: 'geschlossen';
 }
 
 function serializeFilterToSearch(state: VorfallFilterState): VorfaelleSearchOutput {
-  if (!selectFilterIsActive(state)) return {};
   const out: VorfaelleSearchOutput = {};
+  // Status-Achse ist immer Teil des URL-Sync (außer Default OFFEN).
+  if (state.status === 'GESCHLOSSEN') out.status = 'geschlossen';
+  if (!selectFilterIsActive(state)) return out;
   if (state.abschnittIds.length > 0) out.abschnittIds = state.abschnittIds.join(',');
   if (state.vorfallZeitVon !== undefined) out.von = state.vorfallZeitVon;
   if (state.vorfallZeitBis !== undefined) out.bis = state.vorfallZeitBis;
@@ -239,5 +279,6 @@ function stateKey(state: VorfallFilterState): string {
     von: state.vorfallZeitVon ?? null,
     bis: state.vorfallZeitBis ?? null,
     uk: state.unfallkasseRelevant === true ? '1' : null,
+    status: state.status,
   });
 }

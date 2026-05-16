@@ -208,12 +208,17 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       expect(result.value?.events[0]?.createdBy.id).toBe(userId);
       expect(result.value?.events[0]?.createdBy.username).toBe('max.mustermann');
 
-      // Verify include in Prisma-Call
+      // Verify include in Prisma-Call: creator-Select enthält Stammperson,
+      // damit der Handler den Anzeigenamen (Vorname Nachname) auflösen kann.
       expect(mockPrisma.etbEintrag.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           include: expect.objectContaining({
             creator: expect.objectContaining({
-              select: { id: true, username: true },
+              select: {
+                id: true,
+                username: true,
+                stammperson: { select: { vorname: true, nachname: true } },
+              },
             }),
           }),
         }),
@@ -495,8 +500,49 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       expect(event.text).toContain('Follow-up Leitstelle');
       expect(event.createdBy.id).toBe(userId);
       expect(event.createdBy.username).toBe('max.mustermann');
+      // Ohne verknüpfte Stammperson bleibt displayName null und das UI fällt
+      // auf username zurück.
       expect(event.createdBy.displayName).toBeNull();
       expect(event.metadata).toBeDefined();
+    });
+
+    it('löst createdBy.displayName aus der verknüpften Stammperson auf', async () => {
+      // Given: Eintrag, dessen Ersteller eine Stammperson zugeordnet hat.
+      const erinnerungData = {
+        id: erinnerungId,
+        titel: 'Follow-up Leitstelle',
+        einsatzId: einsatzId,
+      };
+
+      const etbEntries = [
+        {
+          id: createValidTestId('entry013'),
+          text: 'Erstellt',
+          createdAt: new Date('2024-01-15T12:00:00.000Z'),
+          sequenceNumber: 1,
+          metadata: { eventType: 'ErinnerungErstellt', erinnerungId },
+          creator: {
+            id: userId,
+            username: 'mmustermann',
+            stammperson: { vorname: 'Max', nachname: 'Mustermann' },
+          },
+        },
+      ];
+
+      mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
+      mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue(etbEntries);
+
+      const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
+
+      // When
+      const result = await handler.execute(query);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      const event = result.value?.events[0];
+      expect(event.createdBy.username).toBe('mmustermann');
+      expect(event.createdBy.displayName).toBe('Max Mustermann');
     });
 
     it('should map ErinnerungTimelineDto correctly', async () => {

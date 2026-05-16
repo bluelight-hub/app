@@ -2,6 +2,7 @@ import { AggregateRoot } from '@domain/common/aggregate-root';
 import { EntityId } from '@domain/common/entity-id';
 import { Result } from '@domain/common/result';
 import { VorfallGemeldetEvent } from '../events/vorfall-gemeldet.event';
+import { VorfallGeschlossenEvent } from '../events/vorfall-geschlossen.event';
 import { Beteiligter, type BeteiligterProps } from '../value-objects/beteiligter.vo';
 import { KontextSnapshot } from '../value-objects/kontext-snapshot.vo';
 import { Wo } from '../value-objects/wo.vo';
@@ -13,10 +14,17 @@ import { Wo } from '../value-objects/wo.vo';
  */
 export const VORFALL_WALLCLOCK_DRIFT = 'BusinessRule:WallclockDriftTooLarge';
 
+/**
+ * Sentinel — Vorfall ist bereits geschlossen. Mapping zur HTTP-Schicht:
+ * Controller → 422 mit `rule: 'VorfallBereitsGeschlossen'`.
+ */
+export const VORFALL_BEREITS_GESCHLOSSEN = 'BusinessRule:VorfallBereitsGeschlossen';
+
 const WAS_MIN = 1;
 const WAS_MAX = 80;
 const MASSNAHMEN_MAX = 4000;
 const VORFALL_ZEIT_FUTURE_SLACK_MS = 5 * 60 * 1000;
+const SCHLIESSUNGS_BEGRUENDUNG_MAX = 500;
 
 export class EigenschutzVorfallId extends EntityId<'EigenschutzVorfall'> {}
 
@@ -53,14 +61,29 @@ export interface ReconstituteEigenschutzVorfallProps {
   erfasstAm: Date;
   kontextSnapshot: Record<string, unknown>;
   gefBeurteilungVersionId: string | null;
+  // Issue #415 — Closure-Metadaten (alle drei zusammen `null` für offene
+  // Vorfälle; alle drei zusammen befüllt für geschlossene). Defense-in-Depth-
+  // Check passiert im Reconstitute-Pfad.
+  geschlossenAm?: Date | null;
+  geschlossenVonUserId?: string | null;
+  schliessungsBegruendung?: string | null;
 }
 
 /**
  * Aggregate Root für einen Eigenschutz-Vorfall (Story 5.1, FR31/FR32).
  *
- * **Append-only:** Vorfälle haben kein `update()` und kein `delete()`. Audit-
- * Integrität + Snapshot-Invariante (Architektur §B2) verbieten retroaktive
- * Mutation. Edit-Pfad ist Phase-2 mit eigener Versions-Chain-Story.
+ * **Append-only (Original-Recording):** Die Felder des ursprünglichen Vorfalls
+ * (`was`, `wann`, `wo`, `beteiligte`, `massnahmen`, `vorfallZeit`,
+ * `unfallkasseRelevant`, `kontextSnapshot`) sind nach `create()` unveränderlich.
+ * Audit-Integrität + Snapshot-Invariante (Architektur §B2) verbieten
+ * retroaktive Mutation. Edit-Pfad ist Phase-2 mit eigener Versions-Chain-Story.
+ *
+ * **Schließung (Issue #415) ist additive Information, keine Mutation:** Drei
+ * nullable Closure-Felder (`geschlossenAm`, `geschlossenVonUserId`,
+ * `schliessungsBegruendung`) werden via `close()` einmalig befüllt und
+ * dokumentieren einen neuen Fakt über den Vorfall, ohne das Original-Recording
+ * anzutasten. Re-Open ist nicht vorgesehen — `close()` ist idempotent gegen
+ * Doppel-Klick, ein zweiter Aufruf liefert `BusinessRule:VorfallBereitsGeschlossen`.
  *
  * **`kontextSnapshot`-Vertrag:** In Story 5.1 schrieb der Handler `{}` als
  * Stub. Seit Story 5.2 baut der `ReportVorfallHandler` für **neue** Vorfälle
@@ -76,6 +99,13 @@ export interface ReconstituteEigenschutzVorfallProps {
  * mindestens 1 Zeichen hat — Empty-String kollidiert nie mit `null`-Sentinel.
  */
 export class EigenschutzVorfall extends AggregateRoot<EigenschutzVorfallId> {
+  // Issue #415 — Closure-Felder sind mutable (einmaliger Übergang
+  // OFFEN → GESCHLOSSEN). Das Original-Recording (alle anderen Felder) bleibt
+  // `readonly` — siehe Klassen-Doku.
+  private _geschlossenAm: Date | null;
+  private _geschlossenVonUserId: string | null;
+  private _schliessungsBegruendung: string | null;
+
   private constructor(
     id: EigenschutzVorfallId,
     private readonly _einsatzId: string,
@@ -91,8 +121,14 @@ export class EigenschutzVorfall extends AggregateRoot<EigenschutzVorfallId> {
     private readonly _erfasstAm: Date,
     private readonly _kontextSnapshot: Record<string, unknown>,
     private readonly _gefBeurteilungVersionId: string | null,
+    geschlossenAm: Date | null = null,
+    geschlossenVonUserId: string | null = null,
+    schliessungsBegruendung: string | null = null,
   ) {
     super(id);
+    this._geschlossenAm = geschlossenAm;
+    this._geschlossenVonUserId = geschlossenVonUserId;
+    this._schliessungsBegruendung = schliessungsBegruendung;
   }
 
   static create(props: CreateEigenschutzVorfallProps): Result<EigenschutzVorfall> {
@@ -221,6 +257,25 @@ export class EigenschutzVorfall extends AggregateRoot<EigenschutzVorfallId> {
     if (idResult.isFailure || !idResult.value) {
       return Result.fail<EigenschutzVorfall>(`reconstitute: ungültige ID ${props.id}`);
     }
+
+    // Issue #415: Closure-Felder konsistent prüfen. Entweder alle drei `null`
+    // (offener Vorfall) ODER `geschlossenAm` + `geschlossenVonUserId` befüllt
+    // (`schliessungsBegruendung` darf zusätzlich `null` sein — User-optional).
+    const geschlossenAm = props.geschlossenAm ?? null;
+    const geschlossenVonUserId = props.geschlossenVonUserId ?? null;
+    const schliessungsBegruendung = props.schliessungsBegruendung ?? null;
+    const hasClosureTimestamp = geschlossenAm !== null;
+    const hasClosureUser = geschlossenVonUserId !== null;
+    if (hasClosureTimestamp !== hasClosureUser) {
+      return Result.fail<EigenschutzVorfall>('reconstitute: geschlossenAm und geschlossenVonUserId müssen gemeinsam gesetzt oder gemeinsam null sein');
+    }
+    if (!hasClosureTimestamp && schliessungsBegruendung !== null) {
+      return Result.fail<EigenschutzVorfall>('reconstitute: schliessungsBegruendung darf nur bei geschlossenem Vorfall gesetzt sein');
+    }
+    if (geschlossenAm !== null && (!(geschlossenAm instanceof Date) || Number.isNaN(geschlossenAm.getTime()))) {
+      return Result.fail<EigenschutzVorfall>('reconstitute: geschlossenAm ist kein gültiges Datum');
+    }
+
     return Result.ok(
       new EigenschutzVorfall(
         idResult.value as EigenschutzVorfallId,
@@ -237,8 +292,58 @@ export class EigenschutzVorfall extends AggregateRoot<EigenschutzVorfallId> {
         props.erfasstAm,
         { ...props.kontextSnapshot },
         props.gefBeurteilungVersionId,
+        geschlossenAm,
+        geschlossenVonUserId,
+        schliessungsBegruendung,
       ),
     );
+  }
+
+  /**
+   * Schließt den Vorfall (Issue #415). Idempotent: ein zweiter Aufruf bei
+   * bereits geschlossenem Vorfall liefert
+   * `BusinessRule:VorfallBereitsGeschlossen`.
+   *
+   * - `userId` ist Pflicht (Audit-Akteur).
+   * - `begruendung` ist optional. Empty-String wird als `null` behandelt;
+   *   getrimmte Eingabe > 500 Zeichen wird abgelehnt.
+   * - Emittiert `VorfallGeschlossenEvent` bei Erfolg.
+   */
+  close(userId: string, begruendung?: string | null, now?: Date): Result<VorfallGeschlossenEvent> {
+    if (!userId || userId.trim().length === 0) {
+      return Result.fail<VorfallGeschlossenEvent>('userId ist erforderlich');
+    }
+    if (this._geschlossenAm !== null) {
+      return Result.fail<VorfallGeschlossenEvent>(VORFALL_BEREITS_GESCHLOSSEN);
+    }
+
+    let normalizedBegruendung: string | null = null;
+    if (begruendung !== undefined && begruendung !== null) {
+      if (typeof begruendung !== 'string') {
+        return Result.fail<VorfallGeschlossenEvent>('begruendung muss ein String sein');
+      }
+      const trimmed = begruendung.trim();
+      if (trimmed.length === 0) {
+        normalizedBegruendung = null;
+      } else if (trimmed.length > SCHLIESSUNGS_BEGRUENDUNG_MAX) {
+        return Result.fail<VorfallGeschlossenEvent>(`begruendung darf maximal ${SCHLIESSUNGS_BEGRUENDUNG_MAX} Zeichen haben`);
+      } else {
+        normalizedBegruendung = trimmed;
+      }
+    }
+
+    const closedAt = now ?? new Date();
+    if (!(closedAt instanceof Date) || Number.isNaN(closedAt.getTime())) {
+      return Result.fail<VorfallGeschlossenEvent>('now ist kein gültiges Datum');
+    }
+
+    this._geschlossenAm = closedAt;
+    this._geschlossenVonUserId = userId;
+    this._schliessungsBegruendung = normalizedBegruendung;
+
+    const event = new VorfallGeschlossenEvent(this._einsatzId, userId, this._einheitId, this.id.value, closedAt);
+    this.addDomainEvent(event);
+    return Result.ok<VorfallGeschlossenEvent>(event);
   }
 
   get einsatzId(): string {
@@ -286,5 +391,21 @@ export class EigenschutzVorfall extends AggregateRoot<EigenschutzVorfallId> {
   }
   get gefBeurteilungVersionId(): string | null {
     return this._gefBeurteilungVersionId;
+  }
+
+  get geschlossenAm(): Date | null {
+    return this._geschlossenAm === null ? null : new Date(this._geschlossenAm.getTime());
+  }
+
+  get geschlossenVonUserId(): string | null {
+    return this._geschlossenVonUserId;
+  }
+
+  get schliessungsBegruendung(): string | null {
+    return this._schliessungsBegruendung;
+  }
+
+  get isGeschlossen(): boolean {
+    return this._geschlossenAm !== null;
   }
 }

@@ -66,6 +66,12 @@ export interface DrawStoreState {
   gefahrenSidebarTab: GefahrenSidebarTab;
   /** Wartet auf Platzierung: Definition für ein neues Zeichen, optional existierende Zeichen-ID für unplatzierte Zeichen */
   pendingZeichenPlacement: { definition: ZeichenDefinition; existingZeichenId?: string; label?: string } | null;
+  /**
+   * Wartet auf Karten-Klick zur Platzierung eines existierenden Sicherungspostens.
+   * Der nächste Klick aktualisiert den Posten mit den geklickten Koordinaten.
+   * `null`, solange kein Platzierungs-Flow aktiv ist.
+   */
+  pendingSicherungspostenPlacement: { postenId: string; expectedVersion: number; bezeichnung?: string } | null;
   /** ID des aktuell im Detail-Panel angezeigten Zeichens (null = Panel geschlossen) */
   selectedZeichenId: string | null;
   /** Aktueller Draw-Kontext — entscheidet, wer das finishte Feature übernimmt (Gefahrenzone vs. Taktische Zeichen). */
@@ -87,6 +93,7 @@ const initialState: DrawStoreState = {
   isGefahrenSidebarVisible: false,
   gefahrenSidebarTab: 'zone',
   pendingZeichenPlacement: null,
+  pendingSicherungspostenPlacement: null,
   selectedZeichenId: null,
   drawContext: null,
 };
@@ -176,6 +183,7 @@ export const toggleLock = () => {
       isGefahrenSidebarVisible: false,
       drawContext: null,
       pendingZeichenPlacement: null,
+      pendingSicherungspostenPlacement: null,
     }),
   }));
 };
@@ -242,9 +250,9 @@ export const toggleZeichenSidebar = () => {
     return {
       ...state,
       isZeichenSidebarVisible: willOpen,
-      // Mutex: beim Öffnen die Gefahren-Sidebar schließen
-      ...(willOpen && { isGefahrenSidebarVisible: false }),
-      // Beim Schließen: Wartende Platzierung abbrechen
+      // Mutex: beim Öffnen die Gefahren-Sidebar schließen + Sicherungsposten-Pending abbrechen
+      ...(willOpen && { isGefahrenSidebarVisible: false, pendingSicherungspostenPlacement: null }),
+      // Beim Schließen: Wartende Zeichen-Platzierung abbrechen
       ...(willOpen ? {} : { pendingZeichenPlacement: null }),
     };
   });
@@ -265,6 +273,7 @@ export const toggleGefahrenSidebar = () => {
         isGefahrenSidebarVisible: true,
         isZeichenSidebarVisible: false,
         pendingZeichenPlacement: null,
+        pendingSicherungspostenPlacement: null,
       };
     }
     const isGefahrenFlowActive = state.drawContext === 'gefahrenzone' || state.drawMode === 'draw_gams';
@@ -288,6 +297,7 @@ export const openGefahrenSidebar = (tab: GefahrenSidebarTab) => {
     isGefahrenSidebarVisible: true,
     isZeichenSidebarVisible: false,
     pendingZeichenPlacement: null,
+    pendingSicherungspostenPlacement: null,
     gefahrenSidebarTab: tab,
   }));
 };
@@ -311,6 +321,7 @@ export const openZeichenSidebar = (tab: ZeichenSidebarTab) => {
     ...state,
     isZeichenSidebarVisible: true,
     isGefahrenSidebarVisible: false,
+    pendingSicherungspostenPlacement: null,
     zeichenSidebarTab: tab,
   }));
 };
@@ -333,6 +344,32 @@ export const setPendingZeichenPlacement = (definition: ZeichenDefinition, existi
   drawStore.setState((state) => ({
     ...state,
     pendingZeichenPlacement: { definition, existingZeichenId, label },
+    pendingSicherungspostenPlacement: null,
+  }));
+};
+
+/**
+ * Aktiviert den Sicherungsposten-Platzierungsmodus für einen existierenden
+ * Posten — der nächste Karten-Klick aktualisiert den Posten mit der neuen
+ * Koordinate (`expectedVersion` für OCC). Anlegen passiert ausschließlich
+ * über die Eigenschutz-UI; die Karte ist nur Platzierungs-Werkzeug. Mutex
+ * zu `pendingZeichenPlacement`: beide gleichzeitig sind unzulässig.
+ */
+export const setPendingSicherungspostenPlacement = (postenId: string, expectedVersion: number, bezeichnung?: string) => {
+  drawStore.setState((state) => ({
+    ...state,
+    pendingSicherungspostenPlacement: { postenId, expectedVersion, bezeichnung },
+    pendingZeichenPlacement: null,
+  }));
+};
+
+/**
+ * Bricht den Sicherungsposten-Platzierungsmodus ab.
+ */
+export const clearPendingSicherungspostenPlacement = () => {
+  drawStore.setState((state) => ({
+    ...state,
+    pendingSicherungspostenPlacement: null,
   }));
 };
 
@@ -356,6 +393,7 @@ export const openZeichenDetail = (zeichenId: string) => {
     selectedZeichenId: zeichenId,
     isZeichenSidebarVisible: false,
     pendingZeichenPlacement: null,
+    pendingSicherungspostenPlacement: null,
   }));
 };
 

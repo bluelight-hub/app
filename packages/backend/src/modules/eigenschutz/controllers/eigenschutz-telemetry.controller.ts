@@ -1,14 +1,11 @@
 import { BadRequestException, Body, Controller, HttpCode, Inject, Param, Post, UnauthorizedException, UnprocessableEntityException, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
 import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { TelemetryIngestService } from '@/infrastructure/eigenschutz/telemetry/telemetry-ingest.service';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
-import { RequiresPermission } from '@/modules/auth/decorators/requires-permission.decorator';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { TelemetryEventBatchDto } from '@/application/eigenschutz/dto/telemetry-event.dto';
@@ -17,15 +14,14 @@ import { redactId } from '@/shared/utils/pii-redact.util';
 
 /**
  * CUID2-Format aus `@paralleldrive/cuid2`: 24–32 Kleinbuchstaben/Ziffern,
- * beginnt mit einem Buchstaben. Passt 1:1 zu den von der Plattform erzeugten
- * Einsatz-IDs. Defense-in-Depth — der `EinsatzScopeGuard` prüft bereits, ob
- * der User Zugriff auf `einsatzId` hat, aber er normalisiert die ID nicht.
+ * beginnt mit einem Buchstaben. Format-Validation für die Einsatz-ID am
+ * Controller-Boundary — verhindert, dass falsch geformte IDs in die DB
+ * durchschlagen.
  */
 const CUID2_REGEX = /^[a-z][a-z0-9]{23,31}$/;
 
 /**
- * HTTP-Eintrittspunkt für client-seitige Telemetrie-Batches (Story 3.11, FR21,
- * Architektur §B9).
+ * HTTP-Eintrittspunkt für client-seitige Telemetrie-Batches.
  *
  * **Pfad:** `POST /einsaetze/:einsatzId/sicherheit/eigenschutz/telemetry` —
  * gespiegelt aus dem `SyncConflictController`-Pattern (Story 3.9/3.10).
@@ -33,18 +29,14 @@ const CUID2_REGEX = /^[a-z][a-z0-9]{23,31}$/;
  * **Status `202 Accepted` statt `201 Created`:** Telemetrie ist Best-
  * Effort-Audit, kein Mutation-Pfad eines Domain-Aggregates.
  *
- * **Permission `eigenschutz:telemetry:write`:** Permission existiert seit
- * Story 1.5; semantisch „jeder Einsatz-Teilnehmer im Eigenschutz-Bundle".
- *
  * **NICHT idempotent:** Doppelte Sends desselben Batches landen als
  * Duplikate. Aggregat-Korrektur via post-pilot SQL-`GROUP BY`.
  */
 @ApiTags('eigenschutz')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert — JWT fehlt oder ungültig' })
-@ApiForbiddenResponse({ description: 'Permission `eigenschutz:telemetry:write` fehlt im Einsatz-Kontext' })
 @Controller({ path: 'einsaetze/:einsatzId/sicherheit/eigenschutz/telemetry', version: 'alpha' })
-@UseGuards(JwtAuthGuard, EinsatzScopeGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 export class EigenschutzTelemetryController {
   constructor(
     private readonly ingestService: TelemetryIngestService,
@@ -53,7 +45,6 @@ export class EigenschutzTelemetryController {
 
   @Post()
   @HttpCode(202)
-  @RequiresPermission('eigenschutz:telemetry:write')
   @ApiOperation({ summary: 'Telemetrie-Batch (1–50 Events) für CBRN-Moment-Auswertung — Story 3.11 (FR21, AR8)' })
   @ApiParam({ name: 'einsatzId', type: String, description: 'CUID des Einsatzes' })
   @ApiBody({ type: TelemetryEventBatchDto, description: 'Batch von 1–50 Telemetrie-Events.' })

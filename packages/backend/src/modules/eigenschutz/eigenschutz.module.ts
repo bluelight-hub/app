@@ -23,8 +23,7 @@ import { EigenschutzAmpelController } from './controllers/eigenschutz-ampel.cont
  *
  * ### Modul-Dependencies
  *
- * - `AuthModule`: liefert `JwtAuthGuard`, `EinsatzScopeGuard`,
- *   `PermissionsGuard` und transitiv das
+ * - `AuthModule`: liefert `JwtAuthGuard` und transitiv das
  *   `KraefteInfrastructureModule` (ADR-014: Single-Import-Konvention).
  * - `CqrsModule`: CommandBus/QueryBus für den Controller.
  * - `EigenschutzApplicationModule`: Command-/Query-Handler.

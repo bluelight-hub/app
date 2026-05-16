@@ -59,6 +59,10 @@ export class PrismaEigenschutzVorfallMapper {
       erfasstAm: row.erfasstAm,
       kontextSnapshot,
       gefBeurteilungVersionId: row.gefBeurteilungVersionId,
+      // Issue #415 — Closure-Metadaten (alle drei nullable in DB).
+      geschlossenAm: row.geschlossenAm,
+      geschlossenVonUserId: row.geschlossenVonUserId,
+      schliessungsBegruendung: row.schliessungsBegruendung,
     });
   }
 

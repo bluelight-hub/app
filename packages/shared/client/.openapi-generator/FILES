@@ -194,6 +194,7 @@ models/ChangeOperativeRoleDto.ts
 models/ChangePsaProfilDto.ts
 models/ChangePsaProfilResponseDto.ts
 models/CircuitBreakerStatusEntryDto.ts
+models/CloseVorfallDto.ts
 models/CompleteSetupDto.ts
 models/CompletenessResponseDto.ts
 models/ComplianceReportDto.ts

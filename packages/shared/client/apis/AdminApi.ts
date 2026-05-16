@@ -161,9 +161,9 @@ export interface AdminTokenControllerCreateTokenVAlphaRequest {
 export interface AdminTokenControllerListTokensVAlphaRequest {
     page?: number;
     limit?: number;
-    sortBy?: AdminTokenControllerListTokensVAlphaSortByEnum;
-    sortOrder?: AdminTokenControllerListTokensVAlphaSortOrderEnum;
     inactiveDays?: number;
+    sortOrder?: AdminTokenControllerListTokensVAlphaSortOrderEnum;
+    sortBy?: AdminTokenControllerListTokensVAlphaSortByEnum;
 }
 
 export interface AdminTokenControllerReactivateTokenVAlphaRequest {
@@ -816,16 +816,16 @@ export class AdminApi extends runtime.BaseAPI {
             queryParameters['limit'] = requestParameters['limit'];
         }
 
-        if (requestParameters['sortBy'] != null) {
-            queryParameters['sortBy'] = requestParameters['sortBy'];
+        if (requestParameters['inactiveDays'] != null) {
+            queryParameters['inactiveDays'] = requestParameters['inactiveDays'];
         }
 
         if (requestParameters['sortOrder'] != null) {
             queryParameters['sortOrder'] = requestParameters['sortOrder'];
         }
 
-        if (requestParameters['inactiveDays'] != null) {
-            queryParameters['inactiveDays'] = requestParameters['inactiveDays'];
+        if (requestParameters['sortBy'] != null) {
+            queryParameters['sortBy'] = requestParameters['sortBy'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -979,17 +979,17 @@ export type AdminInviteControllerListInvitesVAlphaStatusEnum = typeof AdminInvit
 /**
  * @export
  */
+export const AdminTokenControllerListTokensVAlphaSortOrderEnum = {
+    Asc: 'asc',
+    Desc: 'desc'
+} as const;
+export type AdminTokenControllerListTokensVAlphaSortOrderEnum = typeof AdminTokenControllerListTokensVAlphaSortOrderEnum[keyof typeof AdminTokenControllerListTokensVAlphaSortOrderEnum];
+/**
+ * @export
+ */
 export const AdminTokenControllerListTokensVAlphaSortByEnum = {
     CreatedAt: 'createdAt',
     LastUsedAt: 'lastUsedAt',
     Name: 'name'
 } as const;
 export type AdminTokenControllerListTokensVAlphaSortByEnum = typeof AdminTokenControllerListTokensVAlphaSortByEnum[keyof typeof AdminTokenControllerListTokensVAlphaSortByEnum];
-/**
- * @export
- */
-export const AdminTokenControllerListTokensVAlphaSortOrderEnum = {
-    Asc: 'asc',
-    Desc: 'desc'
-} as const;
-export type AdminTokenControllerListTokensVAlphaSortOrderEnum = typeof AdminTokenControllerListTokensVAlphaSortOrderEnum[keyof typeof AdminTokenControllerListTokensVAlphaSortOrderEnum];

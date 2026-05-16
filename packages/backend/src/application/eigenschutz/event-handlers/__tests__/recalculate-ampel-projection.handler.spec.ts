@@ -11,6 +11,7 @@ import { QuittungAbgegebenEvent } from '@domain/eigenschutz/events/quittung-abge
 import { QuittungUeberfaelligEvent } from '@domain/eigenschutz/events/quittung-ueberfaellig.event';
 import { SicherheitsregelAusgerufenEvent } from '@domain/eigenschutz/events/sicherheitsregel-ausgerufen.event';
 import { SicherheitsregelQuittiertEvent } from '@domain/eigenschutz/events/sicherheitsregel-quittiert.event';
+import { VorfallGeschlossenEvent } from '@domain/eigenschutz/events/vorfall-geschlossen.event';
 import { VorfallGemeldetEvent } from '@domain/eigenschutz/events/vorfall-gemeldet.event';
 import { RecalculateAmpelProjectionOnEigenschutzEventHandler } from '../recalculate-ampel-projection.handler';
 
@@ -136,6 +137,7 @@ describe('RecalculateAmpelProjectionOnEigenschutzEventHandler', () => {
       SicherheitsregelQuittiertEvent.eventName(),
       QuittungUeberfaelligEvent.eventName(),
       VorfallGemeldetEvent.eventName(),
+      VorfallGeschlossenEvent.eventName(),
     ]);
   });
 });

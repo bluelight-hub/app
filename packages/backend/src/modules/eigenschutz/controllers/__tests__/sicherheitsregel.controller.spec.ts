@@ -9,7 +9,6 @@ import { UPDATE_SICHERHEITSREGEL_ERROR_CODES } from '@/application/eigenschutz/c
 import { GET_SICHERHEITSREGEL_ERROR_CODES } from '@/application/eigenschutz/queries/get-sicherheitsregel/get-sicherheitsregel.handler';
 import { GetSicherheitsregelQuery } from '@/application/eigenschutz/queries/get-sicherheitsregel/get-sicherheitsregel.query';
 import { ListSicherheitsregelnQuery } from '@/application/eigenschutz/queries/list-sicherheitsregeln/list-sicherheitsregeln.query';
-import { EinsatzScopeGuard } from '@/modules/auth/guards/einsatz-scope.guard';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { SicherheitsregelController } from '../sicherheitsregel.controller';
@@ -21,9 +20,8 @@ import { SicherheitsregelController } from '../sicherheitsregel.controller';
  * - CommandBus/QueryBus werden mit `jest.fn()` gemockt — Controller-
  *   Orchestrierung ist hier der Fokus, nicht Handler-Logik.
  * - Guard-Metadata wird via `Reflect.getMetadata('__guards__', ...)` auf
- *   struktureller Ebene verifiziert: Story 2.6 verwendet laut Task 6.1
- *   bewusst `JwtAuthGuard + EinsatzScopeGuard` — kein eigenes Rollen-/
- *   Permission-Gating (Story 2.5 Correct Course).
+ *   struktureller Ebene verifiziert: nur `JwtAuthGuard` — Eigenschutz hat
+ *   kein eigenes Rollen-/Permission-Gating.
  * - Error-Mapping wird pro Sentinel-Branch getestet: 404/409/422/500, inkl.
  *   Fallback für unbekannte Raw-Fehler.
  * - Fanout-Semantik (AC2/AC4) wird sowohl für POST (einsatzweit + multi-
@@ -62,8 +60,6 @@ describe('SicherheitsregelController', () => {
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(EinsatzScopeGuard)
-      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get(SicherheitsregelController);
@@ -101,12 +97,11 @@ describe('SicherheitsregelController', () => {
   // ==================================================
 
   describe('Guard-Kette', () => {
-    it('trägt JwtAuthGuard und EinsatzScopeGuard auf Klassen-Ebene (Story 2.6 Task 6.1)', () => {
+    it('trägt nur JwtAuthGuard auf Klassen-Ebene — kein Eigenschutz-Rollen-/Permission-Gating', () => {
       const guards = Reflect.getMetadata('__guards__', SicherheitsregelController) as unknown[];
       expect(guards).toBeDefined();
-      expect(guards).toHaveLength(2);
+      expect(guards).toHaveLength(1);
       expect(guards[0]).toBe(JwtAuthGuard);
-      expect(guards[1]).toBe(EinsatzScopeGuard);
     });
   });
 
