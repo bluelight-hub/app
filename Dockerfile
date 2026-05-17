@@ -1,5 +1,5 @@
 ## Base layer: install shared dependencies once (leverages Docker layer caching)
-FROM node:25-alpine AS base
+FROM node:26-alpine AS base
 RUN apk add --no-cache python3 make g++ wget \
     && npm install -g pnpm
 WORKDIR /app
@@ -41,7 +41,7 @@ FROM shared-builder AS prod-deps
 RUN pnpm --filter @bluelight-hub/backend deploy --prod --legacy /prod/backend
 
 ## Production image: minimal runtime with pre-built artifacts only
-FROM node:25-alpine AS production
+FROM node:26-alpine AS production
 RUN apk add --no-cache python3 make g++ wget
 WORKDIR /app
 
