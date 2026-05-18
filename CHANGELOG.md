@@ -1,3 +1,133 @@
+## ⚠️ Wichtige Änderungen
+
+### Eigenschutz-Modul: Personenauswahl umgestellt
+
+Die Auswahl von Personen bei Sicherungsposten und Vorfallmeldungen erfolgt nun über im Einsatz registrierte Personen statt über Stamm-Benutzer. Bestehende Daten werden automatisch migriert. Dies betrifft die Felder "Personal" bei Sicherungsposten und "Beteiligte" bei Vorfallmeldungen.
+
+---
+
+## Eigenschutz
+
+### Vorfallmeldung & Unfallkassen-Export
+
+- **Vorfall-Erfassung**: Meldung von Eigenschutz-Vorfällen mit Kennzeichnung der Unfallkassen-Relevanz, Ort (Freitext oder Koordinaten), beteiligten Personen und zeitpunktgenauem Kontext-Snapshot
+- **Vorfall-Übersicht**: Filterbare Liste aller gemeldeten Vorfälle mit Abschnitts-Zuordnung und Deep-Link-Unterstützung
+- **PDF-Export**: Professionell gestaltete PDF-Berichte für Unfallkassen mit verbessertem Corporate Design, Metadaten-Grid, farbcodierten Risiko-Badges und Kontext-Snapshot
+- **Vorfall-Details**: Detailansicht mit vollständigem Kontext-Snapshot (Gefährdungsbeurteilung, Sicherheitsregeln, PSA-Profile) zum Meldezeitpunkt
+- **Vorfall schließen**: Vorfälle können mit Begründung geschlossen werden – geschlossene Vorfälle erscheinen nicht mehr in der Ampel-Übersicht
+
+### Sicherungsposten
+
+- **Sicherungsposten verwalten**: Einrichten, aktualisieren und auflösen von Sicherungsposten mit Standort (Koordinaten oder Freitext), Personal, Ablösezeiten und Notizen
+- **Karten-Integration**: Sicherungsposten werden als Marker auf der Lagekarte angezeigt mit Hover-Tooltip und Detail-Popover
+- **Navigation**: Zwischen Karte und Detailansicht navigieren – "Auf Karte zeigen" in der Liste, Marker-Klick öffnet Details
+- **Versionshistorie**: Alle Änderungen an Sicherungsposten werden mit Zeitstempel nachvollziehbar protokolliert
+
+### Gefährdungsbeurteilung
+
+- **Versionierung**: Änderungen an Gefährdungsbeurteilungen werden als neue Version gespeichert – frühere Versionen bleiben erhalten
+- **Optimistic Concurrency**: Gleichzeitige Bearbeitung wird erkannt und verhindert Datenverlust durch automatische Konflikterkennung
+- **Versionshistorie**: Timeline zeigt alle Änderungen mit Diff-Ansicht (hinzugefügte, geänderte, entfernte Gefährdungen)
+- **Risikomatrix**: Optimierte 5×5-Matrix mit größeren Touch-Targets (≥44px) und verbesserter Lesbarkeit auf mobilen Geräten
+- **Gefährdungsmatrix**: Entzerrtes Layout mit responsiven Zellgrößen und Dark-Mode-optimierten Farben
+
+### PSA-Profile & Ausrüstung
+
+- **PSA-Bekanntgabe**: Einsatzleiter können PSA-Profile für einzelne oder mehrere Einheiten gleichzeitig aktivieren/deaktivieren
+- **Echtzeit-Benachrichtigung**: Kritische PSA-Änderungen werden sofort per Push-Benachrichtigung und Live-Banner übermittelt
+- **Ausrüstungs-Checkliste**: Beim Empfang einer PSA-Bekanntgabe wird eine profilspezifische Checkliste zur Überprüfung angezeigt
+- **Quittierung**: Einheiten bestätigen den Empfang und die Vollständigkeit der PSA-Ausrüstung
+- **Status-Übersicht**: Einsatzleiter sehen den Quittierungsstatus aller Einheiten mit Empfänger-Details
+- **Erinnerungen**: Automatische Wiedervorlage nach 5 Minuten bei fehlender Quittierung
+- **Lücken-Meldung**: Einheiten können Ausrüstungslücken direkt aus der Checkliste melden
+
+### Sicherheitsregeln
+
+- **Regelwerk verwalten**: Erstellen, aktualisieren und abkündigen von Sicherheitsregeln mit Zuordnung zu Einheiten oder einsatzweit
+- **Versionen**: Aktualisierungen werden als neue Version erfasst mit automatischer Benachrichtigung
+- **Quittierung**: Einheiten müssen Sicherheitsregeln bestätigen – Status wird live überwacht
+- **Karten-Ansicht**: Übersichtliche Darstellung mit Status-Indikatoren, Versions-Chips und Quittungs-Countern
+- **Filter**: Filtern nach Status, Zuordnung und Sortierung
+
+### Synchronisation & Konflikte
+
+- **Konflikt-Erkennung**: Synchronisationskonflikte bei PSA-Profilen werden automatisch erkannt und gemeldet
+- **Konflikt-Auflösung**: Befehlsgeber können Konflikte auflösen (Server übernehmen, Lokal behalten oder Zusammenführen)
+- **Live-Benachrichtigungen**: Mikro-Banner informieren über neue Konflikte mit Möglichkeit zur direkten Auflösung
+- **Konflikt-Übersicht**: Filterbare Liste aller offenen Konflikte mit Vorschau der konkurrierenden Änderungen
+
+### Ampel-Dashboard & Warnungen
+
+- **Ampel-Übersicht**: Dashboard zeigt den Eigenschutz-Status aller Abschnitte/Einheiten auf einen Blick
+- **Warn-Badges**: Automatische Markierung bei unbehandelten Hochrisiko-Gefährdungen und überfälligen PSA-Quittierungen
+- **Fokus-Zeilen**: Kritische Einträge werden hervorgehoben mit direkten Deep-Links zur Bearbeitung
+- **Live-Updates**: Änderungen werden automatisch im Dashboard aktualisiert
+
+### Benutzerführung & Navigation
+
+- **Sub-Navigation**: Persistente Navigation zwischen allen Eigenschutz-Bereichen (Gefährdungen, PSA, Regeln, Sicherungsposten, Vorfälle)
+- **Deep-Links**: Direkte Navigation zu einzelnen Entitäten über URL
+- **Tastatur-Navigation**: Vollständige Tastatursteuerung mit Shortcuts
+- **Command-Palette**: Schnellzugriff auf häufige Aktionen über Tastatur
+- **Sync-Status**: Zentraler Status-Hub zeigt Offline-Zustand, ausstehende Befehle und Konflikte
+- **Drawer-Integration**: Konflikt-Auflösung als kontextuelle Aktion statt separater Seite
+
+### Technische Verbesserungen
+
+- **Auto-Save**: Automatisches Speichern von Änderungen mit Offline-Unterstützung
+- **Offline-Queue**: Befehle werden bei fehlender Verbindung lokal zwischengespeichert und bei Wiederverbindung übertragen
+- **Telemetrie**: Erfassung von CBRN-Moment-Metriken für Auswertung und Coaching
+- **Performance**: Optimierte Ladezeiten durch Vite-Bundle-Warmup und Dependency-Optimierung
+- **Barrierefreiheit**: Verbesserte Touch-Targets, Screen-Reader-Support und Tastaturnavigation
+
+### ETB-Integration
+
+Eigenschutz-Ereignisse werden automatisch im Einsatztagebuch protokolliert:
+
+- Gefährdungsbeurteilungen (erstellt/aktualisiert)
+- Sicherheitsregeln (ausgerufen/aktualisiert/abgekündigt/quittiert)
+- PSA-Profile (aktiviert/deaktiviert)
+- PSA-Quittungen und Lücken-Meldungen
+- Sicherungsposten (eingerichtet/aktualisiert/aufgelöst)
+- Vorfallmeldungen und Exporte
+- Synchronisationskonflikte (erkannt/aufgelöst)
+
+---
+
+## Infrastruktur & Build
+
+### Backend-Performance
+
+- **SWC-Builder**: Migration von TypeScript Compiler zu SWC – Build-Zeit von 37s auf 3.6s reduziert, Watch-Recompile unter 1 Sekunde
+- **Lazy Swagger**: API-Dokumentation wird erst bei Bedarf generiert, beschleunigt Anwendungsstart
+- **Optimierte Konfiguration**: Reduzierte Boot-Reloads beim Starten der Anwendung
+
+### CI/CD
+
+- **Tauri-Build-Check**: Desktop-App-Build wird nun bereits bei Pull Requests getestet, nicht erst im Release
+- **E2E-Tests**: Migration von Cypress zu Playwright mit globalem Setup, Fixtures und optimierten Test-Journeys
+- **Dependency-Updates**: Regelmäßige Updates aller Abhängigkeiten (Tauri, React, NestJS, Prisma, TailwindCSS, Tooling)
+
+### Sicherheit
+
+- **CSPRNG**: Sichere Zufallszahlen-Generierung statt Math.random() für Session-IDs und Test-Daten
+- **Header-Injection-Schutz**: Sanitization von Dateinamen in HTTP-Headern
+- **Cache-Control**: Sensible PDF-Exports werden nicht gecacht
+
+### Web-Push
+
+- **VAPID-Setup**: Automatische Generierung von VAPID-Schlüsseln beim Projekt-Setup
+- **Push-Benachrichtigungen**: Infrastructure für kritische Echtzeit-Benachrichtigungen
+
+---
+
+## Wartung & Qualität
+
+- **Flaky Tests**: Stabilisierung zeitabhängiger Tests durch Fake-Timer
+- **Test-Infrastruktur**: Verbesserte Fixtures und stabile Test-Daten
+- **Code-Qualität**: Entfernung veralteter Dependencies, Optimierung der Build-Konfiguration
+- **Konsistenz-Checks**: Automatische Prüfung auf Success-Toasts, Destructive-Actions-Pattern und Dokumentations-Konsistenz
+
 ## Performance
 
 - **Deutlich schnellere CI-Pipeline**: Frontend-Tests laufen nun parallel in drei Shards statt nacheinander – die Testzeit wurde von ~8 Minuten auf ~3 Minuten pro Shard reduziert. Backend-Unit-Tests ebenfalls parallelisiert und von 20+ Minuten auf unter 15 Minuten beschleunigt.
