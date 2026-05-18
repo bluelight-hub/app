@@ -23,6 +23,7 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
       docker: ${{ steps.filter.outputs.docker }}
+      tauri: ${{ steps.filter.outputs.tauri }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -42,6 +43,12 @@ jobs:
               - 'pnpm-workspace.yaml'
               - 'package.json'
               - 'packages/*/package.json'
+            tauri:
+              - 'packages/frontend/src-tauri/**'
+              - 'packages/frontend/package.json'
+              - 'pnpm-lock.yaml'
+              - '.github/workflows/ci.yml'
+              - '.github/actions/build-and-test/**'
 
   # Repository hygiene gate for backup/merge artifact files
   repo-hygiene:
@@ -473,6 +480,66 @@ jobs:
             packages/frontend/test-results/
             **/trace.zip
 
+  # Tauri Build Smoke — fängt JS↔Rust Version-Mismatch und Rust-Compile-Fehler
+  # auf PR-Ebene ab (Bug-Vorlage: 51c9bae8b → release-Build rot, weil Cargo.toml
+  # nicht mitgezogen wurde). Linux-Only ist bewusster Trade-off:
+  #   ✓ Version-Mismatch-Precheck ist plattform-agnostisch (Hauptregressionsschutz)
+  #   ✓ Rust-Compile-Fehler im tauri-Crate werden gefangen
+  #   ✓ Plugin-API-Drift Rust↔JS wird gefangen
+  #   ✗ macOS-spezifisches Bundling (Codesign, DMG) bleibt im Release-Workflow
+  # Linux-Runner kosten ~1/10 von macOS und decken den Failure-Mode ab.
+  tauri-build:
+    name: Tauri Build (Linux Smoke)
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.tauri == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+          cache: 'pnpm'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust target
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/frontend/src-tauri
+
+      # Apt-Deps 1:1 aus release.yml (build-frontend, ubuntu-Branch) — drift sonst zerschießt
+      # den PR-Check, obwohl der Code in Ordnung ist.
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libasound2-dev
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @bluelight-hub/backend prisma:generate
+
+      - name: Build shared package
+        run: pnpm --filter @bluelight-hub/shared build:ci
+
+      # Gleicher tauri-action@v0 wie release.yml → einheitlicher Codepfad,
+      # PR-grün-aber-Release-rot-Drift wird strukturell vermieden.
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: packages/frontend
+          args: ''
+
   # Lightweight Checks (Lint + Docs, non-blocking)
   lightweight-checks:
     name: Lightweight Checks
@@ -536,7 +603,7 @@ jobs:
   # Summary job for branch protection
   summary:
     name: CI Pipeline Summary
-    needs: [detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-e2e, linux-frontend, linux-frontend-performance, docker-build]
+    needs: [detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-e2e, linux-frontend, linux-frontend-performance, tauri-build, docker-build]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -550,6 +617,7 @@ jobs:
           e2e="${{ needs.linux-e2e.result }}"
           frontend="${{ needs.linux-frontend.result }}"
           frontend_perf="${{ needs.linux-frontend-performance.result }}"
+          tauri="${{ needs.tauri-build.result }}"
           docker="${{ needs.docker-build.result }}"
           if [[ "$changes" != "success" ]]; then
             echo "❌ Change detection failed: $changes"
@@ -565,6 +633,7 @@ jobs:
              [[ "$e2e" != "success" && "$e2e" != "skipped" ]] || \
              [[ "$frontend" != "success" && "$frontend" != "skipped" ]] || \
              [[ "$frontend_perf" != "success" && "$frontend_perf" != "skipped" ]] || \
+             [[ "$tauri" != "success" && "$tauri" != "skipped" ]] || \
              [[ "$docker" != "success" && "$docker" != "skipped" ]]; then
             echo "❌ One or more jobs failed"
             echo "Repository Hygiene: $hygiene"
@@ -574,6 +643,7 @@ jobs:
             echo "Linux E2E: $e2e"
             echo "Linux Frontend: $frontend"
             echo "Linux Frontend Performance: $frontend_perf"
+            echo "Tauri Build: $tauri"
             echo "Docker: $docker"
             exit 1
           fi
@@ -593,6 +663,7 @@ jobs:
           e2e="${{ needs.linux-e2e.result }}"
           frontend="${{ needs.linux-frontend.result }}"
           frontend_perf="${{ needs.linux-frontend-performance.result }}"
+          tauri="${{ needs.tauri-build.result }}"
           docker="${{ needs.docker-build.result }}"
 
           status_icon() {
@@ -610,6 +681,7 @@ jobs:
           echo "| Linux E2E (Playwright) | $(status_icon "$e2e") $e2e |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Frontend Tests (3 Shards) | $(status_icon "$frontend") $frontend |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Frontend Performance | $(status_icon "$frontend_perf") $frontend_perf |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tauri Build (Linux Smoke) | $(status_icon "$tauri") $tauri |" >> $GITHUB_STEP_SUMMARY
           echo "| Docker Build | $(status_icon "$docker") $docker |" >> $GITHUB_STEP_SUMMARY
           echo "| Lightweight Checks | ℹ️ non-blocking |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
