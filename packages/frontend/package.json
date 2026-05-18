@@ -87,6 +87,8 @@
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@tanstack/devtools-vite": "^0.7.0",
+    "@tanstack/react-form-devtools": "^0.2.27",
+    "@tanstack/react-pacer-devtools": "^0.7.1",
     "@tanstack/router-plugin": "^1.168.6",
     "@tauri-apps/cli": "^2.11.2",
     "@testing-library/jest-dom": "^6.9.1",
