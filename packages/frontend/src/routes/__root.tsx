@@ -22,9 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 if (!window.location.pathname.startsWith('/server/setup') && !window.location.pathname.startsWith('/server/manage')) {
   setSetupRedirectInProgress(false);
 }
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { Toaster } from 'sonner';
 
 interface RootContext {
@@ -58,8 +56,6 @@ function RootComponent() {
     <Provider>
       <ConfirmProvider>
         <Outlet />
-        <ReactQueryDevtools initialIsOpen={false} />
-        <TanStackRouterDevtools />
         <Toaster duration={4000} position="bottom-right" closeButton theme="system" richColors />
       </ConfirmProvider>
     </Provider>

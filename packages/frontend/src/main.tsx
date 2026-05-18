@@ -2,7 +2,7 @@ import '@fontsource-variable/inter/index.css';
 import './index.tailwind.css';
 import { routeTree } from '@/routeTree.gen';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
-import { StrictMode } from 'react';
+import { StrictMode, lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { QueryProvider } from '@/provider/query-client.provider';
 import { logger } from '@/shared/lib/logger';
@@ -52,6 +52,31 @@ declare module '@tanstack/react-router' {
   }
 }
 
+// Devtools nur im Dev-Build laden, damit Production-Bundle nichts davon mitzieht
+const DevTools = import.meta.env.DEV
+  ? lazy(async () => {
+      const [{ TanStackDevtools }, { ReactQueryDevtoolsPanel }, { TanStackRouterDevtoolsPanel }, { FormDevtoolsPanel }, { PacerDevtoolsPanel }] = await Promise.all([
+        import('@tanstack/react-devtools'),
+        import('@tanstack/react-query-devtools'),
+        import('@tanstack/react-router-devtools'),
+        import('@tanstack/react-form-devtools'),
+        import('@tanstack/react-pacer-devtools'),
+      ]);
+      return {
+        default: () => (
+          <TanStackDevtools
+            plugins={[
+              { name: 'TanStack Query', render: <ReactQueryDevtoolsPanel /> },
+              { name: 'TanStack Router', render: <TanStackRouterDevtoolsPanel router={router} /> },
+              { name: 'TanStack Form', render: <FormDevtoolsPanel /> },
+              { name: 'TanStack Pacer', render: <PacerDevtoolsPanel /> },
+            ]}
+          />
+        ),
+      };
+    })
+  : null;
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('Root element not found');
@@ -62,6 +87,11 @@ root.render(
     <QueryProvider>
       <PushSubscriptionManager />
       <RouterProvider router={router} />
+      {DevTools ? (
+        <Suspense fallback={null}>
+          <DevTools />
+        </Suspense>
+      ) : null}
     </QueryProvider>
   </StrictMode>,
 );
