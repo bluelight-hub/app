@@ -97,7 +97,7 @@
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "@types/node": "^25.8.0",
     "@types/pg": "^8.15.0",
-    "@types/react": "^19.2.14",
+    "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@types/zxcvbn": "^4.4.5",
     "@vitejs/plugin-react": "^6.0.2",
