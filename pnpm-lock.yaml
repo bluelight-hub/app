@@ -138,8 +138,8 @@ importers:
         specifier: ^1.4.7
         version: 1.4.7
       date-fns:
-        specifier: ^4.1.0
-        version: 4.1.0
+        specifier: ^4.4.0
+        version: 4.4.0
       helmet:
         specifier: ^8.1.0
         version: 8.1.0
@@ -376,8 +376,8 @@ importers:
         specifier: ^3.4.2
         version: 3.4.2
       date-fns:
-        specifier: ^4.1.0
-        version: 4.1.0
+        specifier: ^4.4.0
+        version: 4.4.0
       dompurify:
         specifier: ^3.4.2
         version: 3.4.2
@@ -419,7 +419,7 @@ importers:
         version: 8.1.1(mapbox-gl@3.22.0)(maplibre-gl@5.24.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       recharts:
         specifier: ^3.8.1
-        version: 3.8.1(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react-is@19.2.6)(react@19.2.6)(redux@5.0.1)
+        version: 3.8.1(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react-is@19.2.7)(react@19.2.6)(redux@5.0.1)
       socket.io-client:
         specifier: ^4.8.3
         version: 4.8.3
@@ -937,6 +937,10 @@ packages:
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/code-frame@7.29.7':
+    resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/compat-data@7.29.0':
     resolution: {integrity: sha512-T1NCJqT/j9+cn8fvkt7jtwbLBfLC/1y1c7NtCeXFRgzGTsafi68MRv8yzkYSapBnFA6L3U2VSc02ciDzoAJhJg==}
     engines: {node: '>=6.9.0'}
@@ -1026,6 +1030,10 @@ packages:
 
   '@babel/helper-validator-identifier@7.28.5':
     resolution: {integrity: sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/helper-validator-identifier@7.29.7':
+    resolution: {integrity: sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-validator-option@7.27.1':
@@ -1508,6 +1516,10 @@ packages:
 
   '@babel/runtime@7.29.2':
     resolution: {integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/runtime@7.29.7':
+    resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.28.6':
@@ -3994,10 +4006,12 @@ packages:
   '@smithy/core@3.24.0':
     resolution: {integrity: sha512-rZ5YfycIXX6puoGjthnDiMpUgtKNOq3c7CndQYkCNYQTv26AiCrZQOJPy7ANSfZ6Okk3UvCRnmO1OYWlLnYZgg==}
     engines: {node: '>=18.0.0'}
+    deprecated: Deprecated due to incompatibility with Node.js 18 in some environments https://github.com/smithy-lang/smithy-typescript/issues/2022
 
   '@smithy/core@3.24.1':
     resolution: {integrity: sha512-3mT7o4qQyUWttYnVK3A0Z/u3Xha3E81tXn32Tz6vjZiUXhBrkEivpw1hBYfh84iFF9CSzkBU9Y1DJ3Q6RQ231g==}
     engines: {node: '>=18.0.0'}
+    deprecated: Deprecated due to bug in browser bundling instructions https://github.com/smithy-lang/smithy-typescript/issues/2025
 
   '@smithy/credential-provider-imds@4.2.14':
     resolution: {integrity: sha512-Au28zBN48ZAoXdooGUHemuVBrkE+Ie6RPmGNIAJsFqj33Vhb6xAgRifUydZ2aY+M+KaMAETAlKk5NC5h1G7wpg==}
@@ -6858,8 +6872,8 @@ packages:
     resolution: {integrity: sha512-Gy+17ia7m9Uy+nKQHDd7fljdq0fqqfpgkpxlwW0x1oFKI7RcgDV32pMCfHtv4HKychP6fHtncj3Lf4VN/g4G6A==}
     engines: {node: '>=12.0.0'}
 
-  date-fns@4.1.0:
-    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
+  date-fns@4.4.0:
+    resolution: {integrity: sha512-+1UMbeh68lH1SegH83CGWwpb6OHHbpSgr3+s5Eww5M4CAgswBpoWS0AjTOfEJ33HiYKz1hdj/KTFprzXHmq/6w==}
 
   dateformat@3.0.3:
     resolution: {integrity: sha512-jyCETtSl3VMZMWeRo7iY1FL19ges1t55hMo5yaam4Jrsm5EPL89UQkoQRyiI+Yf4k8r2ZpdngkV8hr1lIdjb3Q==}
@@ -9941,8 +9955,8 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-is@19.2.6:
-    resolution: {integrity: sha512-XjBR15BhXuylgWGuslhDKqlSayuqvqBX91BP8pauG8kd1zY8kotkNWbXksTCNRarse4kuGbe2kIY05ARtwNIvw==}
+  react-is@19.2.7:
+    resolution: {integrity: sha512-kZFnouyVv7eP/Phmrlo9FK+zcAdriZJvzxXHF1Sl1P377WSGe2G/JxVolhTrB/jeV47lKImhNUsijjHAAbcl/A==}
 
   react-map-gl@8.1.1:
     resolution: {integrity: sha512-aSqFAFoxvY7wxbGI93Dz0E41171mkAb3GcNbnkFIotmu88OFw495os6mIDZSi7irYNT/PZEIOEHUxhun4ToGuQ==}
@@ -12918,6 +12932,12 @@ snapshots:
       js-tokens: 4.0.0
       picocolors: 1.1.1
 
+  '@babel/code-frame@7.29.7':
+    dependencies:
+      '@babel/helper-validator-identifier': 7.29.7
+      js-tokens: 4.0.0
+      picocolors: 1.1.1
+
   '@babel/compat-data@7.29.0': {}
 
   '@babel/core@7.28.6':
@@ -13079,6 +13099,8 @@ snapshots:
   '@babel/helper-string-parser@7.27.1': {}
 
   '@babel/helper-validator-identifier@7.28.5': {}
+
+  '@babel/helper-validator-identifier@7.29.7': {}
 
   '@babel/helper-validator-option@7.27.1': {}
 
@@ -13660,6 +13682,8 @@ snapshots:
       esutils: 2.0.3
 
   '@babel/runtime@7.29.2': {}
+
+  '@babel/runtime@7.29.7': {}
 
   '@babel/template@7.28.6':
     dependencies:
@@ -17073,8 +17097,8 @@ snapshots:
 
   '@testing-library/dom@10.4.1':
     dependencies:
-      '@babel/code-frame': 7.29.0
-      '@babel/runtime': 7.29.2
+      '@babel/code-frame': 7.29.7
+      '@babel/runtime': 7.29.7
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
@@ -20163,7 +20187,7 @@ snapshots:
       - encoding
       - supports-color
 
-  date-fns@4.1.0: {}
+  date-fns@4.4.0: {}
 
   dateformat@3.0.3: {}
 
@@ -23254,7 +23278,7 @@ snapshots:
       '@jest/schemas': 30.4.1
       ansi-styles: 5.2.0
       react-is-18: react-is@18.3.1
-      react-is-19: react-is@19.2.6
+      react-is-19: react-is@19.2.7
 
   pretty-ms@7.0.1:
     dependencies:
@@ -23438,7 +23462,7 @@ snapshots:
     dependencies:
       '@floating-ui/react': 0.27.19(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       clsx: 2.1.1
-      date-fns: 4.1.0
+      date-fns: 4.4.0
       react: 19.2.6
       react-dom: 19.2.6(react@19.2.6)
 
@@ -23464,7 +23488,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-is@19.2.6: {}
+  react-is@19.2.7: {}
 
   react-map-gl@8.1.1(mapbox-gl@3.22.0)(maplibre-gl@5.24.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6):
     dependencies:
@@ -23576,7 +23600,7 @@ snapshots:
 
   readdirp@5.0.0: {}
 
-  recharts@3.8.1(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react-is@19.2.6)(react@19.2.6)(redux@5.0.1):
+  recharts@3.8.1(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react-is@19.2.7)(react@19.2.6)(redux@5.0.1):
     dependencies:
       '@reduxjs/toolkit': 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1))(react@19.2.6)
       clsx: 2.1.1
@@ -23586,7 +23610,7 @@ snapshots:
       immer: 10.2.0
       react: 19.2.6
       react-dom: 19.2.6(react@19.2.6)
-      react-is: 19.2.6
+      react-is: 19.2.7
       react-redux: 9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1)
       reselect: 5.1.1
       tiny-invariant: 1.3.3
