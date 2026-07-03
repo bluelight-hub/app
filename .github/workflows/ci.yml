@@ -533,7 +533,7 @@ jobs:
       # Gleicher tauri-action@v0 wie release.yml → einheitlicher Codepfad,
       # PR-grün-aber-Release-rot-Drift wird strukturell vermieden.
       - name: Build Tauri
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
