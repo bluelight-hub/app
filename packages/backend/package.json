@@ -96,10 +96,10 @@
   },
   "devDependencies": {
     "@compodoc/compodoc": "^1.2.1",
-    "@nestjs/cli": "^11.0.21",
-    "@nestjs/testing": "^11.1.21",
+    "@nestjs/cli": "^11.0.23",
+    "@nestjs/testing": "^11.1.27",
     "@swc/cli": "^0.8.1",
-    "@swc/core": "^1.15.33",
+    "@swc/core": "^1.15.43",
     "@swc/jest": "^0.2.39",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
@@ -113,8 +113,8 @@
     "@types/supertest": "^7.2.0",
     "@types/ua-parser-js": "^0.7.39",
     "@types/web-push": "^3.6.4",
-    "artillery": "^2.0.31",
-    "globals": "^17.6.0",
+    "artillery": "^2.0.33",
+    "globals": "^17.7.0",
     "jest": "^30.4.2",
     "jsonwebtoken": "^9.0.3",
     "madge": "^8.0.0",
@@ -123,7 +123,7 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.22.1",
+    "tsx": "^4.23.0",
     "typescript": "^6.0.3"
   }
 }
