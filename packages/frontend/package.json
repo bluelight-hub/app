@@ -85,12 +85,12 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.60.0",
-    "@tanstack/devtools-vite": "^0.7.0",
-    "@tanstack/react-form-devtools": "^0.2.27",
+    "@playwright/test": "^1.61.1",
+    "@tanstack/devtools-vite": "^0.8.3",
+    "@tanstack/react-form-devtools": "^0.2.31",
     "@tanstack/react-pacer-devtools": "^0.7.1",
-    "@tanstack/router-plugin": "^1.168.6",
-    "@tauri-apps/cli": "^2.11.2",
+    "@tanstack/router-plugin": "^1.168.23",
+    "@tauri-apps/cli": "^2.11.4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -100,17 +100,17 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/zxcvbn": "^4.4.5",
-    "@vitejs/plugin-react": "^6.0.2",
-    "@vitest/coverage-v8": "^4.1.6",
-    "@vitest/ui": "^4.1.6",
-    "axe-core": "^4.11.4",
-    "baseline-browser-mapping": "^2.10.30",
+    "@vitejs/plugin-react": "^6.0.4",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/ui": "^4.1.10",
+    "axe-core": "^4.12.1",
+    "baseline-browser-mapping": "^2.11.1",
     "bcryptjs": "^3.0.2",
-    "globals": "^17.6.0",
+    "globals": "^17.7.0",
     "jsdom": "^29.1.1",
     "pg": "^8.20.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.13",
-    "vitest": "^4.1.6"
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10"
   }
 }
